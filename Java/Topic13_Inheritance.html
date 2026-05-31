@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 13 — Inheritance in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 60%, #818cf8 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #3730a3; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #1e1b4b; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #3730a3; padding-bottom: 12px; }
+  .section-num { background: #3730a3; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #1e1b4b; }
+  h3 { font-size: 1.05rem; color: #3730a3; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #eef2ff; border-left: 4px solid #3730a3; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #1e1b4b; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #eef2ff; }
+  tr:hover { background: #e0e7ff; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #1e1b4b; margin-top: 0; }
+  .inh-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+  .inh-card { border-radius: 10px; padding: 14px; text-align: center; border: 2px solid; }
+  .inh-single { background: #eef2ff; border-color: #a5b4fc; }
+  .inh-multi  { background: #fef2f2; border-color: #fca5a5; }
+  .inh-multi  .inh-title { color: #dc2626; }
+  .inh-hier   { background: #f0fdf4; border-color: #86efac; }
+  .inh-hybrid { background: #fffbeb; border-color: #fcd34d; }
+  .inh-hybrid .inh-title { color: #d97706; }
+  .inh-level  { background: #fdf4ff; border-color: #d8b4fe; }
+  .inh-title  { font-weight: 800; font-size: 0.88rem; margin-bottom: 6px; color: #1e1b4b; }
+  .inh-card p { font-size: 0.8rem; color: #4b5563; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #3730a3; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 13 OF 26</div>
+  <h1>🧬 Inheritance in Java</h1>
+  <p>extends · Types · Method Overriding · super · IS-A · HAS-A · final</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is Inheritance?</a></li>
+    <li><a href="#syntax">Syntax — extends keyword</a></li>
+    <li><a href="#types">Types of Inheritance</a></li>
+    <li><a href="#what-inherited">What is Inherited?</a></li>
+    <li><a href="#overriding">Method Overriding</a></li>
+    <li><a href="#super">super keyword in Inheritance</a></li>
+    <li><a href="#isa-hasa">IS-A vs HAS-A Relationship</a></li>
+    <li><a href="#final">final with Inheritance</a></li>
+    <li><a href="#multilevel">Multilevel Inheritance</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is Inheritance?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> Inheritance is the OOP mechanism where a <strong>child class (subclass)</strong> acquires the properties and behaviors of a <strong>parent class (superclass)</strong>. It promotes <strong>code reusability</strong> and establishes an IS-A relationship.
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Real World Analogy</h4>
+      <p>A child inherits traits from parents — eye color, height. But the child also has their own unique traits.</p>
+      <p>Similarly, a subclass inherits fields and methods from the parent class, and can also add its own.</p>
+    </div>
+    <div class="col-box">
+      <h4>Key Terms</h4>
+      <ul>
+        <li><strong>Parent / Super / Base class</strong> — gives properties</li>
+        <li><strong>Child / Sub / Derived class</strong> — receives properties</li>
+        <li><strong>extends</strong> — keyword used for inheritance</li>
+        <li><strong>IS-A</strong> — relationship type (Dog IS-A Animal)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Why Inheritance?</h3>
+  <ul>
+    <li><strong>Code Reusability</strong> — write once in parent, use in all children</li>
+    <li><strong>Method Overriding</strong> — customize parent behavior in child</li>
+    <li><strong>Polymorphism</strong> — parent reference can hold child object</li>
+    <li><strong>Extensibility</strong> — add new features without modifying existing code</li>
+  </ul>
+</div>
+
+
+<!-- SECTION 2: SYNTAX -->
+<div class="section" id="syntax">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Syntax — extends Keyword</div>
+  </div>
+
+<pre><span class="cm">// Parent class (Superclass)</span>
+<span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span>    age;
+
+    <span class="kw">public void</span> eat() {
+        System.out.println(name + <span class="st">" is eating"</span>);
+    }
+
+    <span class="kw">public void</span> breathe() {
+        System.out.println(<span class="st">"Breathing..."</span>);
+    }
+}
+
+<span class="cm">// Child class (Subclass) — inherits from Animal</span>
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> breed;  <span class="cm">// Dog's own field</span>
+
+    <span class="kw">public void</span> bark() {   <span class="cm">// Dog's own method</span>
+        System.out.println(name + <span class="st">" says: Woof!"</span>);
+    }
+}
+
+<span class="cm">// Dog inherits name, age, eat(), breathe() from Animal</span>
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();
+d.name  = <span class="st">"Bruno"</span>;
+d.breed = <span class="st">"Labrador"</span>;
+d.eat();     <span class="cm">// inherited from Animal — Bruno is eating</span>
+d.breathe(); <span class="cm">// inherited from Animal</span>
+d.bark();    <span class="cm">// Dog's own — Bruno says: Woof!</span></pre>
+</div>
+
+
+<!-- SECTION 3: TYPES -->
+<div class="section" id="types">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Types of Inheritance</div>
+  </div>
+
+  <div class="inh-types">
+    <div class="inh-card inh-single">
+      <div class="inh-title">✅ Single</div>
+      <p>One child extends one parent.<br>A → B</p>
+    </div>
+    <div class="inh-card inh-level">
+      <div class="inh-title">✅ Multilevel</div>
+      <p>Chain of inheritance.<br>A → B → C</p>
+    </div>
+    <div class="inh-card inh-hier">
+      <div class="inh-title">✅ Hierarchical</div>
+      <p>Multiple children, one parent.<br>A → B, A → C</p>
+    </div>
+    <div class="inh-card inh-multi">
+      <div class="inh-title">❌ Multiple</div>
+      <p>One child, multiple parents.<br>NOT supported with classes!</p>
+    </div>
+    <div class="inh-card inh-hybrid">
+      <div class="inh-title">⚠️ Hybrid</div>
+      <p>Combination of types.<br>Only via interfaces in Java</p>
+    </div>
+  </div>
+
+<pre><span class="cm">// Single Inheritance — A extends B</span>
+<span class="kw">class</span> <span class="cl">Animal</span> { }
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> { }  <span class="cm">// ✅</span>
+
+<span class="cm">// Multilevel Inheritance — A → B → C</span>
+<span class="kw">class</span> <span class="cl">Animal</span> { }
+<span class="kw">class</span> <span class="cl">Dog</span>    <span class="kw">extends</span> <span class="cl">Animal</span> { }
+<span class="kw">class</span> <span class="cl">Puppy</span>  <span class="kw">extends</span> <span class="cl">Dog</span>    { }  <span class="cm">// ✅ Puppy gets Animal + Dog</span>
+
+<span class="cm">// Hierarchical — multiple children, one parent</span>
+<span class="kw">class</span> <span class="cl">Animal</span> { }
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> { }   <span class="cm">// ✅</span>
+<span class="kw">class</span> <span class="cl">Cat</span> <span class="kw">extends</span> <span class="cl">Animal</span> { }   <span class="cm">// ✅</span>
+
+<span class="cm">// Multiple Inheritance — NOT allowed with classes</span>
+<span class="cm">// class Dog extends Animal, Pet { } ❌ compile error!</span>
+
+<span class="cm">// Multiple Inheritance — allowed with interfaces</span>
+<span class="kw">interface</span> <span class="cl">Animal</span> { }
+<span class="kw">interface</span> <span class="cl">Pet</span>    { }
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">implements</span> <span class="cl">Animal</span>, <span class="cl">Pet</span> { }  <span class="cm">// ✅ OK with interfaces</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Why no multiple inheritance with classes in Java?</strong><br>
+    The <strong>Diamond Problem</strong> — if class C extends both A and B, and both A and B have the same method, which one does C inherit? This ambiguity is why Java doesn't allow multiple class inheritance. Interfaces solve this because they either have no implementation (before Java 8) or the implementing class must override the conflicting method.
+  </div>
+</div>
+
+
+<!-- SECTION 4: WHAT INHERITED -->
+<div class="section" id="what-inherited">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">What is Inherited?</div>
+  </div>
+
+  <table>
+    <tr><th>What</th><th>Inherited?</th><th>Notes</th></tr>
+    <tr><td>public fields</td><td>✅ Yes</td><td>Directly accessible in subclass</td></tr>
+    <tr><td>protected fields</td><td>✅ Yes</td><td>Accessible in subclass</td></tr>
+    <tr><td>default fields</td><td>✅ Yes (same package)</td><td>Only if in same package</td></tr>
+    <tr><td>private fields</td><td>❌ No</td><td>Not directly accessible — use getters</td></tr>
+    <tr><td>public methods</td><td>✅ Yes</td><td>Can be overridden</td></tr>
+    <tr><td>protected methods</td><td>✅ Yes</td><td>Can be overridden</td></tr>
+    <tr><td>private methods</td><td>❌ No</td><td>Not inherited, not overridable</td></tr>
+    <tr><td>static methods</td><td>✅ Yes (method hiding)</td><td>Not overriding — it's method hiding</td></tr>
+    <tr><td>Constructors</td><td>❌ No</td><td>Not inherited but called via super()</td></tr>
+  </table>
+
+  <div class="info-box">
+    <strong>Private fields ARE in the subclass object but not directly accessible.</strong><br>
+    When you create a Dog object, the Animal's private fields (like <code>name</code>) exist in memory inside the Dog object — they're just not directly accessible. You access them via the parent's public/protected getter methods.
+  </div>
+</div>
+
+
+<!-- SECTION 5: METHOD OVERRIDING -->
+<div class="section" id="overriding">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Method Overriding</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> When a subclass provides its own implementation of a method that is already defined in the parent class. Same method name, same parameters, same return type (or covariant). Resolved at <strong>runtime</strong> (dynamic polymorphism).
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="kw">public void</span> sound() {
+        System.out.println(<span class="st">"Some animal sound"</span>);
+    }
+
+    <span class="kw">public void</span> sleep() {
+        System.out.println(<span class="st">"Sleeping..."</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> sound() {   <span class="cm">// Override — same signature</span>
+        System.out.println(<span class="st">"Woof!"</span>);
+    }
+    <span class="cm">// sleep() NOT overridden — inherited as-is</span>
+}
+
+<span class="kw">class</span> <span class="cl">Cat</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> sound() {
+        System.out.println(<span class="st">"Meow!"</span>);
+    }
+}
+
+<span class="cm">// Runtime polymorphism — parent ref, child object</span>
+<span class="cl">Animal</span> a1 = <span class="kw">new</span> <span class="cl">Dog</span>();
+<span class="cl">Animal</span> a2 = <span class="kw">new</span> <span class="cl">Cat</span>();
+a1.sound();  <span class="cm">// Woof!  (Dog's version called at runtime)</span>
+a2.sound();  <span class="cm">// Meow!  (Cat's version called at runtime)</span></pre>
+
+  <h3>Method Overriding Rules</h3>
+  <table>
+    <tr><th>Rule</th><th>Detail</th></tr>
+    <tr><td>Same method name</td><td>Must be exactly the same</td></tr>
+    <tr><td>Same parameters</td><td>Same number, type, order</td></tr>
+    <tr><td>Same or covariant return type</td><td>Can return subtype of original return type</td></tr>
+    <tr><td>Access modifier</td><td>Cannot reduce — can only keep same or increase</td></tr>
+    <tr><td>@Override annotation</td><td>Recommended — compiler checks you're actually overriding</td></tr>
+    <tr><td>Cannot override</td><td>private, static, final methods</td></tr>
+    <tr><td>Exception</td><td>Cannot throw broader checked exceptions than parent</td></tr>
+  </table>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Method Overloading</h4>
+      <p>Same class, different parameters</p>
+      <p>Compile time (Static polymorphism)</p>
+      <p>Return type can differ</p>
+    </div>
+    <div class="col-box">
+      <h4>Method Overriding</h4>
+      <p>Parent-child classes, same parameters</p>
+      <p>Runtime (Dynamic polymorphism)</p>
+      <p>Return type must be same or covariant</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 6: SUPER -->
+<div class="section" id="super">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">super Keyword in Inheritance</div>
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> type = <span class="st">"Animal"</span>;
+
+    <span class="cl">Animal</span>(<span class="cl">String</span> type) {
+        <span class="kw">this</span>.type = type;
+        System.out.println(<span class="st">"Animal constructor: "</span> + type);
+    }
+
+    <span class="kw">public void</span> describe() {
+        System.out.println(<span class="st">"I am an animal"</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> type = <span class="st">"Dog"</span>;  <span class="cm">// shadows Animal's type</span>
+
+    <span class="cm">// super() — call parent constructor</span>
+    <span class="cl">Dog</span>(<span class="cl">String</span> breed) {
+        <span class="kw">super</span>(<span class="st">"Canine"</span>);   <span class="cm">// MUST be first line</span>
+        System.out.println(<span class="st">"Dog constructor: "</span> + breed);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> describe() {
+        <span class="kw">super</span>.describe();           <span class="cm">// call parent method</span>
+        System.out.println(<span class="st">"I am also a Dog"</span>);
+    }
+
+    <span class="kw">public void</span> showTypes() {
+        System.out.println(<span class="kw">super</span>.type);  <span class="cm">// Canine (parent's)</span>
+        System.out.println(<span class="kw">this</span>.type);   <span class="cm">// Dog (own)</span>
+    }
+}
+
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Labrador"</span>);
+<span class="cm">// Output:
+// Animal constructor: Canine
+// Dog constructor: Labrador</span>
+
+d.describe();
+<span class="cm">// Output:
+// I am an animal
+// I am also a Dog</span></pre>
+</div>
+
+
+<!-- SECTION 7: IS-A HAS-A -->
+<div class="section" id="isa-hasa">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">IS-A vs HAS-A Relationship</div>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>IS-A — Inheritance</h4>
+      <p>Use <code>extends</code> or <code>implements</code></p>
+      <p>"Dog IS-A Animal" → Dog extends Animal</p>
+      <p>"Car IS-A Vehicle" → Car extends Vehicle</p>
+      <p>Child IS a type of Parent</p>
+    </div>
+    <div class="col-box">
+      <h4>HAS-A — Composition</h4>
+      <p>One class has a reference to another</p>
+      <p>"Car HAS-A Engine" → Car contains Engine object</p>
+      <p>"Student HAS-A Address" → Student has Address field</p>
+      <p>One class uses another class</p>
+    </div>
+  </div>
+
+<pre><span class="cm">// IS-A — inheritance</span>
+<span class="kw">class</span> <span class="cl">Animal</span> { <span class="kw">void</span> eat() {} }
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> { }  <span class="cm">// Dog IS-A Animal</span>
+
+<span class="cm">// HAS-A — composition</span>
+<span class="kw">class</span> <span class="cl">Engine</span> {
+    <span class="kw">void</span> start() { System.out.println(<span class="st">"Engine started"</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">Car</span> {
+    <span class="kw">private</span> <span class="cl">Engine</span> engine = <span class="kw">new</span> <span class="cl">Engine</span>();  <span class="cm">// Car HAS-A Engine</span>
+
+    <span class="kw">void</span> drive() {
+        engine.start();  <span class="cm">// uses Engine</span>
+        System.out.println(<span class="st">"Driving..."</span>);
+    }
+}
+
+<span class="cm">// Test IS-A with instanceof</span>
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();
+System.out.println(d <span class="kw">instanceof</span> <span class="cl">Dog</span>);     <span class="cm">// true</span>
+System.out.println(d <span class="kw">instanceof</span> <span class="cl">Animal</span>);  <span class="cm">// true — IS-A!</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 When to use which:</strong><br>
+    <strong>IS-A (Inheritance)</strong> — when child truly IS a type of parent. Dog IS-A Animal ✅. Car IS-A Engine ❌ (wrong!)<br>
+    <strong>HAS-A (Composition)</strong> — when one object uses another. Car HAS-A Engine ✅. Prefer composition over inheritance when in doubt — it's more flexible!
+  </div>
+</div>
+
+
+<!-- SECTION 8: FINAL -->
+<div class="section" id="final">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">final with Inheritance</div>
+  </div>
+
+  <table>
+    <tr><th>Where used</th><th>Effect</th><th>Example</th></tr>
+    <tr><td><code>final class</code></td><td>Cannot be extended (subclassed)</td><td><code>String</code>, <code>Integer</code> are final</td></tr>
+    <tr><td><code>final method</code></td><td>Cannot be overridden by subclass</td><td>Security-critical methods</td></tr>
+    <tr><td><code>final variable</code></td><td>Cannot be reassigned (constant)</td><td><code>final int MAX = 100;</code></td></tr>
+  </table>
+
+<pre><span class="cm">// final class — cannot be extended</span>
+<span class="kw">final class</span> <span class="cl">MathUtils</span> {
+    <span class="kw">public static int</span> square(<span class="kw">int</span> n) { <span class="kw">return</span> n * n; }
+}
+<span class="cm">// class MyMath extends MathUtils { } ❌ compile error!</span>
+
+<span class="cm">// final method — cannot be overridden</span>
+<span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="kw">public final void</span> breathe() {
+        System.out.println(<span class="st">"Breathing..."</span>);
+    }
+    <span class="kw">public void</span> sound() { }  <span class="cm">// can be overridden</span>
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="cm">// @Override breathe() ❌ compile error — final!</span>
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> sound() { System.out.println(<span class="st">"Woof!"</span>); }  <span class="cm">// ✅</span>
+}</pre>
+
+  <div class="info-box">
+    <strong>Why is String final?</strong> String is final to ensure immutability and security. If String could be subclassed, someone could create a malicious String subclass that behaves differently — this would be a security risk since strings are used everywhere (file paths, network connections, class loading).
+  </div>
+</div>
+
+
+<!-- SECTION 9: MULTILEVEL -->
+<div class="section" id="multilevel">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Multilevel Inheritance — Constructor Chain</div>
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="cl">Animal</span>() { System.out.println(<span class="st">"Animal constructor"</span>); }
+    <span class="kw">void</span> eat()   { System.out.println(<span class="st">"Eating"</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="cl">Dog</span>() {
+        <span class="kw">super</span>();  <span class="cm">// auto-added by Java if not written</span>
+        System.out.println(<span class="st">"Dog constructor"</span>);
+    }
+    <span class="kw">void</span> bark()  { System.out.println(<span class="st">"Barking"</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">Puppy</span> <span class="kw">extends</span> <span class="cl">Dog</span> {
+    <span class="cl">Puppy</span>() {
+        <span class="kw">super</span>();  <span class="cm">// calls Dog() which calls Animal()</span>
+        System.out.println(<span class="st">"Puppy constructor"</span>);
+    }
+    <span class="kw">void</span> play()  { System.out.println(<span class="st">"Playing"</span>); }
+}
+
+<span class="cl">Puppy</span> p = <span class="kw">new</span> <span class="cl">Puppy</span>();
+<span class="cm">// Output (parent constructors first!):
+// Animal constructor
+// Dog constructor
+// Puppy constructor</span>
+
+p.eat();   <span class="cm">// ✅ inherited from Animal</span>
+p.bark();  <span class="cm">// ✅ inherited from Dog</span>
+p.play();  <span class="cm">// ✅ own method</span></pre>
+
+  <div class="highlight-box">
+    <strong>Constructor execution order in inheritance:</strong><br>
+    Always <strong>top to bottom</strong> — parent constructor runs first, then child. This ensures the parent is fully initialized before the child adds its own state.
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is inheritance? What are its types in Java?</div>
+    <div class="a">Inheritance is the mechanism where a child class acquires properties and behaviors of a parent class using the <code>extends</code> keyword. Types supported in Java: Single (A→B), Multilevel (A→B→C), Hierarchical (A→B, A→C). Multiple inheritance with classes is NOT supported due to the Diamond Problem — but it is supported through interfaces.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. Why doesn't Java support multiple inheritance with classes?</div>
+    <div class="a">Java avoids multiple class inheritance to prevent the Diamond Problem. If class C extends both A and B, and both have the same method, there is ambiguity about which version C should inherit. Java solves this by allowing multiple inheritance only through interfaces, where the implementing class must explicitly override any conflicting default methods.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is method overriding? What are its rules?</div>
+    <div class="a">Method overriding is when a subclass provides its own implementation of a method already defined in the parent class. Rules: same method name, same parameters, same or covariant return type, cannot reduce access modifier (public can't become protected), cannot override private/static/final methods, and it is resolved at runtime (dynamic polymorphism). The @Override annotation is recommended for compile-time verification.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the difference between method overloading and overriding?</div>
+    <div class="a">Overloading is in the same class with different parameters — resolved at compile time (static polymorphism). Overriding is in parent-child classes with identical signatures — resolved at runtime (dynamic polymorphism). Overloading can have different return types; overriding must have same or covariant return type. You cannot override private or static methods.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is the IS-A and HAS-A relationship?</div>
+    <div class="a">IS-A is the inheritance relationship — Dog IS-A Animal (Dog extends Animal). It means the child is a specialized type of parent. HAS-A is the composition relationship — Car HAS-A Engine (Car contains an Engine object as a field). Composition is generally preferred over inheritance when the relationship is not truly IS-A, as it provides more flexibility and looser coupling.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Can you override a static method in Java?</div>
+    <div class="a">No. Static methods cannot be overridden — they can only be hidden (method hiding). When you define a static method with the same signature in a subclass, it creates a new method that hides the parent's. The key difference: overriding is resolved at runtime based on object type; method hiding is resolved at compile time based on reference type. @Override annotation on a static method causes a compile error.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the order of constructor execution in inheritance?</div>
+    <div class="a">Parent constructors always execute before child constructors. When you create a Puppy (which extends Dog which extends Animal), the order is: Animal() → Dog() → Puppy(). Java automatically inserts super() as the first line of every constructor if you don't write it. This top-down order ensures the parent is fully initialized before the child begins its own initialization.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 13: Inheritance · 13 of 26 complete
+</div>
+
+</body>
+</html>

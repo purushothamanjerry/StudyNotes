@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 15 — Abstract Class in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #1c1917 0%, #44403c 60%, #a8a29e 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #44403c; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #1c1917; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #44403c; padding-bottom: 12px; }
+  .section-num { background: #44403c; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #1c1917; }
+  h3 { font-size: 1.05rem; color: #44403c; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #f5f5f4; border-left: 4px solid #44403c; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #1c1917; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f5f5f4; }
+  tr:hover { background: #e7e5e4; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #1c1917; margin-top: 0; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #44403c; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 15 OF 26</div>
+  <h1>🎭 Abstract Class</h1>
+  <p>abstract keyword · Abstract Methods · Concrete Methods · Template Pattern · Rules</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is an Abstract Class?</a></li>
+    <li><a href="#syntax">Syntax & Basic Example</a></li>
+    <li><a href="#abstract-method">Abstract Methods</a></li>
+    <li><a href="#concrete-method">Concrete Methods</a></li>
+    <li><a href="#rules">All Rules — Must Know</a></li>
+    <li><a href="#constructor">Constructor in Abstract Class</a></li>
+    <li><a href="#realworld">Real World Example — Shape</a></li>
+    <li><a href="#template">Template Method Pattern</a></li>
+    <li><a href="#vs-interface">Abstract Class vs Interface</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is an Abstract Class?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> An abstract class is a class declared with the <code>abstract</code> keyword. It <strong>cannot be instantiated directly</strong> — you must extend it and provide implementations for all abstract methods. It provides a <strong>partial blueprint</strong> — some behavior is defined, some is left for subclasses.
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Real World Analogy</h4>
+      <p>Think of a <strong>Vehicle blueprint</strong> — it defines common properties (speed, fuel) and behaviors (start, stop). But you can't build a "Vehicle" — you build a Car, Bike, or Truck. The Vehicle is the abstract concept.</p>
+    </div>
+    <div class="col-box">
+      <h4>Key Idea</h4>
+      <p>Abstract class = <strong>"Family template"</strong></p>
+      <p>Has some shared code ready to use.</p>
+      <p>Forces subclasses to fill in missing pieces.</p>
+      <p>Represents an <strong>incomplete</strong> concept.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: SYNTAX -->
+<div class="section" id="syntax">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Syntax & Basic Example</div>
+  </div>
+
+<pre><span class="cm">// Abstract class — cannot be instantiated</span>
+<span class="kw">abstract class</span> <span class="cl">Animal</span> {
+
+    <span class="cm">// Instance variable — allowed</span>
+    <span class="cl">String</span> name;
+    <span class="kw">int</span> age;
+
+    <span class="cm">// Abstract method — no body, MUST be overridden</span>
+    <span class="kw">public abstract void</span> makeSound();
+
+    <span class="cm">// Concrete method — has body, inherited as-is</span>
+    <span class="kw">public void</span> eat() {
+        System.out.println(name + <span class="st">" is eating"</span>);
+    }
+
+    <span class="kw">public void</span> sleep() {
+        System.out.println(name + <span class="st">" is sleeping"</span>);
+    }
+}
+
+<span class="cm">// Concrete subclass — MUST implement makeSound()</span>
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> makeSound() {
+        System.out.println(<span class="st">"Woof!"</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Cat</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> makeSound() {
+        System.out.println(<span class="st">"Meow!"</span>);
+    }
+}
+
+<span class="cm">// Animal a = new Animal(); ❌ Cannot instantiate!</span>
+<span class="cl">Animal</span> dog = <span class="kw">new</span> <span class="cl">Dog</span>(); <span class="cm">// ✅ parent ref → child object</span>
+dog.name = <span class="st">"Bruno"</span>;
+dog.makeSound();  <span class="cm">// Woof!</span>
+dog.eat();        <span class="cm">// Bruno is eating (inherited)</span></pre>
+</div>
+
+
+<!-- SECTION 3: ABSTRACT METHODS -->
+<div class="section" id="abstract-method">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Abstract Methods</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Abstract method</strong> = a method declared with <code>abstract</code> keyword that has <strong>NO body</strong>. It ends with a semicolon. The subclass is FORCED to provide an implementation.
+  </div>
+
+<pre><span class="cm">// Abstract method — declaration only, no body</span>
+<span class="kw">public abstract void</span> makeSound();        <span class="cm">// ← ends with ;</span>
+<span class="kw">public abstract double</span> calculateArea();  <span class="cm">// ← no { } block</span>
+<span class="kw">public abstract</span> <span class="cl">String</span> getType();        <span class="cm">// ← must be overridden</span>
+
+<span class="cm">// ❌ These are NOT allowed for abstract methods:</span>
+<span class="cm">// private abstract void method();   — private can't be overridden</span>
+<span class="cm">// static abstract void method();    — static doesn't belong to object</span>
+<span class="cm">// final abstract void method();     — final can't be overridden</span></pre>
+
+  <h3>Rules for Abstract Methods</h3>
+  <ul>
+    <li>Can only be in an <strong>abstract class</strong> or <strong>interface</strong></li>
+    <li>Cannot be <code>private</code> — subclass must be able to override it</li>
+    <li>Cannot be <code>static</code> — abstract means it needs to be overridden by instance</li>
+    <li>Cannot be <code>final</code> — final prevents overriding</li>
+    <li>If subclass does NOT implement all abstract methods → <strong>subclass must also be abstract</strong></li>
+  </ul>
+</div>
+
+
+<!-- SECTION 4: CONCRETE METHODS -->
+<div class="section" id="concrete-method">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Concrete Methods in Abstract Class</div>
+  </div>
+
+  <p>Abstract classes can have <strong>regular (concrete) methods</strong> with full implementation. Subclasses inherit these and can optionally override them.</p>
+
+<pre><span class="kw">abstract class</span> <span class="cl">Vehicle</span> {
+    <span class="kw">private</span> <span class="cl">String</span> brand;
+    <span class="kw">private int</span>    speed;
+
+    <span class="cm">// Constructor</span>
+    <span class="kw">public</span> <span class="cl">Vehicle</span>(<span class="cl">String</span> brand, <span class="kw">int</span> speed) {
+        <span class="kw">this</span>.brand = brand;
+        <span class="kw">this</span>.speed = speed;
+    }
+
+    <span class="cm">// Abstract — subclass must implement</span>
+    <span class="kw">public abstract void</span> fuelType();
+
+    <span class="cm">// Concrete — shared behavior</span>
+    <span class="kw">public void</span> start() {
+        System.out.println(brand + <span class="st">" starting..."</span>);
+    }
+
+    <span class="kw">public void</span> stop() {
+        System.out.println(brand + <span class="st">" stopping..."</span>);
+    }
+
+    <span class="kw">public int</span> getSpeed() { <span class="kw">return</span> speed; }
+    <span class="kw">public</span> <span class="cl">String</span> getBrand() { <span class="kw">return</span> brand; }
+}
+
+<span class="kw">class</span> <span class="cl">Car</span> <span class="kw">extends</span> <span class="cl">Vehicle</span> {
+    <span class="kw">public</span> <span class="cl">Car</span>(<span class="cl">String</span> brand) { <span class="kw">super</span>(brand, <span class="num">120</span>); }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> fuelType() {
+        System.out.println(<span class="st">"Petrol / Diesel"</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">ElectricCar</span> <span class="kw">extends</span> <span class="cl">Vehicle</span> {
+    <span class="kw">public</span> <span class="cl">ElectricCar</span>(<span class="cl">String</span> brand) { <span class="kw">super</span>(brand, <span class="num">150</span>); }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> fuelType() {
+        System.out.println(<span class="st">"Electric battery"</span>);
+    }
+}</pre>
+</div>
+
+
+<!-- SECTION 5: RULES -->
+<div class="section" id="rules">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">All Rules — Must Know</div>
+  </div>
+
+  <table>
+    <tr><th>Rule</th><th>Detail</th></tr>
+    <tr><td>Cannot instantiate</td><td><code>new AbstractClass()</code> → ❌ compile error</td></tr>
+    <tr><td>Can have abstract methods</td><td>Methods with no body, must be overridden</td></tr>
+    <tr><td>Can have concrete methods</td><td>Methods with body, inherited by subclasses</td></tr>
+    <tr><td>Can have constructor</td><td>Called via <code>super()</code> from subclass</td></tr>
+    <tr><td>Can have instance variables</td><td>Any access modifier — private, protected, public</td></tr>
+    <tr><td>Can have static methods</td><td>Yes, static methods allowed</td></tr>
+    <tr><td>Can have static variables</td><td>Yes, static variables allowed</td></tr>
+    <tr><td>Subclass must implement ALL abstract methods</td><td>Or subclass must also be declared abstract</td></tr>
+    <tr><td>Can extend only one abstract class</td><td>Single inheritance rule — same as regular class</td></tr>
+    <tr><td>Zero abstract methods allowed</td><td>A class can be abstract with NO abstract methods — to prevent instantiation</td></tr>
+    <tr><td>Abstract class can implement interface</td><td>Without implementing all interface methods — subclass handles the rest</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ Tricky: Abstract class with ZERO abstract methods is valid!</strong><br>
+    <code>abstract class Config { /* no abstract methods */ }</code> ← perfectly valid!<br>
+    Reason: you may want to prevent direct instantiation while still providing some utility. The <code>abstract</code> keyword alone prevents <code>new Config()</code>.
+  </div>
+</div>
+
+
+<!-- SECTION 6: CONSTRUCTOR -->
+<div class="section" id="constructor">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Constructor in Abstract Class</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Abstract classes CAN have constructors</strong> — even though you can't create objects directly. The constructor is called via <code>super()</code> when a subclass is instantiated.
+  </div>
+
+<pre><span class="kw">abstract class</span> <span class="cl">Shape</span> {
+    <span class="cl">String</span> color;
+
+    <span class="cm">// Abstract class constructor</span>
+    <span class="kw">public</span> <span class="cl">Shape</span>(<span class="cl">String</span> color) {
+        <span class="kw">this</span>.color = color;
+        System.out.println(<span class="st">"Shape created with color: "</span> + color);
+    }
+
+    <span class="kw">public abstract double</span> area();
+}
+
+<span class="kw">class</span> <span class="cl">Circle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+    <span class="kw">double</span> radius;
+
+    <span class="kw">public</span> <span class="cl">Circle</span>(<span class="cl">String</span> color, <span class="kw">double</span> radius) {
+        <span class="kw">super</span>(color);   <span class="cm">// calls Shape constructor</span>
+        <span class="kw">this</span>.radius = radius;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public double</span> area() {
+        <span class="kw">return</span> Math.PI * radius * radius;
+    }
+}
+
+<span class="cl">Circle</span> c = <span class="kw">new</span> <span class="cl">Circle</span>(<span class="st">"Red"</span>, <span class="num">5.0</span>);
+<span class="cm">// Output: Shape created with color: Red</span>
+System.out.println(c.area());  <span class="cm">// 78.53...</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 Why constructor in abstract class?</strong><br>
+    To initialize shared fields (like <code>color</code>, <code>id</code>) that all subclasses need. Instead of each subclass repeating the same initialization code, the parent constructor handles it once.
+  </div>
+</div>
+
+
+<!-- SECTION 7: REAL WORLD -->
+<div class="section" id="realworld">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Real World Example — Shape</div>
+  </div>
+
+<pre><span class="kw">abstract class</span> <span class="cl">Shape</span> {
+    <span class="kw">private</span> <span class="cl">String</span> color;
+
+    <span class="kw">public</span> <span class="cl">Shape</span>(<span class="cl">String</span> color) { <span class="kw">this</span>.color = color; }
+    <span class="kw">public</span> <span class="cl">String</span> getColor()    { <span class="kw">return</span> color; }
+
+    <span class="cm">// Every shape MUST define its area and perimeter</span>
+    <span class="kw">public abstract double</span> area();
+    <span class="kw">public abstract double</span> perimeter();
+
+    <span class="cm">// Shared method — same for all shapes</span>
+    <span class="kw">public void</span> describe() {
+        System.out.println(getClass().getSimpleName() +
+            <span class="st">" | Color: "</span> + color +
+            <span class="st">" | Area: "</span> + String.format(<span class="st">"%.2f"</span>, area()) +
+            <span class="st">" | Perimeter: "</span> + String.format(<span class="st">"%.2f"</span>, perimeter()));
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Circle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+    <span class="kw">private double</span> r;
+    <span class="kw">public</span> <span class="cl">Circle</span>(<span class="cl">String</span> color, <span class="kw">double</span> r) { <span class="kw">super</span>(color); <span class="kw">this</span>.r = r; }
+
+    <span class="an">@Override</span> <span class="kw">public double</span> area()      { <span class="kw">return</span> Math.PI * r * r; }
+    <span class="an">@Override</span> <span class="kw">public double</span> perimeter() { <span class="kw">return</span> <span class="num">2</span> * Math.PI * r; }
+}
+
+<span class="kw">class</span> <span class="cl">Rectangle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+    <span class="kw">private double</span> l, w;
+    <span class="kw">public</span> <span class="cl">Rectangle</span>(<span class="cl">String</span> color, <span class="kw">double</span> l, <span class="kw">double</span> w) {
+        <span class="kw">super</span>(color); <span class="kw">this</span>.l = l; <span class="kw">this</span>.w = w;
+    }
+    <span class="an">@Override</span> <span class="kw">public double</span> area()      { <span class="kw">return</span> l * w; }
+    <span class="an">@Override</span> <span class="kw">public double</span> perimeter() { <span class="kw">return</span> <span class="num">2</span> * (l + w); }
+}
+
+<span class="cm">// Polymorphic usage</span>
+<span class="cl">Shape</span>[] shapes = {
+    <span class="kw">new</span> <span class="cl">Circle</span>(<span class="st">"Red"</span>, <span class="num">5</span>),
+    <span class="kw">new</span> <span class="cl">Rectangle</span>(<span class="st">"Blue"</span>, <span class="num">4</span>, <span class="num">6</span>)
+};
+<span class="kw">for</span> (<span class="cl">Shape</span> s : shapes) s.describe();
+<span class="cm">// Circle  | Color: Red  | Area: 78.54 | Perimeter: 31.42</span>
+<span class="cm">// Rectangle | Color: Blue | Area: 24.00 | Perimeter: 20.00</span></pre>
+</div>
+
+
+<!-- SECTION 8: TEMPLATE METHOD -->
+<div class="section" id="template">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Template Method Pattern</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Template Method Pattern</strong> — define the skeleton of an algorithm in an abstract class, letting subclasses fill in specific steps. The overall structure is fixed; only the details vary.
+  </div>
+
+<pre><span class="kw">abstract class</span> <span class="cl">DataProcessor</span> {
+
+    <span class="cm">// Template method — defines the algorithm skeleton</span>
+    <span class="kw">public final void</span> process() {
+        readData();    <span class="cm">// step 1</span>
+        processData(); <span class="cm">// step 2 — abstract, varies per subclass</span>
+        saveData();    <span class="cm">// step 3</span>
+    }
+
+    <span class="kw">private void</span> readData() {
+        System.out.println(<span class="st">"Reading data from source..."</span>);
+    }
+
+    <span class="cm">// Abstract — each subclass implements differently</span>
+    <span class="kw">protected abstract void</span> processData();
+
+    <span class="kw">private void</span> saveData() {
+        System.out.println(<span class="st">"Saving processed data..."</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">CSVProcessor</span> <span class="kw">extends</span> <span class="cl">DataProcessor</span> {
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> processData() {
+        System.out.println(<span class="st">"Processing CSV data..."</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">JSONProcessor</span> <span class="kw">extends</span> <span class="cl">DataProcessor</span> {
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> processData() {
+        System.out.println(<span class="st">"Processing JSON data..."</span>);
+    }
+}
+
+<span class="kw">new</span> <span class="cl">CSVProcessor</span>().process();
+<span class="cm">// Reading data...  Processing CSV data...  Saving data...</span>
+<span class="kw">new</span> <span class="cl">JSONProcessor</span>().process();
+<span class="cm">// Reading data...  Processing JSON data...  Saving data...</span></pre>
+</div>
+
+
+<!-- SECTION 9: VS INTERFACE -->
+<div class="section" id="vs-interface">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Abstract Class vs Interface</div>
+  </div>
+
+  <table>
+    <tr><th>Feature</th><th>Abstract Class</th><th>Interface</th></tr>
+    <tr><td>Keyword</td><td><code>abstract class</code></td><td><code>interface</code></td></tr>
+    <tr><td>Methods</td><td>Abstract + Concrete</td><td>Abstract + Default (Java 8+) + Static</td></tr>
+    <tr><td>Constructor</td><td>✅ Yes</td><td>❌ No</td></tr>
+    <tr><td>Instance variables</td><td>✅ Any type, any modifier</td><td>❌ Only <code>public static final</code></td></tr>
+    <tr><td>Inheritance</td><td>Only ONE (extends)</td><td>Multiple (implements)</td></tr>
+    <tr><td>Access modifiers on methods</td><td>Any modifier</td><td>public by default</td></tr>
+    <tr><td>When to use</td><td>Shared state + partial implementation</td><td>Contract/capability for unrelated classes</td></tr>
+    <tr><td>IS-A relationship</td><td>Strong (Dog IS-A Animal)</td><td>Capability (Dog CAN-DO Swim)</td></tr>
+    <tr><td>Real examples</td><td>AbstractList, HttpServlet</td><td>Runnable, Comparable, Serializable</td></tr>
+  </table>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Choose Abstract Class when:</h4>
+      <ul>
+        <li>Classes share common <strong>state</strong> (fields)</li>
+        <li>Need a <strong>constructor</strong> to initialize shared fields</li>
+        <li>Classes are <strong>closely related</strong> (IS-A)</li>
+        <li>Want to provide <strong>partial implementation</strong></li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Choose Interface when:</h4>
+      <ul>
+        <li>Classes are <strong>unrelated</strong> but share behavior</li>
+        <li>Need <strong>multiple inheritance</strong></li>
+        <li>Defining a <strong>pure contract/API</strong></li>
+        <li>Want to use with <strong>lambdas</strong> (functional interface)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is an abstract class? When would you use it?</div>
+    <div class="a">An abstract class is declared with the <code>abstract</code> keyword and cannot be instantiated directly. It can have both abstract methods (no body — must be overridden) and concrete methods (with body — inherited). Use it when you have closely related classes that share common state (fields) and some common behavior, but each must implement certain methods differently. Example: Shape has area() abstract but describe() concrete.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. Can abstract class have a constructor?</div>
+    <div class="a">Yes. Even though you cannot instantiate an abstract class directly, its constructor is called via <code>super()</code> from the subclass constructor. The purpose is to initialize shared fields that all subclasses need. This avoids duplicate initialization code in every subclass.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. Can we have an abstract class with no abstract methods?</div>
+    <div class="a">Yes, this is perfectly valid. A class can be declared <code>abstract</code> without having any abstract methods. The sole effect is that the class cannot be instantiated directly. This is useful when you want to prevent direct instantiation of a base class while still providing a fully implemented utility class.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What happens if a subclass doesn't implement all abstract methods?</div>
+    <div class="a">If a subclass extends an abstract class but does not implement all abstract methods, the subclass itself must also be declared <code>abstract</code>. Otherwise, the compiler throws an error. The responsibility to implement the abstract methods is then passed down to the next concrete (non-abstract) subclass in the hierarchy.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is the difference between abstract class and interface?</div>
+    <div class="a">Abstract class supports constructors, instance variables with any modifier, and methods with any access level — used for closely related classes sharing state. Interface has only public static final variables and public methods — used to define a contract for unrelated classes. A class can extend only one abstract class but implement multiple interfaces. Since Java 8, interfaces can have default and static methods, making the gap smaller, but abstract classes are still preferred when shared state is needed.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Can an abstract method be private?</div>
+    <div class="a">No. An abstract method cannot be private because private methods are not inherited or visible to subclasses — but the entire purpose of an abstract method is to be overridden by a subclass. This is a contradiction. Abstract methods must be at least package-private (default), or preferably protected or public, so subclasses can see and override them.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the Template Method pattern? How does abstract class enable it?</div>
+    <div class="a">The Template Method pattern defines the skeleton of an algorithm in an abstract class with a <code>final</code> concrete method, while deferring some steps to abstract methods that subclasses implement. The abstract class controls the overall flow (which steps and in what order), and subclasses only fill in the specific steps. This ensures the algorithm structure is consistent while allowing variations in specific steps. Example: a DataProcessor with fixed read→process→save flow where only process() varies per subclass.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 15: Abstract Class · 15 of 26 complete
+</div>
+
+</body>
+</html>

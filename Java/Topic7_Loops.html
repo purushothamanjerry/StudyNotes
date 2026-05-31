@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 7 — Loops in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #134e4a 0%, #0f766e 60%, #14b8a6 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #0f766e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #134e4a; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #0f766e; padding-bottom: 12px; }
+  .section-num { background: #0f766e; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #134e4a; }
+
+  h3 { font-size: 1.05rem; color: #0f766e; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #f0fdfa; border-left: 4px solid #0f766e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #134e4a; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f0fdfa; }
+  tr:hover { background: #ccfbf1; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #134e4a; margin-top: 0; }
+
+  .loop-card { border-radius: 10px; padding: 18px; border: 1px solid; margin-bottom: 10px; }
+  .loop-for     { background: #f0fdfa; border-color: #5eead4; }
+  .loop-while   { background: #eff6ff; border-color: #93c5fd; }
+  .loop-dowhile { background: #fdf4ff; border-color: #d8b4fe; }
+  .loop-foreach { background: #f0fdf4; border-color: #86efac; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #0f766e; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 7 OF 26</div>
+  <h1>🔁 Loops in Java</h1>
+  <p>for · while · do-while · for-each · break · continue · Nested loops</p>
+  <div class="meta">
+    <span>Phase 2 — Basics</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#overview">Loop Overview — all 4 types</a></li>
+    <li><a href="#for">for Loop</a></li>
+    <li><a href="#while">while Loop</a></li>
+    <li><a href="#dowhile">do-while Loop</a></li>
+    <li><a href="#foreach">for-each Loop (Enhanced for)</a></li>
+    <li><a href="#break">break Statement</a></li>
+    <li><a href="#continue">continue Statement</a></li>
+    <li><a href="#nested">Nested Loops</a></li>
+    <li><a href="#infinite">Infinite Loops</a></li>
+    <li><a href="#comparison">Comparison — When to use which</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: OVERVIEW -->
+<div class="section" id="overview">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Loop Overview — All 4 Types</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>What is a Loop?</strong> A loop repeats a block of code multiple times until a condition becomes false. Java has 4 types of loops.
+  </div>
+
+  <div class="loop-card loop-for">
+    <strong style="color:#134e4a">for loop</strong> — use when you know exactly how many times to repeat
+  </div>
+  <div class="loop-card loop-while">
+    <strong style="color:#1e40af">while loop</strong> — use when you don't know how many times, check condition BEFORE each iteration
+  </div>
+  <div class="loop-card loop-dowhile">
+    <strong style="color:#6b21a8">do-while loop</strong> — runs AT LEAST ONCE, check condition AFTER each iteration
+  </div>
+  <div class="loop-card loop-foreach">
+    <strong style="color:#166534">for-each loop</strong> — use to iterate over arrays or collections, no index needed
+  </div>
+</div>
+
+
+<!-- SECTION 2: FOR LOOP -->
+<div class="section" id="for">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">for Loop</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Syntax:</strong> <code>for (initialization; condition; update) { body }</code><br>
+    3 parts: init runs once → condition checked → body runs → update → condition checked again...
+  </div>
+
+<pre><span class="cm">// Basic for loop</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">5</span>; i++) {
+    System.out.println(i);  <span class="cm">// prints 0,1,2,3,4</span>
+}
+
+<span class="cm">// Count down</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">5</span>; i &gt; <span class="num">0</span>; i--) {
+    System.out.println(i);  <span class="cm">// prints 5,4,3,2,1</span>
+}
+
+<span class="cm">// Step by 2</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt;= <span class="num">10</span>; i += <span class="num">2</span>) {
+    System.out.print(i + <span class="st">" "</span>);  <span class="cm">// 0 2 4 6 8 10</span>
+}
+
+<span class="cm">// Sum of 1 to 10</span>
+<span class="kw">int</span> sum = <span class="num">0</span>;
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">10</span>; i++) {
+    sum += i;
+}
+System.out.println(sum);  <span class="cm">// 55</span></pre>
+
+  <h3>for loop — all parts are optional!</h3>
+<pre><span class="cm">// All parts optional — but semicolons are required</span>
+<span class="kw">int</span> i = <span class="num">0</span>;
+<span class="kw">for</span> ( ; i &lt; <span class="num">5</span> ; ) {   <span class="cm">// init and update outside</span>
+    System.out.println(i);
+    i++;
+}
+
+<span class="cm">// Multiple variables in for loop</span>
+<span class="kw">for</span> (<span class="kw">int</span> a = <span class="num">0</span>, b = <span class="num">10</span>; a &lt; b; a++, b--) {
+    System.out.println(a + <span class="st">" "</span> + b);
+}</pre>
+</div>
+
+
+<!-- SECTION 3: WHILE LOOP -->
+<div class="section" id="while">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">while Loop</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Syntax:</strong> <code>while (condition) { body }</code><br>
+    Checks condition BEFORE executing body. If condition is false from the start, body never runs (0 times).
+  </div>
+
+<pre><span class="cm">// Basic while loop</span>
+<span class="kw">int</span> i = <span class="num">1</span>;
+<span class="kw">while</span> (i &lt;= <span class="num">5</span>) {
+    System.out.println(i);  <span class="cm">// 1,2,3,4,5</span>
+    i++;
+}
+
+<span class="cm">// Read user input until valid (typical use case)</span>
+<span class="cl">Scanner</span> sc = <span class="kw">new</span> <span class="cl">Scanner</span>(System.in);
+<span class="kw">int</span> num = <span class="num">-1</span>;
+<span class="kw">while</span> (num &lt; <span class="num">0</span>) {
+    System.out.print(<span class="st">"Enter positive number: "</span>);
+    num = sc.nextInt();
+}
+
+<span class="cm">// Condition false from start — body never runs</span>
+<span class="kw">int</span> x = <span class="num">10</span>;
+<span class="kw">while</span> (x &lt; <span class="num">5</span>) {
+    System.out.println(<span class="st">"Never prints"</span>);  <span class="cm">// 0 times</span>
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Most common mistake — forgetting to update the variable:</strong>
+<pre><span class="kw">int</span> i = <span class="num">0</span>;
+<span class="kw">while</span> (i &lt; <span class="num">5</span>) {
+    System.out.println(i);
+    <span class="cm">// forgot i++ → INFINITE LOOP!</span>
+}</pre>
+  </div>
+</div>
+
+
+<!-- SECTION 4: DO-WHILE -->
+<div class="section" id="dowhile">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">do-while Loop</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Syntax:</strong> <code>do { body } while (condition);</code><br>
+    Executes body FIRST, then checks condition. Runs AT LEAST ONCE — even if condition is false!
+  </div>
+
+<pre><span class="cm">// Basic do-while</span>
+<span class="kw">int</span> i = <span class="num">1</span>;
+<span class="kw">do</span> {
+    System.out.println(i);  <span class="cm">// 1,2,3,4,5</span>
+    i++;
+} <span class="kw">while</span> (i &lt;= <span class="num">5</span>);
+
+<span class="cm">// Condition false from start — runs ONCE!</span>
+<span class="kw">int</span> x = <span class="num">10</span>;
+<span class="kw">do</span> {
+    System.out.println(<span class="st">"Runs once!"</span>);  <span class="cm">// prints this!</span>
+} <span class="kw">while</span> (x &lt; <span class="num">5</span>);   <span class="cm">// condition false but body already ran</span>
+
+<span class="cm">// Classic use case — menu driven program</span>
+<span class="kw">int</span> choice;
+<span class="kw">do</span> {
+    System.out.println(<span class="st">"1. Add  2. Delete  3. Exit"</span>);
+    choice = sc.nextInt();
+    <span class="cm">// process choice...</span>
+} <span class="kw">while</span> (choice != <span class="num">3</span>);  <span class="cm">// repeat until Exit chosen</span></pre>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>while loop</h4>
+      <p>Check condition → execute body</p>
+      <p>May run <strong>0 times</strong> if condition false initially</p>
+    </div>
+    <div class="col-box">
+      <h4>do-while loop</h4>
+      <p>Execute body → check condition</p>
+      <p>Always runs <strong>at least 1 time</strong></p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 5: FOR-EACH -->
+<div class="section" id="foreach">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">for-each Loop (Enhanced for)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Syntax:</strong> <code>for (dataType variable : arrayOrCollection) { body }</code><br>
+    Cleanest way to iterate — no index, no condition, no update needed.
+  </div>
+
+<pre><span class="cm">// Iterating array</span>
+<span class="kw">int</span>[] numbers = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};
+<span class="kw">for</span> (<span class="kw">int</span> num : numbers) {
+    System.out.println(num);  <span class="cm">// 10, 20, 30, 40, 50</span>
+}
+
+<span class="cm">// Iterating String array</span>
+<span class="cl">String</span>[] fruits = {<span class="st">"Apple"</span>, <span class="st">"Banana"</span>, <span class="st">"Cherry"</span>};
+<span class="kw">for</span> (<span class="cl">String</span> fruit : fruits) {
+    System.out.println(fruit);
+}
+
+<span class="cm">// Iterating List (Collections)</span>
+<span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; list = <span class="cl">Arrays</span>.asList(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>);
+<span class="kw">for</span> (<span class="kw">int</span> n : list) {
+    System.out.print(n + <span class="st">" "</span>);  <span class="cm">// 1 2 3 4 5</span>
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Limitations of for-each:</strong><br>
+    ❌ Cannot modify the array/collection while iterating<br>
+    ❌ Cannot access index (use regular for if you need index)<br>
+    ❌ Cannot iterate in reverse<br>
+    ❌ Cannot skip elements easily<br>
+    ✅ Best for read-only iteration over all elements
+  </div>
+</div>
+
+
+<!-- SECTION 6: BREAK -->
+<div class="section" id="break">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">break Statement</div>
+  </div>
+
+  <p><code>break</code> immediately <strong>exits the loop</strong> — skips remaining iterations and remaining code in the loop body.</p>
+
+<pre><span class="cm">// Stop when number found</span>
+<span class="kw">int</span>[] arr = {<span class="num">3</span>, <span class="num">7</span>, <span class="num">2</span>, <span class="num">9</span>, <span class="num">5</span>};
+<span class="kw">for</span> (<span class="kw">int</span> num : arr) {
+    <span class="kw">if</span> (num == <span class="num">9</span>) {
+        System.out.println(<span class="st">"Found 9!"</span>);
+        <span class="kw">break</span>;   <span class="cm">// exits loop immediately</span>
+    }
+    System.out.println(num);  <span class="cm">// prints 3, 7, 2 (stops before 9)</span>
+}
+
+<span class="cm">// break in nested loops — only breaks INNER loop</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">3</span>; i++) {
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">1</span>; j &lt;= <span class="num">3</span>; j++) {
+        <span class="kw">if</span> (j == <span class="num">2</span>) <span class="kw">break</span>;   <span class="cm">// breaks inner loop only</span>
+        System.out.println(i + <span class="st">","</span> + j);
+    }
+}
+<span class="cm">// Output: 1,1  2,1  3,1</span>
+
+<span class="cm">// Labeled break — break outer loop from inner</span>
+outer:
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">3</span>; i++) {
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">1</span>; j &lt;= <span class="num">3</span>; j++) {
+        <span class="kw">if</span> (i == <span class="num">2</span> &amp;&amp; j == <span class="num">2</span>) <span class="kw">break</span> outer;  <span class="cm">// breaks OUTER loop</span>
+        System.out.println(i + <span class="st">","</span> + j);
+    }
+}
+<span class="cm">// Output: 1,1  1,2  1,3  2,1  (stops at 2,2)</span></pre>
+</div>
+
+
+<!-- SECTION 7: CONTINUE -->
+<div class="section" id="continue">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">continue Statement</div>
+  </div>
+
+  <p><code>continue</code> <strong>skips the current iteration</strong> and moves to the next — does NOT exit the loop.</p>
+
+<pre><span class="cm">// Skip even numbers — print only odd</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">10</span>; i++) {
+    <span class="kw">if</span> (i % <span class="num">2</span> == <span class="num">0</span>) <span class="kw">continue</span>;  <span class="cm">// skip evens</span>
+    System.out.print(i + <span class="st">" "</span>);   <span class="cm">// 1 3 5 7 9</span>
+}
+
+<span class="cm">// Skip a specific value</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">5</span>; i++) {
+    <span class="kw">if</span> (i == <span class="num">3</span>) <span class="kw">continue</span>;
+    System.out.print(i + <span class="st">" "</span>);  <span class="cm">// 1 2 4 5</span>
+}</pre>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>break</h4>
+      <p>Exits the loop completely</p>
+      <p>Remaining iterations are cancelled</p>
+      <p>Use when: target found, stop condition met</p>
+    </div>
+    <div class="col-box">
+      <h4>continue</h4>
+      <p>Skips current iteration only</p>
+      <p>Loop continues with next iteration</p>
+      <p>Use when: skip certain values, filter elements</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 8: NESTED LOOPS -->
+<div class="section" id="nested">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Nested Loops</div>
+  </div>
+
+  <p>A loop inside another loop. Inner loop completes all its iterations for each single iteration of the outer loop.</p>
+
+<pre><span class="cm">// Multiplication table</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">3</span>; i++) {
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">1</span>; j &lt;= <span class="num">3</span>; j++) {
+        System.out.print(i * j + <span class="st">"\t"</span>);
+    }
+    System.out.println();
+}
+<span class="cm">// Output:
+// 1  2  3
+// 2  4  6
+// 3  6  9</span>
+
+<span class="cm">// Star pattern — classic interview question!</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">5</span>; i++) {
+    <span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">1</span>; j &lt;= i; j++) {
+        System.out.print(<span class="st">"* "</span>);
+    }
+    System.out.println();
+}
+<span class="cm">// Output:
+// *
+// * *
+// * * *
+// * * * *
+// * * * * *</span></pre>
+
+  <div class="info-box">
+    <strong>Total iterations = outer × inner.</strong> A 3×3 nested loop runs 9 times total. A 10×10 loop runs 100 times. Be careful with large nested loops — they can be slow!
+  </div>
+</div>
+
+
+<!-- SECTION 9: INFINITE LOOPS -->
+<div class="section" id="infinite">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Infinite Loops</div>
+  </div>
+
+  <p>A loop that never stops because the condition never becomes false. Sometimes intentional (servers, game loops), often a bug.</p>
+
+<pre><span class="cm">// Intentional infinite loop patterns</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="cm">// server listening loop</span>
+    <span class="cm">// use break to exit when needed</span>
+}
+
+<span class="kw">for</span> (;;) {
+    <span class="cm">// infinite for loop (all 3 parts empty)</span>
+}
+
+<span class="cm">// Common infinite loop bugs</span>
+<span class="kw">int</span> i = <span class="num">0</span>;
+<span class="kw">while</span> (i &lt; <span class="num">10</span>) {
+    System.out.println(i);
+    <span class="cm">// BUG: forgot i++ → runs forever!</span>
+}
+
+<span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">0</span>; j &lt; <span class="num">10</span>; j--) {
+    <span class="cm">// BUG: j-- instead of j++ → counts to negative infinity!</span>
+}</pre>
+</div>
+
+
+<!-- SECTION 10: COMPARISON -->
+<div class="section" id="comparison">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Comparison — When to Use Which Loop</div>
+  </div>
+
+  <table>
+    <tr><th>Loop</th><th>When to use</th><th>Runs 0 times?</th><th>Index available?</th></tr>
+    <tr>
+      <td><strong>for</strong></td>
+      <td>Know exact number of iterations</td>
+      <td>Yes (if condition false)</td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><strong>while</strong></td>
+      <td>Unknown iterations, check before running</td>
+      <td>Yes (if condition false)</td>
+      <td>Only if you manage it</td>
+    </tr>
+    <tr>
+      <td><strong>do-while</strong></td>
+      <td>Must run at least once (menus, prompts)</td>
+      <td>No — always runs once</td>
+      <td>Only if you manage it</td>
+    </tr>
+    <tr>
+      <td><strong>for-each</strong></td>
+      <td>Read-only iteration over array/collection</td>
+      <td>Yes (if empty)</td>
+      <td>No</td>
+    </tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>💡 Interview memory trick:</strong><br>
+    <strong>for</strong> → "I know how many times" (counter-controlled)<br>
+    <strong>while</strong> → "I don't know, check first" (condition-controlled)<br>
+    <strong>do-while</strong> → "Run first, ask questions later" (at least once)<br>
+    <strong>for-each</strong> → "Just give me each element" (collection traversal)
+  </div>
+</div>
+
+
+<!-- SECTION 11: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is the difference between while and do-while loop?</div>
+    <div class="a">In a <code>while</code> loop, the condition is checked BEFORE executing the body — so if the condition is false initially, the body never runs (0 executions). In a <code>do-while</code> loop, the body executes FIRST, then the condition is checked — so it always runs AT LEAST ONCE even if the condition is false. Use do-while for menu-driven programs where you need to show the menu at least once.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between break and continue?</div>
+    <div class="a"><code>break</code> completely exits the loop — remaining iterations are cancelled. <code>continue</code> skips only the current iteration and moves to the next one — the loop continues. Use break when you want to stop the loop early (e.g., element found). Use continue when you want to skip certain elements (e.g., skip even numbers).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the output?</q>
+    <pre style="margin:6px 0;font-size:0.85rem;background:#f3f4f6;padding:8px;border-radius:4px;color:#1a202c">for (int i = 0; i < 5; i++) {
+    if (i == 3) break;
+    System.out.print(i + " ");
+}</pre>
+    <div class="a"><strong>0 1 2</strong> — loop runs for i=0,1,2 normally. When i=3, break exits the loop immediately. i=4 never runs.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the output?</q>
+    <pre style="margin:6px 0;font-size:0.85rem;background:#f3f4f6;padding:8px;border-radius:4px;color:#1a202c">for (int i = 0; i < 5; i++) {
+    if (i == 3) continue;
+    System.out.print(i + " ");
+}</pre>
+    <div class="a"><strong>0 1 2 4</strong> — loop runs normally, but when i=3, continue skips that iteration. i=4 still runs. 3 is skipped but the loop does not stop.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What are the limitations of the for-each loop?</div>
+    <div class="a">for-each cannot access the index, cannot iterate in reverse, cannot modify the collection while iterating (ConcurrentModificationException), and cannot skip to a specific index. It is only suitable for forward, read-only iteration over all elements. Use a regular for loop when you need the index or need to modify elements.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. How do you write an infinite loop in Java?</div>
+    <div class="a">Three ways: <code>while(true) {}</code>, <code>for(;;) {}</code>, or <code>do {} while(true);</code>. Infinite loops are used intentionally in server processes, game loops, or event listeners where the program should keep running. Use <code>break</code> with a condition to exit when needed.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is a labeled break? When would you use it?</div>
+    <div class="a">A labeled break allows you to break out of an outer loop from inside a nested loop. You add a label before the outer loop (e.g., <code>outer:</code>) and use <code>break outer;</code> inside the inner loop. This is useful when searching a 2D array — once you find what you're looking for, you want to exit both loops, not just the inner one.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 7: Loops · 7 of 26 complete
+</div>
+
+</body>
+</html>

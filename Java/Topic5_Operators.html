@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 5 — Operators in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #92400e 0%, #d97706 60%, #fbbf24 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #d97706; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #92400e; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #d97706; padding-bottom: 12px; }
+  .section-num { background: #d97706; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #92400e; }
+
+  h3 { font-size: 1.05rem; color: #d97706; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #fffbeb; border-left: 4px solid #d97706; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #92400e; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fffbeb; }
+  tr:hover { background: #fef3c7; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #92400e; margin-top: 0; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #d97706; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 5 OF 26</div>
+  <h1>➕ Operators in Java</h1>
+  <p>Arithmetic · Relational · Logical · Bitwise · Assignment · Ternary · Precedence</p>
+  <div class="meta">
+    <span>Phase 2 — Basics</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#arithmetic">Arithmetic Operators</a></li>
+    <li><a href="#relational">Relational (Comparison) Operators</a></li>
+    <li><a href="#logical">Logical Operators</a></li>
+    <li><a href="#assignment">Assignment Operators</a></li>
+    <li><a href="#unary">Unary Operators — pre/post increment</a></li>
+    <li><a href="#ternary">Ternary Operator</a></li>
+    <li><a href="#bitwise">Bitwise Operators</a></li>
+    <li><a href="#instanceof">instanceof Operator</a></li>
+    <li><a href="#precedence">Operator Precedence</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: ARITHMETIC -->
+<div class="section" id="arithmetic">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Arithmetic Operators</div>
+  </div>
+
+  <p>Used for mathematical calculations.</p>
+
+  <table>
+    <tr><th>Operator</th><th>Name</th><th>Example</th><th>Result</th></tr>
+    <tr><td><code>+</code></td><td>Addition</td><td><code>10 + 3</code></td><td>13</td></tr>
+    <tr><td><code>-</code></td><td>Subtraction</td><td><code>10 - 3</code></td><td>7</td></tr>
+    <tr><td><code>*</code></td><td>Multiplication</td><td><code>10 * 3</code></td><td>30</td></tr>
+    <tr><td><code>/</code></td><td>Division</td><td><code>10 / 3</code></td><td>3 (integer division!)</td></tr>
+    <tr><td><code>%</code></td><td>Modulus (remainder)</td><td><code>10 % 3</code></td><td>1</td></tr>
+  </table>
+
+<pre><span class="cm">// Integer division — decimal part is dropped!</span>
+<span class="kw">int</span> a = <span class="num">10</span> / <span class="num">3</span>;       <span class="cm">// 3 (not 3.33)</span>
+<span class="kw">double</span> b = <span class="num">10.0</span> / <span class="num">3</span>; <span class="cm">// 3.3333 (use double for decimal result)</span>
+<span class="kw">double</span> c = (<span class="kw">double</span>) <span class="num">10</span> / <span class="num">3</span>; <span class="cm">// 3.3333 (cast first)</span>
+
+<span class="cm">// Modulus — very useful for even/odd check</span>
+<span class="kw">int</span> r = <span class="num">10</span> % <span class="num">3</span>;  <span class="cm">// 1 (remainder)</span>
+<span class="kw">boolean</span> isEven = (<span class="num">10</span> % <span class="num">2</span> == <span class="num">0</span>); <span class="cm">// true</span>
+<span class="kw">boolean</span> isOdd  = (<span class="num">7</span>  % <span class="num">2</span> != <span class="num">0</span>); <span class="cm">// true</span>
+
+<span class="cm">// String concatenation with +</span>
+<span class="cl">String</span> s = <span class="st">"Age: "</span> + <span class="num">25</span>;   <span class="cm">// "Age: 25"</span>
+System.out.println(<span class="num">1</span> + <span class="num">2</span> + <span class="st">"3"</span>); <span class="cm">// "33" (1+2=3, then 3+"3"="33")</span>
+System.out.println(<span class="st">"1"</span> + <span class="num">2</span> + <span class="num">3</span>); <span class="cm">// "123" (left to right)</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Famous interview trick — + with Strings:</strong><br>
+    <code>System.out.println(1 + 2 + "3")</code> → <strong>"33"</strong> (1+2=3, then "3"+"3"="33")<br>
+    <code>System.out.println("1" + 2 + 3)</code> → <strong>"123"</strong> (left to right, first "1"+2="12", then "12"+3="123")<br>
+    Evaluated left to right — once a String is encountered, rest is concatenation!
+  </div>
+</div>
+
+
+<!-- SECTION 2: RELATIONAL -->
+<div class="section" id="relational">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Relational (Comparison) Operators</div>
+  </div>
+
+  <p>Always return <code>boolean</code> — <code>true</code> or <code>false</code>.</p>
+
+  <table>
+    <tr><th>Operator</th><th>Meaning</th><th>Example</th><th>Result</th></tr>
+    <tr><td><code>==</code></td><td>Equal to</td><td><code>5 == 5</code></td><td>true</td></tr>
+    <tr><td><code>!=</code></td><td>Not equal to</td><td><code>5 != 3</code></td><td>true</td></tr>
+    <tr><td><code>&gt;</code></td><td>Greater than</td><td><code>5 &gt; 3</code></td><td>true</td></tr>
+    <tr><td><code>&lt;</code></td><td>Less than</td><td><code>5 &lt; 3</code></td><td>false</td></tr>
+    <tr><td><code>&gt;=</code></td><td>Greater than or equal</td><td><code>5 &gt;= 5</code></td><td>true</td></tr>
+    <tr><td><code>&lt;=</code></td><td>Less than or equal</td><td><code>5 &lt;= 4</code></td><td>false</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ == vs .equals() for objects:</strong><br>
+    <code>==</code> compares <strong>references</strong> for objects (memory address)<br>
+    <code>.equals()</code> compares <strong>content/value</strong><br>
+    Always use <code>.equals()</code> for String and object comparison!
+  </div>
+</div>
+
+
+<!-- SECTION 3: LOGICAL -->
+<div class="section" id="logical">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Logical Operators</div>
+  </div>
+
+  <p>Used to combine multiple boolean conditions.</p>
+
+  <table>
+    <tr><th>Operator</th><th>Name</th><th>Rule</th><th>Example</th></tr>
+    <tr><td><code>&amp;&amp;</code></td><td>Logical AND</td><td>true only if BOTH are true</td><td><code>true &amp;&amp; false</code> → false</td></tr>
+    <tr><td><code>||</code></td><td>Logical OR</td><td>true if AT LEAST ONE is true</td><td><code>true || false</code> → true</td></tr>
+    <tr><td><code>!</code></td><td>Logical NOT</td><td>reverses the boolean</td><td><code>!true</code> → false</td></tr>
+  </table>
+
+  <h3>Short-Circuit Evaluation — Very Important!</h3>
+  <div class="highlight-box">
+    <strong>&amp;&amp; Short-circuit:</strong> If the LEFT side is <code>false</code>, the RIGHT side is NOT evaluated — result is already false.<br>
+    <strong>|| Short-circuit:</strong> If the LEFT side is <code>true</code>, the RIGHT side is NOT evaluated — result is already true.
+  </div>
+
+<pre><span class="kw">int</span> x = <span class="num">5</span>;
+
+<span class="cm">// && short-circuit — second condition not checked if first is false</span>
+<span class="kw">if</span> (x &gt; <span class="num">10</span> &amp;&amp; (x++ &gt; <span class="num">0</span>)) { }   <span class="cm">// x++ never runs!</span>
+System.out.println(x);  <span class="cm">// still 5</span>
+
+<span class="cm">// || short-circuit — second condition not checked if first is true</span>
+<span class="kw">if</span> (x &gt; <span class="num">0</span> || (x++ &gt; <span class="num">0</span>)) { }    <span class="cm">// x++ never runs!</span>
+System.out.println(x);  <span class="cm">// still 5</span>
+
+<span class="cm">// Practical use — null check before method call</span>
+<span class="kw">if</span> (str != <span class="kw">null</span> &amp;&amp; str.equals(<span class="st">"hello"</span>)) { }
+<span class="cm">// Safe! If str is null, .equals() is never called → no NullPointerException</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 &amp; vs &amp;&amp; and | vs ||:</strong><br>
+    <code>&amp;&amp;</code> and <code>||</code> — short-circuit (lazy) — skip right side if result is determined<br>
+    <code>&amp;</code> and <code>|</code> — non-short-circuit (eager) — always evaluate both sides<br>
+    Always prefer <code>&amp;&amp;</code> and <code>||</code> in conditions!
+  </div>
+</div>
+
+
+<!-- SECTION 4: ASSIGNMENT -->
+<div class="section" id="assignment">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Assignment Operators</div>
+  </div>
+
+  <table>
+    <tr><th>Operator</th><th>Meaning</th><th>Example</th><th>Equivalent to</th></tr>
+    <tr><td><code>=</code></td><td>Assign</td><td><code>x = 5</code></td><td>x = 5</td></tr>
+    <tr><td><code>+=</code></td><td>Add and assign</td><td><code>x += 3</code></td><td>x = x + 3</td></tr>
+    <tr><td><code>-=</code></td><td>Subtract and assign</td><td><code>x -= 3</code></td><td>x = x - 3</td></tr>
+    <tr><td><code>*=</code></td><td>Multiply and assign</td><td><code>x *= 3</code></td><td>x = x * 3</td></tr>
+    <tr><td><code>/=</code></td><td>Divide and assign</td><td><code>x /= 3</code></td><td>x = x / 3</td></tr>
+    <tr><td><code>%=</code></td><td>Modulus and assign</td><td><code>x %= 3</code></td><td>x = x % 3</td></tr>
+  </table>
+
+<pre><span class="kw">int</span> x = <span class="num">10</span>;
+x += <span class="num">5</span>;   <span class="cm">// x = 15</span>
+x -= <span class="num">3</span>;   <span class="cm">// x = 12</span>
+x *= <span class="num">2</span>;   <span class="cm">// x = 24</span>
+x /= <span class="num">4</span>;   <span class="cm">// x = 6</span>
+x %= <span class="num">4</span>;   <span class="cm">// x = 2</span></pre>
+
+  <div class="info-box">
+    <strong>Compound assignment operators include implicit casting:</strong><br>
+    <code>byte b = 10; b += 5;</code> ✅ — works fine (implicit cast)<br>
+    <code>byte b = 10; b = b + 5;</code> ❌ — compile error! <code>b + 5</code> becomes <code>int</code>, can't assign to <code>byte</code> without explicit cast
+  </div>
+</div>
+
+
+<!-- SECTION 5: UNARY -->
+<div class="section" id="unary">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Unary Operators — Pre/Post Increment</div>
+  </div>
+
+  <table>
+    <tr><th>Operator</th><th>Name</th><th>Example</th><th>Meaning</th></tr>
+    <tr><td><code>++</code></td><td>Pre-increment</td><td><code>++x</code></td><td>Increment FIRST, then use value</td></tr>
+    <tr><td><code>++</code></td><td>Post-increment</td><td><code>x++</code></td><td>Use value FIRST, then increment</td></tr>
+    <tr><td><code>--</code></td><td>Pre-decrement</td><td><code>--x</code></td><td>Decrement FIRST, then use value</td></tr>
+    <tr><td><code>--</code></td><td>Post-decrement</td><td><code>x--</code></td><td>Use value FIRST, then decrement</td></tr>
+    <tr><td><code>-</code></td><td>Negation</td><td><code>-x</code></td><td>Negates the value</td></tr>
+    <tr><td><code>!</code></td><td>NOT</td><td><code>!true</code></td><td>Reverses boolean</td></tr>
+  </table>
+
+<pre><span class="kw">int</span> a = <span class="num">5</span>;
+System.out.println(a++);  <span class="cm">// 5 — prints THEN increments (a becomes 6)</span>
+System.out.println(a);    <span class="cm">// 6</span>
+
+<span class="kw">int</span> b = <span class="num">5</span>;
+System.out.println(++b);  <span class="cm">// 6 — increments THEN prints</span>
+System.out.println(b);    <span class="cm">// 6</span>
+
+<span class="cm">// Tricky combined example</span>
+<span class="kw">int</span> x = <span class="num">5</span>;
+<span class="kw">int</span> y = x++ + ++x;
+<span class="cm">// Step 1: x++ → uses 5, then x becomes 6</span>
+<span class="cm">// Step 2: ++x → x becomes 7, uses 7</span>
+<span class="cm">// y = 5 + 7 = 12, x = 7</span>
+System.out.println(y);  <span class="cm">// 12</span>
+System.out.println(x);  <span class="cm">// 7</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Memory trick:</strong><br>
+    <strong>Pre</strong> (<code>++x</code>) → <strong>Pre</strong>pare first (increment), then use<br>
+    <strong>Post</strong> (<code>x++</code>) → <strong>Post</strong>pone the change (use first, increment later)
+  </div>
+</div>
+
+
+<!-- SECTION 6: TERNARY -->
+<div class="section" id="ternary">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Ternary Operator</div>
+  </div>
+
+  <p>The ternary operator is a shorthand for <code>if-else</code>. It is the only operator that takes <strong>3 operands</strong>.</p>
+
+  <div class="highlight-box">
+    <strong>Syntax:</strong> <code>condition ? valueIfTrue : valueIfFalse</code>
+  </div>
+
+<pre><span class="cm">// if-else version</span>
+<span class="kw">int</span> a = <span class="num">10</span>, b = <span class="num">20</span>;
+<span class="kw">int</span> max;
+<span class="kw">if</span> (a &gt; b) max = a;
+<span class="kw">else</span> max = b;
+
+<span class="cm">// Ternary version — cleaner!</span>
+<span class="kw">int</span> max2 = (a &gt; b) ? a : b;   <span class="cm">// 20</span>
+
+<span class="cm">// Nested ternary — avoid if too complex!</span>
+<span class="kw">int</span> score = <span class="num">75</span>;
+<span class="cl">String</span> grade = (score &gt;= <span class="num">90</span>) ? <span class="st">"A"</span>
+              : (score &gt;= <span class="num">70</span>) ? <span class="st">"B"</span>
+              : (score &gt;= <span class="num">50</span>) ? <span class="st">"C"</span>
+              : <span class="st">"F"</span>;
+System.out.println(grade);  <span class="cm">// B</span>
+
+<span class="cm">// Practical use — null check</span>
+<span class="cl">String</span> name = (user != <span class="kw">null</span>) ? user.getName() : <span class="st">"Guest"</span>;</pre>
+</div>
+
+
+<!-- SECTION 7: BITWISE -->
+<div class="section" id="bitwise">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Bitwise Operators</div>
+  </div>
+
+  <p>Operate on individual bits of integer values. Less common in interviews but important to know.</p>
+
+  <table>
+    <tr><th>Operator</th><th>Name</th><th>Example (5=0101, 3=0011)</th><th>Result</th></tr>
+    <tr><td><code>&amp;</code></td><td>Bitwise AND</td><td><code>5 &amp; 3</code> → 0101 &amp; 0011</td><td>0001 = 1</td></tr>
+    <tr><td><code>|</code></td><td>Bitwise OR</td><td><code>5 | 3</code> → 0101 | 0011</td><td>0111 = 7</td></tr>
+    <tr><td><code>^</code></td><td>Bitwise XOR</td><td><code>5 ^ 3</code> → 0101 ^ 0011</td><td>0110 = 6</td></tr>
+    <tr><td><code>~</code></td><td>Bitwise NOT</td><td><code>~5</code> → ~0101</td><td>-6</td></tr>
+    <tr><td><code>&lt;&lt;</code></td><td>Left shift</td><td><code>5 &lt;&lt; 1</code></td><td>10 (multiply by 2)</td></tr>
+    <tr><td><code>&gt;&gt;</code></td><td>Right shift</td><td><code>5 &gt;&gt; 1</code></td><td>2 (divide by 2)</td></tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>💡 Practical uses of bitwise:</strong><br>
+    <code>n &amp; 1</code> → check if n is odd (result 1) or even (result 0)<br>
+    <code>n &lt;&lt; 1</code> → multiply by 2 (fast!)<br>
+    <code>n &gt;&gt; 1</code> → divide by 2 (fast!)<br>
+    <code>a ^ b ^ a</code> → gives back b (used to swap without temp variable)
+  </div>
+</div>
+
+
+<!-- SECTION 8: INSTANCEOF -->
+<div class="section" id="instanceof">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">instanceof Operator</div>
+  </div>
+
+  <p>Checks if an object is an instance of a specific class or interface. Returns <code>boolean</code>.</p>
+
+<pre><span class="cl">String</span> s = <span class="st">"Hello"</span>;
+System.out.println(s <span class="kw">instanceof</span> <span class="cl">String</span>);   <span class="cm">// true</span>
+System.out.println(s <span class="kw">instanceof</span> <span class="cl">Object</span>);   <span class="cm">// true (String extends Object)</span>
+
+<span class="cm">// Safe casting pattern</span>
+<span class="cl">Object</span> obj = <span class="st">"Hello"</span>;
+<span class="kw">if</span> (obj <span class="kw">instanceof</span> <span class="cl">String</span>) {
+    <span class="cl">String</span> str = (<span class="cl">String</span>) obj;  <span class="cm">// safe cast</span>
+    System.out.println(str.length());
+}
+
+<span class="cm">// Java 16+ pattern matching for instanceof</span>
+<span class="kw">if</span> (obj <span class="kw">instanceof</span> <span class="cl">String</span> str) {  <span class="cm">// declares 'str' directly!</span>
+    System.out.println(str.length());
+}
+
+<span class="cm">// null check</span>
+System.out.println(<span class="kw">null instanceof</span> <span class="cl">String</span>);  <span class="cm">// always false</span></pre>
+</div>
+
+
+<!-- SECTION 9: PRECEDENCE -->
+<div class="section" id="precedence">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Operator Precedence</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Higher precedence = evaluated first.</strong> When in doubt, use parentheses <code>()</code> to make intent clear!
+  </div>
+
+  <table>
+    <tr><th>Priority</th><th>Operators</th><th>Description</th></tr>
+    <tr><td>1 (highest)</td><td><code>() [] .</code></td><td>Parentheses, array access, member access</td></tr>
+    <tr><td>2</td><td><code>++ -- ! ~</code></td><td>Unary operators</td></tr>
+    <tr><td>3</td><td><code>* / %</code></td><td>Multiplication, division, modulus</td></tr>
+    <tr><td>4</td><td><code>+ -</code></td><td>Addition, subtraction</td></tr>
+    <tr><td>5</td><td><code>&lt;&lt; &gt;&gt;</code></td><td>Shift operators</td></tr>
+    <tr><td>6</td><td><code>&lt; &gt; &lt;= &gt;=</code></td><td>Relational operators</td></tr>
+    <tr><td>7</td><td><code>== !=</code></td><td>Equality operators</td></tr>
+    <tr><td>8</td><td><code>&amp;</code></td><td>Bitwise AND</td></tr>
+    <tr><td>9</td><td><code>^</code></td><td>Bitwise XOR</td></tr>
+    <tr><td>10</td><td><code>|</code></td><td>Bitwise OR</td></tr>
+    <tr><td>11</td><td><code>&amp;&amp;</code></td><td>Logical AND</td></tr>
+    <tr><td>12</td><td><code>||</code></td><td>Logical OR</td></tr>
+    <tr><td>13</td><td><code>?:</code></td><td>Ternary</td></tr>
+    <tr><td>14 (lowest)</td><td><code>= += -= *=</code></td><td>Assignment operators</td></tr>
+  </table>
+
+<pre><span class="cm">// Precedence example</span>
+<span class="kw">int</span> result = <span class="num">2</span> + <span class="num">3</span> * <span class="num">4</span>;     <span class="cm">// 14 (* before +)</span>
+<span class="kw">int</span> result2 = (<span class="num">2</span> + <span class="num">3</span>) * <span class="num">4</span>;  <span class="cm">// 20 (parentheses first)</span>
+
+<span class="kw">boolean</span> b = <span class="num">5</span> &gt; <span class="num">3</span> &amp;&amp; <span class="num">2</span> &lt; <span class="num">4</span> || <span class="num">1</span> == <span class="num">2</span>;
+<span class="cm">// Step 1: 5>3 = true, 2&lt;4 = true, 1==2 = false</span>
+<span class="cm">// Step 2: true && true = true</span>
+<span class="cm">// Step 3: true || false = true</span>
+System.out.println(b);  <span class="cm">// true</span></pre>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is the output? System.out.println(1 + 2 + "3"); and System.out.println("1" + 2 + 3);</div>
+    <div class="a">First prints <strong>"33"</strong> — evaluated left to right: 1+2=3, then 3+"3"="33".<br>
+    Second prints <strong>"123"</strong> — "1"+2="12", then "12"+3="123". Once a String appears, + becomes concatenation.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between i++ and ++i?</div>
+    <div class="a"><code>i++</code> (post-increment) uses the current value first, then increments. <code>++i</code> (pre-increment) increments first, then uses the value. Example: if i=5, <code>x = i++</code> gives x=5, i=6. <code>x = ++i</code> gives x=6, i=6.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is short-circuit evaluation in Java?</div>
+    <div class="a">With <code>&amp;&amp;</code>, if the left condition is false, the right side is not evaluated (result is already false). With <code>||</code>, if the left condition is true, the right side is not evaluated. This is useful for null checks: <code>if (obj != null &amp;&amp; obj.method())</code> — if obj is null, the method is never called, preventing NullPointerException.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What does the % operator do? How do you check if a number is even?</div>
+    <div class="a">The % (modulus) operator returns the remainder of division. To check if a number is even: <code>n % 2 == 0</code>. If remainder is 0, the number is even. If remainder is 1, it is odd.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is the output? int x = 5; int y = x++ + ++x;</div>
+    <div class="a"><strong>y = 12, x = 7.</strong> Step 1: x++ uses 5 then x becomes 6. Step 2: ++x makes x=7 then uses 7. So y = 5 + 7 = 12 and x = 7.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is the ternary operator? Give an example.</div>
+    <div class="a">The ternary operator is a shorthand for if-else with syntax: <code>condition ? valueIfTrue : valueIfFalse</code>. It is the only operator with 3 operands. Example: <code>int max = (a &gt; b) ? a : b;</code> — returns a if a is greater, otherwise b.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the difference between & and && in Java?</div>
+    <div class="a"><code>&amp;&amp;</code> is the logical AND with short-circuit — if the left side is false, right side is skipped. <code>&amp;</code> is the bitwise AND (also works as logical AND without short-circuit) — always evaluates both sides. Always prefer <code>&amp;&amp;</code> in conditions for safety and performance.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 5: Operators · 5 of 26 complete
+</div>
+
+</body>
+</html>

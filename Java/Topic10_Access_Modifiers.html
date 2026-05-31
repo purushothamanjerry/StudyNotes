@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 10 — Access Modifiers</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #312e81 0%, #4338ca 60%, #818cf8 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #4338ca; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #312e81; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #4338ca; padding-bottom: 12px; }
+  .section-num { background: #4338ca; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #312e81; }
+  h3 { font-size: 1.05rem; color: #4338ca; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #eef2ff; border-left: 4px solid #4338ca; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #312e81; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #eef2ff; }
+  tr:hover { background: #e0e7ff; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #312e81; margin-top: 0; }
+  .access-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .access-card { border-radius: 10px; padding: 16px; text-align: center; border: 2px solid; }
+  .ac-private   { background: #fef2f2; border-color: #fca5a5; }
+  .ac-default   { background: #fffbeb; border-color: #fcd34d; }
+  .ac-protected { background: #f0fdf4; border-color: #86efac; }
+  .ac-public    { background: #eff6ff; border-color: #93c5fd; }
+  .ac-title     { font-weight: 800; font-size: 0.95rem; margin-bottom: 8px; }
+  .ac-private .ac-title   { color: #dc2626; }
+  .ac-default .ac-title   { color: #d97706; }
+  .ac-protected .ac-title { color: #16a34a; }
+  .ac-public .ac-title    { color: #1d4ed8; }
+  .ac-card p { font-size: 0.82rem; color: #4b5563; }
+  .tick { color: #16a34a; font-weight: 700; }
+  .cross { color: #dc2626; font-weight: 700; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #4338ca; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 10 OF 26</div>
+  <h1>🔐 Access Modifiers</h1>
+  <p>private · default · protected · public · Class-level · Member-level</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What are Access Modifiers?</a></li>
+    <li><a href="#four">The 4 Access Modifiers — Overview</a></li>
+    <li><a href="#private">private</a></li>
+    <li><a href="#default">default (package-private)</a></li>
+    <li><a href="#protected">protected</a></li>
+    <li><a href="#public">public</a></li>
+    <li><a href="#table">Master Comparison Table</a></li>
+    <li><a href="#class-level">Class-level Access Modifiers</a></li>
+    <li><a href="#best">Best Practices</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What are Access Modifiers?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> Access modifiers are keywords that control the <strong>visibility and accessibility</strong> of classes, methods, constructors, and variables. They are a key part of <strong>Encapsulation</strong> — hiding internal details and exposing only what is necessary.
+  </div>
+
+  <p>Java has <strong>4 access modifiers</strong> from most restrictive to least restrictive:</p>
+  <p style="text-align:center; font-size:1.05rem; font-weight:700; margin:16px 0; color:#312e81;">
+    private &nbsp;→&nbsp; default &nbsp;→&nbsp; protected &nbsp;→&nbsp; public
+  </p>
+  <p style="text-align:center; font-size:0.9rem; color:#6b7280;">(most restrictive) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (least restrictive)</p>
+</div>
+
+
+<!-- SECTION 2: FOUR OVERVIEW -->
+<div class="section" id="four">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">The 4 Access Modifiers — Overview</div>
+  </div>
+
+  <div class="access-grid">
+    <div class="access-card ac-private">
+      <div class="ac-title">🔒 private</div>
+      <p>Only within the <strong>same class</strong></p>
+      <p>Most restrictive</p>
+    </div>
+    <div class="access-card ac-default">
+      <div class="ac-title">📦 default</div>
+      <p>Within the <strong>same package</strong></p>
+      <p>No keyword — write nothing</p>
+    </div>
+    <div class="access-card ac-protected">
+      <div class="ac-title">🛡️ protected</div>
+      <p>Same package + <strong>subclasses</strong></p>
+      <p>Even in different package</p>
+    </div>
+    <div class="access-card ac-public">
+      <div class="ac-title">🌐 public</div>
+      <p><strong>Everywhere</strong></p>
+      <p>No restrictions</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 3: PRIVATE -->
+<div class="section" id="private">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">private</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Accessible only within the same class.</strong> Not even subclasses or same-package classes can access it.
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">BankAccount</span> {
+
+    <span class="kw">private double</span> balance;     <span class="cm">// only this class can access</span>
+    <span class="kw">private</span> <span class="cl">String</span> pin;         <span class="cm">// completely hidden</span>
+
+    <span class="cm">// Public method to access private field safely</span>
+    <span class="kw">public double</span> getBalance() {
+        <span class="kw">return</span> balance;          <span class="cm">// ✅ same class can access</span>
+    }
+
+    <span class="kw">public void</span> deposit(<span class="kw">double</span> amount) {
+        <span class="kw">if</span> (amount &gt; <span class="num">0</span>) balance += amount;  <span class="cm">// validated access</span>
+    }
+
+    <span class="kw">private void</span> validate() { }  <span class="cm">// helper method — hidden</span>
+}
+
+<span class="cl">BankAccount</span> acc = <span class="kw">new</span> <span class="cl">BankAccount</span>();
+<span class="cm">// acc.balance = 1000;  ❌ compile error — private!</span>
+<span class="cm">// acc.pin = "1234";    ❌ compile error — private!</span>
+acc.deposit(<span class="num">1000</span>);      <span class="cm">// ✅ through public method</span>
+acc.getBalance();        <span class="cm">// ✅ through public getter</span></pre>
+
+  <h3>When to use private:</h3>
+  <ul>
+    <li>All <strong>instance variables</strong> (fields) — core of encapsulation</li>
+    <li><strong>Helper methods</strong> that are internal implementation details</li>
+    <li>Anything that should <strong>never be directly accessed</strong> from outside</li>
+  </ul>
+</div>
+
+
+<!-- SECTION 4: DEFAULT -->
+<div class="section" id="default">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">default (package-private)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>No keyword written = default access.</strong> Accessible within the same package only. Also called "package-private".
+  </div>
+
+<pre><span class="cm">// File: com/company/Animal.java</span>
+<span class="kw">package</span> com.company;
+
+<span class="kw">class</span> <span class="cl">Animal</span> {          <span class="cm">// default class — no public keyword</span>
+    <span class="cl">String</span> name;        <span class="cm">// default field</span>
+    <span class="kw">void</span> eat() { }      <span class="cm">// default method</span>
+}
+
+<span class="cm">// File: com/company/Dog.java (SAME package)</span>
+<span class="kw">package</span> com.company;
+
+<span class="kw">class</span> <span class="cl">Dog</span> {
+    <span class="kw">void</span> test() {
+        <span class="cl">Animal</span> a = <span class="kw">new</span> <span class="cl">Animal</span>();
+        a.name = <span class="st">"Cat"</span>;  <span class="cm">// ✅ same package — accessible</span>
+        a.eat();           <span class="cm">// ✅ same package — accessible</span>
+    }
+}
+
+<span class="cm">// File: com/other/Test.java (DIFFERENT package)</span>
+<span class="kw">package</span> com.other;
+<span class="cm">// import com.company.Animal; ❌ cannot import — default access!</span></pre>
+
+  <div class="info-box">
+    <strong>Use case:</strong> Default access is useful for classes that are implementation details of a package — they should only be used within that package, not exposed as public API.
+  </div>
+</div>
+
+
+<!-- SECTION 5: PROTECTED -->
+<div class="section" id="protected">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">protected</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Accessible within same package AND subclasses (even in different packages).</strong> Specifically designed for inheritance.
+  </div>
+
+<pre><span class="cm">// Package: animals</span>
+<span class="kw">public class</span> <span class="cl">Animal</span> {
+    <span class="kw">protected</span> <span class="cl">String</span> name;       <span class="cm">// accessible to subclasses</span>
+    <span class="kw">protected void</span> breathe() {    <span class="cm">// accessible to subclasses</span>
+        System.out.println(<span class="st">"Breathing..."</span>);
+    }
+}
+
+<span class="cm">// Package: pets (different package!)</span>
+<span class="kw">public class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="kw">public void</span> show() {
+        name = <span class="st">"Bruno"</span>;   <span class="cm">// ✅ subclass can access protected</span>
+        breathe();          <span class="cm">// ✅ subclass can access protected</span>
+    }
+}
+
+<span class="cm">// Different package, NOT a subclass</span>
+<span class="kw">public class</span> <span class="cl">Test</span> {
+    <span class="kw">void</span> run() {
+        <span class="cl">Animal</span> a = <span class="kw">new</span> <span class="cl">Animal</span>();
+        <span class="cm">// a.name = "x";   ❌ different package, not subclass</span>
+        <span class="cm">// a.breathe();    ❌ different package, not subclass</span>
+    }
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Protected tricky rule:</strong><br>
+    A subclass in a different package can access protected members <strong>through inheritance</strong> (via <code>this</code> or directly), but <strong>NOT through a reference</strong> to a parent object.
+<pre style="margin-top:8px"><span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="kw">void</span> test() {
+        breathe();          <span class="cm">// ✅ via inheritance</span>
+        <span class="cl">Animal</span> a = <span class="kw">new</span> <span class="cl">Animal</span>();
+        <span class="cm">// a.breathe();    ❌ via object reference — NOT allowed!</span>
+    }
+}</pre>
+  </div>
+</div>
+
+
+<!-- SECTION 6: PUBLIC -->
+<div class="section" id="public">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">public</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Accessible from everywhere — any class in any package.</strong> No restrictions at all.
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">MathUtils</span> {           <span class="cm">// accessible from anywhere</span>
+    <span class="kw">public static final double</span> PI = <span class="num">3.14159</span>;  <span class="cm">// public constant</span>
+
+    <span class="kw">public static int</span> square(<span class="kw">int</span> n) {   <span class="cm">// public method</span>
+        <span class="kw">return</span> n * n;
+    }
+}
+
+<span class="cm">// Any class anywhere can use it</span>
+<span class="kw">import</span> com.utils.MathUtils;
+<span class="kw">int</span> s = <span class="cl">MathUtils</span>.square(<span class="num">5</span>);       <span class="cm">// ✅</span>
+<span class="kw">double</span> p = <span class="cl">MathUtils</span>.PI;           <span class="cm">// ✅</span></pre>
+
+  <h3>When to use public:</h3>
+  <ul>
+    <li>Class declarations (only one public class per file)</li>
+    <li>API methods that should be accessible to all users</li>
+    <li>Constants (<code>public static final</code>)</li>
+    <li>The <code>main()</code> method</li>
+  </ul>
+</div>
+
+
+<!-- SECTION 7: MASTER TABLE -->
+<div class="section" id="table">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Master Comparison Table</div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Modifier</th>
+      <th>Same Class</th>
+      <th>Same Package</th>
+      <th>Subclass (diff pkg)</th>
+      <th>Other Package</th>
+    </tr>
+    <tr>
+      <td><strong>private</strong></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="cross">❌</span></td>
+      <td><span class="cross">❌</span></td>
+      <td><span class="cross">❌</span></td>
+    </tr>
+    <tr>
+      <td><strong>default</strong></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="cross">❌</span></td>
+      <td><span class="cross">❌</span></td>
+    </tr>
+    <tr>
+      <td><strong>protected</strong></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="cross">❌</span></td>
+    </tr>
+    <tr>
+      <td><strong>public</strong></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="tick">✅</span></td>
+      <td><span class="tick">✅</span></td>
+    </tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>💡 Memory trick — access increases left to right:</strong><br>
+    <code>private</code> → 1 place (same class)<br>
+    <code>default</code> → 2 places (+ same package)<br>
+    <code>protected</code> → 3 places (+ subclasses)<br>
+    <code>public</code> → 4 places (everywhere)
+  </div>
+</div>
+
+
+<!-- SECTION 8: CLASS LEVEL -->
+<div class="section" id="class-level">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Class-level Access Modifiers</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Top-level classes</strong> (not nested) can only be <code>public</code> or <code>default</code>.<br>
+    <code>private</code> and <code>protected</code> are NOT allowed for top-level classes.
+  </div>
+
+  <table>
+    <tr><th>Modifier</th><th>Top-level class</th><th>Nested class</th><th>Members (fields/methods)</th></tr>
+    <tr><td>public</td><td>✅ Yes</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+    <tr><td>default</td><td>✅ Yes</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+    <tr><td>protected</td><td>❌ No</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+    <tr><td>private</td><td>❌ No</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ One public class per file rule:</strong><br>
+    A Java file can have multiple classes, but <strong>only ONE can be public</strong>, and the file name must match that public class name. Other classes in the same file must have default access.
+  </div>
+
+<pre><span class="cm">// File: Animal.java</span>
+<span class="kw">public class</span> <span class="cl">Animal</span> { }   <span class="cm">// ✅ public — file name must be Animal.java</span>
+<span class="kw">class</span> <span class="cl">Helper</span> { }          <span class="cm">// ✅ default — allowed in same file</span>
+<span class="cm">// public class Other { } ❌ only ONE public class per file!</span></pre>
+</div>
+
+
+<!-- SECTION 9: BEST PRACTICES -->
+<div class="section" id="best">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Best Practices</div>
+  </div>
+
+  <div class="tip-box">
+    <strong>💡 Principle of Least Privilege — use the most restrictive modifier possible!</strong><br>
+    Start with <code>private</code> and only open up access when genuinely needed.
+  </div>
+
+  <table>
+    <tr><th>What</th><th>Recommended Modifier</th><th>Reason</th></tr>
+    <tr><td>Instance variables (fields)</td><td><code>private</code></td><td>Encapsulation — expose via getters/setters</td></tr>
+    <tr><td>Helper / utility methods</td><td><code>private</code></td><td>Internal implementation detail</td></tr>
+    <tr><td>API methods (public API)</td><td><code>public</code></td><td>Should be accessible to all consumers</td></tr>
+    <tr><td>Methods meant for subclasses</td><td><code>protected</code></td><td>Inheritance hook — subclasses can override</td></tr>
+    <tr><td>Package-internal classes</td><td><code>default</code></td><td>Not part of public API</td></tr>
+    <tr><td>Constants</td><td><code>public static final</code></td><td>Shared, immutable, accessible everywhere</td></tr>
+  </table>
+
+<pre><span class="cm">// ✅ Good design — encapsulated</span>
+<span class="kw">public class</span> <span class="cl">Employee</span> {
+    <span class="kw">private</span> <span class="cl">String</span> name;    <span class="cm">// private field</span>
+    <span class="kw">private int</span> salary;     <span class="cm">// private field</span>
+
+    <span class="kw">public</span> <span class="cl">String</span> getName() { <span class="kw">return</span> name; }    <span class="cm">// public getter</span>
+    <span class="kw">public void</span> setSalary(<span class="kw">int</span> s) {              <span class="cm">// public setter with validation</span>
+        <span class="kw">if</span> (s &gt; <span class="num">0</span>) salary = s;
+    }
+    <span class="kw">private void</span> calculateTax() { }   <span class="cm">// private helper</span>
+}</pre>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What are the 4 access modifiers in Java? Explain each.</div>
+    <div class="a"><strong>private</strong> — accessible only within the same class. Most restrictive.<br>
+    <strong>default</strong> (no keyword) — accessible within the same package only.<br>
+    <strong>protected</strong> — accessible within the same package AND in subclasses (even in different packages).<br>
+    <strong>public</strong> — accessible from anywhere with no restrictions.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between protected and default?</div>
+    <div class="a">Both are accessible within the same package. The difference is that <strong>protected</strong> is also accessible in <strong>subclasses in different packages</strong> through inheritance. <strong>Default</strong> is strictly package-private — not accessible outside the package even by subclasses.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. Can a top-level class be private or protected?</div>
+    <div class="a">No. Top-level classes (not nested) can only be <code>public</code> or <code>default</code>. Using <code>private</code> or <code>protected</code> on a top-level class causes a compile error. However, nested (inner) classes can use all 4 access modifiers.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. Why are instance variables usually declared private?</div>
+    <div class="a">Declaring instance variables private is the core of encapsulation. It prevents direct, uncontrolled access from outside the class. Instead, access is provided through public getter and setter methods, where we can add validation logic. This keeps the internal state of an object safe and consistent.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. Can a private method be overridden?</div>
+    <div class="a">No. Private methods are not visible to subclasses, so they cannot be overridden. If a subclass defines a method with the same name and signature, it is a completely new method (method hiding), not overriding. This is because overriding requires the method to be inherited first.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is the default access modifier?</div>
+    <div class="a">Default access (also called package-private) is when no access modifier keyword is written. The member or class is accessible to all classes within the same package but not to classes in different packages. It is not a keyword — you simply omit the modifier.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Can you reduce the access modifier when overriding a method?</div>
+    <div class="a">No. When overriding a method in a subclass, you can only keep the same or increase the access level — never reduce it. For example, if the parent has a <code>public</code> method, the overriding method cannot be <code>protected</code> or <code>private</code>. This is enforced by the compiler to maintain the Liskov Substitution Principle.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 10: Access Modifiers · 10 of 26 complete
+</div>
+
+</body>
+</html>

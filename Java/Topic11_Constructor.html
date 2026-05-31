@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 11 — Constructor in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #34d399 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #065f46; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #064e3b; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #065f46; padding-bottom: 12px; }
+  .section-num { background: #065f46; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #064e3b; }
+  h3 { font-size: 1.05rem; color: #065f46; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #ecfdf5; border-left: 4px solid #065f46; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #064e3b; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #ecfdf5; }
+  tr:hover { background: #d1fae5; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #064e3b; margin-top: 0; }
+  .con-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+  .con-card { border-radius: 10px; padding: 16px; text-align: center; border: 2px solid; }
+  .con-default   { background: #eff6ff; border-color: #93c5fd; }
+  .con-param     { background: #f0fdf4; border-color: #86efac; }
+  .con-copy      { background: #fff7ed; border-color: #fed7aa; }
+  .con-title     { font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+  .con-default .con-title { color: #1d4ed8; }
+  .con-param .con-title   { color: #166534; }
+  .con-copy .con-title    { color: #9a3412; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #065f46; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 11 OF 26</div>
+  <h1>🏗️ Constructor in Java</h1>
+  <p>Default · Parameterized · Copy · this() · super() · Constructor Chaining</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is a Constructor?</a></li>
+    <li><a href="#rules">Constructor Rules</a></li>
+    <li><a href="#types">3 Types of Constructors</a></li>
+    <li><a href="#default">Default Constructor</a></li>
+    <li><a href="#param">Parameterized Constructor</a></li>
+    <li><a href="#copy">Copy Constructor</a></li>
+    <li><a href="#overloading">Constructor Overloading</a></li>
+    <li><a href="#chaining">Constructor Chaining — this() and super()</a></li>
+    <li><a href="#vs-method">Constructor vs Method</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is a Constructor?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> A constructor is a special method that is <strong>automatically called when an object is created</strong> using the <code>new</code> keyword. Its purpose is to <strong>initialize the object's state</strong> (set initial values for fields).
+  </div>
+
+  <h3>Why constructors?</h3>
+  <ul>
+    <li>Guarantee that an object is in a <strong>valid state</strong> when created</li>
+    <li>Avoid having to manually set fields after creation</li>
+    <li>Enforce <strong>mandatory fields</strong> (must provide name, age, etc.)</li>
+    <li>Set up resources (database connections, file handles)</li>
+  </ul>
+
+<pre><span class="kw">class</span> <span class="cl">Car</span> {
+    <span class="cl">String</span> brand;
+    <span class="kw">int</span>    year;
+
+    <span class="cm">// Constructor — same name as class, no return type</span>
+    <span class="cl">Car</span>(<span class="cl">String</span> brand, <span class="kw">int</span> year) {
+        <span class="kw">this</span>.brand = brand;
+        <span class="kw">this</span>.year  = year;
+    }
+}
+
+<span class="cm">// Constructor called automatically when new is used</span>
+<span class="cl">Car</span> c = <span class="kw">new</span> <span class="cl">Car</span>(<span class="st">"Toyota"</span>, <span class="num">2023</span>);
+<span class="cm">// c.brand = "Toyota", c.year = 2023 — already initialized!</span></pre>
+</div>
+
+
+<!-- SECTION 2: RULES -->
+<div class="section" id="rules">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Constructor Rules</div>
+  </div>
+
+  <table>
+    <tr><th>Rule</th><th>Details</th></tr>
+    <tr><td>Same name as class</td><td>Constructor name must exactly match the class name (case-sensitive)</td></tr>
+    <tr><td>No return type</td><td>Not even <code>void</code> — if you add void, it becomes a regular method!</td></tr>
+    <tr><td>Called automatically</td><td>Called by JVM when <code>new</code> keyword is used — cannot call manually like a method</td></tr>
+    <tr><td>Can have parameters</td><td>0 or more parameters allowed</td></tr>
+    <tr><td>Can be overloaded</td><td>Multiple constructors with different parameters allowed</td></tr>
+    <tr><td>Access modifiers</td><td>Can be public, private, protected, or default</td></tr>
+    <tr><td>Cannot be inherited</td><td>Constructors are NOT inherited by subclasses</td></tr>
+    <tr><td>Cannot be abstract/static/final</td><td>These modifiers are not allowed on constructors</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ Common Mistake — adding void:</strong><br>
+    <code>void Car() { }</code> → This is a REGULAR METHOD named Car, NOT a constructor!<br>
+    <code>Car() { }</code> → This is a CONSTRUCTOR — no return type at all.
+  </div>
+</div>
+
+
+<!-- SECTION 3: TYPES -->
+<div class="section" id="types">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">3 Types of Constructors</div>
+  </div>
+
+  <div class="con-types">
+    <div class="con-card con-default">
+      <div class="con-title">1. Default Constructor</div>
+      <p style="font-size:0.85rem;color:#4b5563">No parameters. Provided by Java if no constructor defined.</p>
+    </div>
+    <div class="con-card con-param">
+      <div class="con-title">2. Parameterized Constructor</div>
+      <p style="font-size:0.85rem;color:#4b5563">Takes parameters to initialize fields with custom values.</p>
+    </div>
+    <div class="con-card con-copy">
+      <div class="con-title">3. Copy Constructor</div>
+      <p style="font-size:0.85rem;color:#4b5563">Takes another object of same class and copies its values.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 4: DEFAULT CONSTRUCTOR -->
+<div class="section" id="default">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Default Constructor</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Two meanings of "default constructor":</strong><br>
+    1. A constructor with <strong>no parameters</strong> (no-arg constructor)<br>
+    2. The constructor <strong>automatically provided by Java</strong> if you write no constructor at all
+  </div>
+
+<pre><span class="cm">// Case 1: Java provides default constructor automatically</span>
+<span class="kw">class</span> <span class="cl">Dog</span> {
+    <span class="cl">String</span> name;   <span class="cm">// default: null</span>
+    <span class="kw">int</span> age;        <span class="cm">// default: 0</span>
+    <span class="cm">// No constructor written — Java adds this behind the scenes:</span>
+    <span class="cm">// Dog() { super(); }  ← calls Object constructor</span>
+}
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();   <span class="cm">// ✅ works! uses Java's default constructor</span>
+System.out.println(d.name);  <span class="cm">// null</span>
+System.out.println(d.age);   <span class="cm">// 0</span>
+
+<span class="cm">// Case 2: You write a no-arg constructor explicitly</span>
+<span class="kw">class</span> <span class="cl">Cat</span> {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span> age;
+
+    <span class="cm">// Explicit no-arg constructor with defaults</span>
+    <span class="cl">Cat</span>() {
+        <span class="kw">this</span>.name = <span class="st">"Unknown"</span>;
+        <span class="kw">this</span>.age  = <span class="num">1</span>;
+    }
+}
+<span class="cl">Cat</span> c = <span class="kw">new</span> <span class="cl">Cat</span>();
+System.out.println(c.name);  <span class="cm">// Unknown</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Java's default constructor disappears if you add ANY constructor!</strong><br>
+    If you define even ONE parameterized constructor, Java stops providing the default.<br>
+    <code>new Dog()</code> → ❌ compile error if Dog has only a parameterized constructor and no no-arg constructor!<br>
+    Solution: explicitly add a no-arg constructor if needed.
+  </div>
+</div>
+
+
+<!-- SECTION 5: PARAMETERIZED -->
+<div class="section" id="param">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Parameterized Constructor</div>
+  </div>
+
+  <p>Takes parameters to set field values at the time of object creation. Most commonly used constructor type.</p>
+
+<pre><span class="kw">class</span> <span class="cl">Student</span> {
+    <span class="kw">private</span> <span class="cl">String</span> name;
+    <span class="kw">private int</span>    age;
+    <span class="kw">private double</span> gpa;
+
+    <span class="cm">// Parameterized constructor</span>
+    <span class="kw">public</span> <span class="cl">Student</span>(<span class="cl">String</span> name, <span class="kw">int</span> age, <span class="kw">double</span> gpa) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">this</span>.age  = age;
+        <span class="kw">this</span>.gpa  = gpa;
+    }
+
+    <span class="kw">public void</span> display() {
+        System.out.println(name + <span class="st">" | "</span> + age + <span class="st">" | "</span> + gpa);
+    }
+}
+
+<span class="cm">// Object created with values immediately</span>
+<span class="cl">Student</span> s1 = <span class="kw">new</span> <span class="cl">Student</span>(<span class="st">"Alice"</span>, <span class="num">20</span>, <span class="num">3.8</span>);
+<span class="cl">Student</span> s2 = <span class="kw">new</span> <span class="cl">Student</span>(<span class="st">"Bob"</span>,   <span class="num">22</span>, <span class="num">3.5</span>);
+s1.display();  <span class="cm">// Alice | 20 | 3.8</span>
+s2.display();  <span class="cm">// Bob   | 22 | 3.5</span></pre>
+</div>
+
+
+<!-- SECTION 6: COPY CONSTRUCTOR -->
+<div class="section" id="copy">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Copy Constructor</div>
+  </div>
+
+  <p>A constructor that takes an object of the same class as parameter and copies its field values. Java does NOT provide a copy constructor automatically (unlike C++) — you must write it.</p>
+
+<pre><span class="kw">class</span> <span class="cl">Student</span> {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span>    age;
+
+    <span class="cm">// Regular constructor</span>
+    <span class="cl">Student</span>(<span class="cl">String</span> name, <span class="kw">int</span> age) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">this</span>.age  = age;
+    }
+
+    <span class="cm">// Copy constructor — takes object of same class</span>
+    <span class="cl">Student</span>(<span class="cl">Student</span> other) {
+        <span class="kw">this</span>.name = other.name;
+        <span class="kw">this</span>.age  = other.age;
+    }
+}
+
+<span class="cl">Student</span> s1 = <span class="kw">new</span> <span class="cl">Student</span>(<span class="st">"Alice"</span>, <span class="num">20</span>);
+<span class="cl">Student</span> s2 = <span class="kw">new</span> <span class="cl">Student</span>(s1);   <span class="cm">// copy constructor</span>
+
+s2.name = <span class="st">"Bob"</span>;   <span class="cm">// changes only s2</span>
+System.out.println(s1.name);  <span class="cm">// Alice — unchanged</span>
+System.out.println(s2.name);  <span class="cm">// Bob</span></pre>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Copy Constructor vs Assignment</h4>
+      <p><code>Student s2 = s1;</code> → copies the <strong>reference</strong> — both point to same object</p>
+      <p><code>Student s2 = new Student(s1);</code> → creates a <strong>new independent object</strong></p>
+    </div>
+    <div class="col-box">
+      <h4>Shallow vs Deep Copy</h4>
+      <p><strong>Shallow</strong> — copies primitive values + references (not objects they point to)</p>
+      <p><strong>Deep</strong> — also copies the objects that reference fields point to (fully independent)</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 7: OVERLOADING -->
+<div class="section" id="overloading">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Constructor Overloading</div>
+  </div>
+
+  <p>Having multiple constructors in the same class with different parameters. Gives flexibility in how objects are created.</p>
+
+<pre><span class="kw">class</span> <span class="cl">Rectangle</span> {
+    <span class="kw">double</span> width;
+    <span class="kw">double</span> height;
+
+    <span class="cm">// No-arg — default square of 1x1</span>
+    <span class="cl">Rectangle</span>() {
+        <span class="kw">this</span>.width  = <span class="num">1.0</span>;
+        <span class="kw">this</span>.height = <span class="num">1.0</span>;
+    }
+
+    <span class="cm">// Square — both sides equal</span>
+    <span class="cl">Rectangle</span>(<span class="kw">double</span> side) {
+        <span class="kw">this</span>.width  = side;
+        <span class="kw">this</span>.height = side;
+    }
+
+    <span class="cm">// Full — specify both dimensions</span>
+    <span class="cl">Rectangle</span>(<span class="kw">double</span> width, <span class="kw">double</span> height) {
+        <span class="kw">this</span>.width  = width;
+        <span class="kw">this</span>.height = height;
+    }
+
+    <span class="kw">double</span> area() { <span class="kw">return</span> width * height; }
+}
+
+<span class="cl">Rectangle</span> r1 = <span class="kw">new</span> <span class="cl">Rectangle</span>();          <span class="cm">// 1x1</span>
+<span class="cl">Rectangle</span> r2 = <span class="kw">new</span> <span class="cl">Rectangle</span>(<span class="num">5.0</span>);       <span class="cm">// 5x5</span>
+<span class="cl">Rectangle</span> r3 = <span class="kw">new</span> <span class="cl">Rectangle</span>(<span class="num">4.0</span>, <span class="num">6.0</span>);  <span class="cm">// 4x6</span></pre>
+</div>
+
+
+<!-- SECTION 8: CHAINING -->
+<div class="section" id="chaining">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Constructor Chaining — this() and super()</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Constructor chaining</strong> = calling one constructor from another constructor.<br>
+    <code>this()</code> — calls another constructor in the <strong>same class</strong><br>
+    <code>super()</code> — calls a constructor in the <strong>parent class</strong><br>
+    Both MUST be the <strong>first statement</strong> in the constructor body!
+  </div>
+
+  <h3>this() — Same Class Chaining</h3>
+<pre><span class="kw">class</span> <span class="cl">Employee</span> {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span>    age;
+    <span class="cl">String</span> dept;
+
+    <span class="cm">// Full constructor</span>
+    <span class="cl">Employee</span>(<span class="cl">String</span> name, <span class="kw">int</span> age, <span class="cl">String</span> dept) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">this</span>.age  = age;
+        <span class="kw">this</span>.dept = dept;
+    }
+
+    <span class="cm">// Calls full constructor with default dept</span>
+    <span class="cl">Employee</span>(<span class="cl">String</span> name, <span class="kw">int</span> age) {
+        <span class="kw">this</span>(name, age, <span class="st">"General"</span>);  <span class="cm">// ← must be FIRST line</span>
+    }
+
+    <span class="cm">// Calls 2-param constructor with default age</span>
+    <span class="cl">Employee</span>(<span class="cl">String</span> name) {
+        <span class="kw">this</span>(name, <span class="num">25</span>);  <span class="cm">// ← must be FIRST line</span>
+    }
+}
+
+<span class="cl">Employee</span> e1 = <span class="kw">new</span> <span class="cl">Employee</span>(<span class="st">"Alice"</span>);
+<span class="cm">// Chain: Employee(String) → Employee(String,int) → Employee(String,int,String)</span>
+<span class="cm">// Result: name="Alice", age=25, dept="General"</span></pre>
+
+  <h3>super() — Parent Class Chaining</h3>
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> name;
+
+    <span class="cl">Animal</span>(<span class="cl">String</span> name) {
+        <span class="kw">this</span>.name = name;
+        System.out.println(<span class="st">"Animal: "</span> + name);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> breed;
+
+    <span class="cl">Dog</span>(<span class="cl">String</span> name, <span class="cl">String</span> breed) {
+        <span class="kw">super</span>(name);   <span class="cm">// ← calls Animal constructor FIRST</span>
+        <span class="kw">this</span>.breed = breed;
+        System.out.println(<span class="st">"Dog breed: "</span> + breed);
+    }
+}
+
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Bruno"</span>, <span class="st">"Labrador"</span>);
+<span class="cm">// Output:
+// Animal: Bruno
+// Dog breed: Labrador</span></pre>
+
+  <div class="info-box">
+    <strong>Important:</strong> Java automatically inserts <code>super()</code> as the first line of EVERY constructor if you don't write it — calling the parent's no-arg constructor. If the parent has no no-arg constructor, you MUST explicitly call <code>super(params)</code>.
+  </div>
+
+  <div class="warning-box">
+    <strong>⚠️ You cannot use both this() and super() in the same constructor!</strong><br>
+    Both must be the first statement — so you can only use one. Using both causes a compile error.
+  </div>
+</div>
+
+
+<!-- SECTION 9: VS METHOD -->
+<div class="section" id="vs-method">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Constructor vs Method</div>
+  </div>
+
+  <table>
+    <tr><th>Feature</th><th>Constructor</th><th>Method</th></tr>
+    <tr><td>Name</td><td>Must match class name</td><td>Any valid name (camelCase)</td></tr>
+    <tr><td>Return type</td><td>No return type (not even void)</td><td>Must have return type (or void)</td></tr>
+    <tr><td>Called when</td><td>Automatically when object created</td><td>Explicitly by programmer</td></tr>
+    <tr><td>Purpose</td><td>Initialize object state</td><td>Perform operations / behavior</td></tr>
+    <tr><td>Inherited?</td><td>No — not inherited</td><td>Yes — inherited by subclasses</td></tr>
+    <tr><td>Can be overridden?</td><td>No</td><td>Yes (instance methods)</td></tr>
+    <tr><td>Can be overloaded?</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Invocation</td><td><code>new ClassName()</code></td><td><code>objectRef.methodName()</code></td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is a constructor? How is it different from a method?</div>
+    <div class="a">A constructor is a special block of code that is automatically called when an object is created using new. It has the same name as the class and no return type. Its purpose is to initialize the object's state. A method is a regular block of code with a name (different from class) and a return type, called explicitly by the programmer to perform operations.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is a default constructor? When does Java provide it?</div>
+    <div class="a">A default constructor is a no-argument constructor. Java automatically provides one if and only if you do NOT define any constructor in the class. The moment you define even one constructor (with or without parameters), Java stops providing the default. The auto-generated default constructor simply calls super() to initialize the parent class.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is constructor overloading?</div>
+    <div class="a">Constructor overloading is having multiple constructors in the same class with different parameter lists. This gives flexibility in how objects are created — with all fields, with some fields, or with no fields. The compiler determines which constructor to call based on the number and types of arguments passed with new.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is constructor chaining? What is this() and super()?</div>
+    <div class="a">Constructor chaining is calling one constructor from another. <code>this()</code> calls another constructor in the same class — useful to avoid duplicate initialization code. <code>super()</code> calls a constructor in the parent class — used to initialize inherited fields. Both must be the FIRST statement in a constructor and cannot be used together in the same constructor.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. Can a constructor be private? When would you use it?</div>
+    <div class="a">Yes. A private constructor prevents object creation from outside the class. This is used in: (1) <strong>Singleton pattern</strong> — ensure only one instance exists. (2) <strong>Utility classes</strong> — classes with only static methods (like Math) where you don't want instances. (3) <strong>Factory method pattern</strong> — control object creation through static factory methods.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Can a constructor return a value?</div>
+    <div class="a">No. A constructor cannot have a return type — not even void. If you add a return type, it becomes a regular method, not a constructor. However, the constructor implicitly returns the newly created object when called via new.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What happens if the parent class has no default constructor?</div>
+    <div class="a">If the parent class has only a parameterized constructor (no no-arg constructor), then every child class constructor MUST explicitly call super(params) as the first statement. If not, the compiler will try to call the non-existent super() and give a compile error: "constructor Animal() is undefined".</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 11: Constructor · 11 of 26 complete
+</div>
+
+</body>
+</html>

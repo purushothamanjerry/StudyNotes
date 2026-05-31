@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 16 — Interface in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #0d9488 0%, #0f766e 60%, #99f6e4 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #0f766e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #0d9488; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #0f766e; padding-bottom: 12px; }
+  .section-num { background: #0f766e; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #0d9488; }
+  h3 { font-size: 1.05rem; color: #0f766e; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #f0fdfa; border-left: 4px solid #0f766e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #0d9488; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f0fdfa; }
+  tr:hover { background: #ccfbf1; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #0d9488; margin-top: 0; }
+  .evolution-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+  .ev-card { flex: 1; min-width: 140px; border-radius: 10px; padding: 14px; border: 2px solid; text-align: center; }
+  .ev-pre8  { background: #fef2f2; border-color: #fca5a5; }
+  .ev-pre8  .ev-ver { color: #dc2626; }
+  .ev-java8 { background: #f0fdf4; border-color: #86efac; }
+  .ev-java8 .ev-ver { color: #16a34a; }
+  .ev-java9 { background: #eff6ff; border-color: #93c5fd; }
+  .ev-java9 .ev-ver { color: #1d4ed8; }
+  .ev-ver   { font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+  .ev-card p { font-size: 0.8rem; color: #4b5563; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #0f766e; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 16 OF 26</div>
+  <h1>📋 Interface in Java</h1>
+  <p>Contract · Default Methods · Static Methods · Functional Interface · Marker Interface</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is an Interface?</a></li>
+    <li><a href="#syntax">Syntax & Basic Example</a></li>
+    <li><a href="#rules">Interface Rules — Must Know</a></li>
+    <li><a href="#multiple">Multiple Interface Implementation</a></li>
+    <li><a href="#evolution">Interface Evolution — Java 8 & 9</a></li>
+    <li><a href="#default">Default Methods (Java 8)</a></li>
+    <li><a href="#static">Static Methods (Java 8)</a></li>
+    <li><a href="#private">Private Methods (Java 9)</a></li>
+    <li><a href="#functional">Functional Interface & Lambda</a></li>
+    <li><a href="#marker">Marker Interface</a></li>
+    <li><a href="#extends">Interface Extending Interface</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is an Interface?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> An interface is a <strong>pure contract</strong> — it defines what a class must do, but not how. It is declared with the <code>interface</code> keyword. Any class that <code>implements</code> an interface must provide implementations for all its abstract methods. An interface cannot be instantiated.
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Real World Analogy</h4>
+      <p>A <strong>job contract</strong> — it lists what you must do (responsibilities). It doesn't say HOW you do it. Any employee who signs the contract must fulfill those responsibilities in their own way.</p>
+    </div>
+    <div class="col-box">
+      <h4>Key Ideas</h4>
+      <ul>
+        <li>Interface = <strong>contract/capability</strong></li>
+        <li>Defines <strong>WHAT</strong>, not <strong>HOW</strong></li>
+        <li>Enables <strong>multiple inheritance</strong></li>
+        <li>Achieves <strong>loose coupling</strong></li>
+        <li>Enables <strong>polymorphism</strong> across unrelated classes</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: SYNTAX -->
+<div class="section" id="syntax">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Syntax & Basic Example</div>
+  </div>
+
+<pre><span class="cm">// Interface declaration</span>
+<span class="kw">interface</span> <span class="cl">Flyable</span> {
+    <span class="cm">// Constants — implicitly public static final</span>
+    <span class="kw">int</span> MAX_HEIGHT = <span class="num">10000</span>;  <span class="cm">// same as: public static final int</span>
+
+    <span class="cm">// Abstract methods — implicitly public abstract</span>
+    <span class="kw">void</span> fly();    <span class="cm">// same as: public abstract void fly();</span>
+    <span class="kw">void</span> land();
+}
+
+<span class="kw">interface</span> <span class="cl">Swimmable</span> {
+    <span class="kw">void</span> swim();
+}
+
+<span class="cm">// Class implements ONE interface</span>
+<span class="kw">class</span> <span class="cl">Bird</span> <span class="kw">implements</span> <span class="cl">Flyable</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> fly()  { System.out.println(<span class="st">"Bird flying"</span>); }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> land() { System.out.println(<span class="st">"Bird landing"</span>); }
+}
+
+<span class="cm">// Class implements MULTIPLE interfaces — multiple inheritance!</span>
+<span class="kw">class</span> <span class="cl">Duck</span> <span class="kw">implements</span> <span class="cl">Flyable</span>, <span class="cl">Swimmable</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> fly()  { System.out.println(<span class="st">"Duck flying"</span>); }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> land() { System.out.println(<span class="st">"Duck landing"</span>); }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> swim() { System.out.println(<span class="st">"Duck swimming"</span>); }
+}
+
+<span class="cm">// Interface reference — polymorphism</span>
+<span class="cl">Flyable</span> f = <span class="kw">new</span> <span class="cl">Duck</span>();
+f.fly();    <span class="cm">// Duck flying</span>
+System.out.println(<span class="cl">Flyable</span>.MAX_HEIGHT);  <span class="cm">// 10000</span></pre>
+</div>
+
+
+<!-- SECTION 3: RULES -->
+<div class="section" id="rules">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Interface Rules — Must Know</div>
+  </div>
+
+  <table>
+    <tr><th>Rule</th><th>Detail</th></tr>
+    <tr><td>Cannot instantiate</td><td><code>new Interface()</code> → ❌ compile error</td></tr>
+    <tr><td>Variables</td><td>Implicitly <code>public static final</code> — constants only</td></tr>
+    <tr><td>Methods (pre-Java 8)</td><td>Implicitly <code>public abstract</code></td></tr>
+    <tr><td>Methods (Java 8+)</td><td>Also <code>default</code> and <code>static</code> methods allowed</td></tr>
+    <tr><td>Methods (Java 9+)</td><td>Also <code>private</code> and <code>private static</code> methods</td></tr>
+    <tr><td>No constructor</td><td>Interfaces have no constructor</td></tr>
+    <tr><td>No instance variables</td><td>Only constants (public static final)</td></tr>
+    <tr><td>Multiple implementation</td><td>A class can implement multiple interfaces</td></tr>
+    <tr><td>Multiple extension</td><td>An interface can extend multiple interfaces</td></tr>
+    <tr><td>Access modifier on methods</td><td>Abstract methods are public by default — cannot be private/protected</td></tr>
+    <tr><td>Class must implement all</td><td>Or declare the class abstract</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ Interface variables are constants — cannot change!</strong><br>
+    <code>int MAX = 100;</code> in interface = <code>public static final int MAX = 100;</code><br>
+    You CANNOT do: <code>Flyable.MAX_HEIGHT = 200;</code> → compile error — it's final!
+  </div>
+</div>
+
+
+<!-- SECTION 4: MULTIPLE IMPLEMENTATION -->
+<div class="section" id="multiple">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Multiple Interface Implementation</div>
+  </div>
+
+<pre><span class="kw">interface</span> <span class="cl">Printable</span>   { <span class="kw">void</span> print(); }
+<span class="kw">interface</span> <span class="cl">Saveable</span>    { <span class="kw">void</span> save();  }
+<span class="kw">interface</span> <span class="cl">Shareable</span>   { <span class="kw">void</span> share(); }
+
+<span class="cm">// Implements 3 interfaces — multiple inheritance of type!</span>
+<span class="kw">class</span> <span class="cl">Document</span> <span class="kw">implements</span> <span class="cl">Printable</span>, <span class="cl">Saveable</span>, <span class="cl">Shareable</span> {
+    <span class="an">@Override</span> <span class="kw">public void</span> print() { System.out.println(<span class="st">"Printing..."</span>); }
+    <span class="an">@Override</span> <span class="kw">public void</span> save()  { System.out.println(<span class="st">"Saving..."</span>);   }
+    <span class="an">@Override</span> <span class="kw">public void</span> share() { System.out.println(<span class="st">"Sharing..."</span>);  }
+}
+
+<span class="cm">// Class + interface — extends ONE class, implements MANY</span>
+<span class="kw">class</span> <span class="cl">SpreadSheet</span> <span class="kw">extends</span> <span class="cl">Document</span> <span class="kw">implements</span> <span class="cl">Printable</span>, <span class="cl">Saveable</span> {
+    <span class="cm">// inherits Document's implementations</span>
+}
+
+<span class="cm">// Use interface as reference — polymorphism across unrelated classes</span>
+<span class="cl">Printable</span>[] printables = { <span class="kw">new</span> <span class="cl">Document</span>(), <span class="kw">new</span> <span class="cl">SpreadSheet</span>() };
+<span class="kw">for</span> (<span class="cl">Printable</span> p : printables) p.print();</pre>
+</div>
+
+
+<!-- SECTION 5: EVOLUTION -->
+<div class="section" id="evolution">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Interface Evolution — Java 8 & 9</div>
+  </div>
+
+  <div class="evolution-row">
+    <div class="ev-card ev-pre8">
+      <div class="ev-ver">Before Java 8</div>
+      <p>Only abstract methods<br>Only constants<br>No implementation at all</p>
+    </div>
+    <div class="ev-card ev-java8">
+      <div class="ev-ver">Java 8 ⭐</div>
+      <p>+ default methods<br>+ static methods<br>+ @FunctionalInterface</p>
+    </div>
+    <div class="ev-card ev-java9">
+      <div class="ev-ver">Java 9</div>
+      <p>+ private methods<br>+ private static methods</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>Why did Java 8 add default methods?</strong><br>
+    To add new methods to existing interfaces (like <code>Collection.stream()</code>, <code>List.sort()</code>) WITHOUT breaking all existing implementations. Before default methods, adding a method to an interface would break every class that implements it.
+  </div>
+</div>
+
+
+<!-- SECTION 6: DEFAULT METHODS -->
+<div class="section" id="default">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Default Methods (Java 8)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Default method</strong> — a method in an interface with a <strong>body</strong> (implementation). Implementing classes can use it as-is or override it. Introduced for backward compatibility.
+  </div>
+
+<pre><span class="kw">interface</span> <span class="cl">Vehicle</span> {
+    <span class="kw">void</span> start();   <span class="cm">// abstract — must implement</span>
+
+    <span class="cm">// Default method — has body, optional to override</span>
+    <span class="kw">default void</span> stop() {
+        System.out.println(<span class="st">"Vehicle stopped"</span>);
+    }
+
+    <span class="kw">default void</span> fuelStatus() {
+        System.out.println(<span class="st">"Checking fuel..."</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Car</span> <span class="kw">implements</span> <span class="cl">Vehicle</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> start() { System.out.println(<span class="st">"Car started"</span>); }
+    <span class="cm">// stop() and fuelStatus() — inherited from interface, no need to override</span>
+}
+
+<span class="kw">class</span> <span class="cl">Truck</span> <span class="kw">implements</span> <span class="cl">Vehicle</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> start() { System.out.println(<span class="st">"Truck started"</span>); }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> stop() {  <span class="cm">// Override default</span>
+        System.out.println(<span class="st">"Truck applying air brakes..."</span>);
+    }
+}
+
+<span class="cl">Car</span> c = <span class="kw">new</span> <span class="cl">Car</span>();
+c.start();      <span class="cm">// Car started</span>
+c.stop();       <span class="cm">// Vehicle stopped (default)</span>
+
+<span class="cl">Truck</span> t = <span class="kw">new</span> <span class="cl">Truck</span>();
+t.stop();       <span class="cm">// Truck applying air brakes (overridden)</span></pre>
+
+  <h3>Diamond Problem with Default Methods</h3>
+<pre><span class="kw">interface</span> <span class="cl">A</span> { <span class="kw">default void</span> greet() { System.out.println(<span class="st">"Hello from A"</span>); } }
+<span class="kw">interface</span> <span class="cl">B</span> { <span class="kw">default void</span> greet() { System.out.println(<span class="st">"Hello from B"</span>); } }
+
+<span class="cm">// Conflict — must override to resolve!</span>
+<span class="kw">class</span> <span class="cl">C</span> <span class="kw">implements</span> <span class="cl">A</span>, <span class="cl">B</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> greet() {
+        <span class="cl">A</span>.super.greet();  <span class="cm">// explicitly choose A's version</span>
+        <span class="cm">// or B.super.greet();</span>
+        <span class="cm">// or write your own implementation</span>
+    }
+}</pre>
+</div>
+
+
+<!-- SECTION 7: STATIC METHODS -->
+<div class="section" id="static">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Static Methods (Java 8)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Static methods in interfaces</strong> — utility/helper methods that belong to the interface itself. Called via the interface name. <strong>NOT inherited</strong> by implementing classes.
+  </div>
+
+<pre><span class="kw">interface</span> <span class="cl">MathUtils</span> {
+    <span class="cm">// Static method — utility function</span>
+    <span class="kw">static int</span> square(<span class="kw">int</span> n) { <span class="kw">return</span> n * n; }
+    <span class="kw">static boolean</span> isEven(<span class="kw">int</span> n) { <span class="kw">return</span> n % <span class="num">2</span> == <span class="num">0</span>; }
+}
+
+<span class="cm">// Call via INTERFACE NAME only</span>
+<span class="kw">int</span> s = <span class="cl">MathUtils</span>.square(<span class="num">5</span>);        <span class="cm">// ✅ 25</span>
+<span class="kw">boolean</span> e = <span class="cl">MathUtils</span>.isEven(<span class="num">4</span>);   <span class="cm">// ✅ true</span>
+
+<span class="kw">class</span> <span class="cl">MyClass</span> <span class="kw">implements</span> <span class="cl">MathUtils</span> { }
+<span class="cl">MyClass</span> obj = <span class="kw">new</span> <span class="cl">MyClass</span>();
+<span class="cm">// obj.square(5);       ❌ NOT accessible on instance</span>
+<span class="cm">// MyClass.square(5);   ❌ NOT inherited by implementing class</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Interface static methods are NOT inherited!</strong><br>
+    Unlike class static methods, interface static methods cannot be called on implementing class or its objects. Only via the interface name directly.
+  </div>
+</div>
+
+
+<!-- SECTION 8: PRIVATE METHODS -->
+<div class="section" id="private">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Private Methods (Java 9)</div>
+  </div>
+
+  <p>Private methods in interfaces are <strong>helper methods</strong> used internally by default or static methods. Not visible to implementing classes.</p>
+
+<pre><span class="kw">interface</span> <span class="cl">Logger</span> {
+    <span class="cm">// Default methods use private helper</span>
+    <span class="kw">default void</span> logInfo(<span class="cl">String</span> msg)  { log(<span class="st">"INFO"</span>,  msg); }
+    <span class="kw">default void</span> logError(<span class="cl">String</span> msg) { log(<span class="st">"ERROR"</span>, msg); }
+    <span class="kw">default void</span> logWarn(<span class="cl">String</span> msg)  { log(<span class="st">"WARN"</span>,  msg); }
+
+    <span class="cm">// Private helper — avoids code duplication</span>
+    <span class="kw">private void</span> log(<span class="cl">String</span> level, <span class="cl">String</span> msg) {
+        System.out.println(<span class="st">"["</span> + level + <span class="st">"] "</span> + msg);
+    }
+
+    <span class="cm">// Private static — for static method helpers</span>
+    <span class="kw">private static</span> <span class="cl">String</span> timestamp() {
+        <span class="kw">return</span> <span class="st">"2025"</span>;
+    }
+}
+
+<span class="kw">class</span> <span class="cl">AppLogger</span> <span class="kw">implements</span> <span class="cl">Logger</span> {
+    <span class="cm">// Inherits logInfo, logError, logWarn</span>
+    <span class="cm">// private log() is NOT accessible here</span>
+}
+
+<span class="cl">AppLogger</span> logger = <span class="kw">new</span> <span class="cl">AppLogger</span>();
+logger.logInfo(<span class="st">"App started"</span>);   <span class="cm">// [INFO] App started</span>
+logger.logError(<span class="st">"Error!"</span>);      <span class="cm">// [ERROR] Error!</span></pre>
+</div>
+
+
+<!-- SECTION 9: FUNCTIONAL INTERFACE -->
+<div class="section" id="functional">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Functional Interface & Lambda (Java 8)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Functional Interface</strong> = an interface with <strong>exactly ONE abstract method</strong>. Annotated with <code>@FunctionalInterface</code> (optional but recommended). Can be implemented using a <strong>lambda expression</strong>.
+  </div>
+
+<pre><span class="cm">// Custom Functional Interface</span>
+<span class="an">@FunctionalInterface</span>
+<span class="kw">interface</span> <span class="cl">Calculator</span> {
+    <span class="kw">int</span> calculate(<span class="kw">int</span> a, <span class="kw">int</span> b);
+    <span class="cm">// only ONE abstract method allowed</span>
+    <span class="cm">// can have default/static methods — they don't count</span>
+}
+
+<span class="cm">// Old way — anonymous class</span>
+<span class="cl">Calculator</span> add = <span class="kw">new</span> <span class="cl">Calculator</span>() {
+    <span class="kw">public int</span> calculate(<span class="kw">int</span> a, <span class="kw">int</span> b) { <span class="kw">return</span> a + b; }
+};
+
+<span class="cm">// New way — lambda expression (Java 8)</span>
+<span class="cl">Calculator</span> add = (a, b) -> a + b;
+<span class="cl">Calculator</span> mul = (a, b) -> a * b;
+<span class="cl">Calculator</span> max = (a, b) -> a > b ? a : b;
+
+System.out.println(add.calculate(<span class="num">3</span>, <span class="num">4</span>));  <span class="cm">// 7</span>
+System.out.println(mul.calculate(<span class="num">3</span>, <span class="num">4</span>));  <span class="cm">// 12</span></pre>
+
+  <h3>Built-in Functional Interfaces (java.util.function)</h3>
+  <table>
+    <tr><th>Interface</th><th>Method</th><th>Description</th><th>Example</th></tr>
+    <tr><td><code>Predicate&lt;T&gt;</code></td><td><code>test(T t)</code></td><td>Takes T, returns boolean</td><td><code>x -> x > 0</code></td></tr>
+    <tr><td><code>Function&lt;T,R&gt;</code></td><td><code>apply(T t)</code></td><td>Takes T, returns R</td><td><code>s -> s.length()</code></td></tr>
+    <tr><td><code>Consumer&lt;T&gt;</code></td><td><code>accept(T t)</code></td><td>Takes T, returns void</td><td><code>x -> System.out.println(x)</code></td></tr>
+    <tr><td><code>Supplier&lt;T&gt;</code></td><td><code>get()</code></td><td>Takes nothing, returns T</td><td><code>() -> "Hello"</code></td></tr>
+    <tr><td><code>BiFunction&lt;T,U,R&gt;</code></td><td><code>apply(T,U)</code></td><td>Takes two, returns R</td><td><code>(a,b) -> a+b</code></td></tr>
+  </table>
+
+<pre><span class="cm">// Using built-in functional interfaces</span>
+<span class="cl">Predicate</span>&lt;<span class="cl">Integer</span>&gt; isPositive = n -> n &gt; <span class="num">0</span>;
+System.out.println(isPositive.test(<span class="num">5</span>));    <span class="cm">// true</span>
+System.out.println(isPositive.test(-<span class="num">3</span>));   <span class="cm">// false</span>
+
+<span class="cl">Function</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; strLen = s -> s.length();
+System.out.println(strLen.apply(<span class="st">"Hello"</span>));  <span class="cm">// 5</span>
+
+<span class="cl">Consumer</span>&lt;<span class="cl">String</span>&gt; printer = s -> System.out.println(s);
+printer.accept(<span class="st">"Java is great!"</span>);
+
+<span class="cl">Supplier</span>&lt;<span class="cl">String</span>&gt; greeting = () -> <span class="st">"Hello, World!"</span>;
+System.out.println(greeting.get());</pre>
+</div>
+
+
+<!-- SECTION 10: MARKER INTERFACE -->
+<div class="section" id="marker">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Marker Interface</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Marker interface</strong> = an interface with <strong>NO methods</strong>. It simply "marks" or "tags" a class to signal some capability or property to the JVM or framework.
+  </div>
+
+<pre><span class="cm">// Built-in marker interfaces</span>
+<span class="kw">interface</span> <span class="cl">Serializable</span>  { }  <span class="cm">// marks class for serialization</span>
+<span class="kw">interface</span> <span class="cl">Cloneable</span>     { }  <span class="cm">// marks class for cloning</span>
+<span class="kw">interface</span> <span class="cl">Remote</span>        { }  <span class="cm">// marks class for RMI</span>
+
+<span class="cm">// Using Serializable — JVM checks this marker</span>
+<span class="kw">import</span> java.io.Serializable;
+
+<span class="kw">class</span> <span class="cl">Student</span> <span class="kw">implements</span> <span class="cl">Serializable</span> {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span>    age;
+    <span class="cm">// JVM allows this object to be serialized to file/network</span>
+}
+
+<span class="cm">// Without Serializable:</span>
+<span class="cm">// ObjectOutputStream.writeObject(student) → ❌ NotSerializableException!</span>
+
+<span class="cm">// Custom marker interface</span>
+<span class="kw">interface</span> <span class="cl">Auditable</span> { }  <span class="cm">// mark entities that should be audited</span>
+
+<span class="kw">class</span> <span class="cl">Order</span> <span class="kw">implements</span> <span class="cl">Auditable</span> { }
+
+<span class="cm">// Check with instanceof</span>
+<span class="kw">if</span> (obj <span class="kw">instanceof</span> <span class="cl">Auditable</span>) {
+    System.out.println(<span class="st">"This object needs auditing"</span>);
+}</pre>
+</div>
+
+
+<!-- SECTION 11: EXTENDS -->
+<div class="section" id="extends">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div class="section-title">Interface Extending Interface</div>
+  </div>
+
+<pre><span class="kw">interface</span> <span class="cl">Animal</span>    { <span class="kw">void</span> breathe(); }
+<span class="kw">interface</span> <span class="cl">Pet</span>       { <span class="kw">void</span> beFriendly(); }
+
+<span class="cm">// Interface extends MULTIPLE interfaces — no Diamond Problem!</span>
+<span class="kw">interface</span> <span class="cl">DomesticAnimal</span> <span class="kw">extends</span> <span class="cl">Animal</span>, <span class="cl">Pet</span> {
+    <span class="kw">void</span> livesWithHumans();
+}
+
+<span class="cm">// Implementing class must implement ALL methods</span>
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">implements</span> <span class="cl">DomesticAnimal</span> {
+    <span class="an">@Override</span> <span class="kw">public void</span> breathe()          { System.out.println(<span class="st">"Breathing"</span>); }
+    <span class="an">@Override</span> <span class="kw">public void</span> beFriendly()       { System.out.println(<span class="st">"Wagging tail"</span>); }
+    <span class="an">@Override</span> <span class="kw">public void</span> livesWithHumans()  { System.out.println(<span class="st">"Lives at home"</span>); }
+}</pre>
+
+  <div class="tip-box">
+    <strong>💡 Key distinction:</strong><br>
+    Interface <strong>extends</strong> interface → use <code>extends</code> keyword (multiple allowed)<br>
+    Class <strong>implements</strong> interface → use <code>implements</code> keyword (multiple allowed)<br>
+    Class <strong>extends</strong> class → use <code>extends</code> keyword (only ONE allowed)
+  </div>
+</div>
+
+
+<!-- SECTION 12: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is an interface? How is it different from a class?</div>
+    <div class="a">An interface is a pure contract that defines what a class must do — it cannot be instantiated and has no constructor or instance variables. Before Java 8, it only had abstract methods and constants. Unlike a class, a class can implement multiple interfaces (multiple inheritance of type), while it can only extend one class. Interfaces define capability (Flyable, Runnable), while classes define entities (Dog, Car).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What are default methods? Why were they added in Java 8?</div>
+    <div class="a">Default methods are methods in interfaces that have a body — implementing classes can use them without overriding. They were added to allow adding new methods to existing interfaces without breaking all existing implementations (backward compatibility). For example, the <code>stream()</code> method was added to Collection interface in Java 8 as a default method — all existing classes like ArrayList didn't need to change.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is a functional interface? Give examples.</div>
+    <div class="a">A functional interface has exactly ONE abstract method. It can be implemented using a lambda expression. The <code>@FunctionalInterface</code> annotation ensures this contract. Built-in examples: <code>Runnable</code> (run()), <code>Comparable</code> (compareTo()), <code>Predicate&lt;T&gt;</code> (test()), <code>Function&lt;T,R&gt;</code> (apply()), <code>Consumer&lt;T&gt;</code> (accept()), <code>Supplier&lt;T&gt;</code> (get()).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is a marker interface? Give examples.</div>
+    <div class="a">A marker interface has no methods — it simply tags a class to signal a capability to the JVM or framework. Examples: <code>Serializable</code> (marks for serialization), <code>Cloneable</code> (marks for cloning), <code>Remote</code> (marks for RMI). Modern Java uses annotations (like @Override, @Deprecated) for the same purpose, which is more flexible.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What happens when two interfaces have the same default method and a class implements both?</div>
+    <div class="a">This is the Diamond Problem with default methods. The class MUST override the conflicting method to resolve the ambiguity — otherwise the compiler throws an error. Inside the override, you can choose which interface's version to call using <code>InterfaceName.super.methodName()</code> syntax, or write your own implementation entirely.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Can interface have static methods? Are they inherited?</div>
+    <div class="a">Yes, since Java 8. But unlike class static methods, interface static methods are NOT inherited by implementing classes. They can only be called via the interface name directly (e.g., <code>MathUtils.square(5)</code>). Calling them on an implementing class or object causes a compile error. This is a key difference from abstract class static methods.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the difference between interface and abstract class? When to use which?</div>
+    <div class="a">Abstract class: can have constructors, instance variables, any access modifiers, only extends one class. Use when classes are closely related and share state. Interface: no constructor, only constants, methods public by default, can implement multiple. Use when unrelated classes need a common capability, or when multiple inheritance is needed. Modern rule: prefer interfaces unless you need constructors or instance variables.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 16: Interface · 16 of 26 complete
+</div>
+
+</body>
+</html>

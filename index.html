@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevDocs — Learning Documentation</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Mobile overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ===== TOPBAR ===== -->
+  <header class="topbar">
+    <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="7" fill="url(#grad1)"/>
+        <path d="M8 9h5l3 5-3 5H8l3-5-3-5z" fill="white" opacity="0.9"/>
+        <path d="M14 9h6v10h-6l3-5-3-5z" fill="white" opacity="0.5"/>
+        <defs>
+          <linearGradient id="grad1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6EE7B7"/>
+            <stop offset="1" stop-color="#3B82F6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="brand-name">DevDocs</span>
+    </div>
+    <div class="topbar-search">
+      <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M13.5 13.5L18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
+      <kbd>⌘K</kbd>
+    </div>
+    <div class="topbar-actions">
+      <span class="topic-counter" id="topicCounter">0 topics</span>
+    </div>
+  </header>
+
+  <!-- ===== LAYOUT ===== -->
+  <div class="layout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- Injected by script.js -->
+      </nav>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main" id="main">
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb" id="breadcrumb">
+        <span class="bc-home">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2l6 4.5V14H10v-3.5H6V14H2V6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          Home
+        </span>
+      </div>
+
+      <!-- Welcome / Content area -->
+      <div class="content-area" id="contentArea">
+
+        <!-- Welcome screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-glow"></div>
+          <div class="welcome-inner">
+            <div class="welcome-badge">Documentation</div>
+            <h1 class="welcome-title">Your Learning<br/><em>Knowledge Base</em></h1>
+            <p class="welcome-subtitle">Browse topics from the sidebar or use the search bar to find exactly what you're looking for.</p>
+            <div class="welcome-cards" id="welcomeCards">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-screen" id="loadingScreen">
+          <div class="loader-ring"></div>
+          <span>Loading content…</span>
+        </div>
+
+        <!-- iframe viewer -->
+        <iframe id="contentFrame" class="content-frame" title="Topic content" src="" frameborder="0"></iframe>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

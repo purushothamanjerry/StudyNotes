@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 14 — Polymorphism in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 60%, #38bdf8 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #0369a1; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #0c4a6e; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #0369a1; padding-bottom: 12px; }
+  .section-num { background: #0369a1; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #0c4a6e; }
+  h3 { font-size: 1.05rem; color: #0369a1; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #e0f2fe; border-left: 4px solid #0369a1; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #0c4a6e; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #e0f2fe; }
+  tr:hover { background: #bae6fd; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #0c4a6e; margin-top: 0; }
+  .poly-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .poly-card { border-radius: 12px; padding: 20px; border: 2px solid; }
+  .poly-compile { background: #f0fdf4; border-color: #86efac; }
+  .poly-runtime { background: #e0f2fe; border-color: #7dd3fc; }
+  .poly-card h4 { font-size: 1rem; margin-bottom: 10px; }
+  .poly-compile h4 { color: #166534; }
+  .poly-runtime h4 { color: #0369a1; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #0369a1; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 14 OF 26</div>
+  <h1>🎭 Polymorphism in Java</h1>
+  <p>Compile-time · Runtime · Upcasting · Downcasting · Dynamic Dispatch · instanceof</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is Polymorphism?</a></li>
+    <li><a href="#types">Two Types — Compile-time vs Runtime</a></li>
+    <li><a href="#compiletime">Compile-time Polymorphism (Method Overloading)</a></li>
+    <li><a href="#runtime">Runtime Polymorphism (Method Overriding)</a></li>
+    <li><a href="#upcasting">Upcasting — Parent Reference, Child Object</a></li>
+    <li><a href="#downcasting">Downcasting — Getting Child Back</a></li>
+    <li><a href="#dispatch">Dynamic Method Dispatch</a></li>
+    <li><a href="#practical">Practical Use — Polymorphic Arrays</a></li>
+    <li><a href="#comparison">Compile-time vs Runtime — Full Comparison</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is Polymorphism?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> Polymorphism means <strong>"many forms"</strong> (poly = many, morph = form). In Java, it means one entity (method or object) can behave differently in different situations. The same method name can produce different results depending on the object calling it.
+  </div>
+
+  <h3>Real World Analogy</h3>
+  <div class="two-col">
+    <div class="col-box">
+      <h4>🎵 Same Action, Different Result</h4>
+      <p>When you press the "play" button on a music player, it plays music. On a video player, it plays video. Same button (same method name), different behavior based on context (object type).</p>
+    </div>
+    <div class="col-box">
+      <h4>🐾 Animal Sound</h4>
+      <p>Call <code>makeSound()</code> on a Dog → "Woof!". Call it on a Cat → "Meow!". Call it on a Cow → "Moo!". Same method name, different behavior based on which animal object is used.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: TYPES -->
+<div class="section" id="types">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Two Types — Compile-time vs Runtime</div>
+  </div>
+
+  <div class="poly-cards">
+    <div class="poly-card poly-compile">
+      <h4>⚡ Compile-time Polymorphism</h4>
+      <p><strong>Also called:</strong> Static polymorphism, Early binding</p>
+      <p><strong>Achieved by:</strong> Method Overloading</p>
+      <p><strong>Resolved:</strong> At compile time by compiler</p>
+      <p><strong>How:</strong> Same name, different parameters in same class</p>
+      <p><strong>Speed:</strong> Faster (resolved at compile time)</p>
+    </div>
+    <div class="poly-card poly-runtime">
+      <h4>🔄 Runtime Polymorphism</h4>
+      <p><strong>Also called:</strong> Dynamic polymorphism, Late binding</p>
+      <p><strong>Achieved by:</strong> Method Overriding</p>
+      <p><strong>Resolved:</strong> At runtime by JVM</p>
+      <p><strong>How:</strong> Parent reference → child object, overridden method</p>
+      <p><strong>Speed:</strong> Slightly slower (resolved at runtime)</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 3: COMPILE TIME -->
+<div class="section" id="compiletime">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Compile-time Polymorphism (Method Overloading)</div>
+  </div>
+
+  <p>The compiler determines which method to call at compile time based on the method signature (name + parameters).</p>
+
+<pre><span class="kw">public class</span> <span class="cl">Calculator</span> {
+
+    <span class="cm">// Same name "add" — 3 different forms</span>
+    <span class="kw">public int</span> add(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+        System.out.println(<span class="st">"int version"</span>);
+        <span class="kw">return</span> a + b;
+    }
+
+    <span class="kw">public double</span> add(<span class="kw">double</span> a, <span class="kw">double</span> b) {
+        System.out.println(<span class="st">"double version"</span>);
+        <span class="kw">return</span> a + b;
+    }
+
+    <span class="kw">public int</span> add(<span class="kw">int</span> a, <span class="kw">int</span> b, <span class="kw">int</span> c) {
+        System.out.println(<span class="st">"3 params version"</span>);
+        <span class="kw">return</span> a + b + c;
+    }
+}
+
+<span class="cl">Calculator</span> calc = <span class="kw">new</span> <span class="cl">Calculator</span>();
+
+<span class="cm">// Compiler decides which add() to call at COMPILE TIME</span>
+calc.add(<span class="num">2</span>, <span class="num">3</span>);         <span class="cm">// → int version     (5)</span>
+calc.add(<span class="num">2.0</span>, <span class="num">3.0</span>);    <span class="cm">// → double version  (5.0)</span>
+calc.add(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>);     <span class="cm">// → 3 params version (6)</span></pre>
+
+  <div class="info-box">
+    <strong>How compiler resolves overloaded methods:</strong><br>
+    1. Exact match → use it<br>
+    2. Widening (int → long → float → double) → use widened version<br>
+    3. Autoboxing (int → Integer) → use boxed version<br>
+    4. Varargs → use varargs version<br>
+    If still ambiguous → compile error!
+  </div>
+</div>
+
+
+<!-- SECTION 4: RUNTIME -->
+<div class="section" id="runtime">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Runtime Polymorphism (Method Overriding)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key concept:</strong> A <strong>parent class reference</strong> can hold a <strong>child class object</strong>. When you call an overridden method, the JVM decides at <strong>runtime</strong> which version to call based on the <em>actual object type</em>, not the reference type.
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="kw">public void</span> sound() {
+        System.out.println(<span class="st">"Some animal sound"</span>);
+    }
+    <span class="kw">public void</span> eat() {
+        System.out.println(<span class="st">"Animal eating"</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> sound() { System.out.println(<span class="st">"Woof!"</span>); }
+
+    <span class="kw">public void</span> fetch() { System.out.println(<span class="st">"Fetching..."</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">Cat</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> sound() { System.out.println(<span class="st">"Meow!"</span>); }
+}
+
+<span class="cm">// Parent reference holding child objects — UPCASTING</span>
+<span class="cl">Animal</span> a1 = <span class="kw">new</span> <span class="cl">Dog</span>();  <span class="cm">// Animal ref → Dog object</span>
+<span class="cl">Animal</span> a2 = <span class="kw">new</span> <span class="cl">Cat</span>();  <span class="cm">// Animal ref → Cat object</span>
+<span class="cl">Animal</span> a3 = <span class="kw">new</span> <span class="cl">Animal</span>(); <span class="cm">// Animal ref → Animal object</span>
+
+<span class="cm">// JVM decides at RUNTIME which sound() to call</span>
+a1.sound();  <span class="cm">// Woof!  ← Dog's version (actual object is Dog)</span>
+a2.sound();  <span class="cm">// Meow!  ← Cat's version (actual object is Cat)</span>
+a3.sound();  <span class="cm">// Some animal sound ← Animal's version</span>
+
+a1.eat();    <span class="cm">// Animal eating ← inherited, not overridden</span>
+
+<span class="cm">// Cannot call child-specific methods via parent reference!</span>
+<span class="cm">// a1.fetch(); ❌ compile error — Animal ref doesn't know fetch()</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ IMPORTANT rule:</strong><br>
+    Through a parent reference, you can ONLY call methods that are defined in the parent class. Even though <code>a1</code> actually holds a Dog, you cannot call <code>a1.fetch()</code> because the Animal class doesn't have fetch(). To call Dog-specific methods, you must downcast.
+  </div>
+</div>
+
+
+<!-- SECTION 5: UPCASTING -->
+<div class="section" id="upcasting">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Upcasting — Parent Reference, Child Object</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Upcasting</strong> = assigning a child object to a parent reference.<br>
+    It is <strong>automatic</strong> (implicit) — no cast operator needed. Always safe.
+  </div>
+
+<pre><span class="cm">// Implicit upcasting — automatic, always safe</span>
+<span class="cl">Animal</span> a = <span class="kw">new</span> <span class="cl">Dog</span>();   <span class="cm">// ✅ Dog IS-A Animal — auto upcast</span>
+
+<span class="cm">// Explicit upcasting also works (unnecessary but valid)</span>
+<span class="cl">Animal</span> a2 = (<span class="cl">Animal</span>) <span class="kw">new</span> <span class="cl">Dog</span>();  <span class="cm">// same thing</span>
+
+<span class="cm">// Real use case — polymorphic method parameter</span>
+<span class="kw">public static void</span> makeSound(<span class="cl">Animal</span> a) {
+    a.sound();  <span class="cm">// calls the right version at runtime!</span>
+}
+
+makeSound(<span class="kw">new</span> <span class="cl">Dog</span>());    <span class="cm">// passes Dog as Animal → Woof!</span>
+makeSound(<span class="kw">new</span> <span class="cl">Cat</span>());    <span class="cm">// passes Cat as Animal → Meow!</span>
+makeSound(<span class="kw">new</span> <span class="cl">Animal</span>()); <span class="cm">// passes Animal → Some sound</span>
+
+<span class="cm">// Upcasting in arrays</span>
+<span class="cl">Animal</span>[] animals = { <span class="kw">new</span> <span class="cl">Dog</span>(), <span class="kw">new</span> <span class="cl">Cat</span>(), <span class="kw">new</span> <span class="cl">Animal</span>() };
+<span class="kw">for</span> (<span class="cl">Animal</span> a : animals) {
+    a.sound();  <span class="cm">// Woof!, Meow!, Some animal sound</span>
+}</pre>
+
+  <div class="tip-box">
+    <strong>💡 Why upcasting is useful:</strong><br>
+    Write ONE method that works with ALL subtypes. No need for separate methods for Dog, Cat, etc. This is the power of polymorphism — write general code that works with specific types.
+  </div>
+</div>
+
+
+<!-- SECTION 6: DOWNCASTING -->
+<div class="section" id="downcasting">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Downcasting — Getting Child Back</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Downcasting</strong> = converting a parent reference back to a child type.<br>
+    It is <strong>explicit</strong> — must use cast operator. Can fail at runtime if object is not actually that type!
+  </div>
+
+<pre><span class="cl">Animal</span> a = <span class="kw">new</span> <span class="cl">Dog</span>();   <span class="cm">// upcast — Dog stored as Animal</span>
+
+<span class="cm">// Need to call Dog-specific method fetch()</span>
+<span class="cm">// a.fetch(); ❌ compile error</span>
+
+<span class="cm">// Downcast — explicitly tell compiler it's a Dog</span>
+<span class="cl">Dog</span> d = (<span class="cl">Dog</span>) a;          <span class="cm">// ✅ works — actual object IS a Dog</span>
+d.fetch();                   <span class="cm">// ✅ now can call Dog methods</span>
+
+<span class="cm">// DANGEROUS — downcasting wrong type → ClassCastException!</span>
+<span class="cl">Animal</span> a2 = <span class="kw">new</span> <span class="cl">Cat</span>();
+<span class="cl">Dog</span> d2 = (<span class="cl">Dog</span>) a2;        <span class="cm">// ❌ ClassCastException at runtime!</span>
+                            <span class="cm">// actual object is Cat, not Dog</span>
+
+<span class="cm">// SAFE downcasting — always check with instanceof first!</span>
+<span class="cl">Animal</span> a3 = <span class="kw">new</span> <span class="cl">Dog</span>();
+<span class="kw">if</span> (a3 <span class="kw">instanceof</span> <span class="cl">Dog</span>) {
+    <span class="cl">Dog</span> d3 = (<span class="cl">Dog</span>) a3;      <span class="cm">// ✅ safe — checked first</span>
+    d3.fetch();
+}
+
+<span class="cm">// Java 16+ — pattern matching instanceof (cleaner!)</span>
+<span class="kw">if</span> (a3 <span class="kw">instanceof</span> <span class="cl">Dog</span> dog) {
+    dog.fetch();             <span class="cm">// ✅ no explicit cast needed</span>
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Always use instanceof before downcasting!</strong><br>
+    Downcasting without instanceof check → risk of <code>ClassCastException</code> at runtime. Make it a habit: check first, then cast.
+  </div>
+</div>
+
+
+<!-- SECTION 7: DYNAMIC DISPATCH -->
+<div class="section" id="dispatch">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Dynamic Method Dispatch</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Dynamic Method Dispatch</strong> is the mechanism by which Java resolves which overridden method to call at runtime. It is the backbone of runtime polymorphism. The JVM looks at the <strong>actual object type</strong> (not the reference type) to determine which method to execute.
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">Shape</span> {
+    <span class="kw">public void</span> draw() { System.out.println(<span class="st">"Drawing shape"</span>); }
+    <span class="kw">public void</span> area() { System.out.println(<span class="st">"Shape area"</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">Circle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> draw() { System.out.println(<span class="st">"Drawing circle ○"</span>); }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> area() { System.out.println(<span class="st">"π × r²"</span>); }
+}
+
+<span class="kw">class</span> <span class="cl">Rectangle</span> <span class="kw">extends</span> <span class="cl">Shape</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> draw() { System.out.println(<span class="st">"Drawing rectangle □"</span>); }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> area() { System.out.println(<span class="st">"l × w"</span>); }
+}
+
+<span class="cm">// JVM DISPATCH TABLE — decides at runtime</span>
+<span class="cl">Shape</span> s;   <span class="cm">// reference type: Shape</span>
+
+s = <span class="kw">new</span> <span class="cl">Circle</span>();      <span class="cm">// actual type: Circle</span>
+s.draw();              <span class="cm">// Drawing circle ○  ← Circle's version</span>
+
+s = <span class="kw">new</span> <span class="cl">Rectangle</span>(); <span class="cm">// actual type: Rectangle</span>
+s.draw();              <span class="cm">// Drawing rectangle □  ← Rectangle's version</span>
+
+s = <span class="kw">new</span> <span class="cl">Shape</span>();      <span class="cm">// actual type: Shape</span>
+s.draw();              <span class="cm">// Drawing shape  ← Shape's version</span></pre>
+
+  <div class="info-box">
+    <strong>How JVM decides:</strong><br>
+    JVM maintains a virtual method table (vtable) for each class. When an overridden method is called on a parent reference, JVM looks up the actual object's vtable to find the correct method. This lookup happens at runtime — hence "runtime polymorphism".
+  </div>
+</div>
+
+
+<!-- SECTION 8: PRACTICAL -->
+<div class="section" id="practical">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Practical Use — Polymorphic Arrays & Methods</div>
+  </div>
+
+<pre><span class="cm">// REAL USE CASE 1 — Polymorphic array</span>
+<span class="cl">Animal</span>[] zoo = {
+    <span class="kw">new</span> <span class="cl">Dog</span>(),
+    <span class="kw">new</span> <span class="cl">Cat</span>(),
+    <span class="kw">new</span> <span class="cl">Dog</span>(),
+    <span class="kw">new</span> <span class="cl">Cat</span>()
+};
+
+<span class="cm">// One loop, correct behavior for each animal</span>
+<span class="kw">for</span> (<span class="cl">Animal</span> a : zoo) {
+    a.sound();   <span class="cm">// Woof! Meow! Woof! Meow!</span>
+}
+
+<span class="cm">// REAL USE CASE 2 — Polymorphic method parameter</span>
+<span class="kw">public static double</span> calculateArea(<span class="cl">Shape</span> shape) {
+    <span class="cm">// Works for ANY shape — Circle, Rectangle, Triangle...</span>
+    shape.area();
+    <span class="kw">return</span> <span class="num">0</span>; <span class="cm">// simplified</span>
+}
+calculateArea(<span class="kw">new</span> <span class="cl">Circle</span>());     <span class="cm">// ✅ π × r²</span>
+calculateArea(<span class="kw">new</span> <span class="cl">Rectangle</span>()); <span class="cm">// ✅ l × w</span>
+
+<span class="cm">// REAL USE CASE 3 — Polymorphic return type</span>
+<span class="kw">public static</span> <span class="cl">Animal</span> createAnimal(<span class="cl">String</span> type) {
+    <span class="kw">if</span> (type.equals(<span class="st">"dog"</span>)) <span class="kw">return new</span> <span class="cl">Dog</span>();
+    <span class="kw">if</span> (type.equals(<span class="st">"cat"</span>)) <span class="kw">return new</span> <span class="cl">Cat</span>();
+    <span class="kw">return new</span> <span class="cl">Animal</span>();
+}
+<span class="cm">// Factory pattern — returns correct subtype as Animal reference</span></pre>
+</div>
+
+
+<!-- SECTION 9: COMPARISON -->
+<div class="section" id="comparison">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Compile-time vs Runtime — Full Comparison</div>
+  </div>
+
+  <table>
+    <tr><th>Feature</th><th>Compile-time (Static)</th><th>Runtime (Dynamic)</th></tr>
+    <tr><td>Also called</td><td>Static polymorphism, Early binding</td><td>Dynamic polymorphism, Late binding</td></tr>
+    <tr><td>Achieved by</td><td>Method Overloading</td><td>Method Overriding</td></tr>
+    <tr><td>Resolved at</td><td>Compile time by compiler</td><td>Runtime by JVM</td></tr>
+    <tr><td>Class involved</td><td>Same class</td><td>Parent and child classes</td></tr>
+    <tr><td>Method signature</td><td>Different (name same, params differ)</td><td>Same (name and params identical)</td></tr>
+    <tr><td>Return type</td><td>Can be different</td><td>Same or covariant</td></tr>
+    <tr><td>Performance</td><td>Faster</td><td>Slightly slower (vtable lookup)</td></tr>
+    <tr><td>Inheritance needed?</td><td>No</td><td>Yes</td></tr>
+    <tr><td>Example</td><td><code>add(int,int)</code> vs <code>add(double,double)</code></td><td><code>Dog.sound()</code> vs <code>Cat.sound()</code></td></tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>💡 Interview memory trick:</strong><br>
+    <strong>Compile-time</strong> = compiler knows which method → fast, no surprise<br>
+    <strong>Runtime</strong> = JVM decides at execution → flexible, actual behavior depends on object
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is polymorphism? What are its two types?</div>
+    <div class="a">Polymorphism means "many forms" — one entity behaving differently in different situations. Two types: (1) <strong>Compile-time (Static)</strong> — achieved through method overloading, resolved by the compiler based on method signature. (2) <strong>Runtime (Dynamic)</strong> — achieved through method overriding, resolved by JVM at runtime based on actual object type. Runtime polymorphism is the more powerful and widely used form.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is dynamic method dispatch?</div>
+    <div class="a">Dynamic method dispatch is the mechanism by which Java resolves which overridden method to call at runtime. When an overridden method is called through a parent class reference, the JVM looks at the actual type of the object at runtime (not the reference type) to determine which implementation to execute. This is what makes runtime polymorphism work — the correct method is selected dynamically.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is upcasting and downcasting?</div>
+    <div class="a"><strong>Upcasting</strong> is assigning a child object to a parent reference — it is automatic (implicit) and always safe because a child IS-A parent. <strong>Downcasting</strong> is explicitly converting a parent reference back to a child type using a cast operator. Downcasting can throw ClassCastException at runtime if the object is not actually the target type, so always use <code>instanceof</code> before downcasting.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the output?</q>
+    <pre style="margin:6px 0;font-size:0.85rem;background:#f3f4f6;padding:8px;border-radius:4px;color:#1a202c">Animal a = new Dog();
+a.sound();</pre>
+    <div class="a"><strong>Woof!</strong> — Even though the reference type is Animal, the actual object is a Dog. At runtime, JVM's dynamic method dispatch calls Dog's overridden <code>sound()</code> method. This is runtime polymorphism in action.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. Can you achieve polymorphism without inheritance?</div>
+    <div class="a">Compile-time polymorphism (overloading) can be achieved without inheritance — just overload methods in the same class. Runtime polymorphism requires inheritance or interface implementation since it is based on method overriding across parent-child classes. So partial yes — overloading without inheritance, overriding needs inheritance.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is the difference between static and dynamic binding?</div>
+    <div class="a"><strong>Static binding</strong> (early binding) — method call is resolved at compile time. Used for static methods, private methods, final methods, and overloaded methods. The compiler knows exactly which method to call. <strong>Dynamic binding</strong> (late binding) — method call is resolved at runtime based on actual object type. Used for overridden instance methods. Allows polymorphic behavior.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Why can't you call child-specific methods through a parent reference?</div>
+    <div class="a">Because the compiler only knows about the reference type (Animal), not the actual object type (Dog). The compiler checks the reference type's class definition for method availability at compile time. If Animal doesn't have <code>fetch()</code>, the compiler rejects it — it can't know at compile time that the reference will hold a Dog at runtime. To access child-specific methods, you must downcast to the child type first.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 14: Polymorphism · 14 of 26 complete
+</div>
+
+</body>
+</html>

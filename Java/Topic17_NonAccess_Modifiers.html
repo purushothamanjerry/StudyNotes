@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 17 — Non-Access Modifiers</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #701a75 0%, #a21caf 60%, #e879f9 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #a21caf; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #701a75; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #a21caf; padding-bottom: 12px; }
+  .section-num { background: #a21caf; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #701a75; }
+  h3 { font-size: 1.05rem; color: #a21caf; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #fdf4ff; border-left: 4px solid #a21caf; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #701a75; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fdf4ff; }
+  tr:hover { background: #fae8ff; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #701a75; margin-top: 0; }
+  .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+  .mod-card { border-radius: 10px; padding: 14px; text-align: center; border: 2px solid; }
+  .mod-static    { background: #eff6ff; border-color: #93c5fd; }
+  .mod-final     { background: #fef2f2; border-color: #fca5a5; }
+  .mod-abstract  { background: #fdf4ff; border-color: #d8b4fe; }
+  .mod-sync      { background: #f0fdf4; border-color: #86efac; }
+  .mod-volatile  { background: #fffbeb; border-color: #fcd34d; }
+  .mod-transient { background: #fff7ed; border-color: #fed7aa; }
+  .mod-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+  .mod-static .mod-title    { color: #1d4ed8; }
+  .mod-final .mod-title     { color: #dc2626; }
+  .mod-abstract .mod-title  { color: #7c3aed; }
+  .mod-sync .mod-title      { color: #166534; }
+  .mod-volatile .mod-title  { color: #92400e; }
+  .mod-transient .mod-title { color: #9a3412; }
+  .mod-card p { font-size: 0.8rem; color: #4b5563; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #a21caf; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 17 OF 26</div>
+  <h1>🔧 Non-Access Modifiers</h1>
+  <p>static · final · abstract · synchronized · volatile · transient · native</p>
+  <div class="meta">
+    <span>Phase 4 — Core Java</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#overview">Overview — 7 Non-Access Modifiers</a></li>
+    <li><a href="#static">static</a></li>
+    <li><a href="#final">final</a></li>
+    <li><a href="#abstract">abstract</a></li>
+    <li><a href="#synchronized">synchronized</a></li>
+    <li><a href="#volatile">volatile</a></li>
+    <li><a href="#transient">transient</a></li>
+    <li><a href="#native">native</a></li>
+    <li><a href="#combinations">Valid & Invalid Combinations</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: OVERVIEW -->
+<div class="section" id="overview">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Overview — 7 Non-Access Modifiers</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Non-access modifiers</strong> control the <strong>behavior</strong> of classes, methods, and variables — NOT their visibility. They don't say who can access something; they say <em>how</em> it behaves.
+  </div>
+
+  <div class="mod-grid">
+    <div class="mod-card mod-static">
+      <div class="mod-title">static</div>
+      <p>Belongs to class, not object. Shared across all instances.</p>
+    </div>
+    <div class="mod-card mod-final">
+      <div class="mod-title">final</div>
+      <p>Cannot be changed/overridden/extended. Immutability.</p>
+    </div>
+    <div class="mod-card mod-abstract">
+      <div class="mod-title">abstract</div>
+      <p>No implementation. Must be overridden. Partial blueprint.</p>
+    </div>
+    <div class="mod-card mod-sync">
+      <div class="mod-title">synchronized</div>
+      <p>Only one thread at a time. Thread safety.</p>
+    </div>
+    <div class="mod-card mod-volatile">
+      <div class="mod-title">volatile</div>
+      <p>Always read from main memory. Visibility in threads.</p>
+    </div>
+    <div class="mod-card mod-transient">
+      <div class="mod-title">transient</div>
+      <p>Skip during serialization. Don't save this field.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: STATIC -->
+<div class="section" id="static">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">static</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>static</strong> means the member belongs to the <strong>class</strong>, not to any specific object. Only ONE copy exists regardless of how many objects are created.
+  </div>
+
+  <h3>static variable</h3>
+<pre><span class="kw">class</span> <span class="cl">Counter</span> {
+    <span class="kw">static int</span> count = <span class="num">0</span>;   <span class="cm">// ONE copy shared by ALL objects</span>
+    <span class="kw">int</span> id;                   <span class="cm">// each object has its OWN id</span>
+
+    <span class="cl">Counter</span>() {
+        count++;
+        id = count;
+    }
+}
+<span class="cl">Counter</span> c1 = <span class="kw">new</span> <span class="cl">Counter</span>(); <span class="cm">// count=1, c1.id=1</span>
+<span class="cl">Counter</span> c2 = <span class="kw">new</span> <span class="cl">Counter</span>(); <span class="cm">// count=2, c2.id=2</span>
+System.out.println(<span class="cl">Counter</span>.count); <span class="cm">// 2 — access via class name</span></pre>
+
+  <h3>static method</h3>
+<pre><span class="kw">class</span> <span class="cl">MathUtils</span> {
+    <span class="kw">public static int</span> square(<span class="kw">int</span> n) { <span class="kw">return</span> n * n; }
+    <span class="kw">public static int</span> cube(<span class="kw">int</span> n)   { <span class="kw">return</span> n * n * n; }
+}
+<span class="cm">// No object needed!</span>
+System.out.println(<span class="cl">MathUtils</span>.square(<span class="num">4</span>));  <span class="cm">// 16</span>
+System.out.println(<span class="cl">MathUtils</span>.cube(<span class="num">3</span>));    <span class="cm">// 27</span></pre>
+
+  <h3>static block</h3>
+<pre><span class="kw">class</span> <span class="cl">Config</span> {
+    <span class="kw">static</span> <span class="cl">String</span> dbUrl;
+
+    <span class="cm">// Static block — runs ONCE when class is first loaded</span>
+    <span class="kw">static</span> {
+        System.out.println(<span class="st">"Static block executing..."</span>);
+        dbUrl = <span class="st">"jdbc:mysql://localhost:3306/mydb"</span>;
+    }
+
+    <span class="kw">public static</span> <span class="cl">String</span> getUrl() { <span class="kw">return</span> dbUrl; }
+}
+<span class="cm">// Static block runs before any object creation or method call</span>
+System.out.println(<span class="cl">Config</span>.getUrl());
+<span class="cm">// Output: Static block executing... → jdbc:mysql://...</span></pre>
+
+  <h3>static nested class</h3>
+<pre><span class="kw">class</span> <span class="cl">Outer</span> {
+    <span class="kw">static int</span> x = <span class="num">10</span>;
+
+    <span class="kw">static class</span> <span class="cl">Inner</span> {       <span class="cm">// static nested class</span>
+        <span class="kw">void</span> show() { System.out.println(x); }  <span class="cm">// can access static members</span>
+    }
+}
+<span class="cl">Outer.Inner</span> obj = <span class="kw">new</span> <span class="cl">Outer.Inner</span>();  <span class="cm">// no Outer object needed</span>
+obj.show();  <span class="cm">// 10</span></pre>
+
+  <table>
+    <tr><th>Where used</th><th>Effect</th></tr>
+    <tr><td>Variable</td><td>One copy shared across all instances. Stored in Method Area.</td></tr>
+    <tr><td>Method</td><td>Belongs to class. Can't access instance members or <code>this</code>.</td></tr>
+    <tr><td>Block</td><td>Runs once when class is loaded. Used for initialization.</td></tr>
+    <tr><td>Nested class</td><td>Inner class that doesn't need outer class instance.</td></tr>
+    <tr><td>Import (<code>import static</code>)</td><td>Import static members directly: <code>import static Math.PI</code></td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 3: FINAL -->
+<div class="section" id="final">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">final</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>final</strong> means <strong>cannot be changed</strong>. Applied to variables (value), methods (override), or classes (extend).
+  </div>
+
+  <h3>final variable — constant</h3>
+<pre><span class="kw">final int</span> MAX = <span class="num">100</span>;
+<span class="cm">// MAX = 200; ❌ compile error — cannot reassign</span>
+
+<span class="kw">public static final double</span> PI = <span class="num">3.14159</span>;  <span class="cm">// class constant</span>
+
+<span class="cm">// final reference — reference cannot change, BUT object CAN be modified</span>
+<span class="kw">final</span> <span class="cl">StringBuilder</span> sb = <span class="kw">new</span> <span class="cl">StringBuilder</span>(<span class="st">"Hello"</span>);
+sb.append(<span class="st">" World"</span>);  <span class="cm">// ✅ object modified — OK</span>
+<span class="cm">// sb = new StringBuilder(); ❌ reference cannot point to new object</span>
+
+<span class="cm">// Blank final — must be initialized in constructor</span>
+<span class="kw">class</span> <span class="cl">Person</span> {
+    <span class="kw">final</span> <span class="cl">String</span> name;   <span class="cm">// blank final</span>
+    <span class="cl">Person</span>(<span class="cl">String</span> name) { <span class="kw">this</span>.name = name; }  <span class="cm">// must init here</span>
+}</pre>
+
+  <h3>final method — cannot override</h3>
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="kw">public final void</span> breathe() {
+        System.out.println(<span class="st">"Breathing..."</span>);
+    }
+}
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="cm">// public void breathe() { } ❌ compile error — cannot override final</span>
+}</pre>
+
+  <h3>final class — cannot extend</h3>
+<pre><span class="kw">final class</span> <span class="cl">ImmutablePoint</span> {
+    <span class="kw">final int</span> x, y;
+    <span class="cl">ImmutablePoint</span>(<span class="kw">int</span> x, <span class="kw">int</span> y) { <span class="kw">this</span>.x = x; <span class="kw">this</span>.y = y; }
+}
+<span class="cm">// class SubPoint extends ImmutablePoint { } ❌ compile error</span>
+<span class="cm">// String, Integer, Double — all final classes in Java</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Tricky: final reference vs final object</strong><br>
+    <code>final List&lt;String&gt; list = new ArrayList&lt;&gt;();</code><br>
+    <code>list.add("hello");</code> ✅ — object can be modified<br>
+    <code>list = new ArrayList&lt;&gt;();</code> ❌ — reference cannot change
+  </div>
+</div>
+
+
+<!-- SECTION 4: ABSTRACT -->
+<div class="section" id="abstract">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">abstract</div>
+  </div>
+
+  <div class="highlight-box">
+    Applied to <strong>classes</strong> (cannot instantiate, partial blueprint) and <strong>methods</strong> (no body, must be overridden). Already covered deeply in Topic 15 — quick summary here.
+  </div>
+
+  <table>
+    <tr><th>Applied to</th><th>Meaning</th></tr>
+    <tr><td><code>abstract class</code></td><td>Cannot instantiate. Can have both abstract and concrete methods.</td></tr>
+    <tr><td><code>abstract method</code></td><td>No body. Subclass MUST override it. Only inside abstract class.</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ Cannot combine:</strong><br>
+    <code>abstract final</code> → ❌ final prevents overriding, abstract requires it<br>
+    <code>abstract static</code> → ❌ static belongs to class, abstract needs object context<br>
+    <code>abstract private</code> → ❌ private can't be seen by subclass to override
+  </div>
+</div>
+
+
+<!-- SECTION 5: SYNCHRONIZED -->
+<div class="section" id="synchronized">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">synchronized</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>synchronized</strong> ensures that only <strong>one thread at a time</strong> can execute a method or block. Used for thread safety when multiple threads access shared data.
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">Counter</span> {
+    <span class="kw">private int</span> count = <span class="num">0</span>;
+
+    <span class="cm">// Without synchronized — RACE CONDITION possible!</span>
+    <span class="kw">public void</span> increment() {
+        count++;   <span class="cm">// NOT atomic — read, increment, write (3 steps)</span>
+    }
+
+    <span class="cm">// With synchronized — THREAD SAFE</span>
+    <span class="kw">public synchronized void</span> safeIncrement() {
+        count++;   <span class="cm">// only ONE thread runs this at a time</span>
+    }
+
+    <span class="cm">// Synchronized block — more fine-grained control</span>
+    <span class="kw">public void</span> blockIncrement() {
+        <span class="kw">synchronized</span>(<span class="kw">this</span>) {
+            count++;
+        }
+    }
+
+    <span class="kw">public int</span> getCount() { <span class="kw">return</span> count; }
+}
+
+<span class="cm">// Static synchronized — locks on class object</span>
+<span class="kw">public static synchronized void</span> staticMethod() {
+    <span class="cm">// only one thread runs this across ALL instances</span>
+}</pre>
+
+  <div class="info-box">
+    <strong>How it works:</strong> Every Java object has an intrinsic lock (monitor). When a thread calls a synchronized method, it acquires the lock. Other threads trying to call any synchronized method on the same object must wait until the lock is released.
+  </div>
+
+  <div class="warning-box">
+    <strong>⚠️ synchronized can only be applied to methods and blocks — NOT to variables or classes.</strong>
+  </div>
+</div>
+
+
+<!-- SECTION 6: VOLATILE -->
+<div class="section" id="volatile">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">volatile</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>volatile</strong> ensures that a variable is <strong>always read from and written to main memory</strong>, not from a thread's local CPU cache. Solves <strong>visibility</strong> issues in multi-threaded programs.
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">SharedFlag</span> {
+    <span class="cm">// Without volatile — thread may read stale value from CPU cache!</span>
+    <span class="kw">private boolean</span> running = <span class="kw">true</span>;
+
+    <span class="cm">// With volatile — always reads from main memory</span>
+    <span class="kw">private volatile boolean</span> flag = <span class="kw">true</span>;
+
+    <span class="kw">public void</span> stop()    { flag = <span class="kw">false</span>; }  <span class="cm">// Thread 1 writes</span>
+    <span class="kw">public boolean</span> isOn() { <span class="kw">return</span> flag; }  <span class="cm">// Thread 2 reads — always fresh!</span>
+}
+
+<span class="cm">// Classic volatile use case — stop flag</span>
+<span class="kw">class</span> <span class="cl">Worker</span> <span class="kw">implements</span> <span class="cl">Runnable</span> {
+    <span class="kw">private volatile boolean</span> active = <span class="kw">true</span>;
+
+    <span class="kw">public void</span> run() {
+        <span class="kw">while</span> (active) {
+            <span class="cm">// do work...</span>
+        }
+    }
+
+    <span class="kw">public void</span> stop() { active = <span class="kw">false</span>; }
+}</pre>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>volatile vs synchronized</h4>
+      <p><code>volatile</code> — visibility only, no atomicity</p>
+      <p>Lightweight, no locking</p>
+      <p>For simple flags/booleans</p>
+    </div>
+    <div class="col-box">
+      <h4>synchronized</h4>
+      <p>Both visibility AND atomicity</p>
+      <p>Heavier, uses locking</p>
+      <p>For compound operations (count++)</p>
+    </div>
+  </div>
+
+  <div class="warning-box">
+    <strong>⚠️ volatile does NOT make compound operations atomic!</strong><br>
+    <code>volatile int count; count++;</code> is still NOT thread-safe!<br>
+    <code>count++</code> is read + increment + write — 3 operations. Use <code>synchronized</code> or <code>AtomicInteger</code> instead.
+  </div>
+</div>
+
+
+<!-- SECTION 7: TRANSIENT -->
+<div class="section" id="transient">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">transient</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>transient</strong> tells Java to <strong>skip this field during serialization</strong>. The field is NOT saved when the object is written to a file or network stream.
+  </div>
+
+<pre><span class="kw">import</span> java.io.Serializable;
+
+<span class="kw">class</span> <span class="cl">User</span> <span class="kw">implements</span> <span class="cl">Serializable</span> {
+    <span class="cl">String</span>  username;         <span class="cm">// ✅ saved during serialization</span>
+    <span class="cl">String</span>  email;            <span class="cm">// ✅ saved</span>
+    <span class="kw">transient</span> <span class="cl">String</span> password; <span class="cm">// ❌ SKIPPED — not saved for security</span>
+    <span class="kw">transient int</span>    sessionId; <span class="cm">// ❌ SKIPPED — not meaningful after restart</span>
+}
+
+<span class="cm">// After deserialization:</span>
+<span class="cm">// username → "alice"    ✅ restored</span>
+<span class="cm">// email    → "a@b.com"  ✅ restored</span>
+<span class="cm">// password → null       ← transient, default value</span>
+<span class="cm">// sessionId → 0         ← transient, default value</span></pre>
+
+  <h3>When to use transient:</h3>
+  <ul>
+    <li><strong>Security</strong> — passwords, PINs, API keys should not be saved</li>
+    <li><strong>Calculated fields</strong> — can be recalculated, no need to store</li>
+    <li><strong>Session data</strong> — temporary data not meaningful after restart</li>
+    <li><strong>Non-serializable fields</strong> — if a field's type doesn't implement Serializable</li>
+  </ul>
+</div>
+
+
+<!-- SECTION 8: NATIVE -->
+<div class="section" id="native">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">native</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>native</strong> means the method is implemented in <strong>native code</strong> (C or C++) outside Java. Used via JNI (Java Native Interface). The method has no body in Java — the implementation is in a native library.
+  </div>
+
+<pre><span class="kw">class</span> <span class="cl">NativeExample</span> {
+    <span class="cm">// Declared in Java — implemented in C/C++</span>
+    <span class="kw">public native void</span> nativeMethod();
+    <span class="kw">public native int</span>  nativeAdd(<span class="kw">int</span> a, <span class="kw">int</span> b);
+
+    <span class="kw">static</span> {
+        System.loadLibrary(<span class="st">"nativelib"</span>);  <span class="cm">// load native library</span>
+    }
+}
+
+<span class="cm">// Real examples in Java itself:</span>
+<span class="cm">// Object.hashCode() → native</span>
+<span class="cm">// System.currentTimeMillis() → native</span>
+<span class="cm">// Thread.sleep() → native</span>
+<span class="cm">// Math.sqrt() → native (delegates to CPU instruction)</span></pre>
+
+  <div class="info-box">
+    <strong>When to use native:</strong> Performance-critical operations, hardware access, using existing C/C++ libraries, system-level operations (file I/O, networking at low level).
+  </div>
+</div>
+
+
+<!-- SECTION 9: COMBINATIONS -->
+<div class="section" id="combinations">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Valid & Invalid Combinations</div>
+  </div>
+
+  <table>
+    <tr><th>Combination</th><th>Valid?</th><th>Reason</th></tr>
+    <tr><td><code>public static final</code></td><td>✅ Yes</td><td>Most common — class constant (Math.PI)</td></tr>
+    <tr><td><code>static final</code></td><td>✅ Yes</td><td>Class-level constant</td></tr>
+    <tr><td><code>public static</code></td><td>✅ Yes</td><td>Class method accessible everywhere</td></tr>
+    <tr><td><code>public synchronized</code></td><td>✅ Yes</td><td>Thread-safe public method</td></tr>
+    <tr><td><code>static synchronized</code></td><td>✅ Yes</td><td>Locks on class object</td></tr>
+    <tr><td><code>abstract final</code></td><td>❌ No</td><td>abstract requires override, final prevents it</td></tr>
+    <tr><td><code>abstract static</code></td><td>❌ No</td><td>static belongs to class, abstract needs instance override</td></tr>
+    <tr><td><code>abstract private</code></td><td>❌ No</td><td>private not visible to subclass — can't override</td></tr>
+    <tr><td><code>final volatile</code></td><td>❌ No</td><td>final variable never changes — volatile adds no value</td></tr>
+    <tr><td><code>synchronized volatile</code></td><td>❌ No (for variable)</td><td>volatile is for variables, synchronized for methods/blocks</td></tr>
+    <tr><td><code>private final</code></td><td>✅ Yes</td><td>Private constant field — very common</td></tr>
+    <tr><td><code>transient static</code></td><td>✅ Yes (but pointless)</td><td>Static fields are never serialized anyway</td></tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>💡 Quick memory rule for invalid combinations:</strong><br>
+    If two modifiers <em>contradict each other's purpose</em>, they cannot be combined.<br>
+    abstract + final → want to override vs. prevent override → contradiction ❌<br>
+    abstract + private → need visibility to override vs. hidden → contradiction ❌<br>
+    abstract + static → instance override vs. class member → contradiction ❌
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is the difference between access modifiers and non-access modifiers?</div>
+    <div class="a">Access modifiers (public, private, protected, default) control <strong>visibility</strong> — who can access a member. Non-access modifiers (static, final, abstract, synchronized, volatile, transient, native) control <strong>behavior</strong> — how a member works. For example, static says it belongs to the class; final says it can't be changed; synchronized says only one thread can access it at a time.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is a static block? When does it run?</div>
+    <div class="a">A static block is a block of code prefixed with <code>static { }</code>. It runs exactly <strong>once</strong> when the class is first loaded into memory by the ClassLoader — before any object creation or static method call. It is used to initialize static variables, load configuration, or perform one-time setup tasks like loading a database driver or a native library.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the difference between final variable and effectively final?</div>
+    <div class="a">A <strong>final variable</strong> is explicitly declared with the <code>final</code> keyword — it cannot be reassigned. An <strong>effectively final</strong> variable (Java 8+) is NOT declared final but is never reassigned after initialization. Lambda expressions and anonymous classes can access effectively final local variables — the compiler treats them as final even without the keyword.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the difference between volatile and synchronized?</div>
+    <div class="a"><code>volatile</code> ensures <strong>visibility</strong> — changes to the variable are immediately visible to all threads by always reading/writing from main memory. But it does NOT ensure atomicity for compound operations. <code>synchronized</code> ensures both visibility AND <strong>atomicity</strong> — only one thread executes the block at a time, and changes are flushed to main memory when the lock is released. Use volatile for simple flags; use synchronized for compound operations like increment.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is transient? When would you use it?</div>
+    <div class="a">The transient modifier tells the serialization mechanism to <strong>skip this field</strong> — it is not saved when the object is serialized to a file or network stream. Use it for: security-sensitive fields (passwords, keys), fields that can be recalculated, session-specific data, or fields whose type doesn't implement Serializable. After deserialization, transient fields have their default values (null, 0, false).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Why can't abstract and final be used together?</div>
+    <div class="a">They are fundamentally contradictory. <code>abstract</code> means the method or class is incomplete and must be overridden/extended by a subclass. <code>final</code> means the method or class cannot be overridden/extended. Combining them would mean "you must override this but you cannot override this" — the compiler correctly rejects this contradiction.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Can you use static with a local variable inside a method?</div>
+    <div class="a">No. Local variables inside methods cannot be declared static. The <code>static</code> modifier is only valid for class-level members (fields, methods, nested classes, blocks). Local variables are created on the stack each time the method is called and destroyed when it returns — they have no class-level lifetime, which is what static implies.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 17: Non-Access Modifiers · 17 of 26 complete
+</div>
+
+</body>
+</html>

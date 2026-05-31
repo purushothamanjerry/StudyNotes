@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 4 — Variables & Data Types</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 60%, #a78bfa 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #7c3aed; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #4c1d95; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #7c3aed; padding-bottom: 12px; }
+  .section-num { background: #7c3aed; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #4c1d95; }
+
+  h3 { font-size: 1.05rem; color: #7c3aed; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #f5f3ff; border-left: 4px solid #7c3aed; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #4c1d95; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f5f3ff; }
+  tr:hover { background: #ede9fe; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #4c1d95; margin-top: 0; }
+
+  .var-types { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .var-card { border-radius: 10px; padding: 16px; border: 1px solid; }
+  .var-local    { background: #f0fdf4; border-color: #86efac; }
+  .var-instance { background: #eff6ff; border-color: #93c5fd; }
+  .var-static   { background: #f5f3ff; border-color: #c4b5fd; }
+  .var-card h4  { font-size: 0.9rem; margin-bottom: 8px; }
+  .var-local h4    { color: #166534; }
+  .var-instance h4 { color: #1e40af; }
+  .var-static h4   { color: #4c1d95; }
+  .var-card p   { font-size: 0.85rem; color: #4b5563; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #7c3aed; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 4 OF 26</div>
+  <h1>📦 Variables & Data Types</h1>
+  <p>Variable Types · Type Casting · var keyword · Naming Rules · Scope</p>
+  <div class="meta">
+    <span>Phase 2 — Basics</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is a Variable?</a></li>
+    <li><a href="#types">3 Types of Variables</a></li>
+    <li><a href="#scope">Variable Scope</a></li>
+    <li><a href="#casting">Type Casting — Widening & Narrowing</a></li>
+    <li><a href="#var">var keyword (Java 10+)</a></li>
+    <li><a href="#naming">Naming Rules & Conventions</a></li>
+    <li><a href="#constants">Constants — final keyword</a></li>
+    <li><a href="#output">Output — print, println, printf</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT IS A VARIABLE -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is a Variable?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> A variable is a <strong>named memory location</strong> that stores a value. It has three parts: a <strong>data type</strong>, a <strong>name</strong>, and a <strong>value</strong>.
+  </div>
+
+  <pre><span class="cm">// Syntax: dataType variableName = value;</span>
+<span class="kw">int</span> age = <span class="num">25</span>;           <span class="cm">// type=int, name=age, value=25</span>
+<span class="cl">String</span> name = <span class="st">"Alice"</span>; <span class="cm">// type=String, name=name, value="Alice"</span>
+<span class="kw">boolean</span> isActive = <span class="kw">true</span>; <span class="cm">// type=boolean, name=isActive, value=true</span>
+
+<span class="cm">// Declaration without initialization</span>
+<span class="kw">int</span> x;       <span class="cm">// declared but not initialized</span>
+x = <span class="num">10</span>;     <span class="cm">// initialized later</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Local variables MUST be initialized before use:</strong><br>
+    <code>int x; System.out.println(x);</code> ❌ → Compile error: "variable x might not have been initialized"<br>
+    Instance variables get default values automatically (<code>0</code>, <code>false</code>, <code>null</code>).
+  </div>
+</div>
+
+
+<!-- SECTION 2: 3 TYPES -->
+<div class="section" id="types">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">3 Types of Variables in Java</div>
+  </div>
+
+  <div class="var-types">
+    <div class="var-card var-local">
+      <h4>Local Variable</h4>
+      <p>Declared inside a method or block. Only accessible within that method. No default value — must initialize before use. Stored on Stack.</p>
+    </div>
+    <div class="var-card var-instance">
+      <h4>Instance Variable</h4>
+      <p>Declared inside a class but outside methods. Each object has its own copy. Has default values. Stored on Heap inside the object.</p>
+    </div>
+    <div class="var-card var-static">
+      <h4>Static Variable</h4>
+      <p>Declared with <code>static</code> keyword. Shared across ALL objects of the class — only one copy exists. Stored in Method Area.</p>
+    </div>
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">Employee</span> {
+
+    <span class="cm">// Instance variable — each Employee object has its own</span>
+    <span class="kw">String</span> name;        <span class="cm">// default: null</span>
+    <span class="kw">int</span> salary;         <span class="cm">// default: 0</span>
+
+    <span class="cm">// Static variable — shared across ALL Employee objects</span>
+    <span class="kw">static</span> <span class="kw">String</span> company = <span class="st">"TechCorp"</span>;
+    <span class="kw">static int</span> count = <span class="num">0</span>;
+
+    <span class="kw">public void</span> display() {
+        <span class="cm">// Local variable — only exists inside this method</span>
+        <span class="kw">int</span> bonus = <span class="num">5000</span>;
+        System.out.println(name + <span class="st">" bonus: "</span> + bonus);
+    }
+}
+
+<span class="cl">Employee</span> e1 = <span class="kw">new</span> <span class="cl">Employee</span>();
+<span class="cl">Employee</span> e2 = <span class="kw">new</span> <span class="cl">Employee</span>();
+e1.name = <span class="st">"Alice"</span>;   <span class="cm">// only e1's name changes</span>
+<span class="cl">Employee</span>.company = <span class="st">"NewCorp"</span>; <span class="cm">// changes for ALL employees!</span></pre>
+
+  <table>
+    <tr><th>Feature</th><th>Local</th><th>Instance</th><th>Static</th></tr>
+    <tr><td>Declared in</td><td>Method/block</td><td>Class body</td><td>Class body with static</td></tr>
+    <tr><td>Default value</td><td>None (must init)</td><td>Yes (0, null, false)</td><td>Yes (0, null, false)</td></tr>
+    <tr><td>Stored in</td><td>Stack</td><td>Heap</td><td>Method Area</td></tr>
+    <tr><td>One copy per</td><td>Method call</td><td>Object</td><td>Class (shared)</td></tr>
+    <tr><td>Access with</td><td>Variable name</td><td>Object reference</td><td>Class name</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 3: SCOPE -->
+<div class="section" id="scope">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Variable Scope</div>
+  </div>
+
+  <p>Scope defines <strong>where a variable can be accessed</strong> in the code. A variable lives from where it is declared to the closing brace of its block.</p>
+
+<pre><span class="kw">public class</span> <span class="cl">ScopeDemo</span> {
+    <span class="kw">int</span> instanceVar = <span class="num">10</span>;   <span class="cm">// class scope — whole class</span>
+
+    <span class="kw">public void</span> method() {
+        <span class="kw">int</span> a = <span class="num">20</span>;            <span class="cm">// method scope — whole method</span>
+
+        <span class="kw">if</span> (<span class="kw">true</span>) {
+            <span class="kw">int</span> b = <span class="num">30</span>;        <span class="cm">// block scope — only inside if</span>
+            System.out.println(b);   <span class="cm">// ✅ OK</span>
+            System.out.println(a);   <span class="cm">// ✅ OK</span>
+        }
+
+        System.out.println(a);       <span class="cm">// ✅ OK</span>
+        <span class="cm">// System.out.println(b);   ❌ Error — b out of scope</span>
+    }
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Variable Shadowing:</strong><br>
+    A local variable with the same name as an instance variable <em>shadows</em> it inside the method. Use <code>this.variableName</code> to refer to the instance variable.
+<pre><span class="kw">int</span> age = <span class="num">30</span>;  <span class="cm">// instance variable</span>
+<span class="kw">public void</span> setAge(<span class="kw">int</span> age) {  <span class="cm">// parameter shadows instance var</span>
+    <span class="kw">this</span>.age = age;  <span class="cm">// this.age = instance, age = parameter</span>
+}</pre>
+  </div>
+</div>
+
+
+<!-- SECTION 4: TYPE CASTING -->
+<div class="section" id="casting">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Type Casting — Widening & Narrowing</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Type Casting</strong> = converting one data type to another.
+    Two types: <strong>Widening</strong> (automatic, safe) and <strong>Narrowing</strong> (manual, may lose data).
+  </div>
+
+  <h3>Widening Casting (Implicit) — automatic</h3>
+  <p>Converting smaller type → larger type. <strong>No data loss</strong>. Java does it automatically.</p>
+  <p style="text-align:center; font-weight:600; margin:10px 0; color:#4c1d95;">
+    byte → short → int → long → float → double
+  </p>
+
+<pre><span class="kw">int</span> i = <span class="num">100</span>;
+<span class="kw">long</span> l = i;      <span class="cm">// automatic widening — int to long ✅</span>
+<span class="kw">double</span> d = i;    <span class="cm">// automatic widening — int to double ✅</span>
+System.out.println(d);  <span class="cm">// 100.0</span></pre>
+
+  <h3>Narrowing Casting (Explicit) — manual</h3>
+  <p>Converting larger type → smaller type. <strong>May lose data</strong>. Must do manually with cast operator.</p>
+
+<pre><span class="kw">double</span> d = <span class="num">9.99</span>;
+<span class="kw">int</span> i = (<span class="kw">int</span>) d;   <span class="cm">// explicit narrowing — truncates decimal</span>
+System.out.println(i);  <span class="cm">// 9 (not 10! decimal is cut, not rounded)</span>
+
+<span class="kw">int</span> big = <span class="num">300</span>;
+<span class="kw">byte</span> b = (<span class="kw">byte</span>) big;  <span class="cm">// 300 doesn't fit in byte (-128 to 127)</span>
+System.out.println(b);  <span class="cm">// 44 (overflow! data lost)</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Narrowing does NOT round — it truncates!</strong><br>
+    <code>(int) 9.99</code> → <code>9</code> not <code>10</code><br>
+    <code>(int) -9.99</code> → <code>-9</code> not <code>-10</code>
+  </div>
+
+  <h3>String Conversions</h3>
+<pre><span class="cm">// int → String</span>
+<span class="kw">int</span> n = <span class="num">42</span>;
+<span class="cl">String</span> s1 = <span class="cl">String</span>.valueOf(n);   <span class="cm">// "42"</span>
+<span class="cl">String</span> s2 = <span class="st">""</span> + n;              <span class="cm">// "42" (concatenation trick)</span>
+<span class="cl">String</span> s3 = <span class="cl">Integer</span>.toString(n); <span class="cm">// "42"</span>
+
+<span class="cm">// String → int</span>
+<span class="cl">String</span> s = <span class="st">"42"</span>;
+<span class="kw">int</span> x = <span class="cl">Integer</span>.parseInt(s);    <span class="cm">// 42</span>
+<span class="kw">int</span> y = <span class="cl">Integer</span>.valueOf(s);     <span class="cm">// 42 (returns Integer, autoboxed)</span></pre>
+</div>
+
+
+<!-- SECTION 5: VAR KEYWORD -->
+<div class="section" id="var">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">var Keyword (Java 10+)</div>
+  </div>
+
+  <p>The <code>var</code> keyword enables <strong>local variable type inference</strong> — the compiler automatically infers the type from the value assigned. Java is still strongly typed — <code>var</code> is just syntactic sugar.</p>
+
+<pre><span class="cm">// Without var</span>
+<span class="cl">ArrayList</span>&lt;<span class="cl">String</span>&gt; list = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;<span class="cl">String</span>&gt;();
+
+<span class="cm">// With var — cleaner!</span>
+<span class="kw">var</span> list = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;<span class="cl">String</span>&gt;();  <span class="cm">// compiler infers ArrayList&lt;String&gt;</span>
+
+<span class="kw">var</span> name = <span class="st">"Alice"</span>;   <span class="cm">// inferred as String</span>
+<span class="kw">var</span> age  = <span class="num">25</span>;        <span class="cm">// inferred as int</span>
+<span class="kw">var</span> pi   = <span class="num">3.14</span>;      <span class="cm">// inferred as double</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ var restrictions:</strong><br>
+    ❌ Cannot use var for instance variables or method parameters<br>
+    ❌ Cannot use var without initialization: <code>var x;</code> → Error<br>
+    ❌ Cannot assign null: <code>var x = null;</code> → Error (type unknown)<br>
+    ✅ Only for local variables inside methods
+  </div>
+</div>
+
+
+<!-- SECTION 6: NAMING -->
+<div class="section" id="naming">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Naming Rules & Conventions</div>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Rules (must follow — compiler enforces)</h4>
+      <ul>
+        <li>Start with letter, <code>_</code>, or <code>$</code> — NOT a digit</li>
+        <li>Can contain letters, digits, <code>_</code>, <code>$</code></li>
+        <li>Cannot use Java keywords (<code>int</code>, <code>class</code>, <code>for</code>...)</li>
+        <li>Case sensitive — <code>age</code> and <code>Age</code> are different</li>
+        <li>No spaces allowed</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Conventions (should follow — best practice)</h4>
+      <ul>
+        <li>Variables & methods → <strong>camelCase</strong>: <code>firstName</code>, <code>getAge()</code></li>
+        <li>Classes → <strong>PascalCase</strong>: <code>StudentDetails</code></li>
+        <li>Constants → <strong>UPPER_SNAKE_CASE</strong>: <code>MAX_SIZE</code></li>
+        <li>Packages → <strong>lowercase</strong>: <code>com.company.project</code></li>
+        <li>Use meaningful names: <code>age</code> not <code>a</code></li>
+      </ul>
+    </div>
+  </div>
+
+<pre><span class="cm">// Valid variable names</span>
+<span class="kw">int</span> age = <span class="num">25</span>;
+<span class="kw">int</span> _count = <span class="num">0</span>;
+<span class="kw">int</span> $price = <span class="num">100</span>;
+<span class="kw">int</span> myAge2 = <span class="num">30</span>;
+
+<span class="cm">// Invalid variable names</span>
+<span class="cm">// int 2age = 25;     ❌ starts with digit</span>
+<span class="cm">// int my age = 25;   ❌ space not allowed</span>
+<span class="cm">// int int = 25;      ❌ keyword not allowed</span>
+<span class="cm">// int my-age = 25;   ❌ hyphen not allowed</span></pre>
+</div>
+
+
+<!-- SECTION 7: CONSTANTS -->
+<div class="section" id="constants">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Constants — final keyword</div>
+  </div>
+
+  <p>A <strong>constant</strong> is a variable whose value cannot be changed after initialization. Use the <code>final</code> keyword.</p>
+
+<pre><span class="kw">final int</span> MAX_SIZE = <span class="num">100</span>;
+<span class="cm">// MAX_SIZE = 200;  ❌ Error — cannot reassign final variable</span>
+
+<span class="cm">// Convention: constants use UPPER_SNAKE_CASE</span>
+<span class="kw">final double</span> PI = <span class="num">3.14159</span>;
+<span class="kw">final</span> <span class="cl">String</span> APP_NAME = <span class="st">"CodeTrack"</span>;
+
+<span class="cm">// Static final = class-level constant (most common)</span>
+<span class="kw">public static final int</span> MAX_USERS = <span class="num">1000</span>;</pre>
+
+  <div class="tip-box">
+    <strong>💡 final vs static final:</strong><br>
+    <code>final</code> — each object has its own constant copy<br>
+    <code>static final</code> — one constant shared across all objects (preferred for true constants)
+  </div>
+</div>
+
+
+<!-- SECTION 8: OUTPUT -->
+<div class="section" id="output">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Output — print, println, printf</div>
+  </div>
+
+<pre><span class="cm">// println — prints and adds new line</span>
+System.out.println(<span class="st">"Hello"</span>);    <span class="cm">// Hello↵</span>
+System.out.println(<span class="num">42</span>);         <span class="cm">// 42↵</span>
+
+<span class="cm">// print — prints WITHOUT new line</span>
+System.out.print(<span class="st">"Hello "</span>);
+System.out.print(<span class="st">"World"</span>);     <span class="cm">// Hello World (same line)</span>
+
+<span class="cm">// printf — formatted output (like C)</span>
+System.out.printf(<span class="st">"Name: %s, Age: %d%n"</span>, <span class="st">"Alice"</span>, <span class="num">25</span>);
+<span class="cm">// Name: Alice, Age: 25</span>
+
+<span class="cm">// String.format — returns formatted string</span>
+<span class="cl">String</span> msg = <span class="cl">String</span>.format(<span class="st">"Score: %.2f"</span>, <span class="num">95.5678</span>);
+System.out.println(msg);  <span class="cm">// Score: 95.57</span></pre>
+
+  <table>
+    <tr><th>Format Specifier</th><th>Type</th><th>Example</th></tr>
+    <tr><td><code>%d</code></td><td>integer</td><td><code>printf("%d", 42)</code> → 42</td></tr>
+    <tr><td><code>%f</code></td><td>float/double</td><td><code>printf("%.2f", 3.14159)</code> → 3.14</td></tr>
+    <tr><td><code>%s</code></td><td>String</td><td><code>printf("%s", "Hi")</code> → Hi</td></tr>
+    <tr><td><code>%c</code></td><td>char</td><td><code>printf("%c", 'A')</code> → A</td></tr>
+    <tr><td><code>%b</code></td><td>boolean</td><td><code>printf("%b", true)</code> → true</td></tr>
+    <tr><td><code>%n</code></td><td>newline</td><td>platform-independent newline</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 9: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What are the 3 types of variables in Java?</div>
+    <div class="a"><strong>Local variables</strong> — declared inside methods, no default value, stored on Stack.<br>
+    <strong>Instance variables</strong> — declared in class body, each object has its own copy, default values, stored on Heap.<br>
+    <strong>Static variables</strong> — declared with static keyword, shared across all objects, only one copy per class, stored in Method Area.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between widening and narrowing casting?</div>
+    <div class="a"><strong>Widening</strong> (implicit) converts a smaller type to a larger type automatically — no data loss. Example: <code>int → long</code>. <strong>Narrowing</strong> (explicit) converts a larger type to a smaller type manually using cast operator — may lose data. Example: <code>(int) 9.99 → 9</code> (decimal truncated, not rounded).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the output? int x; System.out.println(x);</div>
+    <div class="a"><strong>Compile error</strong> — "variable x might not have been initialized." Local variables in Java do not get default values. You must explicitly initialize them before use. Only instance and static variables get default values.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is var in Java? When can you use it?</div>
+    <div class="a"><code>var</code> is a local variable type inference keyword introduced in Java 10. The compiler infers the type from the assigned value. It can only be used for local variables inside methods — not for instance variables, method parameters, or return types. Java remains strongly typed — var is just syntactic sugar.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is the difference between instance variable and static variable?</div>
+    <div class="a">An instance variable has a separate copy for each object — changing it in one object doesn't affect others. A static variable has only one copy shared across all objects of the class — changing it via one object affects all. Static variables are accessed using the class name, not object reference.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is the output? double d = 9.99; int i = (int) d; System.out.println(i);</div>
+    <div class="a"><strong>9</strong> — Narrowing casting truncates the decimal part, it does NOT round. So 9.99 becomes 9, not 10.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Can you change the value of a final variable?</div>
+    <div class="a">No. A <code>final</code> variable can only be assigned once. Attempting to reassign it causes a compile-time error. For class-level constants, we use <code>public static final</code> — one constant shared across all objects, accessed via class name.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 4: Variables & Data Types · 4 of 26 complete
+</div>
+
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 9 — Class & Object</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #0f3460; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #0f3460; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #0f3460; padding-bottom: 12px; }
+  .section-num { background: #0f3460; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #1a1a2e; }
+  h3 { font-size: 1.05rem; color: #0f3460; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #e8f4fd; border-left: 4px solid #0f3460; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #1a1a2e; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f0f4f8; }
+  tr:hover { background: #dbeafe; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #0f3460; margin-top: 0; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #0f3460; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 9 OF 26</div>
+  <h1>🏗️ Class & Object</h1>
+  <p>Class · Object · this · super · new · Object class · toString · equals</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#class">What is a Class?</a></li>
+    <li><a href="#object">What is an Object?</a></li>
+    <li><a href="#anatomy">Class Anatomy — full structure</a></li>
+    <li><a href="#new">new keyword — object creation</a></li>
+    <li><a href="#this">this keyword — 5 uses</a></li>
+    <li><a href="#super">super keyword — 3 uses</a></li>
+    <li><a href="#object-class">Object class — root of all Java classes</a></li>
+    <li><a href="#tostring">toString() method</a></li>
+    <li><a href="#equals">equals() and hashCode()</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: CLASS -->
+<div class="section" id="class">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is a Class?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> A class is a <strong>blueprint/template</strong> for creating objects. It defines the properties (fields) and behaviors (methods) that all objects of that type will have. A class is NOT an object — it is the design.
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Real World Analogy</h4>
+      <p><strong>Class</strong> = Blueprint of a house</p>
+      <p><strong>Object</strong> = Actual house built from blueprint</p>
+      <p>One blueprint → many houses</p>
+      <p>One class → many objects</p>
+    </div>
+    <div class="col-box">
+      <h4>Class contains</h4>
+      <ul>
+        <li><strong>Fields</strong> (instance variables) — state</li>
+        <li><strong>Methods</strong> — behavior</li>
+        <li><strong>Constructors</strong> — object creation</li>
+        <li><strong>Nested classes</strong> — optional</li>
+        <li><strong>Static members</strong> — class-level</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: OBJECT -->
+<div class="section" id="object">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">What is an Object?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> An object is an <strong>instance of a class</strong>. It is a real entity in memory created from the class blueprint. Each object has its own copy of instance variables.
+  </div>
+
+  <h3>3 Characteristics of an Object</h3>
+  <ul>
+    <li><strong>State</strong> — data stored in fields (name, age, color)</li>
+    <li><strong>Behavior</strong> — actions defined by methods (eat, bark, drive)</li>
+    <li><strong>Identity</strong> — unique memory address that distinguishes it from other objects</li>
+  </ul>
+
+<pre><span class="cm">// Class = blueprint</span>
+<span class="kw">class</span> <span class="cl">Dog</span> {
+    <span class="cl">String</span> name;   <span class="cm">// state</span>
+    <span class="kw">int</span> age;        <span class="cm">// state</span>
+
+    <span class="kw">void</span> bark() {   <span class="cm">// behavior</span>
+        System.out.println(name + <span class="st">" says: Woof!"</span>);
+    }
+}
+
+<span class="cm">// Objects = instances (each has own state)</span>
+<span class="cl">Dog</span> dog1 = <span class="kw">new</span> <span class="cl">Dog</span>();
+dog1.name = <span class="st">"Bruno"</span>;
+dog1.age  = <span class="num">3</span>;
+
+<span class="cl">Dog</span> dog2 = <span class="kw">new</span> <span class="cl">Dog</span>();
+dog2.name = <span class="st">"Max"</span>;
+dog2.age  = <span class="num">5</span>;
+
+dog1.bark();  <span class="cm">// Bruno says: Woof!</span>
+dog2.bark();  <span class="cm">// Max says: Woof!</span>
+<span class="cm">// dog1 and dog2 are independent — different state, same behavior</span></pre>
+</div>
+
+
+<!-- SECTION 3: ANATOMY -->
+<div class="section" id="anatomy">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Class Anatomy — Full Structure</div>
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">Student</span> {
+
+    <span class="cm">// ── Static variable (shared by all objects) ──</span>
+    <span class="kw">static int</span> totalStudents = <span class="num">0</span>;
+
+    <span class="cm">// ── Instance variables (each object has own copy) ──</span>
+    <span class="kw">private</span> <span class="cl">String</span> name;
+    <span class="kw">private int</span> age;
+    <span class="kw">private double</span> gpa;
+
+    <span class="cm">// ── Constructor ──</span>
+    <span class="kw">public</span> <span class="cl">Student</span>(<span class="cl">String</span> name, <span class="kw">int</span> age, <span class="kw">double</span> gpa) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">this</span>.age  = age;
+        <span class="kw">this</span>.gpa  = gpa;
+        totalStudents++;   <span class="cm">// increment shared counter</span>
+    }
+
+    <span class="cm">// ── Getters & Setters ──</span>
+    <span class="kw">public</span> <span class="cl">String</span> getName()  { <span class="kw">return</span> name; }
+    <span class="kw">public int</span>    getAge()   { <span class="kw">return</span> age;  }
+    <span class="kw">public void</span>   setAge(<span class="kw">int</span> age) {
+        <span class="kw">if</span> (age &gt; <span class="num">0</span>) <span class="kw">this</span>.age = age;
+    }
+
+    <span class="cm">// ── Instance method ──</span>
+    <span class="kw">public void</span> display() {
+        System.out.println(name + <span class="st">" | Age: "</span> + age + <span class="st">" | GPA: "</span> + gpa);
+    }
+
+    <span class="cm">// ── Static method ──</span>
+    <span class="kw">public static int</span> getTotalStudents() {
+        <span class="kw">return</span> totalStudents;
+    }
+
+    <span class="cm">// ── toString override ──</span>
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="cl">String</span> toString() {
+        <span class="kw">return</span> <span class="st">"Student{"</span> + name + <span class="st">", "</span> + age + <span class="st">"}"</span>;
+    }
+}
+
+<span class="cm">// Usage</span>
+<span class="cl">Student</span> s1 = <span class="kw">new</span> <span class="cl">Student</span>(<span class="st">"Alice"</span>, <span class="num">20</span>, <span class="num">3.8</span>);
+<span class="cl">Student</span> s2 = <span class="kw">new</span> <span class="cl">Student</span>(<span class="st">"Bob"</span>,   <span class="num">22</span>, <span class="num">3.5</span>);
+s1.display();
+System.out.println(<span class="cl">Student</span>.getTotalStudents());  <span class="cm">// 2</span></pre>
+</div>
+
+
+<!-- SECTION 4: NEW KEYWORD -->
+<div class="section" id="new">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">new Keyword — Object Creation</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>new does 3 things:</strong><br>
+    1. Allocates memory on the <strong>Heap</strong> for the new object<br>
+    2. Calls the <strong>constructor</strong> to initialize the object<br>
+    3. Returns a <strong>reference</strong> (memory address) to the new object
+  </div>
+
+<pre><span class="cm">// Dog d = new Dog();</span>
+<span class="cm">// │         │</span>
+<span class="cm">// │         └── new allocates memory on Heap + calls constructor</span>
+<span class="cm">// └── d stores the REFERENCE (address) on Stack</span>
+
+<span class="cl">Dog</span> d1 = <span class="kw">new</span> <span class="cl">Dog</span>();
+<span class="cl">Dog</span> d2 = d1;   <span class="cm">// d2 copies the REFERENCE — both point to same object!</span>
+
+d1.name = <span class="st">"Bruno"</span>;
+System.out.println(d2.name);  <span class="cm">// Bruno — same object!</span>
+
+d1 = <span class="kw">null</span>;   <span class="cm">// d1 no longer points to object</span>
+              <span class="cm">// BUT d2 still does — object NOT garbage collected yet</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Copying reference vs copying object:</strong><br>
+    <code>Dog d2 = d1;</code> — copies the reference, NOT the object. Both variables point to the SAME object. Changes through d2 affect d1 too!
+  </div>
+</div>
+
+
+<!-- SECTION 5: THIS KEYWORD -->
+<div class="section" id="this">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">this Keyword — 5 Uses</div>
+  </div>
+
+  <p><code>this</code> refers to the <strong>current object</strong> — the object on which the method or constructor is being called.</p>
+
+<pre><span class="kw">public class</span> <span class="cl">Person</span> {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span> age;
+
+    <span class="cm">// USE 1 — Resolve ambiguity (parameter shadows instance variable)</span>
+    <span class="kw">public</span> <span class="cl">Person</span>(<span class="cl">String</span> name, <span class="kw">int</span> age) {
+        <span class="kw">this</span>.name = name;  <span class="cm">// this.name = instance var, name = parameter</span>
+        <span class="kw">this</span>.age  = age;
+    }
+
+    <span class="cm">// USE 2 — Call another method of same class</span>
+    <span class="kw">public void</span> show() {
+        <span class="kw">this</span>.display();   <span class="cm">// same as display() but explicit</span>
+    }
+
+    <span class="cm">// USE 3 — Call another constructor (constructor chaining)</span>
+    <span class="kw">public</span> <span class="cl">Person</span>(<span class="cl">String</span> name) {
+        <span class="kw">this</span>(name, <span class="num">0</span>);  <span class="cm">// calls Person(String, int) constructor</span>
+                         <span class="cm">// MUST be first statement!</span>
+    }
+
+    <span class="cm">// USE 4 — Return current object (method chaining)</span>
+    <span class="kw">public</span> <span class="cl">Person</span> setName(<span class="cl">String</span> name) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">return this</span>;   <span class="cm">// returns current object</span>
+    }
+
+    <span class="cm">// USE 5 — Pass current object as argument</span>
+    <span class="kw">public void</span> register() {
+        Database.save(<span class="kw">this</span>);  <span class="cm">// pass current Person object</span>
+    }
+
+    <span class="kw">public void</span> display() {
+        System.out.println(name + <span class="st">" "</span> + age);
+    }
+}
+
+<span class="cm">// Method chaining using this</span>
+<span class="cl">Person</span> p = <span class="kw">new</span> <span class="cl">Person</span>(<span class="st">"Alice"</span>, <span class="num">25</span>);
+p.setName(<span class="st">"Bob"</span>).display();  <span class="cm">// Bob 25</span></pre>
+</div>
+
+
+<!-- SECTION 6: SUPER KEYWORD -->
+<div class="section" id="super">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">super Keyword — 3 Uses</div>
+  </div>
+
+  <p><code>super</code> refers to the <strong>parent class</strong>. Used inside a child class to access parent's members.</p>
+
+<pre><span class="kw">class</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> type = <span class="st">"Animal"</span>;
+
+    <span class="kw">public</span> <span class="cl">Animal</span>(<span class="cl">String</span> type) {
+        <span class="kw">this</span>.type = type;
+        System.out.println(<span class="st">"Animal created"</span>);
+    }
+
+    <span class="kw">public void</span> sound() {
+        System.out.println(<span class="st">"Some sound"</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+    <span class="cl">String</span> type = <span class="st">"Dog"</span>;   <span class="cm">// shadows Animal's type</span>
+
+    <span class="cm">// USE 1 — Call parent constructor (must be first line!)</span>
+    <span class="kw">public</span> <span class="cl">Dog</span>() {
+        <span class="kw">super</span>(<span class="st">"Canine"</span>);   <span class="cm">// calls Animal(String) constructor</span>
+        System.out.println(<span class="st">"Dog created"</span>);
+    }
+
+    <span class="cm">// USE 2 — Access parent class variable</span>
+    <span class="kw">public void</span> showTypes() {
+        System.out.println(<span class="kw">super</span>.type);  <span class="cm">// Canine (parent's)</span>
+        System.out.println(<span class="kw">this</span>.type);   <span class="cm">// Dog (current)</span>
+    }
+
+    <span class="cm">// USE 3 — Call parent class method</span>
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> sound() {
+        <span class="kw">super</span>.sound();          <span class="cm">// calls Animal's sound()</span>
+        System.out.println(<span class="st">"Woof!"</span>);   <span class="cm">// adds Dog's sound</span>
+    }
+}
+
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();
+<span class="cm">// Output: Animal created → Dog created</span>
+d.sound();
+<span class="cm">// Output: Some sound → Woof!</span></pre>
+
+  <table>
+    <tr><th>Feature</th><th>this</th><th>super</th></tr>
+    <tr><td>Refers to</td><td>Current object</td><td>Parent class</td></tr>
+    <tr><td>Constructor call</td><td><code>this()</code> — same class constructor</td><td><code>super()</code> — parent constructor</td></tr>
+    <tr><td>Variable access</td><td><code>this.var</code> — current class field</td><td><code>super.var</code> — parent class field</td></tr>
+    <tr><td>Method call</td><td><code>this.method()</code> — current class</td><td><code>super.method()</code> — parent class</td></tr>
+    <tr><td>Position rule</td><td><code>this()</code> must be first in constructor</td><td><code>super()</code> must be first in constructor</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 7: OBJECT CLASS -->
+<div class="section" id="object-class">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Object Class — Root of All Java Classes</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Every class in Java implicitly extends <code>java.lang.Object</code></strong><br>
+    If you don't extend any class, Java automatically makes your class extend Object. So every object you create has these methods available.
+  </div>
+
+  <table>
+    <tr><th>Method</th><th>What it does</th><th>Override?</th></tr>
+    <tr><td><code>toString()</code></td><td>Returns string representation of object</td><td>✅ Always override</td></tr>
+    <tr><td><code>equals(Object o)</code></td><td>Checks logical equality</td><td>✅ Override with hashCode</td></tr>
+    <tr><td><code>hashCode()</code></td><td>Returns hash code (integer)</td><td>✅ Always with equals</td></tr>
+    <tr><td><code>getClass()</code></td><td>Returns runtime class of object</td><td>❌ final</td></tr>
+    <tr><td><code>clone()</code></td><td>Creates copy of object</td><td>✅ If needed</td></tr>
+    <tr><td><code>finalize()</code></td><td>Called before GC (deprecated Java 9+)</td><td>Avoid</td></tr>
+    <tr><td><code>wait(), notify(), notifyAll()</code></td><td>Thread synchronization</td><td>❌ final</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 8: TOSTRING -->
+<div class="section" id="tostring">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">toString() Method</div>
+  </div>
+
+  <p>Default <code>toString()</code> returns <code>ClassName@hashCode</code> — not useful. Always override it!</p>
+
+<pre><span class="cm">// Without override</span>
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();
+System.out.println(d);  <span class="cm">// Dog@6d06d69c ← ugly!</span>
+
+<span class="cm">// With override</span>
+<span class="kw">class</span> <span class="cl">Dog</span> {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span> age;
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="cl">String</span> toString() {
+        <span class="kw">return</span> <span class="st">"Dog{name='"</span> + name + <span class="st">"', age="</span> + age + <span class="st">"}"</span>;
+    }
+}
+
+<span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();
+d.name = <span class="st">"Bruno"</span>; d.age = <span class="num">3</span>;
+System.out.println(d);        <span class="cm">// Dog{name='Bruno', age=3}</span>
+System.out.println(d.toString()); <span class="cm">// same — println calls toString automatically</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 toString() is called automatically by:</strong><br>
+    <code>System.out.println(obj)</code> · String concatenation <code>"" + obj</code> · Debugger display
+  </div>
+</div>
+
+
+<!-- SECTION 9: EQUALS AND HASHCODE -->
+<div class="section" id="equals">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">equals() and hashCode()</div>
+  </div>
+
+<pre><span class="cm">// Default equals() — compares REFERENCES (like ==)</span>
+<span class="cl">Dog</span> d1 = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Bruno"</span>);
+<span class="cl">Dog</span> d2 = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Bruno"</span>);
+System.out.println(d1.equals(d2));  <span class="cm">// false (different objects in memory)</span>
+System.out.println(d1 == d2);       <span class="cm">// false</span>
+
+<span class="cm">// Override equals() — compare by CONTENT</span>
+<span class="kw">class</span> <span class="cl">Dog</span> {
+    <span class="cl">String</span> name;
+
+    <span class="an">@Override</span>
+    <span class="kw">public boolean</span> equals(<span class="cl">Object</span> o) {
+        <span class="kw">if</span> (<span class="kw">this</span> == o) <span class="kw">return true</span>;
+        <span class="kw">if</span> (!(o <span class="kw">instanceof</span> <span class="cl">Dog</span>)) <span class="kw">return false</span>;
+        <span class="cl">Dog</span> other = (<span class="cl">Dog</span>) o;
+        <span class="kw">return</span> <span class="kw">this</span>.name.equals(other.name);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public int</span> hashCode() {
+        <span class="kw">return</span> name.hashCode();  <span class="cm">// must override with equals!</span>
+    }
+}
+
+<span class="cl">Dog</span> d1 = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Bruno"</span>);
+<span class="cl">Dog</span> d2 = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Bruno"</span>);
+System.out.println(d1.equals(d2));  <span class="cm">// true (same name)</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Contract: If you override equals(), you MUST override hashCode() too!</strong><br>
+    Rule: If <code>a.equals(b)</code> is true → <code>a.hashCode() == b.hashCode()</code> must also be true.<br>
+    Breaking this contract causes bugs in <code>HashMap</code>, <code>HashSet</code>, and other hash-based collections.
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is the difference between a class and an object?</div>
+    <div class="a">A class is a blueprint or template that defines the structure and behavior. An object is an actual instance created from that blueprint. Class exists at compile time; objects exist at runtime in heap memory. One class can have many objects, each with their own state. Example: <code>Dog</code> is a class; <code>new Dog()</code> creates an object.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What are the uses of the this keyword?</div>
+    <div class="a">this has 5 uses: (1) Resolve ambiguity between instance variable and parameter with same name. (2) Call another method of the same class. (3) Call another constructor of the same class using <code>this()</code> — must be first statement. (4) Return the current object for method chaining. (5) Pass the current object as an argument to another method.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the difference between == and equals() for objects?</div>
+    <div class="a"><code>==</code> compares references — checks if both variables point to the exact same memory address (same object). <code>equals()</code> compares content/logical equality — by default same as ==, but can be overridden to compare field values. Always override equals() when you want to compare objects by their data, and always override hashCode() along with it.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What does the new keyword do?</div>
+    <div class="a">The new keyword does three things: (1) Allocates memory on the Heap for the new object. (2) Calls the constructor to initialize the object's fields. (3) Returns a reference (memory address) to the newly created object, which is stored in the reference variable on the Stack.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is the Object class? Why is it important?</div>
+    <div class="a">Object is the root class of all Java classes — every class implicitly extends it if no other superclass is specified. It provides fundamental methods like toString(), equals(), hashCode(), getClass(), clone(), and thread methods (wait, notify). This ensures all Java objects have a common interface.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Why should you override toString()?</div>
+    <div class="a">The default toString() from Object returns <code>ClassName@hashCode</code> which is meaningless for debugging. Overriding it to return meaningful field values makes debugging easier, makes logging more readable, and is automatically called by System.out.println() and string concatenation.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Why must you override hashCode() when you override equals()?</div>
+    <div class="a">The contract between equals() and hashCode() states: if two objects are equal (equals() returns true), they must have the same hash code. Hash-based collections like HashMap and HashSet use hashCode() first to find the bucket, then equals() to find the exact entry. If you override equals() without hashCode(), equal objects may have different hash codes, causing these collections to malfunction — they won't find objects that you know are equal.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 9: Class & Object · 9 of 26 complete
+</div>
+
+</body>
+</html>

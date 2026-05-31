@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 8 — Methods in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 60%, #f87171 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #b91c1c; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #7f1d1d; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #b91c1c; padding-bottom: 12px; }
+  .section-num { background: #b91c1c; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #7f1d1d; }
+
+  h3 { font-size: 1.05rem; color: #b91c1c; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #fff5f5; border-left: 4px solid #b91c1c; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #7f1d1d; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fff5f5; }
+  tr:hover { background: #fee2e2; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #7f1d1d; margin-top: 0; }
+
+  .method-anatomy { border: 2px solid #b91c1c; border-radius: 12px; padding: 20px; margin: 16px 0; background: #fff5f5; }
+  .method-parts { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-family: 'Courier New', monospace; font-size: 0.9rem; margin-bottom: 14px; }
+  .mp { padding: 4px 10px; border-radius: 6px; text-align: center; }
+  .mp-access  { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+  .mp-return  { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .mp-name    { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .mp-params  { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+  .mp-body    { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+  .mp-label   { font-size: 0.75rem; display: block; margin-top: 3px; font-weight: 600; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #b91c1c; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 8 OF 26</div>
+  <h1>⚙️ Methods in Java</h1>
+  <p>Declaration · Parameters · Return · Overloading · Recursion · Varargs · Static</p>
+  <div class="meta">
+    <span>Phase 2 — Basics</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is a Method?</a></li>
+    <li><a href="#anatomy">Method Anatomy — every part explained</a></li>
+    <li><a href="#types">Types of Methods</a></li>
+    <li><a href="#return">return Statement</a></li>
+    <li><a href="#params">Parameters vs Arguments</a></li>
+    <li><a href="#overloading">Method Overloading</a></li>
+    <li><a href="#recursion">Recursion</a></li>
+    <li><a href="#varargs">Varargs (Variable Arguments)</a></li>
+    <li><a href="#static">Static vs Instance Methods</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT IS A METHOD -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is a Method?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> A method is a <strong>named block of code</strong> that performs a specific task. It is defined once and can be called (executed) multiple times from anywhere in the program.
+  </div>
+
+  <h3>Why use methods?</h3>
+  <ul>
+    <li><strong>Reusability</strong> — write once, use many times</li>
+    <li><strong>Modularity</strong> — break large problems into small pieces</li>
+    <li><strong>Readability</strong> — code is easier to understand</li>
+    <li><strong>Maintainability</strong> — fix in one place, fixed everywhere</li>
+    <li><strong>Abstraction</strong> — hide implementation details</li>
+  </ul>
+</div>
+
+
+<!-- SECTION 2: ANATOMY -->
+<div class="section" id="anatomy">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Method Anatomy — Every Part Explained</div>
+  </div>
+
+  <div class="method-anatomy">
+    <div class="method-parts">
+      <div class="mp mp-access">public<span class="mp-label">Access Modifier</span></div>
+      <div style="padding:4px">·</div>
+      <div class="mp mp-return">int<span class="mp-label">Return Type</span></div>
+      <div style="padding:4px">·</div>
+      <div class="mp mp-name">addNumbers<span class="mp-label">Method Name</span></div>
+      <div class="mp mp-params">(int a, int b)<span class="mp-label">Parameters</span></div>
+      <div style="padding:4px">·</div>
+      <div class="mp mp-body">{ return a + b; }<span class="mp-label">Method Body</span></div>
+    </div>
+  </div>
+
+<pre><span class="cm">// Full example with all parts</span>
+<span class="kw">public int</span> addNumbers(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    <span class="kw">int</span> sum = a + b;   <span class="cm">// method body</span>
+    <span class="kw">return</span> sum;        <span class="cm">// return statement</span>
+}
+
+<span class="cm">// Calling the method</span>
+<span class="kw">int</span> result = addNumbers(<span class="num">5</span>, <span class="num">3</span>);  <span class="cm">// result = 8</span></pre>
+
+  <table>
+    <tr><th>Part</th><th>Required?</th><th>Description</th></tr>
+    <tr><td>Access modifier</td><td>No (default if omitted)</td><td><code>public</code>, <code>private</code>, <code>protected</code>, or default</td></tr>
+    <tr><td>Return type</td><td>Yes</td><td>Type of value returned. Use <code>void</code> if nothing returned</td></tr>
+    <tr><td>Method name</td><td>Yes</td><td>camelCase by convention. Should be a verb: <code>getAge()</code>, <code>printName()</code></td></tr>
+    <tr><td>Parameters</td><td>No</td><td>Input values. Empty parentheses <code>()</code> if no parameters</td></tr>
+    <tr><td>Method body</td><td>Yes</td><td>Code inside <code>{}</code> that runs when method is called</td></tr>
+    <tr><td>return statement</td><td>Only if non-void</td><td>Returns value back to caller. Exits method immediately</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 3: TYPES OF METHODS -->
+<div class="section" id="types">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Types of Methods</div>
+  </div>
+
+<pre><span class="cm">// 1. void method — no return value</span>
+<span class="kw">public void</span> printHello() {
+    System.out.println(<span class="st">"Hello!"</span>);
+}
+
+<span class="cm">// 2. Method with return value</span>
+<span class="kw">public int</span> square(<span class="kw">int</span> n) {
+    <span class="kw">return</span> n * n;
+}
+
+<span class="cm">// 3. Method with parameters</span>
+<span class="kw">public</span> <span class="cl">String</span> greet(<span class="cl">String</span> name) {
+    <span class="kw">return</span> <span class="st">"Hello, "</span> + name + <span class="st">"!"</span>;
+}
+
+<span class="cm">// 4. Static method — belongs to class, not object</span>
+<span class="kw">public static int</span> multiply(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    <span class="kw">return</span> a * b;
+}
+
+<span class="cm">// 5. No parameter, no return</span>
+<span class="kw">public void</span> showMenu() {
+    System.out.println(<span class="st">"1. Add"</span>);
+    System.out.println(<span class="st">"2. Exit"</span>);
+}</pre>
+</div>
+
+
+<!-- SECTION 4: RETURN -->
+<div class="section" id="return">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">return Statement</div>
+  </div>
+
+  <p>The <code>return</code> statement does two things: <strong>returns a value</strong> to the caller and <strong>immediately exits</strong> the method.</p>
+
+<pre><span class="cm">// return exits method immediately</span>
+<span class="kw">public int</span> findFirst(<span class="kw">int</span>[] arr, <span class="kw">int</span> target) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; arr.length; i++) {
+        <span class="kw">if</span> (arr[i] == target) {
+            <span class="kw">return</span> i;   <span class="cm">// exits immediately when found</span>
+        }
+    }
+    <span class="kw">return</span> -<span class="num">1</span>;   <span class="cm">// not found</span>
+}
+
+<span class="cm">// void method can use return to exit early</span>
+<span class="kw">public void</span> printPositive(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="num">0</span>) {
+        System.out.println(<span class="st">"Not positive!"</span>);
+        <span class="kw">return</span>;   <span class="cm">// exits early, no value returned</span>
+    }
+    System.out.println(n);
+}
+
+<span class="cm">// Multiple return points — valid but use carefully</span>
+<span class="kw">public</span> <span class="cl">String</span> grade(<span class="kw">int</span> score) {
+    <span class="kw">if</span> (score &gt;= <span class="num">90</span>) <span class="kw">return</span> <span class="st">"A"</span>;
+    <span class="kw">if</span> (score &gt;= <span class="num">70</span>) <span class="kw">return</span> <span class="st">"B"</span>;
+    <span class="kw">if</span> (score &gt;= <span class="num">50</span>) <span class="kw">return</span> <span class="st">"C"</span>;
+    <span class="kw">return</span> <span class="st">"F"</span>;
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Every non-void method MUST have a return statement</strong> that covers all code paths. If the compiler sees a path where no value is returned → compile error: "missing return statement".
+  </div>
+</div>
+
+
+<!-- SECTION 5: PARAMETERS VS ARGUMENTS -->
+<div class="section" id="params">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Parameters vs Arguments</div>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Parameter</h4>
+      <p>Variable defined in the <strong>method declaration</strong></p>
+      <p>Acts as a placeholder</p>
+      <code>public void greet(String name)</code>
+      <p style="margin-top:8px"><code>name</code> is the <strong>parameter</strong></p>
+    </div>
+    <div class="col-box">
+      <h4>Argument</h4>
+      <p>Actual value passed when <strong>calling</strong> the method</p>
+      <p>The real data</p>
+      <code>greet("Alice")</code>
+      <p style="margin-top:8px"><code>"Alice"</code> is the <strong>argument</strong></p>
+    </div>
+  </div>
+
+<pre><span class="cm">// name = PARAMETER (in declaration)</span>
+<span class="kw">public void</span> greet(<span class="cl">String</span> name) {
+    System.out.println(<span class="st">"Hello, "</span> + name);
+}
+
+<span class="cm">// "Alice" = ARGUMENT (in call)</span>
+greet(<span class="st">"Alice"</span>);   <span class="cm">// Hello, Alice</span>
+greet(<span class="st">"Bob"</span>);     <span class="cm">// Hello, Bob</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 Memory trick:</strong><br>
+    <strong>P</strong>arameter = <strong>P</strong>laceholder (in definition)<br>
+    <strong>A</strong>rgument = <strong>A</strong>ctual value (in call)
+  </div>
+</div>
+
+
+<!-- SECTION 6: METHOD OVERLOADING -->
+<div class="section" id="overloading">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Method Overloading</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> Having <strong>multiple methods with the same name</strong> in the same class, but with different parameters (different number, type, or order of parameters). Resolved at <strong>compile time</strong> (static polymorphism).
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">Calculator</span> {
+
+    <span class="cm">// Different number of parameters</span>
+    <span class="kw">public int</span> add(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+        <span class="kw">return</span> a + b;
+    }
+
+    <span class="kw">public int</span> add(<span class="kw">int</span> a, <span class="kw">int</span> b, <span class="kw">int</span> c) {
+        <span class="kw">return</span> a + b + c;
+    }
+
+    <span class="cm">// Different parameter types</span>
+    <span class="kw">public double</span> add(<span class="kw">double</span> a, <span class="kw">double</span> b) {
+        <span class="kw">return</span> a + b;
+    }
+
+    <span class="cm">// Different order of types</span>
+    <span class="kw">public void</span> display(<span class="cl">String</span> s, <span class="kw">int</span> n) { }
+    <span class="kw">public void</span> display(<span class="kw">int</span> n, <span class="cl">String</span> s) { }
+}
+
+<span class="cl">Calculator</span> c = <span class="kw">new</span> <span class="cl">Calculator</span>();
+c.add(<span class="num">2</span>, <span class="num">3</span>);       <span class="cm">// calls first  → 5</span>
+c.add(<span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>);    <span class="cm">// calls second → 9</span>
+c.add(<span class="num">2.0</span>, <span class="num">3.0</span>);  <span class="cm">// calls third  → 5.0</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Return type alone CANNOT overload a method!</strong><br>
+    <code>public int add(int a, int b)</code> and <code>public double add(int a, int b)</code> → ❌ Compile error!<br>
+    The compiler cannot distinguish methods by return type alone.
+  </div>
+
+  <table>
+    <tr><th>Valid Overloading</th><th>Not Valid</th></tr>
+    <tr><td>Different number of parameters</td><td>Only return type is different</td></tr>
+    <tr><td>Different parameter types</td><td>Only parameter names are different</td></tr>
+    <tr><td>Different order of parameter types</td><td>Only access modifier is different</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 7: RECURSION -->
+<div class="section" id="recursion">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Recursion</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> A method that <strong>calls itself</strong>. Every recursive method must have a <strong>base case</strong> (stopping condition) to prevent infinite recursion.
+  </div>
+
+  <p>Every recursive solution has 2 parts:</p>
+  <ul>
+    <li><strong>Base case</strong> — condition to stop recursion (prevents infinite loop)</li>
+    <li><strong>Recursive case</strong> — method calls itself with a smaller problem</li>
+  </ul>
+
+<pre><span class="cm">// Factorial — n! = n × (n-1) × (n-2) × ... × 1</span>
+<span class="kw">public int</span> factorial(<span class="kw">int</span> n) {
+    <span class="cm">// Base case — stop here</span>
+    <span class="kw">if</span> (n == <span class="num">0</span> || n == <span class="num">1</span>) <span class="kw">return</span> <span class="num">1</span>;
+
+    <span class="cm">// Recursive case — calls itself</span>
+    <span class="kw">return</span> n * factorial(n - <span class="num">1</span>);
+}
+
+<span class="cm">// factorial(4) trace:
+// factorial(4) = 4 × factorial(3)
+//                    = 3 × factorial(2)
+//                         = 2 × factorial(1)
+//                              = 1 (base case)
+// = 4 × 3 × 2 × 1 = 24</span>
+
+<span class="cm">// Fibonacci — 0,1,1,2,3,5,8,13...</span>
+<span class="kw">public int</span> fibonacci(<span class="kw">int</span> n) {
+    <span class="kw">if</span> (n &lt;= <span class="num">1</span>) <span class="kw">return</span> n;  <span class="cm">// base case</span>
+    <span class="kw">return</span> fibonacci(n - <span class="num">1</span>) + fibonacci(n - <span class="num">2</span>);
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ No base case = StackOverflowError!</strong><br>
+    Without a base case, the method calls itself forever until the call stack is full → <code>StackOverflowError</code>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Recursion Pros</h4>
+      <ul>
+        <li>Elegant, clean code</li>
+        <li>Natural for tree/graph problems</li>
+        <li>Easier to understand logic</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Recursion Cons</h4>
+      <ul>
+        <li>Uses more stack memory</li>
+        <li>Can be slower than loops</li>
+        <li>Risk of StackOverflowError</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 8: VARARGS -->
+<div class="section" id="varargs">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Varargs (Variable Arguments)</div>
+  </div>
+
+  <p>Varargs allows a method to accept <strong>any number of arguments</strong> of the same type. Internally treated as an array.</p>
+
+<pre><span class="cm">// Syntax: type... paramName</span>
+<span class="kw">public int</span> sum(<span class="kw">int</span>... numbers) {
+    <span class="kw">int</span> total = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> n : numbers) {
+        total += n;
+    }
+    <span class="kw">return</span> total;
+}
+
+<span class="cm">// Call with any number of arguments</span>
+sum(<span class="num">1</span>, <span class="num">2</span>);              <span class="cm">// 3</span>
+sum(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>);           <span class="cm">// 6</span>
+sum(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>);    <span class="cm">// 15</span>
+sum();                    <span class="cm">// 0 (zero arguments)</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Varargs rules:</strong><br>
+    ❌ Only ONE varargs parameter per method<br>
+    ❌ Varargs must be the LAST parameter<br>
+    ✅ <code>void log(String prefix, int... values)</code> — valid<br>
+    ❌ <code>void log(int... a, int... b)</code> — invalid
+  </div>
+</div>
+
+
+<!-- SECTION 9: STATIC VS INSTANCE -->
+<div class="section" id="static">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Static vs Instance Methods</div>
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">MathUtils</span> {
+
+    <span class="cm">// Static method — belongs to CLASS</span>
+    <span class="kw">public static int</span> square(<span class="kw">int</span> n) {
+        <span class="kw">return</span> n * n;
+    }
+
+    <span class="cm">// Instance method — belongs to OBJECT</span>
+    <span class="kw">private int</span> value;
+
+    <span class="kw">public void</span> setValue(<span class="kw">int</span> v) {
+        <span class="kw">this</span>.value = v;
+    }
+
+    <span class="kw">public int</span> getValue() {
+        <span class="kw">return</span> value;
+    }
+}
+
+<span class="cm">// Static method — call via CLASS NAME (no object needed)</span>
+<span class="kw">int</span> s = <span class="cl">MathUtils</span>.square(<span class="num">5</span>);    <span class="cm">// 25</span>
+
+<span class="cm">// Instance method — need to create OBJECT first</span>
+<span class="cl">MathUtils</span> m = <span class="kw">new</span> <span class="cl">MathUtils</span>();
+m.setValue(<span class="num">10</span>);
+System.out.println(m.getValue());  <span class="cm">// 10</span></pre>
+
+  <table>
+    <tr><th>Feature</th><th>Static Method</th><th>Instance Method</th></tr>
+    <tr><td>Belongs to</td><td>Class</td><td>Object</td></tr>
+    <tr><td>Called via</td><td>ClassName.method()</td><td>objectRef.method()</td></tr>
+    <tr><td>Needs object?</td><td>No</td><td>Yes</td></tr>
+    <tr><td>Access instance vars?</td><td>No ❌</td><td>Yes ✅</td></tr>
+    <tr><td>Access static vars?</td><td>Yes ✅</td><td>Yes ✅</td></tr>
+    <tr><td>Use <code>this</code>?</td><td>No ❌</td><td>Yes ✅</td></tr>
+    <tr><td>Examples</td><td>Math.sqrt(), Arrays.sort()</td><td>list.add(), str.length()</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ Static method CANNOT access instance variables or call instance methods directly!</strong><br>
+    <code>public static void show() { System.out.println(value); }</code> ❌<br>
+    Static context has no <code>this</code> — no object to reference instance members.
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is method overloading? How is it different from overriding?</div>
+    <div class="a">Method overloading is having multiple methods with the same name but different parameters in the SAME class. It is resolved at compile time (static polymorphism). Method overriding is redefining a parent class method in a child class with the same name and parameters. It is resolved at runtime (dynamic polymorphism). Overloading = same class, different params. Overriding = parent-child, same params.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. Can you overload a method by changing only the return type?</div>
+    <div class="a">No. Return type alone is NOT enough to overload a method. The compiler identifies methods by their name and parameter list (method signature) — not by return type. Having two methods with the same name and parameters but different return types causes a compile error.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the difference between parameter and argument?</div>
+    <div class="a">A parameter is the variable defined in the method declaration — it acts as a placeholder. An argument is the actual value passed when calling the method. Example: in <code>void greet(String name)</code>, <code>name</code> is the parameter. In <code>greet("Alice")</code>, <code>"Alice"</code> is the argument.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is recursion? What happens if there is no base case?</div>
+    <div class="a">Recursion is when a method calls itself to solve a smaller version of the same problem. Every recursive method needs a base case — a stopping condition that returns without making another recursive call. Without a base case, the method calls itself infinitely until the call stack runs out of space, causing a StackOverflowError.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. Can a static method access instance variables? Why?</div>
+    <div class="a">No. Static methods belong to the class, not to any specific object. Instance variables belong to objects. When a static method runs, there may be no object (instance) created at all — so there is no <code>this</code> reference and no instance variable to access. Static methods can only access other static members directly.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What are varargs? Write an example.</div>
+    <div class="a">Varargs (variable arguments) allows a method to accept any number of arguments of the same type using the <code>...</code> syntax. Example: <code>public int sum(int... numbers)</code> can be called as <code>sum(1,2)</code>, <code>sum(1,2,3,4)</code>, or even <code>sum()</code>. Internally, varargs is an array. Rules: only one varargs per method, and it must be the last parameter.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the output? And why?</q>
+    <pre style="margin:6px 0;font-size:0.85rem;background:#f3f4f6;padding:8px;border-radius:4px;color:#1a202c">public static int factorial(int n) {
+    if (n == 1) return 1;
+    return n * factorial(n - 1);
+}
+System.out.println(factorial(4));</pre>
+    <div class="a"><strong>24</strong> — factorial(4) = 4 × factorial(3) = 4 × 3 × factorial(2) = 4 × 3 × 2 × factorial(1) = 4 × 3 × 2 × 1 = 24. The base case <code>n == 1</code> stops the recursion.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 8: Methods · 8 of 26 complete
+</div>
+
+</body>
+</html>

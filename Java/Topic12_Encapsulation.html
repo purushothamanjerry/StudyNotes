@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 12 — Encapsulation in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #78350f 0%, #b45309 60%, #fbbf24 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #b45309; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #78350f; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #b45309; padding-bottom: 12px; }
+  .section-num { background: #b45309; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #78350f; }
+  h3 { font-size: 1.05rem; color: #b45309; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #fffbeb; border-left: 4px solid #b45309; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #78350f; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fffbeb; }
+  tr:hover { background: #fef3c7; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #78350f; margin-top: 0; }
+  .bad-good { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .bad  { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 16px; }
+  .good { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px; }
+  .bad h4  { color: #dc2626; margin-top: 0; }
+  .good h4 { color: #16a34a; margin-top: 0; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #b45309; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 12 OF 26</div>
+  <h1>🔒 Encapsulation</h1>
+  <p>Data Hiding · Getters · Setters · Benefits · POJO · Bean · Real Examples</p>
+  <div class="meta">
+    <span>Phase 3 — OOP</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is Encapsulation?</a></li>
+    <li><a href="#how">How to Achieve Encapsulation</a></li>
+    <li><a href="#getters">Getters — Reading Data</a></li>
+    <li><a href="#setters">Setters — Writing Data with Validation</a></li>
+    <li><a href="#without">Without Encapsulation — The Problem</a></li>
+    <li><a href="#with">With Encapsulation — The Solution</a></li>
+    <li><a href="#benefits">Benefits of Encapsulation</a></li>
+    <li><a href="#readonly">Read-only and Write-only Fields</a></li>
+    <li><a href="#pojo">POJO and JavaBean</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is Encapsulation?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> Encapsulation is the OOP principle of <strong>bundling data (fields) and the methods that operate on that data into a single unit (class)</strong>, while <strong>hiding the internal state</strong> from direct outside access. It is achieved by making fields <code>private</code> and providing controlled access through <code>public</code> getter and setter methods.
+  </div>
+
+  <h3>Real World Analogy</h3>
+  <div class="two-col">
+    <div class="col-box">
+      <h4>💊 Medicine Capsule</h4>
+      <p>The medicine (data) is hidden inside the capsule. You take the capsule (use the public interface) — you don't directly touch the medicine inside (private data). The capsule controls how the medicine is delivered.</p>
+    </div>
+    <div class="col-box">
+      <h4>🏧 ATM Machine</h4>
+      <p>You interact with the ATM through a public interface (buttons, card slot). The internal mechanisms (cash counting, security) are completely hidden. You can't directly access the cash storage.</p>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Encapsulation = Data Hiding + Controlled Access</strong><br>
+    It is the FIRST and most fundamental OOP principle. The other pillars (Inheritance, Polymorphism, Abstraction) build upon it.
+  </div>
+</div>
+
+
+<!-- SECTION 2: HOW -->
+<div class="section" id="how">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">How to Achieve Encapsulation</div>
+  </div>
+
+  <p>Two simple steps:</p>
+  <ol>
+    <li>Declare all instance variables as <strong><code>private</code></strong></li>
+    <li>Provide <strong><code>public</code> getter and setter methods</strong> to read and write those variables</li>
+  </ol>
+
+<pre><span class="cm">// Step 1: private fields — hidden from outside</span>
+<span class="kw">public class</span> <span class="cl">Person</span> {
+    <span class="kw">private</span> <span class="cl">String</span> name;    <span class="cm">// ← private</span>
+    <span class="kw">private int</span>    age;     <span class="cm">// ← private</span>
+    <span class="kw">private</span> <span class="cl">String</span> email;   <span class="cm">// ← private</span>
+
+    <span class="cm">// Step 2: public getter — read access</span>
+    <span class="kw">public</span> <span class="cl">String</span> getName()  { <span class="kw">return</span> name;  }
+    <span class="kw">public int</span>    getAge()   { <span class="kw">return</span> age;   }
+    <span class="kw">public</span> <span class="cl">String</span> getEmail() { <span class="kw">return</span> email; }
+
+    <span class="cm">// Step 2: public setter — write access with validation</span>
+    <span class="kw">public void</span> setName(<span class="cl">String</span> name) {
+        <span class="kw">if</span> (name != <span class="kw">null</span> && !name.isEmpty())
+            <span class="kw">this</span>.name = name;
+    }
+    <span class="kw">public void</span> setAge(<span class="kw">int</span> age) {
+        <span class="kw">if</span> (age &gt; <span class="num">0</span> && age &lt; <span class="num">150</span>)
+            <span class="kw">this</span>.age = age;
+    }
+    <span class="kw">public void</span> setEmail(<span class="cl">String</span> email) {
+        <span class="kw">if</span> (email != <span class="kw">null</span> && email.contains(<span class="st">"@"</span>))
+            <span class="kw">this</span>.email = email;
+    }
+}</pre>
+</div>
+
+
+<!-- SECTION 3: GETTERS -->
+<div class="section" id="getters">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Getters — Reading Data</div>
+  </div>
+
+  <p>A getter is a <code>public</code> method that returns the value of a private field. Naming convention: <code>get</code> + FieldName (for boolean: <code>is</code> + FieldName).</p>
+
+<pre><span class="kw">private</span> <span class="cl">String</span>  name;
+<span class="kw">private int</span>     age;
+<span class="kw">private boolean</span> active;
+<span class="kw">private double</span>  salary;
+
+<span class="cm">// Standard getters</span>
+<span class="kw">public</span> <span class="cl">String</span>  getName()   { <span class="kw">return</span> name;   }
+<span class="kw">public int</span>     getAge()    { <span class="kw">return</span> age;    }
+<span class="kw">public double</span>  getSalary() { <span class="kw">return</span> salary; }
+
+<span class="cm">// Boolean getter uses "is" prefix (not "get")</span>
+<span class="kw">public boolean</span> isActive()  { <span class="kw">return</span> active; }
+
+<span class="cm">// Getter can also do processing before returning</span>
+<span class="kw">public</span> <span class="cl">String</span> getFullInfo() {
+    <span class="kw">return</span> name + <span class="st">" (Age: "</span> + age + <span class="st">")"</span>;
+}</pre>
+
+  <div class="tip-box">
+    <strong>💡 Naming Convention:</strong><br>
+    <code>String name</code> → getter: <code>getName()</code><br>
+    <code>int age</code> → getter: <code>getAge()</code><br>
+    <code>boolean active</code> → getter: <code>isActive()</code> (NOT getActive())<br>
+    This convention is used by frameworks like Spring, Hibernate, and Jackson for auto-discovery.
+  </div>
+</div>
+
+
+<!-- SECTION 4: SETTERS -->
+<div class="section" id="setters">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Setters — Writing Data with Validation</div>
+  </div>
+
+  <p>A setter is a <code>public void</code> method that sets the value of a private field. The KEY advantage over direct field access is <strong>validation</strong>.</p>
+
+<pre><span class="kw">private int</span>    age;
+<span class="kw">private double</span> salary;
+<span class="kw">private</span> <span class="cl">String</span> email;
+
+<span class="cm">// Setter with validation — prevents invalid data!</span>
+<span class="kw">public void</span> setAge(<span class="kw">int</span> age) {
+    <span class="kw">if</span> (age &gt;= <span class="num">0</span> && age &lt;= <span class="num">150</span>) {
+        <span class="kw">this</span>.age = age;
+    } <span class="kw">else</span> {
+        System.out.println(<span class="st">"Invalid age!"</span>);
+        <span class="cm">// or throw new IllegalArgumentException("Invalid age");</span>
+    }
+}
+
+<span class="kw">public void</span> setSalary(<span class="kw">double</span> salary) {
+    <span class="kw">if</span> (salary &gt;= <span class="num">0</span>) {
+        <span class="kw">this</span>.salary = salary;
+    }
+}
+
+<span class="kw">public void</span> setEmail(<span class="cl">String</span> email) {
+    <span class="kw">if</span> (email != <span class="kw">null</span> && email.contains(<span class="st">"@"</span>) && email.contains(<span class="st">"."</span>)) {
+        <span class="kw">this</span>.email = email.toLowerCase();  <span class="cm">// can also transform</span>
+    }
+}
+
+<span class="cm">// Usage</span>
+<span class="cl">Person</span> p = <span class="kw">new</span> <span class="cl">Person</span>();
+p.setAge(<span class="num">25</span>);      <span class="cm">// ✅ valid</span>
+p.setAge(-<span class="num">5</span>);     <span class="cm">// ❌ rejected by validation</span>
+p.setAge(<span class="num">999</span>);    <span class="cm">// ❌ rejected by validation</span></pre>
+</div>
+
+
+<!-- SECTION 5: WITHOUT ENCAPSULATION -->
+<div class="section" id="without">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Without Encapsulation — The Problem</div>
+  </div>
+
+<pre><span class="cm">// BAD — no encapsulation</span>
+<span class="kw">public class</span> <span class="cl">BankAccount</span> {
+    <span class="kw">public double</span> balance;   <span class="cm">// public field — DANGEROUS!</span>
+    <span class="kw">public</span> <span class="cl">String</span> pin;        <span class="cm">// public field — DANGEROUS!</span>
+}
+
+<span class="cm">// Anyone can do this — no control!</span>
+<span class="cl">BankAccount</span> acc = <span class="kw">new</span> <span class="cl">BankAccount</span>();
+acc.balance = -<span class="num">99999</span>;  <span class="cm">// ❌ negative balance — invalid!</span>
+acc.balance = <span class="num">1000000</span>; <span class="cm">// ❌ set any amount directly!</span>
+acc.pin = <span class="st">"0000"</span>;      <span class="cm">// ❌ exposed sensitive data!</span></span></pre>
+
+  <div class="warning-box">
+    <strong>Problems without encapsulation:</strong>
+    <ul>
+      <li>Invalid data can be set (negative age, negative balance)</li>
+      <li>Sensitive data is exposed (pin, password, salary)</li>
+      <li>No way to add validation later without breaking existing code</li>
+      <li>Internal implementation cannot change without affecting all users</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- SECTION 6: WITH ENCAPSULATION -->
+<div class="section" id="with">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">With Encapsulation — The Solution</div>
+  </div>
+
+<pre><span class="cm">// GOOD — fully encapsulated</span>
+<span class="kw">public class</span> <span class="cl">BankAccount</span> {
+    <span class="kw">private double</span> balance;    <span class="cm">// hidden</span>
+    <span class="kw">private</span> <span class="cl">String</span> pin;         <span class="cm">// hidden</span>
+    <span class="kw">private</span> <span class="cl">String</span> accountNo;   <span class="cm">// hidden</span>
+
+    <span class="kw">public</span> <span class="cl">BankAccount</span>(<span class="cl">String</span> accountNo, <span class="cl">String</span> pin) {
+        <span class="kw">this</span>.accountNo = accountNo;
+        <span class="kw">this</span>.pin       = pin;
+        <span class="kw">this</span>.balance   = <span class="num">0.0</span>;
+    }
+
+    <span class="cm">// Controlled read access</span>
+    <span class="kw">public double</span> getBalance() { <span class="kw">return</span> balance; }
+
+    <span class="cm">// Controlled write — with validation</span>
+    <span class="kw">public void</span> deposit(<span class="kw">double</span> amount) {
+        <span class="kw">if</span> (amount &gt; <span class="num">0</span>) balance += amount;
+        <span class="kw">else</span> System.out.println(<span class="st">"Invalid deposit amount"</span>);
+    }
+
+    <span class="kw">public void</span> withdraw(<span class="kw">double</span> amount, <span class="cl">String</span> pin) {
+        <span class="kw">if</span> (!<span class="kw">this</span>.pin.equals(pin)) {
+            System.out.println(<span class="st">"Wrong PIN!"</span>);
+            <span class="kw">return</span>;
+        }
+        <span class="kw">if</span> (amount &gt; <span class="num">0</span> && amount &lt;= balance) {
+            balance -= amount;
+        } <span class="kw">else</span> {
+            System.out.println(<span class="st">"Insufficient funds or invalid amount"</span>);
+        }
+    }
+    <span class="cm">// No setter for balance — it can only change via deposit/withdraw</span>
+    <span class="cm">// No getter for pin — completely hidden!</span>
+}
+
+<span class="cm">// Usage — controlled and safe</span>
+<span class="cl">BankAccount</span> acc = <span class="kw">new</span> <span class="cl">BankAccount</span>(<span class="st">"ACC001"</span>, <span class="st">"1234"</span>);
+acc.deposit(<span class="num">1000</span>);               <span class="cm">// ✅ controlled</span>
+acc.withdraw(<span class="num">500</span>, <span class="st">"1234"</span>);      <span class="cm">// ✅ PIN verified</span>
+acc.withdraw(<span class="num">500</span>, <span class="st">"0000"</span>);      <span class="cm">// ❌ Wrong PIN</span>
+<span class="cm">// acc.balance = 999999;         ❌ compile error — private!</span></pre>
+</div>
+
+
+<!-- SECTION 7: BENEFITS -->
+<div class="section" id="benefits">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Benefits of Encapsulation</div>
+  </div>
+
+  <table>
+    <tr><th>Benefit</th><th>Explanation</th></tr>
+    <tr>
+      <td><strong>Data Hiding</strong></td>
+      <td>Internal state is hidden from outside. Users only see what they need to see.</td>
+    </tr>
+    <tr>
+      <td><strong>Validation</strong></td>
+      <td>Setters can validate data before setting. Prevents invalid state (negative age, empty name).</td>
+    </tr>
+    <tr>
+      <td><strong>Flexibility</strong></td>
+      <td>Internal implementation can change without affecting the outside. Change field type from int to long — no external code breaks.</td>
+    </tr>
+    <tr>
+      <td><strong>Security</strong></td>
+      <td>Sensitive data (password, PIN, salary) can be protected — no getter, no setter, or PIN-verified access.</td>
+    </tr>
+    <tr>
+      <td><strong>Maintainability</strong></td>
+      <td>Easier to debug — data can only change through controlled methods. You know exactly where data is being modified.</td>
+    </tr>
+    <tr>
+      <td><strong>Read-only / Write-only</strong></td>
+      <td>Only getter = read-only field. Only setter = write-only field. Full control over access.</td>
+    </tr>
+    <tr>
+      <td><strong>Loose coupling</strong></td>
+      <td>Classes interact through well-defined interfaces, not internal details. Easier to change one class without affecting others.</td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- SECTION 8: READONLY WRITEONLY -->
+<div class="section" id="readonly">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Read-only and Write-only Fields</div>
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">Employee</span> {
+    <span class="kw">private</span> <span class="cl">String</span> id;          <span class="cm">// read-only — only getter</span>
+    <span class="kw">private</span> <span class="cl">String</span> name;        <span class="cm">// read-write — both getter and setter</span>
+    <span class="kw">private</span> <span class="cl">String</span> password;    <span class="cm">// write-only — only setter, no getter</span>
+    <span class="kw">private double</span> salary;      <span class="cm">// read-only via getter, write via method</span>
+
+    <span class="kw">public</span> <span class="cl">Employee</span>(<span class="cl">String</span> id, <span class="cl">String</span> name) {
+        <span class="kw">this</span>.id   = id;
+        <span class="kw">this</span>.name = name;
+    }
+
+    <span class="cm">// Read-only — getter only, no setter</span>
+    <span class="kw">public</span> <span class="cl">String</span> getId() { <span class="kw">return</span> id; }
+
+    <span class="cm">// Read-write</span>
+    <span class="kw">public</span> <span class="cl">String</span> getName() { <span class="kw">return</span> name; }
+    <span class="kw">public void</span> setName(<span class="cl">String</span> name) { <span class="kw">this</span>.name = name; }
+
+    <span class="cm">// Write-only — setter only, no getter (security!)</span>
+    <span class="kw">public void</span> setPassword(<span class="cl">String</span> password) {
+        <span class="kw">this</span>.password = hashPassword(password); <span class="cm">// store hashed</span>
+    }
+
+    <span class="cm">// Controlled salary change — not a simple setter</span>
+    <span class="kw">public double</span> getSalary() { <span class="kw">return</span> salary; }
+    <span class="kw">public void</span> giveRaise(<span class="kw">double</span> percent) {
+        <span class="kw">if</span> (percent &gt; <span class="num">0</span> && percent &lt;= <span class="num">50</span>)
+            salary += salary * percent / <span class="num">100</span>;
+    }
+
+    <span class="kw">private</span> <span class="cl">String</span> hashPassword(<span class="cl">String</span> p) { <span class="kw">return</span> <span class="st">"HASHED:"</span> + p; }
+}</pre>
+</div>
+
+
+<!-- SECTION 9: POJO AND JAVABEAN -->
+<div class="section" id="pojo">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">POJO and JavaBean</div>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>POJO — Plain Old Java Object</h4>
+      <p>A simple class with no special restrictions — just fields and methods. No framework dependencies. The term emphasizes simplicity.</p>
+      <p>Rules: no extends (except Object), no annotations required, no interface required.</p>
+    </div>
+    <div class="col-box">
+      <h4>JavaBean</h4>
+      <p>A POJO with additional conventions used by frameworks (Spring, Hibernate, JSP).</p>
+      <p>Rules: (1) private fields, (2) public getters/setters, (3) no-arg constructor, (4) implements Serializable.</p>
+    </div>
+  </div>
+
+<pre><span class="cm">// JavaBean — follows all conventions</span>
+<span class="kw">import</span> java.io.Serializable;
+
+<span class="kw">public class</span> <span class="cl">StudentBean</span> <span class="kw">implements</span> <span class="cl">Serializable</span> {
+
+    <span class="kw">private static final long</span> serialVersionUID = <span class="num">1L</span>;
+
+    <span class="kw">private</span> <span class="cl">String</span> name;   <span class="cm">// private fields</span>
+    <span class="kw">private int</span>    age;
+
+    <span class="kw">public</span> <span class="cl">StudentBean</span>() { }  <span class="cm">// no-arg constructor required!</span>
+
+    <span class="cm">// Standard getters and setters</span>
+    <span class="kw">public</span> <span class="cl">String</span> getName()            { <span class="kw">return</span> name; }
+    <span class="kw">public void</span>   setName(<span class="cl">String</span> name) { <span class="kw">this</span>.name = name; }
+    <span class="kw">public int</span>    getAge()             { <span class="kw">return</span> age; }
+    <span class="kw">public void</span>   setAge(<span class="kw">int</span> age)      { <span class="kw">this</span>.age = age; }
+}</pre>
+
+  <div class="info-box">
+    <strong>Why JavaBeans matter:</strong> Spring Framework uses JavaBean conventions to auto-inject dependencies and bind form data. Jackson (JSON library) uses getter/setter names to serialize/deserialize JSON. Hibernate uses them for ORM mapping. Following these conventions makes your code work seamlessly with these frameworks.
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is encapsulation? How do you achieve it in Java?</div>
+    <div class="a">Encapsulation is the OOP principle of hiding an object's internal state and requiring all interaction to occur through well-defined methods. It is achieved by: (1) declaring all instance variables as <code>private</code> and (2) providing <code>public</code> getter and setter methods for controlled access. This protects data integrity and hides implementation details.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the benefit of using getters and setters over public fields?</div>
+    <div class="a">Getters and setters provide: (1) <strong>Validation</strong> — setters can reject invalid values (negative age, null name). (2) <strong>Control</strong> — make fields read-only (getter only) or write-only (setter only). (3) <strong>Flexibility</strong> — change internal implementation without breaking external code. (4) <strong>Security</strong> — sensitive data can be hidden (no getter for password). Direct public fields offer none of these benefits.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is data hiding?</div>
+    <div class="a">Data hiding means making class fields private so they cannot be directly accessed or modified from outside the class. It is the core of encapsulation. Outside code can only interact with the object through its public methods, which can include validation and logic. This prevents the object from being put into an inconsistent or invalid state.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is a POJO? What is a JavaBean?</div>
+    <div class="a">A POJO (Plain Old Java Object) is a simple Java class with no special restrictions — just fields and methods, with no framework dependencies. A JavaBean is a POJO that follows specific conventions: private fields, public getters/setters following naming convention (getX/setX, isX for boolean), a public no-arg constructor, and implements Serializable. Frameworks like Spring and Hibernate rely on JavaBean conventions.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. Can you have a class with only getters (no setters)? What does that mean?</div>
+    <div class="a">Yes. A class with only getters and no setters creates <strong>immutable objects</strong> — once created, their state cannot be changed. Fields are set via the constructor and cannot be modified afterward. This is a common design pattern for thread safety and defensive programming. String in Java is a classic example of an immutable class.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Is encapsulation the same as abstraction?</div>
+    <div class="a">No, they are related but different. <strong>Encapsulation</strong> is about hiding DATA — wrapping fields and methods together and restricting direct access to fields. <strong>Abstraction</strong> is about hiding COMPLEXITY — showing only essential features and hiding implementation details (achieved through abstract classes and interfaces). Encapsulation is implemented at the class level with private fields; abstraction is implemented at the design level with abstract classes/interfaces.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Why should a boolean getter use "is" instead of "get"?</div>
+    <div class="a">Java naming conventions (and the JavaBean specification) state that getters for boolean fields should be prefixed with <code>is</code> instead of <code>get</code>. Example: <code>private boolean active</code> → getter is <code>isActive()</code> not <code>getActive()</code>. Frameworks like Spring, Hibernate, and JSON libraries follow this convention for auto-discovery of boolean properties. Using get for boolean still works technically but violates convention.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 12: Encapsulation · 12 of 26 complete
+</div>
+
+</body>
+</html>

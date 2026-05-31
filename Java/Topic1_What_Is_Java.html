@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 1 — What is Java?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 60%, #fbbf24 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #b45309; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #92400e; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #d97706; padding-bottom: 12px; }
+  .section-num { background: #d97706; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #92400e; }
+
+  h3 { font-size: 1.05rem; color: #b45309; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #fffbeb; border-left: 4px solid #d97706; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .tip-box { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .warning-box { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem;
+    line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #92400e; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fffbeb; }
+  tr:hover { background: #fef3c7; }
+
+  .timeline { position: relative; padding-left: 28px; margin: 16px 0; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 6px; bottom: 6px;
+    width: 2px; background: #d97706; border-radius: 1px; }
+  .timeline-item { position: relative; margin-bottom: 16px; }
+  .timeline-item::before { content: ''; position: absolute; left: -24px; top: 6px; width: 10px;
+    height: 10px; background: #d97706; border-radius: 50%; border: 2px solid white;
+    box-shadow: 0 0 0 2px #d97706; }
+  .timeline-year { font-weight: 700; color: #b45309; font-size: 0.9rem; }
+  .timeline-text { font-size: 0.9rem; color: #374151; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #92400e; margin-top: 0; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .acronym-table td:first-child { font-weight: 700; color: #b45309; width: 80px; }
+  .acronym-table td:nth-child(2) { color: #6b7280; font-style: italic; width: 160px; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #d97706; }
+  .progress-step.active { background: #fbbf24; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 1 OF 26</div>
+  <h1>☕ What is Java?</h1>
+  <p>History · JDK / JRE / JVM · Features · How Java is Special</p>
+  <div class="meta">
+    <span>Phase 1 — Foundation</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<!-- Progress bar -->
+<div class="progress-bar">
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is Java? — One-line definition</a></li>
+    <li><a href="#history">History — Who, When, Where</a></li>
+    <li><a href="#features">Key Features of Java</a></li>
+    <li><a href="#jdk-jre-jvm">JDK vs JRE vs JVM — The Most Asked Question</a></li>
+    <li><a href="#editions">Java Editions</a></li>
+    <li><a href="#versions">Important Java Versions</a></li>
+    <li><a href="#first-program">First Java Program — Explained Line by Line</a></li>
+    <li><a href="#interview">Top Interview Questions &amp; Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- ===== SECTION 1: WHAT IS JAVA ===== -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is Java? — One-Line Definition</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Interview-ready definition:</strong><br>
+    Java is a <strong>high-level, object-oriented, platform-independent programming language</strong> developed by Sun Microsystems in 1995. It follows the principle of <em>"Write Once, Run Anywhere" (WORA)</em> — Java code compiles to bytecode that runs on any machine with a JVM installed.
+  </div>
+
+  <h3>🔑 Key Words to Remember</h3>
+  <ul>
+    <li><strong>High-level</strong> — close to human language, not machine code</li>
+    <li><strong>Object-Oriented</strong> — everything is modeled as objects and classes</li>
+    <li><strong>Platform-Independent</strong> — runs on any OS without recompiling</li>
+    <li><strong>Compiled + Interpreted</strong> — compiled to bytecode, then interpreted by JVM</li>
+    <li><strong>Strongly Typed</strong> — variable types must be declared</li>
+    <li><strong>Garbage Collected</strong> — automatic memory management</li>
+  </ul>
+</div>
+
+
+<!-- ===== SECTION 2: HISTORY ===== -->
+<div class="section" id="history">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">History — Who, When, Where</div>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Who created Java?</h4>
+      <p><strong>James Gosling</strong> — known as the "Father of Java"</p>
+      <p>Team: Mike Sheridan, Patrick Naughton at Sun Microsystems</p>
+    </div>
+    <div class="col-box">
+      <h4>Where &amp; When?</h4>
+      <p><strong>Sun Microsystems</strong>, California, USA</p>
+      <p>Project started: <strong>1991</strong> (called "Oak")</p>
+      <p>Publicly released: <strong>May 23, 1995</strong></p>
+    </div>
+  </div>
+
+  <h3>📅 Timeline</h3>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">1991</div>
+      <div class="timeline-text">James Gosling starts "Green Project" at Sun Microsystems. Language originally named <strong>Oak</strong> (after a tree outside Gosling's window). Goal: language for embedded systems (set-top boxes, TVs).</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1995</div>
+      <div class="timeline-text">Renamed to <strong>Java</strong> (inspired by Java coffee). Officially released as Java 1.0. Famous slogan: <em>"Write Once, Run Anywhere"</em>. Integrated with Netscape browser — Java applets became popular.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2006</div>
+      <div class="timeline-text">Sun Microsystems releases Java as <strong>open-source</strong> software under GNU GPL.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2010</div>
+      <div class="timeline-text"><strong>Oracle Corporation</strong> acquires Sun Microsystems and takes ownership of Java.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2017</div>
+      <div class="timeline-text">Java moves to a <strong>6-month release cycle</strong> (new version every 6 months). LTS (Long-Term Support) versions every 3 years.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2025</div>
+      <div class="timeline-text">Java 24 released. Java remains the <strong>#1 or #2 most used language</strong> globally (TIOBE index).</div>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <strong>💡 Memory Tip:</strong> "James Gosling → Oak (1991) → Java (1995) → Sun Microsystems → Oracle (2010)"
+  </div>
+</div>
+
+
+<!-- ===== SECTION 3: FEATURES ===== -->
+<div class="section" id="features">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Key Features of Java</div>
+  </div>
+
+  <p>Java's official buzzwords — these come up in every interview. Know each one with a one-line explanation.</p>
+
+  <table>
+    <tr><th>Feature</th><th>What it means</th><th>Example / Proof</th></tr>
+    <tr>
+      <td><strong>Simple</strong></td>
+      <td>Removed complex C++ features: no pointers, no operator overloading, no header files</td>
+      <td>No <code>*ptr</code> in Java</td>
+    </tr>
+    <tr>
+      <td><strong>Object-Oriented</strong></td>
+      <td>Everything is an object (except primitives). Based on 4 pillars: encapsulation, inheritance, polymorphism, abstraction</td>
+      <td><code>String s = new String("hi")</code></td>
+    </tr>
+    <tr>
+      <td><strong>Platform-Independent</strong></td>
+      <td>Java code compiles to bytecode (.class) that runs on any OS with a JVM</td>
+      <td>Same .jar file runs on Windows, Linux, Mac</td>
+    </tr>
+    <tr>
+      <td><strong>Robust</strong></td>
+      <td>Strong type checking, exception handling, garbage collection prevents common crashes</td>
+      <td>No memory leaks, no null pointer crashes (mostly)</td>
+    </tr>
+    <tr>
+      <td><strong>Secure</strong></td>
+      <td>No explicit pointers, runs inside JVM sandbox, bytecode verification before execution</td>
+      <td>Applets couldn't access local file system</td>
+    </tr>
+    <tr>
+      <td><strong>Multithreaded</strong></td>
+      <td>Built-in support for multiple threads running simultaneously</td>
+      <td><code>Thread</code>, <code>Runnable</code>, <code>ExecutorService</code></td>
+    </tr>
+    <tr>
+      <td><strong>Architecture-Neutral</strong></td>
+      <td>Bytecode is not dependent on processor architecture (32-bit or 64-bit)</td>
+      <td><code>int</code> is always 4 bytes in Java regardless of OS</td>
+    </tr>
+    <tr>
+      <td><strong>Portable</strong></td>
+      <td>Data types have fixed sizes (unlike C/C++). Bytecode can move between systems.</td>
+      <td><code>int</code> = 4 bytes always</td>
+    </tr>
+    <tr>
+      <td><strong>High Performance</strong></td>
+      <td>JIT (Just-In-Time) compiler converts bytecode to native machine code at runtime</td>
+      <td>Java is faster than Python, close to C++</td>
+    </tr>
+    <tr>
+      <td><strong>Distributed</strong></td>
+      <td>Built-in libraries for networking (TCP/IP, HTTP, RMI)</td>
+      <td><code>java.net</code> package</td>
+    </tr>
+    <tr>
+      <td><strong>Dynamic</strong></td>
+      <td>Classes loaded at runtime. Supports reflection — inspect/modify class structure at runtime</td>
+      <td><code>Class.forName("MyClass")</code></td>
+    </tr>
+  </table>
+
+  <div class="highlight-box">
+    <strong>Most asked in interviews:</strong> Platform Independence, OOP, Robust (garbage collection), Multithreaded, Secure.
+    Know these 5 deeply.
+  </div>
+</div>
+
+
+<!-- ===== SECTION 4: JDK JRE JVM ===== -->
+<div class="section" id="jdk-jre-jvm">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">JDK vs JRE vs JVM — The Most Asked Question</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Golden Rule:</strong> JDK ⊃ JRE ⊃ JVM &nbsp;(JDK contains JRE, JRE contains JVM)
+  </div>
+
+  <h3>JVM — Java Virtual Machine</h3>
+  <p>JVM is an <strong>abstract machine</strong> — software that provides a runtime environment to execute Java bytecode. It is platform-specific (different JVM for Windows, Linux, Mac) — this is what makes Java platform-independent.</p>
+  <ul>
+    <li>Converts <strong>bytecode → machine code</strong> using the JIT compiler</li>
+    <li>Manages <strong>memory</strong> (heap, stack, method area)</li>
+    <li>Performs <strong>garbage collection</strong></li>
+    <li>Handles <strong>exception handling</strong> at runtime</li>
+    <li>Does <strong>bytecode verification</strong> for security</li>
+  </ul>
+  <div class="warning-box">
+    <strong>⚠️ Common Mistake:</strong> JVM is NOT platform-independent. The <em>bytecode</em> is platform-independent. JVM itself is platform-specific — there's a different JVM for each OS.
+  </div>
+
+  <h3>JRE — Java Runtime Environment</h3>
+  <p>JRE = JVM + Libraries needed to run Java programs. If you only want to <strong>run</strong> Java programs (not write them), install JRE.</p>
+  <ul>
+    <li>Includes: JVM + core class libraries (<code>java.lang</code>, <code>java.util</code>, etc.)</li>
+    <li>Does NOT include: compiler (<code>javac</code>), debugger, development tools</li>
+    <li>Used by: end users who just want to run Java applications</li>
+  </ul>
+
+  <h3>JDK — Java Development Kit</h3>
+  <p>JDK = JRE + Development Tools. If you want to <strong>write and compile</strong> Java programs, install JDK.</p>
+  <ul>
+    <li>Includes everything in JRE plus:</li>
+    <li><code>javac</code> — the Java compiler</li>
+    <li><code>java</code> — the Java launcher (runs .class files)</li>
+    <li><code>javadoc</code> — generates documentation</li>
+    <li><code>jar</code> — creates .jar archive files</li>
+    <li><code>jdb</code> — Java debugger</li>
+  </ul>
+
+  <h3>📊 Comparison Table</h3>
+  <table>
+    <tr><th>Feature</th><th>JVM</th><th>JRE</th><th>JDK</th></tr>
+    <tr><td>Full form</td><td>Java Virtual Machine</td><td>Java Runtime Environment</td><td>Java Development Kit</td></tr>
+    <tr><td>Purpose</td><td>Execute bytecode</td><td>Run Java programs</td><td>Develop Java programs</td></tr>
+    <tr><td>Contains</td><td>Bytecode interpreter + JIT</td><td>JVM + class libraries</td><td>JRE + compiler + tools</td></tr>
+    <tr><td>Who needs it</td><td>Inside JRE (not installed standalone)</td><td>End users</td><td>Developers</td></tr>
+    <tr><td>Platform specific?</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Can compile?</td><td>No</td><td>No</td><td>Yes (<code>javac</code>)</td></tr>
+  </table>
+
+  <h3>🔁 How They Work Together</h3>
+<pre><span class="cm">// Step 1: You write Java source code</span>
+HelloWorld.java   <span class="cm">← .java file (human readable)</span>
+
+<span class="cm">// Step 2: JDK's javac compiler compiles it</span>
+javac HelloWorld.java
+HelloWorld.class  <span class="cm">← .class file (bytecode, NOT machine code)</span>
+
+<span class="cm">// Step 3: JVM inside JRE executes the bytecode</span>
+java HelloWorld
+<span class="cm">// JVM reads bytecode → JIT compiles to native machine code → runs</span></pre>
+</div>
+
+
+<!-- ===== SECTION 5: EDITIONS ===== -->
+<div class="section" id="editions">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Java Editions</div>
+  </div>
+
+  <table>
+    <tr><th>Edition</th><th>Full Name</th><th>Used For</th></tr>
+    <tr>
+      <td><strong>Java SE</strong></td>
+      <td>Standard Edition</td>
+      <td>Desktop/general-purpose apps. Core language — what you learn first. Includes: collections, IO, threads, JDBC.</td>
+    </tr>
+    <tr>
+      <td><strong>Java EE / Jakarta EE</strong></td>
+      <td>Enterprise Edition</td>
+      <td>Large-scale enterprise web apps. Adds: Servlets, JSP, EJB, JPA, JMS. Runs on app servers (Tomcat, JBoss).</td>
+    </tr>
+    <tr>
+      <td><strong>Java ME</strong></td>
+      <td>Micro Edition</td>
+      <td>Mobile and embedded devices. Older — mostly replaced by Android SDK now.</td>
+    </tr>
+    <tr>
+      <td><strong>JavaFX</strong></td>
+      <td>Java FX</td>
+      <td>Rich desktop UI applications. Replaced old Swing framework.</td>
+    </tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>Interview context:</strong> When interviewers ask "Java" they almost always mean <strong>Java SE</strong>. If you're going for a backend/web role they may also ask Java EE concepts.
+  </div>
+</div>
+
+
+<!-- ===== SECTION 6: VERSIONS ===== -->
+<div class="section" id="versions">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Important Java Versions (Must Know)</div>
+  </div>
+
+  <table>
+    <tr><th>Version</th><th>Year</th><th>Key Feature Added</th></tr>
+    <tr><td><strong>Java 1.0</strong></td><td>1996</td><td>First release. Applets, AWT.</td></tr>
+    <tr><td><strong>Java 5</strong></td><td>2004</td><td>Generics, Annotations, Autoboxing, Enhanced for-loop, Enums, Varargs</td></tr>
+    <tr><td><strong>Java 7</strong></td><td>2011</td><td>Try-with-resources, Diamond operator <code>&lt;&gt;</code>, switch on Strings</td></tr>
+    <tr><td><strong>Java 8</strong> ⭐ LTS</td><td>2014</td><td><strong>Lambda expressions, Stream API, Optional, Default methods in Interface, Date/Time API</strong> — Most popular version, most asked in interviews</td></tr>
+    <tr><td><strong>Java 9</strong></td><td>2017</td><td>Module system (Project Jigsaw), private interface methods, JShell REPL</td></tr>
+    <tr><td><strong>Java 11</strong> ⭐ LTS</td><td>2018</td><td>var keyword improvements, HTTP Client API, String methods (isBlank, lines)</td></tr>
+    <tr><td><strong>Java 17</strong> ⭐ LTS</td><td>2021</td><td>Sealed classes, Pattern matching for instanceof, Records</td></tr>
+    <tr><td><strong>Java 21</strong> ⭐ LTS</td><td>2023</td><td>Virtual Threads (Project Loom), Pattern matching for switch, Record patterns</td></tr>
+  </table>
+
+  <div class="highlight-box">
+    <strong>For interviews:</strong> Java 8 features are the most commonly asked. Know Lambda, Streams, Optional, and default interface methods deeply. Java 17+ features are bonus points.
+  </div>
+</div>
+
+
+<!-- ===== SECTION 7: FIRST PROGRAM ===== -->
+<div class="section" id="first-program">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">First Java Program — Every Line Explained</div>
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">HelloWorld</span> {
+
+    <span class="kw">public static void</span> main(<span class="cl">String</span>[] args) {
+        System.out.println(<span class="st">"Hello, World!"</span>);
+    }
+
+}</pre>
+
+  <h3>Line-by-Line Breakdown</h3>
+  <table>
+    <tr><th>Code</th><th>What it means</th></tr>
+    <tr>
+      <td><code>public class HelloWorld</code></td>
+      <td><code>public</code> = accessible from anywhere. <code>class</code> = blueprint keyword. <code>HelloWorld</code> = class name. <strong>File name must match class name</strong> → save as HelloWorld.java</td>
+    </tr>
+    <tr>
+      <td><code>public static void main</code></td>
+      <td>This is the <strong>entry point</strong> of every Java program. JVM looks for exactly this signature to start execution.<br>
+      <code>public</code> = JVM can access it. <code>static</code> = JVM calls it without creating an object. <code>void</code> = returns nothing. <code>main</code> = name JVM looks for.</td>
+    </tr>
+    <tr>
+      <td><code>String[] args</code></td>
+      <td>Command-line arguments passed when running: <code>java HelloWorld arg1 arg2</code>. Even if you don't use them, this parameter is required.</td>
+    </tr>
+    <tr>
+      <td><code>System.out.println</code></td>
+      <td><code>System</code> = built-in class. <code>out</code> = static field (a PrintStream object). <code>println</code> = method that prints and adds a new line.</td>
+    </tr>
+  </table>
+
+  <h3>Compilation &amp; Running</h3>
+<pre><span class="cm"># Compile (creates HelloWorld.class bytecode file)</span>
+javac HelloWorld.java
+
+<span class="cm"># Run (JVM executes the bytecode)</span>
+java HelloWorld
+
+<span class="cm"># Output:</span>
+Hello, World!</pre>
+
+  <div class="info-box">
+    <strong>Why is main() static?</strong><br>
+    Because JVM needs to call <code>main()</code> without creating an object of the class first. If it were non-static, JVM would need to instantiate the class — but to do that, it would need to call the constructor — and to know which constructor to call, it needs the class structure — it becomes a chicken-and-egg problem. Making it <code>static</code> lets JVM call it directly on the class.
+  </div>
+</div>
+
+
+<!-- ===== SECTION 8: INTERVIEW Q&A ===== -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Top Interview Questions &amp; Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is Java? Why is it platform-independent?</div>
+    <div class="a">Java is a high-level, object-oriented programming language released in 1995 by Sun Microsystems. It is platform-independent because Java source code is compiled into <strong>bytecode</strong> (not machine code). This bytecode is not specific to any OS. Any machine that has a JVM installed can execute this bytecode — so the same .class file runs on Windows, Linux, and Mac without any changes.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between JDK, JRE, and JVM?</div>
+    <div class="a"><strong>JVM</strong> (Java Virtual Machine) executes bytecode and provides runtime environment. It is platform-specific.<br>
+    <strong>JRE</strong> (Java Runtime Environment) = JVM + core libraries. Used to run Java programs.<br>
+    <strong>JDK</strong> (Java Development Kit) = JRE + development tools (javac, javadoc, jdb). Used to develop Java programs.<br>
+    Think of it as: JDK ⊃ JRE ⊃ JVM.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. Is Java purely object-oriented?</div>
+    <div class="a">No. Java is not <em>purely</em> object-oriented because it has <strong>primitive data types</strong> (<code>int</code>, <code>char</code>, <code>boolean</code>, etc.) which are not objects. A purely OO language like Smalltalk treats everything as an object. Java added wrapper classes (<code>Integer</code>, <code>Character</code>) to treat primitives as objects when needed.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is bytecode?</div>
+    <div class="a">Bytecode is the intermediate representation of Java code generated by the <code>javac</code> compiler. It is stored in <code>.class</code> files. It is <strong>not machine code</strong> — it cannot run directly on hardware. The JVM reads bytecode and either interprets it or compiles it to native machine code via the JIT compiler at runtime. Bytecode is platform-neutral, which is the core of Java's WORA principle.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. Why is the main method static in Java?</div>
+    <div class="a">Because JVM needs to call <code>main()</code> before any object is created. If <code>main()</code> were non-static, JVM would need an object of the class to call it — but no objects exist yet at startup. Making it <code>static</code> allows JVM to invoke it directly on the class without instantiation.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is JIT compiler? How does it help performance?</div>
+    <div class="a">JIT (Just-In-Time) compiler is part of the JVM. It monitors the bytecode being executed and compiles <strong>frequently-used (hot) code</strong> into native machine code at runtime. This native code is cached and reused, making subsequent calls much faster. Without JIT, every line would be interpreted one at a time — much slower.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the difference between C++ and Java?</div>
+    <div class="a">
+      Main differences: Java has no pointers (safe), Java has automatic garbage collection (C++ needs manual memory management), Java is platform-independent (C++ is not), Java doesn't support multiple inheritance of classes (uses interfaces instead), Java has no <code>delete</code> keyword, and Java has no header files.
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q8. Who owns Java now?</div>
+    <div class="a">Oracle Corporation. Oracle acquired Sun Microsystems in 2010 and took over Java. The OpenJDK (open-source JDK) is maintained by Oracle and the community under the GPL license.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 1: What is Java? · 1 of 26 complete
+</div>
+
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 6 — Conditional Statements</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #0f4c75 0%, #1b6ca8 60%, #4a90d9 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #1b6ca8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #0f4c75; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #1b6ca8; padding-bottom: 12px; }
+  .section-num { background: #1b6ca8; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #0f4c75; }
+
+  h3 { font-size: 1.05rem; color: #1b6ca8; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #eff6ff; border-left: 4px solid #1b6ca8; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #0f4c75; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #eff6ff; }
+  tr:hover { background: #dbeafe; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #0f4c75; margin-top: 0; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #1b6ca8; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 6 OF 26</div>
+  <h1>🔀 Conditional Statements</h1>
+  <p>if · if-else · else-if ladder · nested if · switch · switch expression</p>
+  <div class="meta">
+    <span>Phase 2 — Basics</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#if">if Statement</a></li>
+    <li><a href="#ifelse">if-else Statement</a></li>
+    <li><a href="#elseif">else-if Ladder</a></li>
+    <li><a href="#nested">Nested if</a></li>
+    <li><a href="#switch">switch Statement</a></li>
+    <li><a href="#switch-expr">switch Expression (Java 14+)</a></li>
+    <li><a href="#comparison">if-else vs switch — when to use which</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: IF -->
+<div class="section" id="if">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">if Statement</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> Executes a block of code only if the condition is <code>true</code>.
+  </div>
+
+<pre><span class="cm">// Syntax</span>
+<span class="kw">if</span> (condition) {
+    <span class="cm">// runs only if condition is true</span>
+}
+
+<span class="cm">// Example</span>
+<span class="kw">int</span> age = <span class="num">20</span>;
+<span class="kw">if</span> (age &gt;= <span class="num">18</span>) {
+    System.out.println(<span class="st">"You are an adult"</span>);
+}
+
+<span class="cm">// Single line — braces optional (but NOT recommended!)</span>
+<span class="kw">if</span> (age &gt;= <span class="num">18</span>)
+    System.out.println(<span class="st">"Adult"</span>);  <span class="cm">// only this line is in if block</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Always use braces {} even for single statements!</strong><br>
+    Without braces, only the very next line belongs to the if block. Adding another line without braces looks like it's in the if block but isn't — a very common bug!
+  </div>
+</div>
+
+
+<!-- SECTION 2: IF-ELSE -->
+<div class="section" id="ifelse">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">if-else Statement</div>
+  </div>
+
+<pre><span class="cm">// Syntax</span>
+<span class="kw">if</span> (condition) {
+    <span class="cm">// runs if condition is true</span>
+} <span class="kw">else</span> {
+    <span class="cm">// runs if condition is false</span>
+}
+
+<span class="cm">// Example</span>
+<span class="kw">int</span> num = <span class="num">7</span>;
+<span class="kw">if</span> (num % <span class="num">2</span> == <span class="num">0</span>) {
+    System.out.println(<span class="st">"Even"</span>);
+} <span class="kw">else</span> {
+    System.out.println(<span class="st">"Odd"</span>);   <span class="cm">// prints this</span>
+}
+
+<span class="cm">// Ternary is a shorthand for simple if-else</span>
+<span class="cl">String</span> result = (num % <span class="num">2</span> == <span class="num">0</span>) ? <span class="st">"Even"</span> : <span class="st">"Odd"</span>;</pre>
+</div>
+
+
+<!-- SECTION 3: ELSE-IF LADDER -->
+<div class="section" id="elseif">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">else-if Ladder</div>
+  </div>
+
+  <p>Used when you have <strong>multiple conditions</strong> to check. Only the first matching block runs — rest are skipped.</p>
+
+<pre><span class="kw">int</span> score = <span class="num">75</span>;
+
+<span class="kw">if</span> (score &gt;= <span class="num">90</span>) {
+    System.out.println(<span class="st">"Grade: A"</span>);
+} <span class="kw">else if</span> (score &gt;= <span class="num">70</span>) {
+    System.out.println(<span class="st">"Grade: B"</span>);  <span class="cm">// this runs</span>
+} <span class="kw">else if</span> (score &gt;= <span class="num">50</span>) {
+    System.out.println(<span class="st">"Grade: C"</span>);
+} <span class="kw">else</span> {
+    System.out.println(<span class="st">"Grade: F"</span>);
+}</pre>
+
+  <div class="highlight-box">
+    <strong>Key Rule:</strong> Once a condition is true, all remaining <code>else if</code> and <code>else</code> blocks are <strong>skipped entirely</strong> — even if they would also be true.
+  </div>
+
+<pre><span class="cm">// Tricky example — order matters!</span>
+<span class="kw">int</span> x = <span class="num">100</span>;
+<span class="kw">if</span> (x &gt; <span class="num">10</span>) {
+    System.out.println(<span class="st">"Greater than 10"</span>);  <span class="cm">// this runs ONLY</span>
+} <span class="kw">else if</span> (x &gt; <span class="num">50</span>) {
+    System.out.println(<span class="st">"Greater than 50"</span>);  <span class="cm">// SKIPPED even though true!</span>
+} <span class="kw">else if</span> (x &gt; <span class="num">90</span>) {
+    System.out.println(<span class="st">"Greater than 90"</span>);  <span class="cm">// SKIPPED even though true!</span>
+}</pre>
+</div>
+
+
+<!-- SECTION 4: NESTED IF -->
+<div class="section" id="nested">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Nested if</div>
+  </div>
+
+  <p>An <code>if</code> statement inside another <code>if</code> statement. Used when you need to check multiple related conditions.</p>
+
+<pre><span class="kw">int</span> age = <span class="num">20</span>;
+<span class="kw">boolean</span> hasID = <span class="kw">true</span>;
+
+<span class="kw">if</span> (age &gt;= <span class="num">18</span>) {
+    <span class="kw">if</span> (hasID) {
+        System.out.println(<span class="st">"Entry allowed"</span>);   <span class="cm">// prints this</span>
+    } <span class="kw">else</span> {
+        System.out.println(<span class="st">"Need ID card"</span>);
+    }
+} <span class="kw">else</span> {
+    System.out.println(<span class="st">"Too young"</span>);
+}
+
+<span class="cm">// Same result using && — cleaner for simple cases</span>
+<span class="kw">if</span> (age &gt;= <span class="num">18</span> &amp;&amp; hasID) {
+    System.out.println(<span class="st">"Entry allowed"</span>);
+}</pre>
+
+  <div class="tip-box">
+    <strong>💡 Dangling else problem:</strong> When nested ifs don't have braces, the <code>else</code> always belongs to the nearest <code>if</code>. Always use braces to avoid confusion!
+  </div>
+</div>
+
+
+<!-- SECTION 5: SWITCH -->
+<div class="section" id="switch">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">switch Statement</div>
+  </div>
+
+  <p>Used when you need to compare one variable against <strong>multiple fixed values</strong>. Cleaner than a long else-if ladder for exact value matching.</p>
+
+<pre><span class="cm">// Syntax</span>
+<span class="kw">switch</span> (variable) {
+    <span class="kw">case</span> value1:
+        <span class="cm">// code</span>
+        <span class="kw">break</span>;
+    <span class="kw">case</span> value2:
+        <span class="cm">// code</span>
+        <span class="kw">break</span>;
+    <span class="kw">default</span>:
+        <span class="cm">// runs if no case matches (like else)</span>
+}
+
+<span class="cm">// Example</span>
+<span class="kw">int</span> day = <span class="num">3</span>;
+<span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="num">1</span>: System.out.println(<span class="st">"Monday"</span>);    <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">2</span>: System.out.println(<span class="st">"Tuesday"</span>);   <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">3</span>: System.out.println(<span class="st">"Wednesday"</span>); <span class="kw">break</span>;  <span class="cm">// prints this</span>
+    <span class="kw">case</span> <span class="num">4</span>: System.out.println(<span class="st">"Thursday"</span>);  <span class="kw">break</span>;
+    <span class="kw">default</span>: System.out.println(<span class="st">"Invalid day"</span>);
+}</pre>
+
+  <h3>Fall-through — What happens without break?</h3>
+  <div class="warning-box">
+    <strong>⚠️ Without break, execution FALLS THROUGH to next cases!</strong>
+  </div>
+
+<pre><span class="kw">int</span> x = <span class="num">2</span>;
+<span class="kw">switch</span> (x) {
+    <span class="kw">case</span> <span class="num">1</span>: System.out.println(<span class="st">"One"</span>);
+    <span class="kw">case</span> <span class="num">2</span>: System.out.println(<span class="st">"Two"</span>);    <span class="cm">// starts here</span>
+    <span class="kw">case</span> <span class="num">3</span>: System.out.println(<span class="st">"Three"</span>);  <span class="cm">// falls through!</span>
+    <span class="kw">default</span>: System.out.println(<span class="st">"Default"</span>); <span class="cm">// falls through!</span>
+}
+<span class="cm">// Output: Two, Three, Default (all 3 print!)</span>
+
+<span class="cm">// Intentional fall-through — multiple cases same action</span>
+<span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="num">1</span>:
+    <span class="kw">case</span> <span class="num">2</span>:
+    <span class="kw">case</span> <span class="num">3</span>:
+    <span class="kw">case</span> <span class="num">4</span>:
+    <span class="kw">case</span> <span class="num">5</span>: System.out.println(<span class="st">"Weekday"</span>); <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">6</span>:
+    <span class="kw">case</span> <span class="num">7</span>: System.out.println(<span class="st">"Weekend"</span>); <span class="kw">break</span>;
+}</pre>
+
+  <h3>What types can switch use?</h3>
+  <table>
+    <tr><th>Supported</th><th>Not Supported</th></tr>
+    <tr><td><code>int</code>, <code>byte</code>, <code>short</code>, <code>char</code></td><td><code>long</code>, <code>float</code>, <code>double</code></td></tr>
+    <tr><td><code>Integer</code>, <code>Byte</code>, <code>Short</code>, <code>Character</code> (wrapper)</td><td><code>boolean</code></td></tr>
+    <tr><td><code>String</code> (Java 7+)</td><td>Objects (except String)</td></tr>
+    <tr><td><code>enum</code></td><td><code>null</code> (throws NullPointerException)</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 6: SWITCH EXPRESSION -->
+<div class="section" id="switch-expr">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">switch Expression (Java 14+)</div>
+  </div>
+
+  <p>Modern Java introduced a cleaner switch syntax using <code>-></code> (arrow). No fall-through, no break needed, can return a value directly.</p>
+
+<pre><span class="cm">// Old switch statement</span>
+<span class="kw">String</span> result;
+<span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="num">1</span>: result = <span class="st">"Monday"</span>;    <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">2</span>: result = <span class="st">"Tuesday"</span>;   <span class="kw">break</span>;
+    <span class="kw">default</span>: result = <span class="st">"Other"</span>;
+}
+
+<span class="cm">// New switch expression — cleaner!</span>
+<span class="cl">String</span> result = <span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="num">1</span> -> <span class="st">"Monday"</span>;
+    <span class="kw">case</span> <span class="num">2</span> -> <span class="st">"Tuesday"</span>;
+    <span class="kw">case</span> <span class="num">3</span> -> <span class="st">"Wednesday"</span>;
+    <span class="kw">default</span> -> <span class="st">"Other"</span>;
+};
+
+<span class="cm">// Multiple values per case</span>
+<span class="cl">String</span> type = <span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span> -> <span class="st">"Weekday"</span>;
+    <span class="kw">case</span> <span class="num">6</span>, <span class="num">7</span>          -> <span class="st">"Weekend"</span>;
+    <span class="kw">default</span>             -> <span class="st">"Invalid"</span>;
+};</pre>
+
+  <div class="highlight-box">
+    <strong>Old switch vs New switch expression:</strong><br>
+    Old: uses <code>:</code> and needs <code>break</code>, has fall-through, is a statement<br>
+    New: uses <code>-></code>, no break needed, no fall-through, can be an expression (returns value)
+  </div>
+</div>
+
+
+<!-- SECTION 7: COMPARISON -->
+<div class="section" id="comparison">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">if-else vs switch — When to Use Which</div>
+  </div>
+
+  <table>
+    <tr><th>Feature</th><th>if-else</th><th>switch</th></tr>
+    <tr><td>Condition type</td><td>Any boolean expression (ranges, complex)</td><td>Exact value matching only</td></tr>
+    <tr><td>Data types</td><td>Any type</td><td>int, char, String, enum only</td></tr>
+    <tr><td>Readability</td><td>Good for 2-3 conditions</td><td>Better for 4+ exact values</td></tr>
+    <tr><td>Range checks</td><td>✅ <code>x &gt; 10 &amp;&amp; x &lt; 20</code></td><td>❌ Not possible</td></tr>
+    <tr><td>Null safe</td><td>✅ Can check null</td><td>❌ Throws NPE on null</td></tr>
+    <tr><td>Fall-through</td><td>Not applicable</td><td>Yes (without break)</td></tr>
+  </table>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Use if-else when:</h4>
+      <ul>
+        <li>Checking ranges: <code>age &gt;= 18</code></li>
+        <li>Complex conditions: <code>a &gt; b &amp;&amp; c != 0</code></li>
+        <li>Checking null</li>
+        <li>Only 2-3 conditions</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Use switch when:</h4>
+      <ul>
+        <li>Checking exact values: <code>day == 1</code></li>
+        <li>Many fixed cases (menu options)</li>
+        <li>String or enum matching</li>
+        <li>Cleaner code for 4+ cases</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 8: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is fall-through in switch? How do you prevent it?</div>
+    <div class="a">Fall-through means when a case matches and executes, execution continues into the next case automatically without stopping — even if the next case doesn't match. It happens when <code>break</code> is missing. To prevent it, add <code>break</code> at the end of every case. In Java 14+, using the arrow syntax <code>-></code> in switch expressions prevents fall-through automatically.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the output?</q>
+    <pre style="margin:6px 0;font-size:0.85rem;background:#f3f4f6;padding:8px;border-radius:4px;color:#1a202c">int x = 2;
+switch(x) {
+  case 1: System.out.println("One");
+  case 2: System.out.println("Two");
+  case 3: System.out.println("Three");
+  default: System.out.println("Default");
+}</pre>
+    <div class="a"><strong>Two, Three, Default</strong> — because there are no break statements. Execution starts at case 2 and falls through all remaining cases including default.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. Can you use String in a switch statement?</div>
+    <div class="a">Yes, from <strong>Java 7</strong> onwards. Before Java 7, switch only supported primitive types and their wrappers. Note: never pass null to a switch with String — it throws NullPointerException. switch uses <code>.equals()</code> internally to compare strings.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the difference between if-else and switch?</div>
+    <div class="a">if-else can handle any boolean expression including ranges and complex conditions, works with any data type, and is better for 2-3 conditions. switch only handles exact value matching, supports int, char, String, and enum types, and is cleaner for 4+ exact value cases. switch cannot check null (NPE) while if-else can.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is the output of this code?</q>
+    <pre style="margin:6px 0;font-size:0.85rem;background:#f3f4f6;padding:8px;border-radius:4px;color:#1a202c">int x = 100;
+if (x > 10) {
+    System.out.println("A");
+} else if (x > 50) {
+    System.out.println("B");
+} else if (x > 90) {
+    System.out.println("C");
+}</pre>
+    <div class="a"><strong>A only</strong> — even though x is also greater than 50 and 90, the first matching condition <code>x > 10</code> runs and all remaining else-if blocks are skipped. Order matters in else-if ladders — always put more specific conditions first!</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is a switch expression in Java 14+? How is it different from switch statement?</div>
+    <div class="a">Switch expression uses arrow syntax <code>-></code>, returns a value directly, requires no break statements, and has no fall-through. Switch statement uses colon syntax <code>:</code>, needs explicit break to prevent fall-through, and cannot directly return a value. Switch expressions make code cleaner and less error-prone.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What data types are NOT supported in switch?</div>
+    <div class="a"><code>long</code>, <code>float</code>, <code>double</code>, and <code>boolean</code> are not supported in switch statements. Switch supports <code>int</code>, <code>byte</code>, <code>short</code>, <code>char</code>, their wrapper classes, <code>String</code> (Java 7+), and <code>enum</code>.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 6: Conditional Statements · 6 of 26 complete
+</div>
+
+</body>
+</html>

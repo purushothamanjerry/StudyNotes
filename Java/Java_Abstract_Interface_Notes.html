@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java – Abstract Class & Interface Notes</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: 1px; }
+  .cover p { margin-top: 10px; font-size: 1rem; opacity: 0.85; }
+  .badge { display: inline-block; background: rgba(255,255,255,0.18); border-radius: 20px;
+    padding: 4px 16px; font-size: 0.8rem; margin-top: 12px; letter-spacing: 1px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1.1rem; color: #2563eb; margin-bottom: 12px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #1e40af; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 3px solid #2563eb; padding-bottom: 12px; }
+  .section-num { background: #2563eb; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.4rem; font-weight: 700; color: #1e3a5f; }
+
+  h3 { font-size: 1.05rem; color: #1e40af; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.97rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 5px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .warning-box { background: #fff7ed; border-left: 4px solid #f97316; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .tip-box { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .danger-box { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem;
+    line-height: 1.7; margin: 14px 0; }
+  .kw { color: #93c5fd; } /* keywords */
+  .cm { color: #6ee7b7; } /* comments */
+  .st { color: #fcd34d; } /* strings/types */
+  .an { color: #f9a8d4; } /* annotations */
+  .cl { color: #c4b5fd; } /* class names */
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #1e3a5f; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; }
+  tr:nth-child(even) { background: #f8fafc; }
+  tr:hover { background: #eff6ff; }
+
+  .tag { display: inline-block; border-radius: 12px; padding: 2px 10px; font-size: 0.78rem;
+    font-weight: 600; margin: 2px; }
+  .tag-blue { background: #dbeafe; color: #1e40af; }
+  .tag-green { background: #dcfce7; color: #166534; }
+  .tag-orange { background: #ffedd5; color: #9a3412; }
+  .tag-red { background: #fee2e2; color: #991b1b; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border-radius: 8px; padding: 16px; border: 1px solid #e2e8f0; }
+  .col-box h4 { color: #1e3a5f; margin-top: 0; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+
+  @media print {
+    body { background: white; }
+    .section, .toc { box-shadow: none; border: 1px solid #e2e8f0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>☕ Java Interview Notes</h1>
+  <p>Abstract Class &amp; Interface — Deep Dive Revision Guide</p>
+  <div class="badge">INTERMEDIATE LEVEL · OOP &amp; CORE JAVA</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h2>📋 Table of Contents</h2>
+  <ol>
+    <li><a href="#abstract">Abstract Class — Complete Guide</a></li>
+    <li><a href="#interface">Interface — Complete Guide</a></li>
+    <li><a href="#comparison">Side-by-Side Comparison Table</a></li>
+    <li><a href="#when">When to Use Which?</a></li>
+    <li><a href="#java8">Java 8+ Interface Changes</a></li>
+    <li><a href="#interview">Top Interview Questions &amp; Answers</a></li>
+    <li><a href="#tricky">Tricky Edge Cases</a></li>
+  </ol>
+</div>
+
+
+<!-- ========== SECTION 1: ABSTRACT CLASS ========== -->
+<div class="section" id="abstract">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Abstract Class</div>
+  </div>
+
+  <h3>🔑 Definition</h3>
+  <p>An abstract class is a class declared with the <code>abstract</code> keyword. It <strong>cannot be instantiated directly</strong> — you must subclass it. It provides a <strong>partial blueprint</strong> for subclasses.</p>
+
+  <div class="highlight-box">
+    <strong>Key Idea:</strong> Abstract class = "I am a base class that partially implements behavior. My subclasses must fill in the rest."
+  </div>
+
+  <h3>📌 Characteristics</h3>
+  <ul>
+    <li>Declared with <code>abstract</code> keyword</li>
+    <li>Can have <strong>abstract methods</strong> (no body) and <strong>concrete methods</strong> (with body)</li>
+    <li>Can have <strong>constructors</strong> (called via <code>super()</code> from subclass)</li>
+    <li>Can have <strong>instance variables</strong> (state) with any access modifier</li>
+    <li>Can have <strong>static methods</strong> and <strong>static variables</strong></li>
+    <li>A class can extend <strong>only one</strong> abstract class (single inheritance)</li>
+    <li>If a subclass doesn't implement all abstract methods → subclass must also be abstract</li>
+  </ul>
+
+  <h3>💻 Syntax &amp; Example</h3>
+<pre><span class="kw">abstract class</span> <span class="cl">Animal</span> {
+
+    <span class="cm">// Instance variable (state)</span>
+    <span class="kw">private</span> <span class="st">String</span> name;
+    <span class="kw">private int</span> age;
+
+    <span class="cm">// Constructor</span>
+    <span class="kw">public</span> <span class="cl">Animal</span>(<span class="st">String</span> name, <span class="kw">int</span> age) {
+        <span class="kw">this</span>.name = name;
+        <span class="kw">this</span>.age = age;
+    }
+
+    <span class="cm">// Abstract method — subclass MUST implement</span>
+    <span class="kw">public abstract void</span> makeSound();
+
+    <span class="cm">// Concrete method — shared behavior</span>
+    <span class="kw">public void</span> eat() {
+        System.out.println(name + <span class="st">" is eating"</span>);
+    }
+
+    <span class="cm">// Static method</span>
+    <span class="kw">public static void</span> breathe() {
+        System.out.println(<span class="st">"All animals breathe"</span>);
+    }
+
+    <span class="cm">// Getter</span>
+    <span class="kw">public</span> <span class="st">String</span> getName() { <span class="kw">return</span> name; }
+}
+
+<span class="cm">// Concrete subclass</span>
+<span class="kw">class</span> <span class="cl">Dog</span> <span class="kw">extends</span> <span class="cl">Animal</span> {
+
+    <span class="kw">public</span> <span class="cl">Dog</span>(<span class="st">String</span> name, <span class="kw">int</span> age) {
+        <span class="kw">super</span>(name, age); <span class="cm">// calls Animal constructor</span>
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> makeSound() {
+        System.out.println(<span class="st">"Woof!"</span>);
+    }
+}
+
+<span class="cm">// Animal a = new Animal(); ❌ Cannot instantiate</span>
+<span class="cl">Animal</span> dog = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Bruno"</span>, 3); <span class="cm">// ✅</span>
+dog.makeSound(); <span class="cm">// Woof!</span>
+dog.eat();       <span class="cm">// Bruno is eating</span></pre>
+
+  <h3>📐 Abstract Method Rules</h3>
+  <ul>
+    <li>Declared with <code>abstract</code> keyword, <strong>no body</strong> — ends with <code>;</code></li>
+    <li>Can only exist inside an abstract class</li>
+    <li>Cannot be <code>private</code>, <code>static</code>, or <code>final</code></li>
+    <li>Must be overridden in the first non-abstract subclass</li>
+  </ul>
+
+  <div class="warning-box">
+    <strong>⚠️ Common Mistake:</strong> You can have an abstract class with <em>zero</em> abstract methods — just to prevent direct instantiation. This is valid!
+  </div>
+
+  <h3>🔒 Access Modifiers in Abstract Class</h3>
+  <table>
+    <tr><th>Element</th><th>Allowed Modifiers</th></tr>
+    <tr><td>Instance variables</td><td><code>private</code>, <code>protected</code>, <code>public</code>, package-private</td></tr>
+    <tr><td>Abstract methods</td><td><code>public</code>, <code>protected</code>, package-private (NOT <code>private</code>)</td></tr>
+    <tr><td>Concrete methods</td><td>All modifiers</td></tr>
+    <tr><td>Constructor</td><td><code>public</code>, <code>protected</code>, package-private</td></tr>
+  </table>
+</div>
+
+
+<!-- ========== SECTION 2: INTERFACE ========== -->
+<div class="section" id="interface">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Interface</div>
+  </div>
+
+  <h3>🔑 Definition</h3>
+  <p>An interface defines a <strong>contract</strong> — a set of method signatures that implementing classes must fulfill. It represents the <em>capability</em> or <em>behavior</em> a class promises to provide.</p>
+
+  <div class="highlight-box">
+    <strong>Key Idea:</strong> Interface = "Any class that implements me MUST provide these behaviors. I don't care how — just do it."
+  </div>
+
+  <h3>📌 Characteristics (Before Java 8)</h3>
+  <ul>
+    <li>All methods were implicitly <code>public abstract</code></li>
+    <li>All variables were implicitly <code>public static final</code> (constants)</li>
+    <li>No constructors allowed</li>
+    <li>No instance variables</li>
+    <li>A class can implement <strong>multiple interfaces</strong></li>
+    <li>An interface can extend <strong>multiple interfaces</strong></li>
+  </ul>
+
+  <h3>💻 Basic Syntax</h3>
+<pre><span class="kw">interface</span> <span class="cl">Flyable</span> {
+
+    <span class="cm">// Constant — public static final (implicitly)</span>
+    <span class="kw">int</span> MAX_ALTITUDE = 10000; <span class="cm">// same as: public static final int MAX_ALTITUDE = 10000;</span>
+
+    <span class="cm">// Abstract method — public abstract (implicitly)</span>
+    <span class="kw">void</span> fly();         <span class="cm">// same as: public abstract void fly();</span>
+    <span class="kw">void</span> land();
+}
+
+<span class="kw">interface</span> <span class="cl">Swimmable</span> {
+    <span class="kw">void</span> swim();
+}
+
+<span class="cm">// Implementing MULTIPLE interfaces</span>
+<span class="kw">class</span> <span class="cl">Duck</span> <span class="kw">implements</span> <span class="cl">Flyable</span>, <span class="cl">Swimmable</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> fly()  { System.out.println(<span class="st">"Duck flying"</span>); }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> land() { System.out.println(<span class="st">"Duck landing"</span>); }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> swim() { System.out.println(<span class="st">"Duck swimming"</span>); }
+}</pre>
+
+  <h3>🚀 Java 8+ Interface Features</h3>
+
+  <h4>1. Default Methods</h4>
+  <p>Provide a <strong>default implementation</strong> in the interface itself. Implementing classes can use it or override it.</p>
+<pre><span class="kw">interface</span> <span class="cl">Vehicle</span> {
+    <span class="kw">void</span> start();
+
+    <span class="cm">// Default method — has body</span>
+    <span class="kw">default void</span> stop() {
+        System.out.println(<span class="st">"Vehicle stopped"</span>);
+    }
+}
+
+<span class="kw">class</span> <span class="cl">Car</span> <span class="kw">implements</span> <span class="cl">Vehicle</span> {
+    <span class="kw">public void</span> start() { System.out.println(<span class="st">"Car started"</span>); }
+    <span class="cm">// stop() inherited from interface — no need to override</span>
+}</pre>
+
+  <h4>2. Static Methods</h4>
+  <p>Utility methods on the interface. <strong>NOT inherited</strong> by implementing classes — called via interface name.</p>
+<pre><span class="kw">interface</span> <span class="cl">MathUtils</span> {
+    <span class="kw">static int</span> square(<span class="kw">int</span> n) { <span class="kw">return</span> n * n; }
+}
+
+<span class="cm">// Call via interface name only:</span>
+<span class="kw">int</span> result = <span class="cl">MathUtils</span>.square(5); <span class="cm">// ✅</span>
+<span class="cm">// myObject.square(5); ❌ Not accessible on instance</span></pre>
+
+  <h4>3. Private Methods (Java 9+)</h4>
+  <p>Helper methods to avoid code duplication inside default methods.</p>
+<pre><span class="kw">interface</span> <span class="cl">Logger</span> {
+    <span class="kw">default void</span> logInfo(<span class="st">String</span> msg)  { log(<span class="st">"INFO"</span>, msg);  }
+    <span class="kw">default void</span> logError(<span class="st">String</span> msg) { log(<span class="st">"ERROR"</span>, msg); }
+
+    <span class="kw">private void</span> log(<span class="st">String</span> level, <span class="st">String</span> msg) {
+        System.out.println(<span class="st">"["</span> + level + <span class="st">"] "</span> + msg);
+    }
+}</pre>
+
+  <h4>4. Functional Interface (Java 8)</h4>
+  <p>An interface with <strong>exactly one abstract method</strong>. Can be used with lambdas.</p>
+<pre><span class="an">@FunctionalInterface</span>
+<span class="kw">interface</span> <span class="cl">Calculator</span> {
+    <span class="kw">int</span> calculate(<span class="kw">int</span> a, <span class="kw">int</span> b);
+}
+
+<span class="cm">// Lambda usage</span>
+<span class="cl">Calculator</span> add = (a, b) -> a + b;
+<span class="cl">Calculator</span> mul = (a, b) -> a * b;
+System.out.println(add.calculate(3, 4)); <span class="cm">// 7</span></pre>
+
+  <div class="highlight-box">
+    <strong>Built-in Functional Interfaces (java.util.function):</strong><br>
+    <code>Predicate&lt;T&gt;</code> — takes T, returns boolean &nbsp;|&nbsp;
+    <code>Function&lt;T,R&gt;</code> — takes T, returns R &nbsp;|&nbsp;
+    <code>Consumer&lt;T&gt;</code> — takes T, returns void &nbsp;|&nbsp;
+    <code>Supplier&lt;T&gt;</code> — takes nothing, returns T
+  </div>
+
+  <h3>🔗 Interface Extending Multiple Interfaces</h3>
+<pre><span class="kw">interface</span> <span class="cl">A</span> { <span class="kw">void</span> methodA(); }
+<span class="kw">interface</span> <span class="cl">B</span> { <span class="kw">void</span> methodB(); }
+
+<span class="kw">interface</span> <span class="cl">C</span> <span class="kw">extends</span> <span class="cl">A</span>, <span class="cl">B</span> {  <span class="cm">// ✅ Multiple extension allowed</span>
+    <span class="kw">void</span> methodC();
+}
+
+<span class="kw">class</span> <span class="cl">MyClass</span> <span class="kw">implements</span> <span class="cl">C</span> {
+    <span class="kw">public void</span> methodA() {}
+    <span class="kw">public void</span> methodB() {}
+    <span class="kw">public void</span> methodC() {}
+}</pre>
+</div>
+
+
+<!-- ========== SECTION 3: COMPARISON TABLE ========== -->
+<div class="section" id="comparison">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Side-by-Side Comparison</div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Feature</th>
+      <th>Abstract Class</th>
+      <th>Interface</th>
+    </tr>
+    <tr><td>Keyword</td><td><code>abstract class</code></td><td><code>interface</code></td></tr>
+    <tr><td>Instantiation</td><td>❌ Cannot instantiate</td><td>❌ Cannot instantiate</td></tr>
+    <tr><td>Methods</td><td>Abstract + Concrete</td><td>Abstract + Default (Java 8+) + Static + Private (Java 9+)</td></tr>
+    <tr><td>Constructor</td><td>✅ Yes (called via super)</td><td>❌ No</td></tr>
+    <tr><td>Instance Variables</td><td>✅ Any type, any modifier</td><td>❌ Only <code>public static final</code> constants</td></tr>
+    <tr><td>Access Modifiers</td><td>Any modifier on members</td><td>Methods: <code>public</code> by default</td></tr>
+    <tr><td>Inheritance</td><td>Extends ONE class only</td><td>Implements MULTIPLE interfaces</td></tr>
+    <tr><td>Extending</td><td>Can extend 1 abstract/concrete class</td><td>Can extend multiple interfaces</td></tr>
+    <tr><td>Speed</td><td>Slightly faster</td><td>Slightly slower (historically)</td></tr>
+    <tr><td>Use case</td><td>Related classes sharing state/code</td><td>Define capability/contract across unrelated classes</td></tr>
+    <tr><td>Example</td><td><code>Animal → Dog, Cat</code></td><td><code>Serializable, Runnable, Comparable</code></td></tr>
+  </table>
+</div>
+
+
+<!-- ========== SECTION 4: WHEN TO USE ========== -->
+<div class="section" id="when">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">When to Use Which?</div>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>✅ Use Abstract Class when…</h4>
+      <ul>
+        <li>Classes are <strong>closely related</strong> (share "is-a" relationship)</li>
+        <li>You want to share <strong>common state</strong> (instance variables)</li>
+        <li>You want to provide <strong>partial implementation</strong></li>
+        <li>Subclasses need access to <strong>non-public members</strong></li>
+        <li>You need a <strong>constructor</strong> to initialize shared fields</li>
+        <li>You want to provide <strong>template method pattern</strong></li>
+      </ul>
+      <br>
+      <p><strong>Real Examples:</strong> <code>HttpServlet</code>, <code>AbstractList</code>, <code>AbstractMap</code></p>
+    </div>
+    <div class="col-box">
+      <h4>✅ Use Interface when…</h4>
+      <ul>
+        <li>Classes are <strong>unrelated</strong> but share a behavior</li>
+        <li>You need <strong>multiple inheritance</strong> of type</li>
+        <li>You want to define a <strong>pure contract/API</strong></li>
+        <li>Future implementors are <strong>unknown</strong></li>
+        <li>You want to use <strong>lambda expressions</strong> (functional interface)</li>
+        <li>You want <strong>loose coupling</strong> in design</li>
+      </ul>
+      <br>
+      <p><strong>Real Examples:</strong> <code>Runnable</code>, <code>Comparable</code>, <code>Serializable</code>, <code>List</code></p>
+    </div>
+  </div>
+
+  <h3>🧠 Decision Rule (Simple)</h3>
+  <div class="highlight-box">
+    <strong>Ask yourself:</strong><br>
+    → Do the classes share <em>state (fields)</em> and are tightly related? → <strong>Abstract Class</strong><br>
+    → Do you need <em>multiple inheritance</em> or are classes unrelated? → <strong>Interface</strong><br>
+    → Modern Java (8+): <em>prefer interfaces</em> unless you need constructors or instance variables.
+  </div>
+</div>
+
+
+<!-- ========== SECTION 5: JAVA 8+ CHANGES ========== -->
+<div class="section" id="java8">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Java 8+ Interface Evolution</div>
+  </div>
+
+  <table>
+    <tr><th>Java Version</th><th>New Feature</th><th>Purpose</th></tr>
+    <tr><td>Before Java 8</td><td>Only abstract methods + constants</td><td>Pure contract</td></tr>
+    <tr><td>Java 8</td><td><code>default</code> methods</td><td>Add methods without breaking existing implementations</td></tr>
+    <tr><td>Java 8</td><td><code>static</code> methods</td><td>Utility methods on the interface</td></tr>
+    <tr><td>Java 8</td><td><code>@FunctionalInterface</code></td><td>Enable lambda expressions</td></tr>
+    <tr><td>Java 9</td><td><code>private</code> methods</td><td>Helper methods for default methods</td></tr>
+    <tr><td>Java 9</td><td><code>private static</code> methods</td><td>Shared helper for static methods</td></tr>
+  </table>
+
+  <div class="warning-box">
+    <strong>⚠️ Diamond Problem with Default Methods:</strong><br>
+    If two interfaces have the same default method, the implementing class <em>must override</em> it to resolve the conflict.
+  </div>
+<pre><span class="kw">interface</span> <span class="cl">A</span> { <span class="kw">default void</span> greet() { System.out.println(<span class="st">"Hello from A"</span>); } }
+<span class="kw">interface</span> <span class="cl">B</span> { <span class="kw">default void</span> greet() { System.out.println(<span class="st">"Hello from B"</span>); } }
+
+<span class="kw">class</span> <span class="cl">C</span> <span class="kw">implements</span> <span class="cl">A</span>, <span class="cl">B</span> {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> greet() {
+        <span class="cl">A</span>.super.greet(); <span class="cm">// explicitly call A's version</span>
+    }
+}</pre>
+</div>
+
+
+<!-- ========== SECTION 6: INTERVIEW Q&A ========== -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Top Interview Questions &amp; Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. Can abstract class have a constructor? Why?</div>
+    <div class="a">✅ Yes. Even though you can't instantiate an abstract class directly, its constructor is called by the subclass via <code>super()</code>. This allows the abstract class to initialize its own fields.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. Can we have an abstract class with no abstract methods?</div>
+    <div class="a">✅ Yes. This is valid — you'd do it to <em>prevent direct instantiation</em> while still providing a reusable concrete class.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. Why can't we instantiate an interface?</div>
+    <div class="a">Because interfaces have no constructor and no instance state. They define behavior contracts, not objects.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. Can an abstract class implement an interface?</div>
+    <div class="a">✅ Yes. An abstract class can implement an interface <em>without</em> implementing all its methods — the concrete subclass must implement the remaining methods.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is a marker interface? Give examples.</div>
+    <div class="a">A marker interface has <em>no methods</em> — it just "marks" a class to signal some property to the JVM or framework. Examples: <code>Serializable</code>, <code>Cloneable</code>, <code>Remote</code>.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Why did Java 8 add default methods to interfaces?</div>
+    <div class="a">To allow adding new methods to existing interfaces without breaking all the classes that already implement them (backward compatibility). Used heavily in the Collections API — e.g., <code>List.sort()</code>, <code>Collection.stream()</code>.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Difference between abstract method and default method?</div>
+    <div class="a">Abstract method has <em>no body</em> — must be overridden. Default method has <em>a body</em> — optional to override. Abstract method forces contract; default method provides a fallback implementation.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q8. Can interface variables be changed?</div>
+    <div class="a">❌ No. Interface variables are implicitly <code>public static final</code> — they are constants. You cannot reassign them.</div>
+  </div>
+</div>
+
+
+<!-- ========== SECTION 7: TRICKY EDGE CASES ========== -->
+<div class="section" id="tricky">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Tricky Edge Cases 🧩</div>
+  </div>
+
+  <h3>1. Abstract class extending abstract class</h3>
+<pre><span class="kw">abstract class</span> <span class="cl">A</span> { <span class="kw">abstract void</span> show(); }
+<span class="kw">abstract class</span> <span class="cl">B</span> <span class="kw">extends</span> <span class="cl">A</span> { } <span class="cm">// ✅ B doesn't have to implement show()</span>
+<span class="kw">class</span> <span class="cl">C</span> <span class="kw">extends</span> <span class="cl">B</span> {
+    <span class="kw">void</span> show() { System.out.println(<span class="st">"C"</span>); } <span class="cm">// ✅ C must implement</span>
+}</pre>
+
+  <h3>2. Interface reference to abstract class object</h3>
+<pre><span class="kw">interface</span> <span class="cl">Shape</span> { <span class="kw">double</span> area(); }
+<span class="kw">abstract class</span> <span class="cl">Polygon</span> <span class="kw">implements</span> <span class="cl">Shape</span> { }
+<span class="kw">class</span> <span class="cl">Square</span> <span class="kw">extends</span> <span class="cl">Polygon</span> {
+    <span class="kw">public double</span> area() { <span class="kw">return</span> 4.0; }
+}
+
+<span class="cl">Shape</span> s = <span class="kw">new</span> <span class="cl">Square</span>(); <span class="cm">// ✅ Interface reference → concrete object</span></pre>
+
+  <h3>3. Static interface method — NOT inherited</h3>
+<pre><span class="kw">interface</span> <span class="cl">I</span> { <span class="kw">static void</span> hello() { System.out.println(<span class="st">"Hi"</span>); } }
+<span class="kw">class</span> <span class="cl">MyClass</span> <span class="kw">implements</span> <span class="cl">I</span> { }
+
+<span class="cl">I</span>.hello();           <span class="cm">// ✅ Correct</span>
+<span class="cm">// MyClass.hello(); ❌ Compile error — not inherited</span></pre>
+
+  <h3>4. Can you override a default method and make it abstract?</h3>
+<pre><span class="kw">interface</span> <span class="cl">A</span> { <span class="kw">default void</span> greet() { System.out.println(<span class="st">"Hi"</span>); } }
+
+<span class="cm">// ✅ Yes — an abstract class can re-declare it as abstract</span>
+<span class="kw">abstract class</span> <span class="cl">B</span> <span class="kw">implements</span> <span class="cl">A</span> {
+    <span class="kw">public abstract void</span> greet(); <span class="cm">// Forces subclasses to implement</span>
+}</pre>
+
+  <div class="tip-box">
+    <strong>💡 Quick Memory Trick:</strong><br>
+    <strong>Abstract Class = "Family template"</strong> — shares genes (fields) and some behaviors (concrete methods) with children.<br>
+    <strong>Interface = "Job contract"</strong> — anyone can sign it (implement it) regardless of their background (class hierarchy).
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Abstract Class &amp; Interface · For revision use only
+</div>
+
+</body>
+</html>

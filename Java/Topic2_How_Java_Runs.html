@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 2 — How Java Runs</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+  .cover {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 60%, #3b82f6 100%);
+    color: white; padding: 48px 40px; text-align: center;
+  }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #1d4ed8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #1e40af; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #1d4ed8; padding-bottom: 12px; }
+  .section-num { background: #1d4ed8; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #1e3a5f; }
+
+  h3 { font-size: 1.05rem; color: #1d4ed8; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+
+  .highlight-box { background: #eff6ff; border-left: 4px solid #1d4ed8; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .tip-box { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .warning-box { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+  .info-box { background: #fafafa; border-left: 4px solid #8b5cf6; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0; }
+
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem;
+    line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #1e3a5f; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f8fafc; }
+  tr:hover { background: #eff6ff; }
+
+  .flow-steps { margin: 20px 0; }
+  .flow-step { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+  .step-num { background: #1d4ed8; color: white; border-radius: 50%; width: 32px; height: 32px; min-width: 32px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; margin-top: 4px; }
+  .step-arrow { text-align: center; padding: 2px 0 2px 14px; color: #1d4ed8; font-size: 1.2rem; }
+  .step-content { flex: 1; background: #f8fafc; border-radius: 8px; padding: 12px 16px;
+    border: 1px solid #e2e8f0; }
+  .step-content strong { color: #1e3a5f; display: block; margin-bottom: 4px; }
+  .step-content span { font-size: 0.9rem; color: #4b5563; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #1e3a5f; margin-top: 0; }
+
+  .memory-area { border: 2px solid #1d4ed8; border-radius: 10px; padding: 16px; margin: 14px 0; }
+  .memory-area h4 { color: #1e3a5f; margin-bottom: 12px; text-align: center; font-size: 1rem; }
+  .mem-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .mem-box { flex: 1; min-width: 120px; border-radius: 8px; padding: 12px; text-align: center; }
+  .mem-box .mem-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+  .mem-box .mem-desc { font-size: 0.78rem; }
+  .mem-heap   { background: #dbeafe; border: 1px solid #93c5fd; color: #1e40af; }
+  .mem-stack  { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
+  .mem-method { background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; }
+  .mem-pc     { background: #fce7f3; border: 1px solid #f9a8d4; color: #9d174d; }
+  .mem-native { background: #f3e8ff; border: 1px solid #d8b4fe; color: #6b21a8; }
+
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #1d4ed8; }
+
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 2 OF 26</div>
+  <h1>⚙️ How Java Runs</h1>
+  <p>Compilation · Bytecode · JVM Internals · JIT · Class Loading · Memory</p>
+  <div class="meta">
+    <span>Phase 1 — Foundation</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#overview">The Big Picture — Java Execution Flow</a></li>
+    <li><a href="#compilation">Step 1 — Compilation (.java → .class)</a></li>
+    <li><a href="#classloader">Step 2 — Class Loading</a></li>
+    <li><a href="#bytecode">Step 3 — Bytecode Verification</a></li>
+    <li><a href="#execution">Step 4 — Execution (Interpreter + JIT)</a></li>
+    <li><a href="#jvm-internals">JVM Internal Architecture</a></li>
+    <li><a href="#memory">JVM Memory Areas</a></li>
+    <li><a href="#gc">Garbage Collection</a></li>
+    <li><a href="#interview">Top Interview Questions &amp; Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: BIG PICTURE -->
+<div class="section" id="overview">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">The Big Picture — Java Execution Flow</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>One line to remember:</strong><br>
+    Java source code → <strong>javac compiles</strong> → bytecode (.class) → <strong>JVM loads</strong> → <strong>JIT compiles</strong> → native machine code → <strong>CPU executes</strong>
+  </div>
+
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Write — HelloWorld.java</strong>
+        <span>You write Java source code in a .java file (human-readable text)</span>
+      </div>
+    </div>
+    <div class="step-arrow">↓</div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Compile — javac HelloWorld.java</strong>
+        <span>Java compiler (javac) converts .java → .class file containing bytecode. NOT machine code — it's an intermediate format.</span>
+      </div>
+    </div>
+    <div class="step-arrow">↓</div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Class Loading — ClassLoader reads .class</strong>
+        <span>JVM's ClassLoader reads the .class file and loads it into memory (Method Area)</span>
+      </div>
+    </div>
+    <div class="step-arrow">↓</div>
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>Bytecode Verification</strong>
+        <span>JVM verifies bytecode is valid, safe, and follows Java rules. Security step — prevents malicious code.</span>
+      </div>
+    </div>
+    <div class="step-arrow">↓</div>
+    <div class="flow-step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>Execution — Interpreter + JIT Compiler</strong>
+        <span>Interpreter executes bytecode line by line. JIT compiler detects hot (frequently used) code and compiles it to native machine code for speed.</span>
+      </div>
+    </div>
+    <div class="step-arrow">↓</div>
+    <div class="flow-step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <strong>Output — Program runs!</strong>
+        <span>Native machine code runs on CPU. Garbage Collector manages memory in background.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: COMPILATION -->
+<div class="section" id="compilation">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Step 1 — Compilation</div>
+  </div>
+
+  <h3>What does javac do?</h3>
+  <p>The <code>javac</code> compiler reads your <code>.java</code> file and produces a <code>.class</code> file containing <strong>bytecode</strong>.</p>
+
+  <pre><span class="cm"># Source file</span>
+HelloWorld.java   <span class="cm">← plain text, human-readable Java code</span>
+
+<span class="cm"># Compile command</span>
+javac HelloWorld.java
+
+<span class="cm"># Output</span>
+HelloWorld.class  <span class="cm">← bytecode (binary, not human-readable)</span></pre>
+
+  <h3>What is Bytecode?</h3>
+  <ul>
+    <li>Bytecode is an <strong>intermediate representation</strong> — not machine code, not source code</li>
+    <li>It is <strong>platform-neutral</strong> — not tied to any OS or CPU</li>
+    <li>Stored in <code>.class</code> files</li>
+    <li>Only a JVM can understand and execute bytecode</li>
+    <li>This is why Java is platform-independent — the <em>same</em> .class file runs on any OS</li>
+  </ul>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Java (Compiled + Interpreted)</h4>
+      <p>.java → <strong>bytecode</strong> → JVM interprets/JIT compiles → runs</p>
+      <p>Platform-independent bytecode</p>
+    </div>
+    <div class="col-box">
+      <h4>C/C++ (Compiled only)</h4>
+      <p>.c → <strong>machine code</strong> → runs directly on CPU</p>
+      <p>Platform-dependent — must recompile for each OS</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 3: CLASS LOADER -->
+<div class="section" id="classloader">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Step 2 — Class Loading</div>
+  </div>
+
+  <p>The <strong>ClassLoader</strong> is a subsystem of JVM that loads <code>.class</code> files into memory when needed. Java loads classes <strong>dynamically</strong> — only when they are first used.</p>
+
+  <h3>3 Built-in ClassLoaders</h3>
+  <table>
+    <tr><th>ClassLoader</th><th>What it loads</th><th>Example</th></tr>
+    <tr>
+      <td><strong>Bootstrap ClassLoader</strong></td>
+      <td>Core Java classes — the foundation</td>
+      <td><code>java.lang.String</code>, <code>java.lang.Object</code></td>
+    </tr>
+    <tr>
+      <td><strong>Extension ClassLoader</strong></td>
+      <td>Extension libraries from <code>jre/lib/ext</code></td>
+      <td>Security extensions, XML parsers</td>
+    </tr>
+    <tr>
+      <td><strong>Application ClassLoader</strong></td>
+      <td>Your application classes (classpath)</td>
+      <td><code>HelloWorld.class</code>, your own classes</td>
+    </tr>
+  </table>
+
+  <h3>3 Phases of Class Loading</h3>
+  <ol>
+    <li><strong>Loading</strong> — reads the .class file from disk and brings it into memory</li>
+    <li><strong>Linking</strong> — 3 sub-steps:
+      <ul>
+        <li><em>Verification</em> — checks bytecode is valid and safe</li>
+        <li><em>Preparation</em> — allocates memory for static variables, sets default values</li>
+        <li><em>Resolution</em> — replaces symbolic references with actual memory references</li>
+      </ul>
+    </li>
+    <li><strong>Initialization</strong> — runs static initializers and assigns actual values to static variables</li>
+  </ol>
+
+  <div class="tip-box">
+    <strong>💡 Key Point:</strong> Classes are loaded lazily — only when first referenced. This makes Java startup faster.
+  </div>
+</div>
+
+
+<!-- SECTION 4: BYTECODE VERIFICATION -->
+<div class="section" id="bytecode">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Step 3 — Bytecode Verification</div>
+  </div>
+
+  <p>Before executing bytecode, the JVM's <strong>Bytecode Verifier</strong> checks it for safety. This is a security feature.</p>
+
+  <h3>What does it check?</h3>
+  <ul>
+    <li>Code doesn't violate access restrictions (private, protected)</li>
+    <li>No stack overflow or underflow</li>
+    <li>All variables are initialized before use</li>
+    <li>Method calls have correct number and type of arguments</li>
+    <li>No illegal type casts</li>
+  </ul>
+
+  <div class="highlight-box">
+    <strong>Why this matters:</strong> When you download a Java app from the internet, you don't know if the bytecode was produced by a safe compiler. The verifier ensures even tampered or maliciously crafted bytecode cannot harm your system.
+  </div>
+</div>
+
+
+<!-- SECTION 5: EXECUTION -->
+<div class="section" id="execution">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Step 4 — Execution (Interpreter + JIT)</div>
+  </div>
+
+  <p>The JVM has two ways to execute bytecode:</p>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Interpreter</h4>
+      <ul>
+        <li>Reads and executes bytecode <strong>one instruction at a time</strong></li>
+        <li>Simple and fast to start</li>
+        <li>Slow for repeated code — translates the same line every time it's encountered</li>
+        <li>Used for code that runs only once or rarely</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>JIT Compiler (Just-In-Time)</h4>
+      <ul>
+        <li>Monitors bytecode execution — finds <strong>"hot code"</strong> (code run many times)</li>
+        <li>Compiles hot code to <strong>native machine code</strong> once</li>
+        <li>Caches the result — subsequent calls use native code directly</li>
+        <li>Makes Java nearly as fast as C++ for long-running applications</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>How JIT Works</h3>
+<pre><span class="cm">// This loop runs 10,000 times — JIT detects it as "hot"</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="cl">0</span>; i &lt; <span class="cl">10000</span>; i++) {
+    calculate(i);   <span class="cm">// ← JIT compiles calculate() to native code</span>
+}
+<span class="cm">// First few calls: Interpreter (slow)</span>
+<span class="cm">// After JIT kicks in: native machine code (fast)</span></pre>
+
+  <div class="highlight-box">
+    <strong>Interview line:</strong> "Java uses a hybrid approach — Interpreter for startup speed, JIT for runtime performance. This is why Java is slow to start but fast once warmed up."
+  </div>
+
+  <h3>Interpreter vs JIT vs AOT</h3>
+  <table>
+    <tr><th>Type</th><th>When it compiles</th><th>Speed</th><th>Used in</th></tr>
+    <tr><td><strong>Interpreter</strong></td><td>At runtime, line by line</td><td>Slow</td><td>All JVMs (fallback)</td></tr>
+    <tr><td><strong>JIT</strong></td><td>At runtime, hot code only</td><td>Fast after warmup</td><td>HotSpot JVM (standard)</td></tr>
+    <tr><td><strong>AOT</strong> (Ahead of Time)</td><td>Before runtime (like C++)</td><td>Fast from start</td><td>GraalVM native image</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 6: JVM INTERNALS -->
+<div class="section" id="jvm-internals">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">JVM Internal Architecture</div>
+  </div>
+
+  <p>The JVM is made up of 3 main subsystems:</p>
+
+  <table>
+    <tr><th>Subsystem</th><th>Components</th><th>What it does</th></tr>
+    <tr>
+      <td><strong>Class Loader Subsystem</strong></td>
+      <td>Bootstrap, Extension, Application loaders</td>
+      <td>Loads .class files into memory</td>
+    </tr>
+    <tr>
+      <td><strong>Runtime Data Areas</strong></td>
+      <td>Heap, Stack, Method Area, PC Register, Native Stack</td>
+      <td>Memory areas used during execution</td>
+    </tr>
+    <tr>
+      <td><strong>Execution Engine</strong></td>
+      <td>Interpreter, JIT Compiler, Garbage Collector</td>
+      <td>Actually executes the bytecode</td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- SECTION 7: MEMORY -->
+<div class="section" id="memory">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">JVM Memory Areas</div>
+  </div>
+
+  <div class="memory-area">
+    <h4>JVM Memory Layout</h4>
+    <div class="mem-row">
+      <div class="mem-box mem-heap">
+        <div class="mem-title">Heap</div>
+        <div class="mem-desc">All objects &amp; arrays live here. Shared across all threads. GC manages this.</div>
+      </div>
+      <div class="mem-box mem-method">
+        <div class="mem-title">Method Area</div>
+        <div class="mem-desc">Class metadata, static variables, method code. Shared across threads.</div>
+      </div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-box mem-stack">
+        <div class="mem-title">Stack</div>
+        <div class="mem-desc">One per thread. Stores method call frames — local variables, return address.</div>
+      </div>
+      <div class="mem-box mem-pc">
+        <div class="mem-title">PC Register</div>
+        <div class="mem-desc">One per thread. Stores address of current instruction being executed.</div>
+      </div>
+      <div class="mem-box mem-native">
+        <div class="mem-title">Native Stack</div>
+        <div class="mem-desc">For native (C/C++) method calls via JNI.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Heap vs Stack — Most Asked</h3>
+  <table>
+    <tr><th>Feature</th><th>Heap</th><th>Stack</th></tr>
+    <tr><td>Stores</td><td>Objects, arrays, instance variables</td><td>Method calls, local variables, references</td></tr>
+    <tr><td>Shared?</td><td>Yes — shared by all threads</td><td>No — each thread has its own stack</td></tr>
+    <tr><td>Memory management</td><td>Garbage Collector</td><td>Automatic (LIFO — last in, first out)</td></tr>
+    <tr><td>Size</td><td>Larger</td><td>Smaller</td></tr>
+    <tr><td>Error when full</td><td><code>OutOfMemoryError</code></td><td><code>StackOverflowError</code></td></tr>
+    <tr><td>Example</td><td><code>new Dog()</code> → object on heap</td><td><code>int x = 5</code> → x on stack</td></tr>
+  </table>
+
+<pre><span class="kw">public void</span> myMethod() {
+    <span class="kw">int</span> x = <span class="cl">10</span>;            <span class="cm">// x stored on STACK</span>
+    <span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();   <span class="cm">// Dog object stored on HEAP</span>
+                          <span class="cm">// reference 'd' stored on STACK</span>
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Common Interview Trick:</strong><br>
+    "Where is a local variable stored?" → Stack<br>
+    "Where is an object stored?" → Heap<br>
+    "Where is a reference variable stored?" → Stack (the variable itself), but the object it points to is on the Heap
+  </div>
+</div>
+
+
+<!-- SECTION 8: GARBAGE COLLECTION -->
+<div class="section" id="gc">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Garbage Collection</div>
+  </div>
+
+  <p>Garbage Collection (GC) is the process by which JVM <strong>automatically frees memory</strong> occupied by objects that are no longer reachable (referenced) by the program.</p>
+
+  <h3>How does GC decide what to collect?</h3>
+  <p>An object is eligible for GC when it has <strong>no live references</strong> pointing to it.</p>
+<pre><span class="cl">Dog</span> d = <span class="kw">new</span> <span class="cl">Dog</span>();   <span class="cm">// Dog object created on heap</span>
+d = <span class="kw">null</span>;             <span class="cm">// reference removed → Dog object now eligible for GC</span>
+<span class="cm">// GC will free the Dog object's memory at some point</span></pre>
+
+  <h3>Key GC Facts</h3>
+  <ul>
+    <li>GC runs <strong>automatically</strong> — you cannot force it (calling <code>System.gc()</code> is only a suggestion)</li>
+    <li>GC only collects objects on the <strong>Heap</strong></li>
+    <li>The <strong>finalize()</strong> method (deprecated in Java 9+) was called before GC collected an object</li>
+    <li>Java has multiple GC algorithms: Serial GC, Parallel GC, G1 GC (default Java 9+), ZGC (Java 11+)</li>
+  </ul>
+
+  <h3>Generational GC — How Heap is Organized</h3>
+  <table>
+    <tr><th>Generation</th><th>What it contains</th><th>GC frequency</th></tr>
+    <tr><td><strong>Young Generation</strong> (Eden + Survivor)</td><td>Newly created objects</td><td>Very frequent (Minor GC)</td></tr>
+    <tr><td><strong>Old Generation</strong> (Tenured)</td><td>Long-lived objects promoted from Young</td><td>Less frequent (Major GC)</td></tr>
+    <tr><td><strong>Metaspace</strong> (Java 8+)</td><td>Class metadata (replaced PermGen)</td><td>Rare</td></tr>
+  </table>
+
+  <div class="info-box">
+    <strong>Why Generational GC?</strong> Most objects die young (created and immediately discarded). By collecting short-lived objects frequently in a small Young Generation, GC is fast and efficient. Long-lived objects are promoted to Old Generation and collected less often.
+  </div>
+</div>
+
+
+<!-- SECTION 9: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Top Interview Questions &amp; Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. Explain how a Java program runs from source code to output.</div>
+    <div class="a">You write source code in a .java file. The javac compiler compiles it into bytecode stored in a .class file. When you run the program, JVM's ClassLoader loads the .class file into memory. The Bytecode Verifier checks it for safety. The Execution Engine then runs it — the Interpreter executes bytecode line by line, while the JIT compiler detects hot code and compiles it to native machine code for better performance. Finally the output is produced.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between Interpreter and JIT Compiler?</div>
+    <div class="a">The Interpreter translates and executes bytecode one line at a time — simple but slow for repeated code. The JIT (Just-In-Time) Compiler monitors execution, detects frequently-called code ("hot code"), compiles it to native machine code once, and caches it for reuse. This makes Java fast for long-running applications. Java uses both — Interpreter for startup, JIT for performance.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the difference between Heap and Stack memory?</div>
+    <div class="a">Heap stores all objects and arrays — it is shared across all threads and managed by Garbage Collector. Stack stores method call frames including local variables and references — each thread has its own stack, and it follows LIFO. When heap is full we get OutOfMemoryError; when stack is full we get StackOverflowError (usually from infinite recursion).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is Garbage Collection? Can we force it?</div>
+    <div class="a">Garbage Collection is JVM's automatic memory management — it identifies objects with no live references and frees their heap memory. We cannot force GC — calling System.gc() is only a hint to JVM, not a guarantee. GC runs in the background and is managed entirely by JVM.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is the role of the ClassLoader?</div>
+    <div class="a">ClassLoader is a subsystem of JVM responsible for loading .class files into memory when they are first needed. Java uses three built-in ClassLoaders: Bootstrap (core classes like java.lang), Extension (JRE extension libraries), and Application (your classpath classes). Classes are loaded lazily — only when first referenced.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is StackOverflowError? When does it occur?</div>
+    <div class="a">StackOverflowError occurs when the JVM Stack runs out of space. This typically happens with infinite recursion — a method that calls itself endlessly fills up the stack with frames until there is no space left. Each method call adds a new frame to the stack; infinite calls exhaust it.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 2: How Java Runs · 2 of 26 complete
+</div>
+
+</body>
+</html>
