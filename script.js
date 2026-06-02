@@ -38,6 +38,8 @@ const topics = {
       { title: "Non-Access Modifiers",    file: "java/Topic17_NonAccess_Modifiers" },
       { title: "String",                  file: "java/Topic18_String" },
       { title: "Arrays",                  file: "java/Topic19_Arrays" },
+      { title: "Exception Handling",                  file: "java/Topic20_Exception_Handling" },
+      
     ],
   },
 

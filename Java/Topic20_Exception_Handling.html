@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 20 — Exception Handling in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 60%, #fca5a5 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #dc2626; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #7f1d1d; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #dc2626; padding-bottom: 12px; }
+  .section-num { background: #dc2626; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #7f1d1d; }
+  h3 { font-size: 1.05rem; color: #dc2626; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #fef2f2; border-left: 4px solid #dc2626; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #7f1d1d; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fef2f2; }
+  tr:hover { background: #fee2e2; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #7f1d1d; margin-top: 0; }
+  .hier-chart { background: #fef2f2; border-radius: 12px; padding: 20px; margin: 14px 0; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 2; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #dc2626; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 20 OF 26</div>
+  <h1>⚠️ Exception Handling</h1>
+  <p>try · catch · finally · throw · throws · Custom Exceptions · Hierarchy</p>
+  <div class="meta">
+    <span>Phase 4 — Core Java</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is an Exception?</a></li>
+    <li><a href="#hierarchy">Exception Hierarchy</a></li>
+    <li><a href="#checked-unchecked">Checked vs Unchecked Exceptions</a></li>
+    <li><a href="#trycatch">try-catch Block</a></li>
+    <li><a href="#finally">finally Block</a></li>
+    <li><a href="#multicatch">Multiple catch & Multi-catch</a></li>
+    <li><a href="#throw">throw keyword</a></li>
+    <li><a href="#throws">throws keyword</a></li>
+    <li><a href="#custom">Custom Exceptions</a></li>
+    <li><a href="#trywithresources">try-with-resources (Java 7)</a></li>
+    <li><a href="#common">Common Exceptions</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is an Exception?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Exception</strong> = an <strong>abnormal condition</strong> that disrupts the normal flow of a program. When something unexpected happens (divide by zero, null pointer, file not found), Java creates an Exception object and "throws" it. If not handled, the program terminates abruptly.
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Without Exception Handling</h4>
+      <p>Program crashes immediately on error</p>
+      <p>User sees ugly stack trace</p>
+      <p>Resources not released properly</p>
+      <p>No graceful recovery</p>
+    </div>
+    <div class="col-box">
+      <h4>With Exception Handling</h4>
+      <p>Error is caught and handled gracefully</p>
+      <p>User sees meaningful message</p>
+      <p>Resources released in finally block</p>
+      <p>Program can continue or exit cleanly</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: HIERARCHY -->
+<div class="section" id="hierarchy">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Exception Hierarchy</div>
+  </div>
+
+  <div class="hier-chart">
+    <span style="color:#7dd3fc">Throwable</span><br>
+    ├── <span style="color:#86efac">Error</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← <span style="color:#fcd34d">JVM errors — don't handle</span><br>
+    │&nbsp;&nbsp;&nbsp; ├── OutOfMemoryError<br>
+    │&nbsp;&nbsp;&nbsp; ├── StackOverflowError<br>
+    │&nbsp;&nbsp;&nbsp; └── VirtualMachineError<br>
+    └── <span style="color:#fca5a5">Exception</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← <span style="color:#fcd34d">Handle these!</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span style="color:#93c5fd">IOException</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Checked<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span style="color:#93c5fd">SQLException</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Checked<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span style="color:#93c5fd">ClassNotFoundException</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Checked<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── <span style="color:#f9a8d4">RuntimeException</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Unchecked<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── NullPointerException<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── ArrayIndexOutOfBoundsException<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── ArithmeticException<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── ClassCastException<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── NumberFormatException<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── IllegalArgumentException
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key distinction:</strong><br>
+    <code>Throwable</code> — root of all exceptions<br>
+    <code>Error</code> — serious JVM problems, don't catch<br>
+    <code>Exception</code> — problems you should handle<br>
+    <code>RuntimeException</code> — subclass of Exception, unchecked
+  </div>
+</div>
+
+
+<!-- SECTION 3: CHECKED VS UNCHECKED -->
+<div class="section" id="checked-unchecked">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Checked vs Unchecked Exceptions</div>
+  </div>
+
+  <table>
+    <tr><th>Feature</th><th>Checked Exception</th><th>Unchecked Exception</th></tr>
+    <tr><td>Also called</td><td>Compile-time exceptions</td><td>Runtime exceptions</td></tr>
+    <tr><td>Extends</td><td><code>Exception</code> (not RuntimeException)</td><td><code>RuntimeException</code></td></tr>
+    <tr><td>Compiler forces handling?</td><td>✅ Yes — must catch or declare throws</td><td>❌ No — optional</td></tr>
+    <tr><td>When they occur</td><td>External factors (file, network, DB)</td><td>Programming bugs (null, wrong index)</td></tr>
+    <tr><td>Examples</td><td>IOException, SQLException, ClassNotFoundException</td><td>NullPointerException, ArrayIndexOutOfBoundsException, ArithmeticException</td></tr>
+    <tr><td>Recovery possible?</td><td>Usually yes</td><td>Usually a bug to fix</td></tr>
+  </table>
+
+<pre><span class="cm">// Checked — compiler FORCES you to handle it</span>
+<span class="kw">public void</span> readFile(<span class="cl">String</span> path) <span class="kw">throws</span> <span class="cl">IOException</span> {
+    <span class="cl">FileReader</span> fr = <span class="kw">new</span> <span class="cl">FileReader</span>(path);  <span class="cm">// ← checked! must handle</span>
+}
+
+<span class="cm">// Unchecked — no compiler force, but can catch</span>
+<span class="kw">int</span>[] arr = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};
+System.out.println(arr[<span class="num">5</span>]);  <span class="cm">// ← ArrayIndexOutOfBoundsException at runtime</span></pre>
+</div>
+
+
+<!-- SECTION 4: TRY-CATCH -->
+<div class="section" id="trycatch">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">try-catch Block</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>try</strong> — code that might throw an exception<br>
+    <strong>catch</strong> — handles the exception if thrown<br>
+    Code after the exception in try block is SKIPPED when exception occurs
+  </div>
+
+<pre><span class="cm">// Basic try-catch</span>
+<span class="kw">try</span> {
+    <span class="kw">int</span> result = <span class="num">10</span> / <span class="num">0</span>;              <span class="cm">// ArithmeticException thrown here</span>
+    System.out.println(<span class="st">"This skipped"</span>); <span class="cm">// NEVER runs!</span>
+} <span class="kw">catch</span> (<span class="cl">ArithmeticException</span> e) {
+    System.out.println(<span class="st">"Cannot divide by zero: "</span> + e.getMessage());
+}
+System.out.println(<span class="st">"Program continues..."</span>); <span class="cm">// runs after catch</span>
+
+<span class="cm">// Exception object methods</span>
+<span class="kw">try</span> {
+    <span class="cl">String</span> s = <span class="kw">null</span>;
+    s.length();  <span class="cm">// NullPointerException</span>
+} <span class="kw">catch</span> (<span class="cl">NullPointerException</span> e) {
+    System.out.println(e.getMessage());    <span class="cm">// null (or description)</span>
+    System.out.println(e.getClass());      <span class="cm">// class java.lang.NullPointerException</span>
+    e.printStackTrace();                   <span class="cm">// full stack trace to console</span>
+}</pre>
+</div>
+
+
+<!-- SECTION 5: FINALLY -->
+<div class="section" id="finally">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">finally Block</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>finally</strong> block <strong>ALWAYS executes</strong> — whether an exception occurs or not, whether it is caught or not. Used for cleanup: closing files, database connections, releasing resources.
+  </div>
+
+<pre><span class="kw">try</span> {
+    System.out.println(<span class="st">"try block"</span>);
+    <span class="kw">int</span> x = <span class="num">10</span> / <span class="num">0</span>;  <span class="cm">// exception thrown</span>
+} <span class="kw">catch</span> (<span class="cl">ArithmeticException</span> e) {
+    System.out.println(<span class="st">"catch block"</span>);
+} <span class="kw">finally</span> {
+    System.out.println(<span class="st">"finally block"</span>);  <span class="cm">// ALWAYS runs!</span>
+}
+<span class="cm">// Output: try block → catch block → finally block</span>
+
+<span class="cm">// Even when no exception</span>
+<span class="kw">try</span> {
+    System.out.println(<span class="st">"try — no exception"</span>);
+} <span class="kw">catch</span> (<span class="cl">Exception</span> e) {
+    System.out.println(<span class="st">"catch — won't run"</span>);
+} <span class="kw">finally</span> {
+    System.out.println(<span class="st">"finally — still runs!"</span>);
+}
+<span class="cm">// Output: try — no exception → finally — still runs!</span>
+
+<span class="cm">// Resource cleanup pattern</span>
+<span class="cl">Connection</span> conn = <span class="kw">null</span>;
+<span class="kw">try</span> {
+    conn = getConnection();
+    <span class="cm">// use connection</span>
+} <span class="kw">catch</span> (<span class="cl">SQLException</span> e) {
+    e.printStackTrace();
+} <span class="kw">finally</span> {
+    <span class="kw">if</span> (conn != <span class="kw">null</span>) conn.close();  <span class="cm">// always close!</span>
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ finally does NOT run in one case:</strong><br>
+    <code>System.exit()</code> terminates the JVM — finally is skipped.<br>
+    Also: if the JVM crashes (power loss, etc.), finally may not run.
+  </div>
+</div>
+
+
+<!-- SECTION 6: MULTIPLE CATCH -->
+<div class="section" id="multicatch">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Multiple catch & Multi-catch (Java 7)</div>
+  </div>
+
+<pre><span class="cm">// Multiple catch blocks — most specific FIRST!</span>
+<span class="kw">try</span> {
+    <span class="kw">int</span>[] arr = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};
+    System.out.println(arr[<span class="num">5</span>]);   <span class="cm">// ArrayIndexOutOfBoundsException</span>
+    <span class="kw">int</span> x = <span class="num">10</span> / <span class="num">0</span>;               <span class="cm">// ArithmeticException</span>
+} <span class="kw">catch</span> (<span class="cl">ArrayIndexOutOfBoundsException</span> e) {
+    System.out.println(<span class="st">"Array error: "</span> + e.getMessage());
+} <span class="kw">catch</span> (<span class="cl">ArithmeticException</span> e) {
+    System.out.println(<span class="st">"Math error: "</span> + e.getMessage());
+} <span class="kw">catch</span> (<span class="cl">Exception</span> e) {         <span class="cm">// general catch — always LAST</span>
+    System.out.println(<span class="st">"General error: "</span> + e.getMessage());
+}
+
+<span class="cm">// Multi-catch (Java 7) — handle multiple exceptions same way</span>
+<span class="kw">try</span> {
+    <span class="cm">// some code</span>
+} <span class="kw">catch</span> (<span class="cl">IOException</span> | <span class="cl">SQLException</span> e) {  <span class="cm">// pipe | separates types</span>
+    System.out.println(<span class="st">"IO or DB error: "</span> + e.getMessage());
+}</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Most specific exception MUST come before general!</strong><br>
+    Putting <code>catch (Exception e)</code> first makes all specific catches unreachable — compile error!<br>
+    Order: specific → general (child before parent)
+  </div>
+</div>
+
+
+<!-- SECTION 7: THROW -->
+<div class="section" id="throw">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">throw keyword</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>throw</strong> is used to <strong>explicitly throw an exception</strong> from your code. You use it when you want to signal that something went wrong based on your business logic.
+  </div>
+
+<pre><span class="cm">// throw an exception explicitly</span>
+<span class="kw">public void</span> setAge(<span class="kw">int</span> age) {
+    <span class="kw">if</span> (age &lt; <span class="num">0</span> || age &gt; <span class="num">150</span>) {
+        <span class="kw">throw new</span> <span class="cl">IllegalArgumentException</span>(<span class="st">"Invalid age: "</span> + age);
+    }
+    <span class="kw">this</span>.age = age;
+}
+
+<span class="kw">public void</span> withdraw(<span class="kw">double</span> amount) {
+    <span class="kw">if</span> (amount &gt; balance) {
+        <span class="kw">throw new</span> <span class="cl">ArithmeticException</span>(<span class="st">"Insufficient funds"</span>);
+    }
+    balance -= amount;
+}
+
+<span class="cm">// throw stops method execution immediately</span>
+<span class="kw">public void</span> validate(<span class="cl">String</span> name) {
+    <span class="kw">if</span> (name == <span class="kw">null</span>) {
+        <span class="kw">throw new</span> <span class="cl">NullPointerException</span>(<span class="st">"Name cannot be null"</span>);
+    }
+    <span class="kw">if</span> (name.isEmpty()) {
+        <span class="kw">throw new</span> <span class="cl">IllegalArgumentException</span>(<span class="st">"Name cannot be empty"</span>);
+    }
+}</pre>
+</div>
+
+
+<!-- SECTION 8: THROWS -->
+<div class="section" id="throws">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">throws keyword</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>throws</strong> is used in the <strong>method signature</strong> to declare that this method might throw certain checked exceptions. It tells the caller: "you must handle these exceptions."
+  </div>
+
+<pre><span class="cm">// throws in method signature — declares possible exceptions</span>
+<span class="kw">public void</span> readFile(<span class="cl">String</span> path) <span class="kw">throws</span> <span class="cl">IOException</span> {
+    <span class="cl">FileReader</span> fr = <span class="kw">new</span> <span class="cl">FileReader</span>(path);  <span class="cm">// may throw IOException</span>
+    <span class="cm">// not handled here — propagated to caller</span>
+}
+
+<span class="cm">// Caller MUST handle</span>
+<span class="kw">public void</span> main() {
+    <span class="kw">try</span> {
+        readFile(<span class="st">"data.txt"</span>);
+    } <span class="kw">catch</span> (<span class="cl">IOException</span> e) {
+        System.out.println(<span class="st">"File error: "</span> + e.getMessage());
+    }
+}
+
+<span class="cm">// Multiple exceptions in throws</span>
+<span class="kw">public void</span> process() <span class="kw">throws</span> <span class="cl">IOException</span>, <span class="cl">SQLException</span> {
+    <span class="cm">// may throw either</span>
+}</pre>
+
+  <table>
+    <tr><th>Feature</th><th>throw</th><th>throws</th></tr>
+    <tr><td>Usage</td><td>Inside method body</td><td>In method signature</td></tr>
+    <tr><td>Purpose</td><td>Actually throws an exception</td><td>Declares which exceptions may be thrown</td></tr>
+    <tr><td>Object</td><td>Followed by exception instance</td><td>Followed by exception class name</td></tr>
+    <tr><td>Count</td><td>One exception at a time</td><td>Multiple with comma</td></tr>
+    <tr><td>Example</td><td><code>throw new IOException("msg")</code></td><td><code>void m() throws IOException</code></td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 9: CUSTOM EXCEPTIONS -->
+<div class="section" id="custom">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Custom Exceptions</div>
+  </div>
+
+  <div class="highlight-box">
+    Create your own exception class by extending <code>Exception</code> (checked) or <code>RuntimeException</code> (unchecked). Use when built-in exceptions don't convey the business meaning.
+  </div>
+
+<pre><span class="cm">// Custom checked exception</span>
+<span class="kw">public class</span> <span class="cl">InsufficientFundsException</span> <span class="kw">extends</span> <span class="cl">Exception</span> {
+    <span class="kw">private double</span> amount;
+
+    <span class="kw">public</span> <span class="cl">InsufficientFundsException</span>(<span class="kw">double</span> amount) {
+        <span class="kw">super</span>(<span class="st">"Insufficient funds. Need: "</span> + amount);
+        <span class="kw">this</span>.amount = amount;
+    }
+
+    <span class="kw">public double</span> getAmount() { <span class="kw">return</span> amount; }
+}
+
+<span class="cm">// Custom unchecked exception</span>
+<span class="kw">public class</span> <span class="cl">InvalidAgeException</span> <span class="kw">extends</span> <span class="cl">RuntimeException</span> {
+    <span class="kw">public</span> <span class="cl">InvalidAgeException</span>(<span class="cl">String</span> message) {
+        <span class="kw">super</span>(message);
+    }
+}
+
+<span class="cm">// Using custom exceptions</span>
+<span class="kw">public class</span> <span class="cl">BankAccount</span> {
+    <span class="kw">private double</span> balance = <span class="num">1000</span>;
+
+    <span class="kw">public void</span> withdraw(<span class="kw">double</span> amount) <span class="kw">throws</span> <span class="cl">InsufficientFundsException</span> {
+        <span class="kw">if</span> (amount &gt; balance) {
+            <span class="kw">throw new</span> <span class="cl">InsufficientFundsException</span>(amount - balance);
+        }
+        balance -= amount;
+    }
+}
+
+<span class="cm">// Handle custom exception</span>
+<span class="kw">try</span> {
+    account.withdraw(<span class="num">1500</span>);
+} <span class="kw">catch</span> (<span class="cl">InsufficientFundsException</span> e) {
+    System.out.println(e.getMessage());  <span class="cm">// Insufficient funds. Need: 500.0</span>
+    System.out.println(<span class="st">"Short by: "</span> + e.getAmount());
+}</pre>
+</div>
+
+
+<!-- SECTION 10: TRY-WITH-RESOURCES -->
+<div class="section" id="trywithresources">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">try-with-resources (Java 7)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>try-with-resources</strong> automatically closes resources (files, connections, streams) when the try block finishes — whether normally or by exception. Resources must implement <code>AutoCloseable</code>.
+  </div>
+
+<pre><span class="cm">// Old way — manual finally close</span>
+<span class="cl">BufferedReader</span> br = <span class="kw">null</span>;
+<span class="kw">try</span> {
+    br = <span class="kw">new</span> <span class="cl">BufferedReader</span>(<span class="kw">new</span> <span class="cl">FileReader</span>(<span class="st">"file.txt"</span>));
+    System.out.println(br.readLine());
+} <span class="kw">catch</span> (<span class="cl">IOException</span> e) {
+    e.printStackTrace();
+} <span class="kw">finally</span> {
+    <span class="kw">if</span> (br != <span class="kw">null</span>) br.close();  <span class="cm">// tedious and error-prone</span>
+}
+
+<span class="cm">// New way — try-with-resources (cleaner!)</span>
+<span class="kw">try</span> (<span class="cl">BufferedReader</span> br = <span class="kw">new</span> <span class="cl">BufferedReader</span>(<span class="kw">new</span> <span class="cl">FileReader</span>(<span class="st">"file.txt"</span>))) {
+    System.out.println(br.readLine());
+} <span class="kw">catch</span> (<span class="cl">IOException</span> e) {
+    e.printStackTrace();
+}
+<span class="cm">// br.close() called AUTOMATICALLY — no finally needed!</span>
+
+<span class="cm">// Multiple resources</span>
+<span class="kw">try</span> (<span class="cl">Connection</span> conn = getConn();
+     <span class="cl">Statement</span> stmt = conn.createStatement()) {
+    stmt.execute(<span class="st">"SELECT * FROM users"</span>);
+}
+<span class="cm">// Both stmt and conn closed automatically, in reverse order</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 AutoCloseable:</strong><br>
+    Any class implementing <code>AutoCloseable</code> (or <code>Closeable</code>) can be used in try-with-resources. Custom classes can also implement it to get automatic cleanup.
+  </div>
+</div>
+
+
+<!-- SECTION 11: COMMON EXCEPTIONS -->
+<div class="section" id="common">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div class="section-title">Common Exceptions — Know These!</div>
+  </div>
+
+  <table>
+    <tr><th>Exception</th><th>Type</th><th>Cause</th><th>Prevention</th></tr>
+    <tr><td><code>NullPointerException</code></td><td>Unchecked</td><td>Calling method/field on null reference</td><td>Null checks before use</td></tr>
+    <tr><td><code>ArrayIndexOutOfBoundsException</code></td><td>Unchecked</td><td>Array index &lt; 0 or ≥ length</td><td>Check bounds before access</td></tr>
+    <tr><td><code>ClassCastException</code></td><td>Unchecked</td><td>Invalid type cast</td><td>Use instanceof before casting</td></tr>
+    <tr><td><code>ArithmeticException</code></td><td>Unchecked</td><td>Divide by zero (integer)</td><td>Check divisor != 0</td></tr>
+    <tr><td><code>NumberFormatException</code></td><td>Unchecked</td><td><code>Integer.parseInt("abc")</code></td><td>Validate input before parsing</td></tr>
+    <tr><td><code>StackOverflowError</code></td><td>Error</td><td>Infinite recursion</td><td>Add base case to recursion</td></tr>
+    <tr><td><code>OutOfMemoryError</code></td><td>Error</td><td>Heap full — too many objects</td><td>Optimize memory usage</td></tr>
+    <tr><td><code>IOException</code></td><td>Checked</td><td>File/network operation failed</td><td>Validate file exists, network up</td></tr>
+    <tr><td><code>SQLException</code></td><td>Checked</td><td>DB query failed</td><td>Validate SQL, connection</td></tr>
+    <tr><td><code>IllegalArgumentException</code></td><td>Unchecked</td><td>Invalid method argument</td><td>Validate parameters</td></tr>
+    <tr><td><code>ConcurrentModificationException</code></td><td>Unchecked</td><td>Modify collection during iteration</td><td>Use Iterator.remove()</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 12: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is the difference between checked and unchecked exceptions?</div>
+    <div class="a">Checked exceptions are checked at compile time — the compiler forces you to either handle them with try-catch or declare them with throws. They extend Exception (but not RuntimeException). Examples: IOException, SQLException. Unchecked exceptions extend RuntimeException — the compiler doesn't force handling. They usually indicate programming bugs. Examples: NullPointerException, ArrayIndexOutOfBoundsException.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between throw and throws?</div>
+    <div class="a"><code>throw</code> is used inside a method body to actually throw an exception instance: <code>throw new IOException("msg")</code>. <code>throws</code> is used in a method signature to declare that the method might throw certain checked exceptions: <code>void readFile() throws IOException</code>. throw actually creates and throws the exception; throws is just a declaration warning the caller.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. Does finally always execute? When does it NOT run?</div>
+    <div class="a">finally almost always executes — whether exception occurs or not, whether it is caught or not. The only case where finally does NOT run is when <code>System.exit()</code> is called inside try or catch (terminates the JVM), or if the JVM itself crashes (power failure, etc.).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the difference between Exception and Error?</div>
+    <div class="a">Both extend Throwable. Exception represents conditions that a reasonable application might want to catch and recover from — like IOException, NullPointerException. Error represents serious problems that the JVM itself cannot recover from — like OutOfMemoryError, StackOverflowError. Errors are not meant to be caught by application code. Exceptions should be caught and handled.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is try-with-resources? Why is it better than finally?</div>
+    <div class="a">try-with-resources (Java 7) automatically closes resources declared in the try parentheses when the block exits — no explicit finally needed. Resources must implement AutoCloseable. It's better than finally because: it's cleaner (less code), it handles suppressed exceptions properly (if both try and close throw exceptions, the close exception is "suppressed" not lost), and it's less error-prone (no chance to forget closing).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. How do you create a custom exception?</div>
+    <div class="a">Extend Exception for a checked custom exception, or RuntimeException for an unchecked one. Provide constructors that call super(message) to pass the message to the parent. Optionally add extra fields for additional error details. Use your custom exception when built-in exceptions don't clearly express the business error — for example, InsufficientFundsException is clearer than ArithmeticException for a banking context.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What happens if an exception is thrown in a catch block?</div>
+    <div class="a">If an exception is thrown inside a catch block, the finally block still runs (if present), and then the new exception propagates up the call stack. The original exception is replaced by the new one unless you use exception chaining — <code>throw new NewException("msg", originalException)</code> — which preserves the original cause and is best practice for wrapping exceptions.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 20: Exception Handling · 20 of 26 complete
+</div>
+
+</body>
+</html>
