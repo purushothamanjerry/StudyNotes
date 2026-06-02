@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 18 — String in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #0369a1 0%, #0284c7 60%, #7dd3fc 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #0284c7; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #0369a1; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #0284c7; padding-bottom: 12px; }
+  .section-num { background: #0284c7; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #0369a1; }
+  h3 { font-size: 1.05rem; color: #0284c7; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #e0f2fe; border-left: 4px solid #0284c7; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #0369a1; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #e0f2fe; }
+  tr:hover { background: #bae6fd; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #0369a1; margin-top: 0; }
+  .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 14px 0; }
+  .str-card { border-radius: 10px; padding: 16px; border: 2px solid; }
+  .sc-string  { background: #fef2f2; border-color: #fca5a5; }
+  .sc-sb      { background: #f0fdf4; border-color: #86efac; }
+  .sc-sbuffer { background: #eff6ff; border-color: #93c5fd; }
+  .sc-title   { font-weight: 800; font-size: 0.9rem; margin-bottom: 6px; }
+  .sc-string .sc-title  { color: #dc2626; }
+  .sc-sb .sc-title      { color: #166534; }
+  .sc-sbuffer .sc-title { color: #1d4ed8; }
+  .sc-card p { font-size: 0.82rem; color: #4b5563; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #0284c7; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 18 OF 26</div>
+  <h1>📝 String in Java</h1>
+  <p>Immutability · String Pool · StringBuilder · StringBuffer · Methods · Comparison</p>
+  <div class="meta">
+    <span>Phase 4 — Core Java</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is String in Java?</a></li>
+    <li><a href="#create">Creating Strings — Literal vs new</a></li>
+    <li><a href="#immutable">Why String is Immutable</a></li>
+    <li><a href="#pool">String Pool</a></li>
+    <li><a href="#compare">String Comparison — == vs equals()</a></li>
+    <li><a href="#methods">Important String Methods</a></li>
+    <li><a href="#stringbuilder">StringBuilder</a></li>
+    <li><a href="#stringbuffer">StringBuffer</a></li>
+    <li><a href="#comparison">String vs StringBuilder vs StringBuffer</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is String in Java?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>String</strong> is a <strong>class</strong> in Java (not a primitive type) in the <code>java.lang</code> package. It represents a sequence of characters. Strings are <strong>immutable</strong> — once created, their value cannot be changed. String is a <code>final</code> class — cannot be subclassed.
+  </div>
+
+  <ul>
+    <li>String is an <strong>object</strong>, not a primitive — stored on Heap</li>
+    <li>String literals are stored in the <strong>String Pool</strong> (special Heap area)</li>
+    <li>String is <strong>immutable</strong> — any modification creates a new String object</li>
+    <li>String implements <code>Comparable&lt;String&gt;</code>, <code>Serializable</code>, <code>CharSequence</code></li>
+    <li>String is the <strong>most used class</strong> in Java</li>
+  </ul>
+</div>
+
+
+<!-- SECTION 2: CREATE -->
+<div class="section" id="create">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Creating Strings — Literal vs new</div>
+  </div>
+
+<pre><span class="cm">// Way 1: String literal — stored in String Pool</span>
+<span class="cl">String</span> s1 = <span class="st">"Hello"</span>;
+<span class="cl">String</span> s2 = <span class="st">"Hello"</span>;  <span class="cm">// reuses same "Hello" from pool</span>
+
+<span class="cm">// Way 2: new keyword — always creates NEW object on Heap</span>
+<span class="cl">String</span> s3 = <span class="kw">new</span> <span class="cl">String</span>(<span class="st">"Hello"</span>);  <span class="cm">// new object, outside pool</span>
+<span class="cl">String</span> s4 = <span class="kw">new</span> <span class="cl">String</span>(<span class="st">"Hello"</span>);  <span class="cm">// another new object</span>
+
+<span class="cm">// Way 3: from char array</span>
+<span class="kw">char</span>[] chars = {<span class="st">'H'</span>, <span class="st">'e'</span>, <span class="st">'l'</span>, <span class="st">'l'</span>, <span class="st">'o'</span>};
+<span class="cl">String</span> s5 = <span class="kw">new</span> <span class="cl">String</span>(chars);  <span class="cm">// "Hello"</span>
+
+<span class="cm">// Way 4: from StringBuilder/StringBuffer</span>
+<span class="cl">StringBuilder</span> sb = <span class="kw">new</span> <span class="cl">StringBuilder</span>(<span class="st">"Hello"</span>);
+<span class="cl">String</span> s6 = sb.toString();
+
+<span class="cm">// intern() — put string into pool from heap</span>
+<span class="cl">String</span> s7 = <span class="kw">new</span> <span class="cl">String</span>(<span class="st">"World"</span>).intern();  <span class="cm">// now in pool</span></pre>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>String Literal (preferred)</h4>
+      <p>Stored in String Pool</p>
+      <p>Reuses existing object if same value</p>
+      <p>Memory efficient</p>
+      <p><code>String s = "Hello";</code></p>
+    </div>
+    <div class="col-box">
+      <h4>new String()</h4>
+      <p>Always creates NEW object on Heap</p>
+      <p>NOT in String Pool</p>
+      <p>Wastes memory — avoid unless necessary</p>
+      <p><code>String s = new String("Hello");</code></p>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 3: IMMUTABLE -->
+<div class="section" id="immutable">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Why String is Immutable</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Immutable</strong> means once a String object is created, its character sequence CANNOT be changed. Any operation that appears to "modify" a String actually creates a NEW String object.
+  </div>
+
+<pre><span class="cl">String</span> s = <span class="st">"Hello"</span>;
+s = s + <span class="st">" World"</span>;    <span class="cm">// "Hello" object still exists in pool!</span>
+                       <span class="cm">// NEW "Hello World" object created</span>
+                       <span class="cm">// s now points to new object</span>
+
+<span class="cl">String</span> original = <span class="st">"Java"</span>;
+<span class="cl">String</span> upper    = original.toUpperCase();  <span class="cm">// creates NEW "JAVA"</span>
+System.out.println(original);  <span class="cm">// still "Java" — unchanged!</span>
+System.out.println(upper);     <span class="cm">// "JAVA" — new object</span></pre>
+
+  <h3>Why immutability?</h3>
+  <table>
+    <tr><th>Reason</th><th>Explanation</th></tr>
+    <tr><td><strong>String Pool safety</strong></td><td>Multiple references share same object. If mutable, one ref changing it would affect all others.</td></tr>
+    <tr><td><strong>Security</strong></td><td>Strings used for class names, network URLs, file paths, passwords. Mutable strings could be changed after security check.</td></tr>
+    <tr><td><strong>Thread safety</strong></td><td>Immutable objects are inherently thread-safe — no synchronization needed.</td></tr>
+    <tr><td><strong>HashCode caching</strong></td><td>String caches its hash code after first calculation. Immutability guarantees the hash never changes — safe for HashMap keys.</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 4: POOL -->
+<div class="section" id="pool">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">String Pool</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>String Pool</strong> (String Intern Pool) is a special area in the Heap where Java stores string literals. When a literal is created, JVM checks the pool first — if it exists, reuses it; if not, adds it. This saves memory.
+  </div>
+
+<pre><span class="cl">String</span> a = <span class="st">"Java"</span>;      <span class="cm">// "Java" added to pool</span>
+<span class="cl">String</span> b = <span class="st">"Java"</span>;      <span class="cm">// "Java" already in pool → reuse same object</span>
+<span class="cl">String</span> c = <span class="kw">new</span> <span class="cl">String</span>(<span class="st">"Java"</span>); <span class="cm">// new object on Heap — NOT in pool</span>
+
+System.out.println(a == b);          <span class="cm">// true  — same pool object</span>
+System.out.println(a == c);          <span class="cm">// false — different objects</span>
+System.out.println(a.equals(c));     <span class="cm">// true  — same content</span>
+
+<span class="cm">// intern() — forces string into pool</span>
+<span class="cl">String</span> d = c.intern();
+System.out.println(a == d);          <span class="cm">// true  — d now points to pool object</span>
+
+<span class="cm">// Compile-time concatenation — also goes to pool!</span>
+<span class="cl">String</span> e = <span class="st">"Ja"</span> + <span class="st">"va"</span>;  <span class="cm">// compiler combines → "Java" in pool</span>
+System.out.println(a == e);  <span class="cm">// true!</span>
+
+<span class="cm">// Runtime concatenation — NOT in pool (new object)</span>
+<span class="cl">String</span> x = <span class="st">"Ja"</span>;
+<span class="cl">String</span> f = x + <span class="st">"va"</span>;     <span class="cm">// runtime concat → new heap object</span>
+System.out.println(a == f);  <span class="cm">// false!</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Compile-time vs Runtime concatenation in pool:</strong><br>
+    <code>"Ja" + "va"</code> → compiler resolves to <code>"Java"</code> at compile time → goes to pool ✅<br>
+    <code>x + "va"</code> (where x is a variable) → resolved at runtime → new Heap object, NOT in pool ❌
+  </div>
+</div>
+
+
+<!-- SECTION 5: COMPARE -->
+<div class="section" id="compare">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">String Comparison</div>
+  </div>
+
+<pre><span class="cl">String</span> s1 = <span class="st">"Hello"</span>;
+<span class="cl">String</span> s2 = <span class="st">"Hello"</span>;
+<span class="cl">String</span> s3 = <span class="kw">new</span> <span class="cl">String</span>(<span class="st">"Hello"</span>);
+<span class="cl">String</span> s4 = <span class="st">"hello"</span>;
+
+<span class="cm">// == compares REFERENCES (memory address)</span>
+System.out.println(s1 == s2);            <span class="cm">// true  — same pool object</span>
+System.out.println(s1 == s3);            <span class="cm">// false — different objects</span>
+
+<span class="cm">// equals() compares CONTENT (case-sensitive)</span>
+System.out.println(s1.equals(s2));       <span class="cm">// true</span>
+System.out.println(s1.equals(s3));       <span class="cm">// true</span>
+System.out.println(s1.equals(s4));       <span class="cm">// false — case sensitive!</span>
+
+<span class="cm">// equalsIgnoreCase() — case-insensitive comparison</span>
+System.out.println(s1.equalsIgnoreCase(s4));  <span class="cm">// true</span>
+
+<span class="cm">// compareTo() — lexicographic comparison (like dictionary)</span>
+System.out.println(<span class="st">"apple"</span>.compareTo(<span class="st">"banana"</span>));  <span class="cm">// negative (a before b)</span>
+System.out.println(<span class="st">"cat"</span>.compareTo(<span class="st">"cat"</span>));       <span class="cm">// 0 (equal)</span>
+System.out.println(<span class="st">"dog"</span>.compareTo(<span class="st">"cat"</span>));       <span class="cm">// positive (d after c)</span>
+
+<span class="cm">// NEVER compare String with == for content!</span>
+<span class="cm">// Always use .equals()</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 Null-safe comparison tip:</strong><br>
+    <code>str.equals("Hello")</code> — throws NullPointerException if str is null!<br>
+    <code>"Hello".equals(str)</code> — safe! Literal on left, variable on right — never NPE.
+  </div>
+</div>
+
+
+<!-- SECTION 6: METHODS -->
+<div class="section" id="methods">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Important String Methods</div>
+  </div>
+
+<pre><span class="cl">String</span> s = <span class="st">"  Hello, Java World!  "</span>;
+
+<span class="cm">// Length</span>
+s.length();                   <span class="cm">// 22 — counts spaces too</span>
+
+<span class="cm">// Case</span>
+s.toUpperCase();              <span class="cm">// "  HELLO, JAVA WORLD!  "</span>
+s.toLowerCase();              <span class="cm">// "  hello, java world!  "</span>
+
+<span class="cm">// Trim / Strip (Java 11)</span>
+s.trim();                     <span class="cm">// "Hello, Java World!" — removes leading/trailing spaces</span>
+s.strip();                    <span class="cm">// same but Unicode-aware (Java 11)</span>
+s.stripLeading();             <span class="cm">// "Hello, Java World!  " (Java 11)</span>
+s.stripTrailing();            <span class="cm">// "  Hello, Java World!" (Java 11)</span>
+
+<span class="cm">// Substring</span>
+<span class="cl">String</span> t = <span class="st">"Hello World"</span>;
+t.substring(<span class="num">6</span>);              <span class="cm">// "World" (from index 6 to end)</span>
+t.substring(<span class="num">0</span>, <span class="num">5</span>);          <span class="cm">// "Hello" (0 inclusive, 5 exclusive)</span>
+
+<span class="cm">// Character access</span>
+t.charAt(<span class="num">0</span>);                 <span class="cm">// 'H'</span>
+t.charAt(<span class="num">6</span>);                 <span class="cm">// 'W'</span>
+
+<span class="cm">// Search</span>
+t.indexOf(<span class="st">'o'</span>);             <span class="cm">// 4 (first occurrence)</span>
+t.lastIndexOf(<span class="st">'o'</span>);         <span class="cm">// 7 (last occurrence)</span>
+t.indexOf(<span class="st">"World"</span>);         <span class="cm">// 6</span>
+t.contains(<span class="st">"World"</span>);        <span class="cm">// true</span>
+
+<span class="cm">// Check</span>
+t.startsWith(<span class="st">"Hello"</span>);      <span class="cm">// true</span>
+t.endsWith(<span class="st">"World"</span>);        <span class="cm">// true</span>
+t.isEmpty();                  <span class="cm">// false</span>
+t.isBlank();                  <span class="cm">// false (Java 11) — true if empty or whitespace only</span>
+
+<span class="cm">// Replace</span>
+t.replace(<span class="st">'l'</span>, <span class="st">'L'</span>);        <span class="cm">// "HeLLo WorLd" (ALL occurrences)</span>
+t.replace(<span class="st">"World"</span>, <span class="st">"Java"</span>); <span class="cm">// "Hello Java"</span>
+t.replaceAll(<span class="st">"[aeiou]"</span>, <span class="st">"*"</span>); <span class="cm">// regex replace</span>
+
+<span class="cm">// Split</span>
+<span class="cl">String</span>[] parts = <span class="st">"a,b,c,d"</span>.split(<span class="st">","</span>);  <span class="cm">// ["a","b","c","d"]</span>
+<span class="cl">String</span>[] words = t.split(<span class="st">" "</span>);           <span class="cm">// ["Hello","World"]</span>
+
+<span class="cm">// Join (Java 8)</span>
+<span class="cl">String</span>.join(<span class="st">"-"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>);       <span class="cm">// "a-b-c"</span>
+<span class="cl">String</span>.join(<span class="st">", "</span>, parts);               <span class="cm">// "a, b, c, d"</span>
+
+<span class="cm">// Convert</span>
+<span class="cl">String</span>.valueOf(<span class="num">42</span>);           <span class="cm">// "42"</span>
+<span class="cl">String</span>.valueOf(<span class="kw">true</span>);         <span class="cm">// "true"</span>
+<span class="cl">Integer</span>.parseInt(<span class="st">"42"</span>);      <span class="cm">// 42 (String → int)</span>
+<span class="kw">int</span>[] arr = {<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>};
+<span class="cl">String</span> arrStr = <span class="cl">Arrays</span>.toString(arr); <span class="cm">// "[1, 2, 3]"</span>
+
+<span class="cm">// Compare (for sorting)</span>
+<span class="st">"apple"</span>.compareTo(<span class="st">"banana"</span>);           <span class="cm">// negative</span>
+<span class="st">"apple"</span>.compareToIgnoreCase(<span class="st">"APPLE"</span>);  <span class="cm">// 0</span>
+
+<span class="cm">// toCharArray</span>
+<span class="kw">char</span>[] chars = <span class="st">"Hello"</span>.toCharArray();  <span class="cm">// ['H','e','l','l','o']</span>
+
+<span class="cm">// formatted (Java 15) — like printf</span>
+<span class="cl">String</span> msg = <span class="cl">String</span>.format(<span class="st">"Name: %s, Age: %d"</span>, <span class="st">"Alice"</span>, <span class="num">25</span>); <span class="cm">// "Name: Alice, Age: 25"</span></pre>
+
+  <table>
+    <tr><th>Method</th><th>Returns</th><th>Example</th></tr>
+    <tr><td><code>length()</code></td><td>int</td><td><code>"Hello".length()</code> → 5</td></tr>
+    <tr><td><code>charAt(i)</code></td><td>char</td><td><code>"Hello".charAt(1)</code> → 'e'</td></tr>
+    <tr><td><code>substring(start)</code></td><td>String</td><td><code>"Hello".substring(2)</code> → "llo"</td></tr>
+    <tr><td><code>substring(s,e)</code></td><td>String</td><td><code>"Hello".substring(1,3)</code> → "el"</td></tr>
+    <tr><td><code>indexOf(ch)</code></td><td>int</td><td><code>"Hello".indexOf('l')</code> → 2</td></tr>
+    <tr><td><code>contains(s)</code></td><td>boolean</td><td><code>"Hello".contains("ell")</code> → true</td></tr>
+    <tr><td><code>replace(o,n)</code></td><td>String</td><td><code>"Hello".replace('l','L')</code> → "HeLLo"</td></tr>
+    <tr><td><code>trim()</code></td><td>String</td><td><code>" Hi ".trim()</code> → "Hi"</td></tr>
+    <tr><td><code>split(regex)</code></td><td>String[]</td><td><code>"a,b".split(",")</code> → ["a","b"]</td></tr>
+    <tr><td><code>toUpperCase()</code></td><td>String</td><td><code>"hi".toUpperCase()</code> → "HI"</td></tr>
+    <tr><td><code>equals(s)</code></td><td>boolean</td><td><code>"hi".equals("hi")</code> → true</td></tr>
+    <tr><td><code>compareTo(s)</code></td><td>int</td><td><code>"a".compareTo("b")</code> → negative</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 7: STRINGBUILDER -->
+<div class="section" id="stringbuilder">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">StringBuilder</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>StringBuilder</strong> is a <strong>mutable</strong> sequence of characters. Unlike String, modifications happen in-place — no new objects created. <strong>Not thread-safe</strong>. Use in single-threaded code for performance.
+  </div>
+
+<pre><span class="cl">StringBuilder</span> sb = <span class="kw">new</span> <span class="cl">StringBuilder</span>();
+<span class="cl">StringBuilder</span> sb2 = <span class="kw">new</span> <span class="cl">StringBuilder</span>(<span class="st">"Hello"</span>);
+<span class="cl">StringBuilder</span> sb3 = <span class="kw">new</span> <span class="cl">StringBuilder</span>(<span class="num">50</span>); <span class="cm">// initial capacity 50</span>
+
+<span class="cm">// append — most used method</span>
+sb.append(<span class="st">"Hello"</span>);
+sb.append(<span class="st">" "</span>);
+sb.append(<span class="st">"World"</span>);
+System.out.println(sb);  <span class="cm">// Hello World</span>
+
+<span class="cm">// Method chaining</span>
+sb.append(<span class="st">"!"</span>).append(<span class="st">"!!"</span>);  <span class="cm">// Hello World!!!</span>
+
+<span class="cm">// insert — add at specific position</span>
+sb.insert(<span class="num">5</span>, <span class="st">","</span>);   <span class="cm">// Hello, World!!!</span>
+
+<span class="cm">// delete — remove characters</span>
+sb.delete(<span class="num">5</span>, <span class="num">6</span>);    <span class="cm">// Hello World!!!</span>
+
+<span class="cm">// replace</span>
+sb.replace(<span class="num">6</span>, <span class="num">11</span>, <span class="st">"Java"</span>);  <span class="cm">// Hello Java!!!</span>
+
+<span class="cm">// reverse</span>
+<span class="kw">new</span> <span class="cl">StringBuilder</span>(<span class="st">"hello"</span>).reverse();  <span class="cm">// "olleh"</span>
+
+<span class="cm">// Other useful methods</span>
+sb.length();           <span class="cm">// current length</span>
+sb.capacity();         <span class="cm">// internal buffer size (default 16)</span>
+sb.charAt(<span class="num">0</span>);         <span class="cm">// 'H'</span>
+sb.indexOf(<span class="st">"Java"</span>);   <span class="cm">// position</span>
+sb.toString();         <span class="cm">// convert to String</span>
+
+<span class="cm">// Why StringBuilder is faster than String concatenation in loops</span>
+<span class="cm">// BAD — creates 1000 String objects!</span>
+<span class="cl">String</span> result = <span class="st">""</span>;
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">1000</span>; i++) result += i;
+
+<span class="cm">// GOOD — modifies same StringBuilder object</span>
+<span class="cl">StringBuilder</span> fast = <span class="kw">new</span> <span class="cl">StringBuilder</span>();
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">1000</span>; i++) fast.append(i);</pre>
+</div>
+
+
+<!-- SECTION 8: STRINGBUFFER -->
+<div class="section" id="stringbuffer">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">StringBuffer</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>StringBuffer</strong> is identical to StringBuilder except all its methods are <strong>synchronized</strong> — making it <strong>thread-safe</strong>. Use in multi-threaded environments. Slower than StringBuilder due to synchronization overhead.
+  </div>
+
+<pre><span class="cl">StringBuffer</span> sbuf = <span class="kw">new</span> <span class="cl">StringBuffer</span>(<span class="st">"Hello"</span>);
+sbuf.append(<span class="st">" World"</span>);   <span class="cm">// synchronized — thread safe</span>
+sbuf.reverse();
+sbuf.insert(<span class="num">0</span>, <span class="st">">> "</span>);
+System.out.println(sbuf.toString());
+
+<span class="cm">// Same API as StringBuilder — just synchronized</span></pre>
+</div>
+
+
+<!-- SECTION 9: COMPARISON TABLE -->
+<div class="section" id="comparison">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">String vs StringBuilder vs StringBuffer</div>
+  </div>
+
+  <div class="three-col">
+    <div class="str-card sc-string">
+      <div class="sc-title">String</div>
+      <p>Immutable</p>
+      <p>Thread-safe (immutable)</p>
+      <p>Slow for frequent changes</p>
+      <p>Stored in String Pool</p>
+      <p>Use for fixed text</p>
+    </div>
+    <div class="str-card sc-sb">
+      <div class="sc-title">StringBuilder</div>
+      <p>Mutable</p>
+      <p>NOT thread-safe</p>
+      <p>Fastest performance</p>
+      <p>Single-threaded use</p>
+      <p>Use in loops/building strings</p>
+    </div>
+    <div class="str-card sc-sbuffer">
+      <div class="sc-title">StringBuffer</div>
+      <p>Mutable</p>
+      <p>Thread-safe (synchronized)</p>
+      <p>Slower than StringBuilder</p>
+      <p>Multi-threaded use</p>
+      <p>Use when shared between threads</p>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Feature</th><th>String</th><th>StringBuilder</th><th>StringBuffer</th></tr>
+    <tr><td>Mutability</td><td>Immutable</td><td>Mutable</td><td>Mutable</td></tr>
+    <tr><td>Thread-safe</td><td>Yes (immutable)</td><td>No</td><td>Yes (synchronized)</td></tr>
+    <tr><td>Performance</td><td>Slow (creates objects)</td><td>Fast</td><td>Slower than SB</td></tr>
+    <tr><td>Storage</td><td>String Pool / Heap</td><td>Heap</td><td>Heap</td></tr>
+    <tr><td>Since</td><td>Java 1.0</td><td>Java 1.5</td><td>Java 1.0</td></tr>
+    <tr><td>Use when</td><td>Few modifications</td><td>Many mods, single thread</td><td>Many mods, multi-thread</td></tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>💡 Interview rule:</strong><br>
+    Single thread + many string changes → <strong>StringBuilder</strong><br>
+    Multiple threads sharing a string object → <strong>StringBuffer</strong><br>
+    String value rarely changes → <strong>String</strong>
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. Why is String immutable in Java?</div>
+    <div class="a">String is immutable for four reasons: (1) <strong>String Pool safety</strong> — multiple references share the same object; mutability would cause one change to affect all. (2) <strong>Security</strong> — strings are used for class names, URLs, file paths, passwords — immutability prevents tampering after security checks. (3) <strong>Thread safety</strong> — immutable objects need no synchronization. (4) <strong>HashCode caching</strong> — String caches its hash code after first calculation, safe because value never changes — important for HashMap keys.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the String Pool?</div>
+    <div class="a">The String Pool (intern pool) is a special area in the Heap where Java stores string literals. When a string literal is created, JVM checks the pool first — if the same value exists, it reuses that object (no new allocation). This saves memory since strings are very frequently used. String literals go to the pool automatically; strings created with <code>new String()</code> go to the regular Heap. The <code>intern()</code> method moves a heap string into the pool.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the difference between String, StringBuilder, and StringBuffer?</div>
+    <div class="a">String is immutable — any modification creates a new object, making it slow for frequent changes. StringBuilder is mutable and fast, but not thread-safe — use in single-threaded code. StringBuffer is mutable and thread-safe (synchronized methods), but slower than StringBuilder due to synchronization overhead — use when multiple threads share the same object. For most cases, prefer StringBuilder over StringBuffer.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the output? String s = "a" + "b" + "c"; Is it in the String Pool?</div>
+    <div class="a">Yes, <code>"a" + "b" + "c"</code> is a compile-time constant expression. The Java compiler evaluates it to <code>"abc"</code> at compile time and places it in the String Pool. So <code>String s = "a"+"b"+"c"</code> and <code>String t = "abc"</code> would have <code>s == t</code> as true. But if any part is a variable (<code>String x = "a"; x + "bc"</code>), it's a runtime operation and the result goes to the regular Heap.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. How many String objects are created? String s = new String("Hello");</div>
+    <div class="a">Up to <strong>2 objects</strong>: (1) The literal <code>"Hello"</code> is created in the String Pool (if not already there). (2) The <code>new String("Hello")</code> creates a second object on the Heap. If <code>"Hello"</code> was already in the pool, only 1 new object (the Heap one) is created. This is why <code>new String()</code> should be avoided — it wastes memory.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is the difference between == and equals() for Strings?</div>
+    <div class="a"><code>==</code> compares references — checks if both variables point to the same memory location. For strings, this is true for pool literals but false for <code>new String()</code> objects with the same content. <code>.equals()</code> compares the actual character content — always use this for string comparison. The safe idiom is <code>"literal".equals(variable)</code> to avoid NullPointerException.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. How to reverse a String in Java?</div>
+    <div class="a">Easiest way: use StringBuilder's reverse() method — <code>new StringBuilder(str).reverse().toString()</code>. Alternatively, iterate from end to start using a loop or convert to char array and swap. String has no built-in reverse() method because strings are immutable and reversing would require a new object — hence StringBuilder is the standard approach.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 18: String · 18 of 26 complete
+</div>
+
+</body>
+</html>

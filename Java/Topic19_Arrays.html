@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 19 — Arrays in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #166534 0%, #16a34a 60%, #86efac 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #16a34a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #166534; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #16a34a; padding-bottom: 12px; }
+  .section-num { background: #16a34a; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #166534; }
+  h3 { font-size: 1.05rem; color: #16a34a; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #166534; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f0fdf4; }
+  tr:hover { background: #dcfce7; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #166534; margin-top: 0; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #16a34a; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 19 OF 26</div>
+  <h1>📊 Arrays in Java</h1>
+  <p>1D · 2D · Jagged · Arrays class · Sorting · Searching · Limitations</p>
+  <div class="meta">
+    <span>Phase 4 — Core Java</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is an Array?</a></li>
+    <li><a href="#declare">Declaring & Creating Arrays</a></li>
+    <li><a href="#access">Accessing & Modifying Elements</a></li>
+    <li><a href="#iterate">Iterating Arrays</a></li>
+    <li><a href="#2d">2D Arrays</a></li>
+    <li><a href="#jagged">Jagged Arrays</a></li>
+    <li><a href="#arrays-class">Arrays Utility Class</a></li>
+    <li><a href="#pass">Passing Arrays to Methods</a></li>
+    <li><a href="#limitations">Array Limitations</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1 -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is an Array?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Definition:</strong> An array is a <strong>fixed-size, ordered collection</strong> of elements of the <strong>same data type</strong>, stored in <strong>contiguous memory</strong>. Array is an <strong>object</strong> in Java — stored on the Heap. Elements are accessed by a zero-based <strong>index</strong>.
+  </div>
+
+  <ul>
+    <li>Fixed size — size cannot change after creation</li>
+    <li>Same type — all elements must be of declared type</li>
+    <li>Zero-indexed — first element at index 0, last at <code>length-1</code></li>
+    <li>Object — arrays are objects, stored on Heap</li>
+    <li>Default values — <code>int[]</code> defaults to 0, <code>boolean[]</code> to false, <code>Object[]</code> to null</li>
+  </ul>
+</div>
+
+
+<!-- SECTION 2 -->
+<div class="section" id="declare">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Declaring & Creating Arrays</div>
+  </div>
+
+<pre><span class="cm">// Declaration (no memory allocated yet)</span>
+<span class="kw">int</span>[] arr;           <span class="cm">// preferred style</span>
+<span class="kw">int</span> arr2[];          <span class="cm">// C-style (valid but not recommended)</span>
+
+<span class="cm">// Creation with new (allocates memory, default values)</span>
+arr = <span class="kw">new int</span>[<span class="num">5</span>];   <span class="cm">// 5 ints, all = 0</span>
+
+<span class="cm">// Declaration + creation together</span>
+<span class="kw">int</span>[] nums = <span class="kw">new int</span>[<span class="num">5</span>];  <span class="cm">// [0, 0, 0, 0, 0]</span>
+<span class="cl">String</span>[] names = <span class="kw">new</span> <span class="cl">String</span>[<span class="num">3</span>]; <span class="cm">// [null, null, null]</span>
+
+<span class="cm">// Array initializer — size inferred from values</span>
+<span class="kw">int</span>[] scores = {<span class="num">85</span>, <span class="num">92</span>, <span class="num">78</span>, <span class="num">96</span>, <span class="num">88</span>};
+<span class="cl">String</span>[] fruits = {<span class="st">"Apple"</span>, <span class="st">"Banana"</span>, <span class="st">"Cherry"</span>};
+
+<span class="cm">// new with initializer</span>
+<span class="kw">int</span>[] vals = <span class="kw">new int</span>[]{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};  <span class="cm">// useful when passing to method</span>
+
+<span class="cm">// Array of objects</span>
+<span class="cl">Dog</span>[] dogs = <span class="kw">new</span> <span class="cl">Dog</span>[<span class="num">3</span>];   <span class="cm">// 3 null Dog references</span>
+dogs[<span class="num">0</span>] = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Bruno"</span>);
+dogs[<span class="num">1</span>] = <span class="kw">new</span> <span class="cl">Dog</span>(<span class="st">"Max"</span>);
+
+<span class="cm">// length property (not a method!)</span>
+System.out.println(scores.length);  <span class="cm">// 5</span>
+<span class="cm">// scores.length() ❌ — length is a FIELD, not method</span></pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Common mistakes:</strong><br>
+    <code>arr.length()</code> → ❌ length is a <strong>field</strong>, not a method — no parentheses!<br>
+    <code>arr[5]</code> on array of size 5 → ❌ <strong>ArrayIndexOutOfBoundsException</strong> — valid indices are 0 to 4
+  </div>
+</div>
+
+
+<!-- SECTION 3 -->
+<div class="section" id="access">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Accessing & Modifying Elements</div>
+  </div>
+
+<pre><span class="kw">int</span>[] arr = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};
+<span class="cm">// index:    0    1    2    3    4</span>
+
+<span class="cm">// Read</span>
+System.out.println(arr[<span class="num">0</span>]);   <span class="cm">// 10 — first element</span>
+System.out.println(arr[<span class="num">4</span>]);   <span class="cm">// 50 — last element</span>
+System.out.println(arr[arr.length - <span class="num">1</span>]); <span class="cm">// 50 — last element safe way</span>
+
+<span class="cm">// Write</span>
+arr[<span class="num">2</span>] = <span class="num">99</span>;   <span class="cm">// arr = [10, 20, 99, 40, 50]</span>
+
+<span class="cm">// ArrayIndexOutOfBoundsException</span>
+<span class="cm">// arr[-1] ❌ — negative index not allowed</span>
+<span class="cm">// arr[5]  ❌ — index 5 out of bounds for length 5</span>
+
+<span class="cm">// Default values after new</span>
+<span class="kw">int</span>[]     ints    = <span class="kw">new int</span>[<span class="num">3</span>];     <span class="cm">// [0, 0, 0]</span>
+<span class="kw">double</span>[]  doubles = <span class="kw">new double</span>[<span class="num">3</span>]; <span class="cm">// [0.0, 0.0, 0.0]</span>
+<span class="kw">boolean</span>[] bools   = <span class="kw">new boolean</span>[<span class="num">3</span>]; <span class="cm">// [false, false, false]</span>
+<span class="cl">String</span>[]  strs    = <span class="kw">new</span> <span class="cl">String</span>[<span class="num">3</span>]; <span class="cm">// [null, null, null]</span></pre>
+</div>
+
+
+<!-- SECTION 4 -->
+<div class="section" id="iterate">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Iterating Arrays</div>
+  </div>
+
+<pre><span class="kw">int</span>[] arr = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};
+
+<span class="cm">// 1. Classic for loop — when you need the index</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; arr.length; i++) {
+    System.out.println(<span class="st">"Index "</span> + i + <span class="st">": "</span> + arr[i]);
+}
+
+<span class="cm">// 2. for-each loop — cleanest, no index</span>
+<span class="kw">for</span> (<span class="kw">int</span> num : arr) {
+    System.out.println(num);
+}
+
+<span class="cm">// 3. while loop</span>
+<span class="kw">int</span> i = <span class="num">0</span>;
+<span class="kw">while</span> (i &lt; arr.length) {
+    System.out.println(arr[i++]);
+}
+
+<span class="cm">// 4. Arrays.stream() — Java 8</span>
+<span class="cl">Arrays</span>.stream(arr).forEach(System.out::println);
+
+<span class="cm">// 5. Print whole array</span>
+System.out.println(<span class="cl">Arrays</span>.toString(arr));  <span class="cm">// [10, 20, 30, 40, 50]</span>
+
+<span class="cm">// Common operations while iterating</span>
+<span class="kw">int</span> sum = <span class="num">0</span>, max = arr[<span class="num">0</span>], min = arr[<span class="num">0</span>];
+<span class="kw">for</span> (<span class="kw">int</span> n : arr) {
+    sum += n;
+    <span class="kw">if</span> (n &gt; max) max = n;
+    <span class="kw">if</span> (n &lt; min) min = n;
+}
+System.out.println(<span class="st">"Sum="</span> + sum + <span class="st">" Max="</span> + max + <span class="st">" Min="</span> + min);
+<span class="cm">// Sum=150 Max=50 Min=10</span></pre>
+</div>
+
+
+<!-- SECTION 5 -->
+<div class="section" id="2d">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">2D Arrays</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>2D array</strong> = array of arrays. Think of it as a table with rows and columns. In Java, 2D arrays are actually arrays where each element is itself an array.
+  </div>
+
+<pre><span class="cm">// Declaration and creation</span>
+<span class="kw">int</span>[][] matrix = <span class="kw">new int</span>[<span class="num">3</span>][<span class="num">4</span>];  <span class="cm">// 3 rows, 4 columns, all 0s</span>
+
+<span class="cm">// Initializer</span>
+<span class="kw">int</span>[][] grid = {
+    {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>},   <span class="cm">// row 0</span>
+    {<span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>},   <span class="cm">// row 1</span>
+    {<span class="num">7</span>, <span class="num">8</span>, <span class="num">9</span>}    <span class="cm">// row 2</span>
+};
+
+<span class="cm">// Access: array[row][column]</span>
+System.out.println(grid[<span class="num">0</span>][<span class="num">0</span>]);  <span class="cm">// 1 — top-left</span>
+System.out.println(grid[<span class="num">1</span>][<span class="num">2</span>]);  <span class="cm">// 6 — row 1, col 2</span>
+System.out.println(grid[<span class="num">2</span>][<span class="num">2</span>]);  <span class="cm">// 9 — bottom-right</span>
+
+<span class="cm">// Dimensions</span>
+System.out.println(grid.length);       <span class="cm">// 3 — number of rows</span>
+System.out.println(grid[<span class="num">0</span>].length);   <span class="cm">// 3 — number of columns in row 0</span>
+
+<span class="cm">// Iterating 2D array</span>
+<span class="kw">for</span> (<span class="kw">int</span> row = <span class="num">0</span>; row &lt; grid.length; row++) {
+    <span class="kw">for</span> (<span class="kw">int</span> col = <span class="num">0</span>; col &lt; grid[row].length; col++) {
+        System.out.print(grid[row][col] + <span class="st">"\t"</span>);
+    }
+    System.out.println();
+}
+<span class="cm">// Output:
+// 1  2  3
+// 4  5  6
+// 7  8  9</span>
+
+<span class="cm">// for-each on 2D</span>
+<span class="kw">for</span> (<span class="kw">int</span>[] row : grid) {
+    <span class="kw">for</span> (<span class="kw">int</span> val : row) {
+        System.out.print(val + <span class="st">" "</span>);
+    }
+    System.out.println();
+}
+
+<span class="cm">// Print 2D array</span>
+System.out.println(<span class="cl">Arrays</span>.deepToString(grid));
+<span class="cm">// [[1, 2, 3], [4, 5, 6], [7, 8, 9]]</span></pre>
+</div>
+
+
+<!-- SECTION 6 -->
+<div class="section" id="jagged">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Jagged Arrays (Ragged Arrays)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Jagged array</strong> — a 2D array where each row can have a <strong>different number of columns</strong>. Unlike a rectangular 2D array, rows are not the same length.
+  </div>
+
+<pre><span class="cm">// Jagged array — rows have different sizes</span>
+<span class="kw">int</span>[][] jagged = <span class="kw">new int</span>[<span class="num">4</span>][];   <span class="cm">// 4 rows, columns not defined yet</span>
+jagged[<span class="num">0</span>] = <span class="kw">new int</span>[<span class="num">1</span>];          <span class="cm">// row 0 has 1 element</span>
+jagged[<span class="num">1</span>] = <span class="kw">new int</span>[<span class="num">2</span>];          <span class="cm">// row 1 has 2 elements</span>
+jagged[<span class="num">2</span>] = <span class="kw">new int</span>[<span class="num">3</span>];          <span class="cm">// row 2 has 3 elements</span>
+jagged[<span class="num">3</span>] = <span class="kw">new int</span>[<span class="num">4</span>];          <span class="cm">// row 3 has 4 elements</span>
+
+<span class="cm">// Initializer syntax</span>
+<span class="kw">int</span>[][] triangle = {
+    {<span class="num">1</span>},
+    {<span class="num">2</span>, <span class="num">3</span>},
+    {<span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>},
+    {<span class="num">7</span>, <span class="num">8</span>, <span class="num">9</span>, <span class="num">10</span>}
+};
+
+<span class="cm">// Iterate jagged — use row.length not fixed columns</span>
+<span class="kw">for</span> (<span class="kw">int</span>[] row : triangle) {
+    <span class="kw">for</span> (<span class="kw">int</span> val : row) System.out.print(val + <span class="st">" "</span>);
+    System.out.println();
+}
+<span class="cm">// 1
+// 2 3
+// 4 5 6
+// 7 8 9 10</span></pre>
+</div>
+
+
+<!-- SECTION 7 -->
+<div class="section" id="arrays-class">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Arrays Utility Class (java.util.Arrays)</div>
+  </div>
+
+<pre><span class="kw">import</span> java.util.Arrays;
+
+<span class="kw">int</span>[] arr = {<span class="num">5</span>, <span class="num">2</span>, <span class="num">8</span>, <span class="num">1</span>, <span class="num">9</span>, <span class="num">3</span>};
+
+<span class="cm">// Sort — ascending order (modifies original!)</span>
+<span class="cl">Arrays</span>.sort(arr);
+System.out.println(<span class="cl">Arrays</span>.toString(arr));  <span class="cm">// [1, 2, 3, 5, 8, 9]</span>
+
+<span class="cm">// Binary search — array must be SORTED first!</span>
+<span class="kw">int</span> idx = <span class="cl">Arrays</span>.binarySearch(arr, <span class="num">5</span>);  <span class="cm">// returns 3 (index of 5)</span>
+<span class="kw">int</span> notFound = <span class="cl">Arrays</span>.binarySearch(arr, <span class="num">7</span>); <span class="cm">// negative — not found</span>
+
+<span class="cm">// Fill — set all elements to a value</span>
+<span class="kw">int</span>[] filled = <span class="kw">new int</span>[<span class="num">5</span>];
+<span class="cl">Arrays</span>.fill(filled, <span class="num">42</span>);
+System.out.println(<span class="cl">Arrays</span>.toString(filled));  <span class="cm">// [42, 42, 42, 42, 42]</span>
+
+<span class="cm">// Copy — new array</span>
+<span class="kw">int</span>[] copy = <span class="cl">Arrays</span>.copyOf(arr, <span class="num">4</span>);          <span class="cm">// first 4 elements</span>
+<span class="kw">int</span>[] range = <span class="cl">Arrays</span>.copyOfRange(arr, <span class="num">1</span>, <span class="num">4</span>); <span class="cm">// index 1 to 3</span>
+
+<span class="cm">// Equals — compare two arrays element by element</span>
+<span class="kw">int</span>[] a = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};
+<span class="kw">int</span>[] b = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};
+System.out.println(<span class="cl">Arrays</span>.equals(a, b));        <span class="cm">// true</span>
+System.out.println(a == b);                       <span class="cm">// false — different objects</span>
+
+<span class="cm">// 2D equals and toString</span>
+<span class="cl">Arrays</span>.deepEquals(grid1, grid2);  <span class="cm">// for 2D arrays</span>
+<span class="cl">Arrays</span>.deepToString(grid);        <span class="cm">// print 2D array</span>
+
+<span class="cm">// Sort with custom comparator (objects only)</span>
+<span class="cl">String</span>[] words = {<span class="st">"banana"</span>, <span class="st">"apple"</span>, <span class="st">"cherry"</span>};
+<span class="cl">Arrays</span>.sort(words);  <span class="cm">// alphabetical: [apple, banana, cherry]</span>
+<span class="cl">Arrays</span>.sort(words, (<span class="cl">x</span>, y) -> y.compareTo(x));  <span class="cm">// reverse: [cherry, banana, apple]</span>
+
+<span class="cm">// Convert to List</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; list = <span class="cl">Arrays</span>.asList(words);  <span class="cm">// fixed-size list from array</span>
+
+<span class="cm">// Stream from array (Java 8)</span>
+<span class="kw">int</span> sum = <span class="cl">Arrays</span>.stream(arr).sum();         <span class="cm">// 28</span>
+<span class="kw">int</span> max = <span class="cl">Arrays</span>.stream(arr).max().getAsInt(); <span class="cm">// 9</span></pre>
+
+  <table>
+    <tr><th>Method</th><th>Description</th></tr>
+    <tr><td><code>Arrays.sort(arr)</code></td><td>Sorts in ascending order (modifies original)</td></tr>
+    <tr><td><code>Arrays.binarySearch(arr, key)</code></td><td>Returns index; array must be sorted first</td></tr>
+    <tr><td><code>Arrays.fill(arr, val)</code></td><td>Fills all elements with given value</td></tr>
+    <tr><td><code>Arrays.copyOf(arr, len)</code></td><td>Copy first len elements into new array</td></tr>
+    <tr><td><code>Arrays.copyOfRange(arr, s, e)</code></td><td>Copy from index s to e-1</td></tr>
+    <tr><td><code>Arrays.equals(a, b)</code></td><td>Element-wise equality check</td></tr>
+    <tr><td><code>Arrays.toString(arr)</code></td><td>Printable string of 1D array</td></tr>
+    <tr><td><code>Arrays.deepToString(arr)</code></td><td>Printable string of 2D array</td></tr>
+    <tr><td><code>Arrays.asList(arr)</code></td><td>Convert array to fixed-size List</td></tr>
+    <tr><td><code>Arrays.stream(arr)</code></td><td>Create IntStream from array (Java 8)</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 8 -->
+<div class="section" id="pass">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Passing Arrays to Methods</div>
+  </div>
+
+  <div class="highlight-box">
+    Arrays are <strong>passed by reference</strong> in Java — the method receives the same array object, not a copy. Changes made inside the method affect the original array!
+  </div>
+
+<pre><span class="kw">public static void</span> doubleAll(<span class="kw">int</span>[] arr) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; arr.length; i++) {
+        arr[i] *= <span class="num">2</span>;   <span class="cm">// modifies the ORIGINAL array!</span>
+    }
+}
+
+<span class="kw">int</span>[] nums = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};
+doubleAll(nums);
+System.out.println(<span class="cl">Arrays</span>.toString(nums));  <span class="cm">// [2, 4, 6] — modified!</span>
+
+<span class="cm">// Returning arrays from methods</span>
+<span class="kw">public static int</span>[] createRange(<span class="kw">int</span> n) {
+    <span class="kw">int</span>[] result = <span class="kw">new int</span>[n];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; n; i++) result[i] = i + <span class="num">1</span>;
+    <span class="kw">return</span> result;
+}
+<span class="kw">int</span>[] range = createRange(<span class="num">5</span>);
+System.out.println(<span class="cl">Arrays</span>.toString(range));  <span class="cm">// [1, 2, 3, 4, 5]</span>
+
+<span class="cm">// Defensive copy — if you don't want original modified</span>
+<span class="kw">public static void</span> safeProcess(<span class="kw">int</span>[] arr) {
+    <span class="kw">int</span>[] copy = <span class="cl">Arrays</span>.copyOf(arr, arr.length);  <span class="cm">// work on copy</span>
+    <span class="cl">Arrays</span>.sort(copy);
+    System.out.println(<span class="cl">Arrays</span>.toString(copy));   <span class="cm">// original untouched</span>
+}</pre>
+</div>
+
+
+<!-- SECTION 9 -->
+<div class="section" id="limitations">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Array Limitations & Why Collections Exist</div>
+  </div>
+
+  <table>
+    <tr><th>Limitation</th><th>Solution (Collections)</th></tr>
+    <tr><td>Fixed size — cannot grow or shrink</td><td><code>ArrayList</code> — dynamic sizing</td></tr>
+    <tr><td>Only one type allowed</td><td>Generics in Collections</td></tr>
+    <tr><td>No built-in methods (add, remove, contains)</td><td>Collection methods</td></tr>
+    <tr><td>Cannot directly store primitives in generics</td><td>Wrapper classes + autoboxing</td></tr>
+    <tr><td>Inserting/deleting in middle is slow O(n)</td><td><code>LinkedList</code> for frequent insertion</td></tr>
+    <tr><td>No key-value storage</td><td><code>HashMap</code></td></tr>
+    <tr><td>No duplicate elimination</td><td><code>HashSet</code></td></tr>
+  </table>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>When to use Array</h4>
+      <ul>
+        <li>Fixed, known size</li>
+        <li>Primitive types (int[], double[]) — faster</li>
+        <li>Performance-critical code</li>
+        <li>Multi-dimensional data (matrix)</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>When to use ArrayList</h4>
+      <ul>
+        <li>Dynamic size needed</li>
+        <li>Frequent add/remove</li>
+        <li>Need built-in methods</li>
+        <li>Working with generics/frameworks</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>Array vs ArrayList memory:</strong><br>
+    <code>int[]</code> stores primitives directly — very memory-efficient.<br>
+    <code>ArrayList&lt;Integer&gt;</code> stores Integer objects (autoboxed) — uses more memory.<br>
+    For large numerical data, prefer arrays or specialized libraries.
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is an array in Java? Where is it stored?</div>
+    <div class="a">An array is a fixed-size, ordered collection of elements of the same type, accessed by a zero-based index. In Java, arrays are objects — they are stored on the Heap. The array reference variable is stored on the Stack. Default values for uninitialized elements: 0 for numeric types, false for boolean, null for object types.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is ArrayIndexOutOfBoundsException? When does it occur?</div>
+    <div class="a">It is a runtime exception thrown when you try to access an array element with an index that is less than 0 or greater than or equal to the array's length. For example, accessing index 5 on an array of length 5 (valid indices: 0 to 4). It is a RuntimeException — not checked, doesn't need try-catch (but can be handled).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the difference between array and ArrayList?</div>
+    <div class="a">Array has a fixed size set at creation — cannot grow or shrink. ArrayList is dynamic — automatically resizes as elements are added or removed. Array can store both primitives and objects; ArrayList stores only objects (uses autoboxing for primitives). Array has no built-in add/remove/contains methods; ArrayList has rich API. Array is faster for indexed access; ArrayList is more flexible.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. How do you sort an array in Java?</div>
+    <div class="a">Use <code>Arrays.sort(arr)</code> from <code>java.util.Arrays</code>. It sorts in ascending order using dual-pivot Quicksort for primitives and Timsort for objects. For reverse order on object arrays: <code>Arrays.sort(arr, Collections.reverseOrder())</code>. For primitives in reverse, sort normally then reverse manually. Always import <code>java.util.Arrays</code>.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is a jagged array?</div>
+    <div class="a">A jagged (ragged) array is a 2D array where each row can have a different number of columns. Unlike a rectangular 2D array where all rows have the same length, jagged arrays allow variable row sizes. Useful for triangular matrices, Pascal's triangle, or storing data with varying record lengths. Each row is an independent array object on the Heap.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. Are arrays passed by value or by reference in Java?</div>
+    <div class="a">Java always passes by value — but for arrays, the value passed is the <strong>reference</strong> (memory address) of the array object. This means the method receives a copy of the reference pointing to the same array on the Heap. So modifications to the array elements inside the method are reflected in the caller. However, reassigning the array parameter inside the method does not affect the original reference.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. How do you copy an array in Java?</div>
+    <div class="a">Several ways: <code>Arrays.copyOf(arr, length)</code> — copies first N elements into new array. <code>Arrays.copyOfRange(arr, start, end)</code> — copies a range. <code>System.arraycopy(src, srcPos, dest, destPos, length)</code> — fastest, low-level copy. <code>arr.clone()</code> — shallow clone. A simple assignment <code>arr2 = arr1</code> does NOT copy — both variables point to the same array.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 19: Arrays · 19 of 26 complete
+</div>
+
+</body>
+</html>

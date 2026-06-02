@@ -36,6 +36,8 @@ const topics = {
       { title: "Abstract Class",          file: "java/Topic15_Abstract_Class" },
       { title: "Interface",               file: "java/Topic16_Interface" },
       { title: "Non-Access Modifiers",    file: "java/Topic17_NonAccess_Modifiers" },
+      { title: "String",                  file: "java/Topic18_String" },
+      { title: "Arrays",                  file: "java/Topic19_Arrays" },
     ],
   },
 
