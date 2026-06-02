@@ -1,0 +1,2271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Load Balancer — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c14;
+  --bg2: #0d1220;
+  --bg3: #111827;
+  --bg4: #1a2235;
+  --card: #0f1829;
+  --border: #1e2d45;
+  --border2: #243350;
+  --accent: #00d4ff;
+  --accent2: #0099cc;
+  --accent3: #00ff88;
+  --accent4: #ff6b35;
+  --accent5: #a78bfa;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --glow: 0 0 30px rgba(0,212,255,0.15);
+  --glow2: 0 0 60px rgba(0,212,255,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ─── LAYOUT ─── */
+.layout {
+  display: grid;
+  grid-template-columns: 270px 1fr 220px;
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ─── LEFT SIDEBAR ─── */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.sidebar-header {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+.logo-sub { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+.sidebar-nav { padding: 16px 12px; }
+
+.nav-section { margin-bottom: 8px; }
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0 8px;
+  margin-bottom: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  margin-bottom: 1px;
+}
+
+.nav-item:hover { background: var(--bg4); color: var(--text); }
+.nav-item.active { background: rgba(0,212,255,0.1); color: var(--accent); border-left: 2px solid var(--accent); }
+
+.nav-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  min-width: 18px;
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: rgba(0,212,255,0.1);
+  color: var(--accent);
+}
+
+/* ─── MAIN CONTENT ─── */
+.main {
+  padding: 0;
+  min-width: 0;
+}
+
+/* ─── HERO ─── */
+.hero {
+  background: linear-gradient(135deg, #080c14 0%, #0d1a30 40%, #0a1628 100%);
+  padding: 60px 60px 50px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -50px; left: 200px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(0,255,136,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.breadcrumb {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumb span { color: var(--accent); }
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-desc {
+  font-size: 17px;
+  color: var(--text2);
+  max-width: 620px;
+  margin-bottom: 28px;
+  line-height: 1.7;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.meta-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ─── CONTENT AREA ─── */
+.content {
+  padding: 48px 60px;
+  max-width: 860px;
+}
+
+/* ─── SECTIONS ─── */
+.section { margin-bottom: 64px; }
+
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 1px;
+  background: var(--accent);
+}
+
+h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  margin-top: 28px;
+}
+
+h4 {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text2);
+  margin-bottom: 8px;
+  margin-top: 20px;
+}
+
+p { color: var(--text2); margin-bottom: 14px; font-size: 15px; }
+
+strong { color: var(--text); font-weight: 600; }
+
+/* ─── ANALOGY BOX ─── */
+.analogy-box {
+  background: linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(0,212,255,0.05) 100%);
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin: 24px 0;
+  position: relative;
+}
+
+.analogy-box::before {
+  content: '💡';
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  font-size: 20px;
+  background: var(--bg);
+  padding: 0 6px;
+}
+
+.analogy-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent5);
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ─── INFO CARDS ─── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.info-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--accent));
+}
+
+.info-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.card-icon { font-size: 24px; margin-bottom: 12px; }
+.card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.card-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* ─── DIAGRAM ─── */
+.diagram-container {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 32px 24px;
+  margin: 24px 0;
+  overflow-x: auto;
+}
+
+.diagram-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 24px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* SVG Diagrams */
+.diagram-svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* ─── CODE BLOCK ─── */
+.code-wrap {
+  margin: 20px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.code-header {
+  background: var(--bg4);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.code-lang {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.code-file {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.copy-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover { background: rgba(0,212,255,0.15); }
+
+pre {
+  background: #060a10;
+  padding: 20px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.kw { color: #ff79c6; }
+.str { color: #f1fa8c; }
+.cm { color: #6272a4; font-style: italic; }
+.fn { color: #50fa7b; }
+.num { color: #bd93f9; }
+.key { color: #8be9fd; }
+.val { color: #ffb86c; }
+.op { color: #ff5555; }
+.tag { color: var(--accent); }
+
+/* ─── STEP LIST ─── */
+.step-list { margin: 20px 0; }
+
+.step-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.step-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 36px;
+  bottom: -20px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--accent), transparent);
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.step-body {}
+.step-title { font-weight: 600; color: var(--text); font-size: 15px; margin-bottom: 4px; }
+.step-desc { color: var(--text2); font-size: 14px; }
+
+/* ─── TABS ─── */
+.tabs {
+  margin: 24px 0;
+}
+
+.tab-list {
+  display: flex;
+  gap: 4px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 0;
+  width: fit-content;
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.tab-btn.active {
+  background: rgba(0,212,255,0.12);
+  color: var(--accent);
+  border: 1px solid rgba(0,212,255,0.2);
+}
+
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+.tab-panel {
+  display: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-top: 8px;
+}
+
+.tab-panel.active { display: block; animation: fadeIn 0.25s ease; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+/* ─── ACCORDION ─── */
+.accordion { margin: 16px 0; }
+
+.accordion-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.accordion-trigger {
+  width: 100%;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.accordion-trigger:hover { background: var(--bg4); }
+
+.accordion-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0,212,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+
+.accordion-item.open .accordion-icon { transform: rotate(180deg); }
+
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.3s;
+  background: var(--card);
+  padding: 0 18px;
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.accordion-item.open .accordion-body { max-height: 600px; padding: 16px 18px; }
+
+/* ─── PROS/CONS ─── */
+.pros-cons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.pros-box, .cons-box {
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.pros-box {
+  background: rgba(0,255,136,0.04);
+  border: 1px solid rgba(0,255,136,0.15);
+}
+
+.cons-box {
+  background: rgba(248,113,113,0.04);
+  border: 1px solid rgba(248,113,113,0.15);
+}
+
+.box-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pros-box .box-title { color: var(--accent3); }
+.cons-box .box-title { color: var(--danger); }
+
+.check-list { list-style: none; }
+
+.check-list li {
+  font-size: 13.5px;
+  color: var(--text2);
+  padding: 4px 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.pros-box .check-list li::before { content: '✓'; color: var(--accent3); flex-shrink: 0; margin-top: 1px; }
+.cons-box .check-list li::before { content: '✗'; color: var(--danger); flex-shrink: 0; margin-top: 1px; }
+
+/* ─── ALERT BOXES ─── */
+.alert {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 16px 0;
+  font-size: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.alert-icon { font-size: 16px; flex-shrink: 0; }
+
+.alert-warn {
+  background: rgba(251,191,36,0.06);
+  border: 1px solid rgba(251,191,36,0.2);
+  color: var(--warn);
+}
+
+.alert-danger {
+  background: rgba(248,113,113,0.06);
+  border: 1px solid rgba(248,113,113,0.2);
+  color: var(--danger);
+}
+
+.alert-info {
+  background: rgba(0,212,255,0.06);
+  border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent);
+}
+
+.alert-success {
+  background: rgba(0,255,136,0.06);
+  border: 1px solid rgba(0,255,136,0.2);
+  color: var(--accent3);
+}
+
+.alert p { color: inherit; margin: 0; }
+
+/* ─── COMPANY CARDS ─── */
+.company-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.company-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  transition: all 0.25s;
+}
+
+.company-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.company-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.company-tech {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(0,212,255,0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.company-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* ─── INTERVIEW QS ─── */
+.interview-list { margin: 16px 0; }
+
+.interview-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.interview-item:hover { border-color: var(--border2); background: var(--bg4); }
+
+.interview-q {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.interview-q::after { content: '›'; color: var(--text3); font-size: 18px; flex-shrink: 0; transition: transform 0.2s; }
+.interview-item.open .interview-q::after { transform: rotate(90deg); }
+
+.interview-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s, padding 0.3s;
+  font-size: 13.5px;
+  color: var(--text2);
+}
+
+.interview-item.open .interview-a { max-height: 300px; padding-top: 10px; }
+
+/* ─── TABLE ─── */
+.table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 10px; border: 1px solid var(--border); }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead { background: var(--bg4); }
+
+th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+td {
+  padding: 11px 16px;
+  font-size: 13.5px;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+td:first-child { color: var(--text); font-weight: 500; }
+
+/* ─── RIGHT TOC ─── */
+.toc {
+  position: sticky;
+  top: 24px;
+  padding: 24px 16px;
+  font-size: 13px;
+}
+
+.toc-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+.toc-list { list-style: none; }
+
+.toc-item { margin-bottom: 2px; }
+
+.toc-link {
+  display: block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--text3);
+  text-decoration: none;
+  font-size: 12.5px;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+}
+
+.toc-link:hover { color: var(--text); background: var(--bg3); }
+.toc-link.active { color: var(--accent); border-left-color: var(--accent); background: rgba(0,212,255,0.05); }
+
+.toc-sub .toc-link { padding-left: 20px; font-size: 12px; }
+
+/* ─── PROGRESS BAR ─── */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--accent), var(--accent3));
+  z-index: 100;
+  transition: width 0.1s;
+}
+
+/* ─── TAGS ─── */
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+
+.tag-blue { color: var(--accent); border-color: rgba(0,212,255,0.25); background: rgba(0,212,255,0.06); }
+.tag-green { color: var(--accent3); border-color: rgba(0,255,136,0.25); background: rgba(0,255,136,0.06); }
+.tag-purple { color: var(--accent5); border-color: rgba(167,139,250,0.25); background: rgba(167,139,250,0.06); }
+.tag-orange { color: var(--accent4); border-color: rgba(255,107,53,0.25); background: rgba(255,107,53,0.06); }
+
+/* ─── SEPARATOR ─── */
+.sep {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin: 40px 0;
+}
+
+/* ─── SUMMARY BOX ─── */
+.summary-box {
+  background: linear-gradient(135deg, rgba(0,212,255,0.06) 0%, rgba(0,255,136,0.04) 100%);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 14px;
+  padding: 28px 32px;
+  margin: 32px 0;
+}
+
+.summary-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ─── MOBILE ─── */
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 240px 1fr; }
+  .toc { display: none; }
+  .content { padding: 36px 40px; }
+  .hero { padding: 48px 40px; }
+}
+
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; left: -280px; z-index: 200; transition: left 0.3s; height: 100vh; width: 270px; }
+  .sidebar.open { left: 0; box-shadow: 8px 0 32px rgba(0,0,0,0.5); }
+  .content { padding: 24px 20px; }
+  .hero { padding: 32px 20px; }
+  .pros-cons { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+  .company-grid { grid-template-columns: 1fr; }
+  .menu-toggle { display: flex; }
+}
+
+.menu-toggle {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 300;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,212,255,0.4);
+  font-size: 20px;
+  color: var(--bg);
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 190;
+}
+
+.overlay.show { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* highlight inline code */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  background: rgba(0,212,255,0.08);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,212,255,0.15);
+}
+
+pre code { background: transparent; color: inherit; padding: 0; border: none; font-size: inherit; }
+
+/* Flow Diagram Styles */
+.flow-box {
+  fill: #0f1829;
+  stroke: #1e2d45;
+  stroke-width: 1.5;
+  rx: 8;
+}
+.flow-box-accent { fill: rgba(0,212,255,0.1); stroke: rgba(0,212,255,0.4); stroke-width: 1.5; }
+.flow-box-green { fill: rgba(0,255,136,0.08); stroke: rgba(0,255,136,0.3); stroke-width: 1.5; }
+.flow-box-orange { fill: rgba(255,107,53,0.08); stroke: rgba(255,107,53,0.3); stroke-width: 1.5; }
+.flow-text { font-family: 'Inter', sans-serif; fill: #94a3b8; font-size: 12px; }
+.flow-text-lg { font-family: 'Syne', sans-serif; fill: #e2e8f0; font-size: 13px; font-weight: 600; }
+.flow-text-accent { fill: #00d4ff; }
+.flow-arrow { stroke: #243350; stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+.flow-arrow-accent { stroke: rgba(0,212,255,0.5); stroke-width: 1.5; fill: none; marker-end: url(#arrA); stroke-dasharray: 4,3; }
+
+/* Animated nodes */
+@keyframes nodeGlow { 0%,100%{filter:drop-shadow(0 0 4px rgba(0,212,255,0))} 50%{filter:drop-shadow(0 0 8px rgba(0,212,255,0.5))} }
+.node-animate { animation: nodeGlow 2.5s ease-in-out infinite; }
+
+.next-topic {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-decoration: none;
+}
+
+.next-topic:hover { border-color: rgba(0,212,255,0.3); box-shadow: var(--glow); }
+.next-label { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+.next-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); }
+.next-arrow { font-size: 24px; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="layout">
+
+<!-- ─── LEFT SIDEBAR ─── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      HLD Academy
+    </div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item active" href="load-balancer.html">
+        <span class="nav-num">01</span> Load Balancer
+        <span class="nav-badge">Current</span>
+      </a>
+      <a class="nav-item" href="#"><span class="nav-num">02</span> API Gateway</a>
+      <a class="nav-item" href="#"><span class="nav-num">08</span> CDN</a>
+      <a class="nav-item" href="#"><span class="nav-num">09</span> Reverse Proxy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item" href="#"><span class="nav-num">03</span> Redis Cache</a>
+      <a class="nav-item" href="#"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item" href="#"><span class="nav-num">05</span> Message Queue</a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item" href="#"><span class="nav-num">06</span> Microservices</a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item" href="#"><span class="nav-num">07</span> Database Scaling</a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Infrastructure <span>›</span> Topic 01</div>
+    <div class="hero-tag">⚖️ Topic 01 of 22</div>
+    <h1>Load <em>Balancer</em></h1>
+    <p class="hero-desc">The traffic director of distributed systems. Learn how load balancers distribute requests across servers, prevent overloading, enable zero-downtime deployments, and are the foundation of every scalable backend architecture.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>Beginner → Intermediate</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>~35 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent5)"></div>Production Ready</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent4)"></div>Interview Critical</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- SECTION 1: WHAT IS IT -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>What is a Load Balancer?</h2>
+
+      <p>A <strong>Load Balancer</strong> is a system that sits in front of your servers and distributes incoming network traffic across multiple backend servers. Think of it as a smart traffic controller that ensures no single server gets overwhelmed while others sit idle.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">🏦 Simple Analogy — Bank Tellers</div>
+        <p style="color:var(--text2);margin:0">Imagine a bank with 5 tellers. A <strong>queue manager</strong> at the entrance directs each customer to the next available teller. If teller #2 is busy with a complex transaction, the manager routes the next customer to teller #3. Nobody waits while a teller is free, and no single teller handles everyone. That's <em>exactly</em> what a Load Balancer does for your servers.</p>
+      </div>
+
+      <div class="tabs" id="begAdvTabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg', this)">👶 Beginner Explanation</button>
+          <button class="tab-btn" onclick="switchTab('adv', this)">🧠 Advanced Explanation</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-beg">
+          <p>When you have a website with many users visiting at the same time, <strong>one server can't handle all of them</strong>. So you add more servers. But now, who decides which user goes to which server?</p>
+          <p>That's the job of a Load Balancer. When a user's request comes in, the load balancer <strong>picks a server</strong> (using rules like "pick the least busy one") and <strong>forwards the request there</strong>. The user doesn't even know this happened — they just see your website load fast.</p>
+        </div>
+
+        <div class="tab-panel" id="tab-adv">
+          <p>A Load Balancer operates at <strong>Layer 4 (Transport Layer)</strong> or <strong>Layer 7 (Application Layer)</strong> of the OSI model. Layer 4 LBs distribute traffic based on IP/TCP without inspecting content. Layer 7 LBs can read HTTP headers, cookies, and URLs to make intelligent routing decisions.</p>
+          <p>Modern LBs maintain a <strong>connection pool</strong> to backends, handle <strong>SSL termination</strong> to offload encryption from app servers, perform <strong>health checks</strong> with configurable intervals and thresholds, and support <strong>session persistence</strong> via sticky sessions or distributed session stores.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-blue">L4 / L7</span>
+        <span class="tag tag-green">High Availability</span>
+        <span class="tag tag-purple">Horizontal Scaling</span>
+        <span class="tag tag-orange">SSL Termination</span>
+        <span class="tag tag-blue">Health Checks</span>
+        <span class="tag tag-green">Zero Downtime</span>
+      </div>
+    </section>
+
+    <!-- SECTION 2: WHY NEEDED -->
+    <section class="section" id="why">
+      <div class="section-label">Problem Statement</div>
+      <h2>Why is a Load Balancer Needed?</h2>
+
+      <p>Without a load balancer, your entire backend architecture has several critical failure points:</p>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent: var(--danger)">
+          <div class="card-icon">💥</div>
+          <div class="card-title">Single Point of Failure</div>
+          <div class="card-text">If your one server crashes, <strong>100% downtime</strong>. Netflix famously had this problem before moving to distributed architecture.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--warn)">
+          <div class="card-icon">🔥</div>
+          <div class="card-title">Server Overload</div>
+          <div class="card-text">During traffic spikes (product launches, viral events), a single server gets crushed — CPU maxes out, memory fills up, users get 503 errors.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent)">
+          <div class="card-icon">🛑</div>
+          <div class="card-title">Zero-Downtime Deploys</div>
+          <div class="card-text">You can't deploy new code without taking the server down. Load balancers enable <strong>rolling deployments</strong> — update one server at a time.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent5)">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Poor Resource Utilization</div>
+          <div class="card-text">Some servers may be idle while others are overwhelmed. A load balancer <strong>distributes work evenly</strong> for maximum efficiency.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Real Incident:</strong> In 2013, GitHub experienced an outage because a single database server became a bottleneck during a traffic spike from a Hacker News post. Without proper load balancing, the entire platform was unavailable for 90 minutes.</div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: ARCHITECTURE DIAGRAM -->
+    <section class="section" id="architecture">
+      <div class="section-label">Architecture</div>
+      <h2>Architecture & Request Flow</h2>
+
+      <p>Here is how traffic flows through a typical load balancer setup in production:</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Load Balancer — Request Flow Diagram</div>
+        <svg class="diagram-svg" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;height:auto">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#243350"/>
+            </marker>
+            <marker id="arrA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="rgba(0,212,255,0.5)"/>
+            </marker>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+
+          <!-- Internet / Clients -->
+          <rect x="20" y="180" width="110" height="80" rx="10" class="flow-box-accent"/>
+          <text x="75" y="215" text-anchor="middle" class="flow-text-lg">🌐</text>
+          <text x="75" y="233" text-anchor="middle" class="flow-text-lg">Internet</text>
+          <text x="75" y="250" text-anchor="middle" class="flow-text" style="font-size:11px;fill:#64748b">Users / Clients</text>
+
+          <!-- Arrow: Internet → LB -->
+          <line x1="132" y1="220" x2="198" y2="220" class="flow-arrow-accent"/>
+          <text x="165" y="212" text-anchor="middle" class="flow-text" style="font-size:10px;fill:rgba(0,212,255,0.6)">HTTP/S</text>
+
+          <!-- Load Balancer -->
+          <rect x="200" y="155" width="140" height="130" rx="12" style="fill:rgba(0,212,255,0.07);stroke:rgba(0,212,255,0.4);stroke-width:2" class="node-animate"/>
+          <text x="270" y="185" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:11px;font-weight:700;letter-spacing:0.1em">LOAD BALANCER</text>
+          <text x="270" y="205" text-anchor="middle" class="flow-text-lg">⚖️</text>
+          <text x="270" y="225" text-anchor="middle" class="flow-text">Nginx / HAProxy</text>
+          <text x="270" y="243" text-anchor="middle" class="flow-text">AWS ALB / ELB</text>
+          <rect x="215" y="258" width="110" height="18" rx="4" style="fill:rgba(0,212,255,0.1)"/>
+          <text x="270" y="270" text-anchor="middle" class="flow-text" style="fill:#00d4ff;font-size:10px">Health Checks ✓</text>
+
+          <!-- Arrows: LB → Servers -->
+          <line x1="342" y1="190" x2="418" y2="130" class="flow-arrow-accent"/>
+          <line x1="342" y1="215" x2="418" y2="220" class="flow-arrow-accent"/>
+          <line x1="342" y1="240" x2="418" y2="310" class="flow-arrow-accent"/>
+
+          <!-- Server 1 (healthy) -->
+          <rect x="420" y="90" width="130" height="80" rx="10" class="flow-box-green"/>
+          <text x="485" y="120" text-anchor="middle" class="flow-text-lg">🖥️ Server 1</text>
+          <text x="485" y="138" text-anchor="middle" class="flow-text">Node.js :3001</text>
+          <rect x="440" y="150" width="90" height="14" rx="3" style="fill:rgba(0,255,136,0.15)"/>
+          <text x="485" y="161" text-anchor="middle" class="flow-text" style="fill:#00ff88;font-size:10px">● Healthy</text>
+
+          <!-- Server 2 (healthy) -->
+          <rect x="420" y="190" width="130" height="80" rx="10" class="flow-box-green"/>
+          <text x="485" y="220" text-anchor="middle" class="flow-text-lg">🖥️ Server 2</text>
+          <text x="485" y="238" text-anchor="middle" class="flow-text">Node.js :3002</text>
+          <rect x="440" y="250" width="90" height="14" rx="3" style="fill:rgba(0,255,136,0.15)"/>
+          <text x="485" y="261" text-anchor="middle" class="flow-text" style="fill:#00ff88;font-size:10px">● Healthy</text>
+
+          <!-- Server 3 (down) -->
+          <rect x="420" y="290" width="130" height="80" rx="10" style="fill:rgba(248,113,113,0.05);stroke:rgba(248,113,113,0.25);stroke-width:1.5"/>
+          <text x="485" y="320" text-anchor="middle" class="flow-text-lg">🖥️ Server 3</text>
+          <text x="485" y="338" text-anchor="middle" class="flow-text">Node.js :3003</text>
+          <rect x="440" y="350" width="90" height="14" rx="3" style="fill:rgba(248,113,113,0.15)"/>
+          <text x="485" y="361" text-anchor="middle" class="flow-text" style="fill:#f87171;font-size:10px">✗ Unhealthy</text>
+
+          <!-- X mark on arrow to server 3 -->
+          <text x="385" y="278" text-anchor="middle" style="fill:#f87171;font-size:14px;font-weight:bold">✗</text>
+
+          <!-- Arrows: Servers → Database/Cache -->
+          <line x1="552" y1="130" x2="600" y2="175" class="flow-arrow"/>
+          <line x1="552" y1="230" x2="600" y2="215" class="flow-arrow"/>
+
+          <!-- Shared resources -->
+          <rect x="600" y="150" width="108" height="60" rx="8" style="fill:rgba(167,139,250,0.07);stroke:rgba(167,139,250,0.25);stroke-width:1.5"/>
+          <text x="654" y="177" text-anchor="middle" class="flow-text-lg" style="font-size:12px">🗄️ Database</text>
+          <text x="654" y="197" text-anchor="middle" class="flow-text" style="font-size:10px">PostgreSQL</text>
+
+          <rect x="600" y="225" width="108" height="60" rx="8" style="fill:rgba(251,191,36,0.05);stroke:rgba(251,191,36,0.2);stroke-width:1.5"/>
+          <text x="654" y="252" text-anchor="middle" class="flow-text-lg" style="font-size:12px">⚡ Redis</text>
+          <text x="654" y="272" text-anchor="middle" class="flow-text" style="font-size:10px">Cache Layer</text>
+
+          <!-- Labels on arrows -->
+          <text x="165" y="245" text-anchor="middle" class="flow-text" style="fill:#64748b;font-size:10px">① Request in</text>
+          <text x="350" y="140" text-anchor="middle" class="flow-text" style="fill:rgba(0,212,255,0.5);font-size:10px;transform:rotate(-30deg)">② Route</text>
+
+          <!-- Legend -->
+          <rect x="20" y="360" width="360" height="60" rx="8" style="fill:#0d1220;stroke:#1e2d45;stroke-width:1"/>
+          <text x="36" y="378" class="flow-text" style="fill:#64748b;font-size:11px;font-weight:700">LEGEND</text>
+          <circle cx="40" cy="398" r="5" style="fill:rgba(0,255,136,0.3);stroke:rgba(0,255,136,0.5);stroke-width:1"/>
+          <text x="52" y="402" class="flow-text" style="font-size:11px">Active &amp; Healthy</text>
+          <circle cx="130" cy="398" r="5" style="fill:rgba(248,113,113,0.3);stroke:rgba(248,113,113,0.5);stroke-width:1"/>
+          <text x="142" y="402" class="flow-text" style="font-size:11px">Down (excluded)</text>
+          <line x1="220" y1="398" x2="250" y2="398" style="stroke:rgba(0,212,255,0.5);stroke-width:1.5;stroke-dasharray:4,3"/>
+          <polygon points="248,395 255,398 248,401" fill="rgba(0,212,255,0.5)"/>
+          <text x="260" y="402" class="flow-text" style="font-size:11px">Routed traffic</text>
+        </svg>
+      </div>
+
+      <h3>Request Flow — Step by Step</h3>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Client sends HTTP request</div>
+            <div class="step-desc">A user's browser or mobile app sends a request to <code>api.yourapp.com</code>. DNS resolves to the load balancer's IP address, not your app servers directly.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Load Balancer receives the request</div>
+            <div class="step-desc">The LB accepts the TCP connection. If it's an L7 LB, it reads HTTP headers (Host, Cookie, URL path) to make routing decisions. SSL is terminated here.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Algorithm selects a backend server</div>
+            <div class="step-desc">Based on the configured algorithm (Round Robin, Least Connections, etc.), the LB picks a healthy backend. Server 3 is down, so it's excluded automatically.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Request forwarded to selected server</div>
+            <div class="step-desc">The LB forwards the request to the chosen backend. It adds headers like <code>X-Forwarded-For</code> (original client IP) and <code>X-Real-IP</code> so your app knows where the request came from.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Server processes and responds</div>
+            <div class="step-desc">The backend server handles the request, queries the database or cache, and sends the response back through the load balancer (or directly to client in DSR mode).</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Response returned to client</div>
+            <div class="step-desc">The client receives the response. The entire round-trip typically adds &lt; 1ms overhead — imperceptible to users.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- SECTION 4: ALGORITHMS -->
+    <section class="section" id="algorithms">
+      <div class="section-label">Core Concepts</div>
+      <h2>Load Balancing Algorithms</h2>
+
+      <p>The <strong>algorithm</strong> decides which server gets the next request. Choosing the wrong one for your use case can cause hot spots and degraded performance.</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Comparing Load Balancing Algorithms</div>
+        <svg class="diagram-svg" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <!-- Round Robin -->
+          <rect x="10" y="20" width="155" height="280" rx="10" style="fill:#0d1220;stroke:#1e2d45;stroke-width:1.5"/>
+          <rect x="10" y="20" width="155" height="36" rx="10" style="fill:rgba(0,212,255,0.08);stroke:rgba(0,212,255,0.2);stroke-width:1"/>
+          <text x="87" y="44" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:700">Round Robin</text>
+          <circle cx="87" cy="100" r="20" style="fill:rgba(0,212,255,0.1);stroke:rgba(0,212,255,0.4);stroke-width:2"/>
+          <text x="87" y="105" text-anchor="middle" style="fill:#00d4ff;font-size:16px">🔄</text>
+          <text x="87" y="140" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">Req 1 → S1</text>
+          <text x="87" y="158" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">Req 2 → S2</text>
+          <text x="87" y="176" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">Req 3 → S3</text>
+          <text x="87" y="194" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">Req 4 → S1</text>
+          <rect x="20" y="220" width="135" height="50" rx="6" style="fill:rgba(0,212,255,0.04)"/>
+          <text x="87" y="238" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Best for: Equal</text>
+          <text x="87" y="253" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">capacity servers</text>
+          <text x="87" y="271" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:10px">✓ Simple &amp; fast</text>
+
+          <!-- Least Connections -->
+          <rect x="175" y="20" width="155" height="280" rx="10" style="fill:#0d1220;stroke:#1e2d45;stroke-width:1.5"/>
+          <rect x="175" y="20" width="155" height="36" rx="10" style="fill:rgba(0,255,136,0.06);stroke:rgba(0,255,136,0.2);stroke-width:1"/>
+          <text x="252" y="44" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:12px;font-weight:700">Least Connections</text>
+          <circle cx="252" cy="100" r="20" style="fill:rgba(0,255,136,0.08);stroke:rgba(0,255,136,0.3);stroke-width:2"/>
+          <text x="252" y="105" text-anchor="middle" style="fill:#00ff88;font-size:16px">📊</text>
+          <text x="252" y="140" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">S1: 10 conns</text>
+          <text x="252" y="158" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">S2: 3 conns ←</text>
+          <text x="252" y="176" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">S3: 7 conns</text>
+          <text x="252" y="194" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:rgba(0,255,136,0.6);font-size:11px">→ picks S2</text>
+          <rect x="185" y="220" width="135" height="50" rx="6" style="fill:rgba(0,255,136,0.03)"/>
+          <text x="252" y="238" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Best for: Variable</text>
+          <text x="252" y="253" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">req durations</text>
+          <text x="252" y="271" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:10px">✓ Most balanced</text>
+
+          <!-- Weighted -->
+          <rect x="340" y="20" width="155" height="280" rx="10" style="fill:#0d1220;stroke:#1e2d45;stroke-width:1.5"/>
+          <rect x="340" y="20" width="155" height="36" rx="10" style="fill:rgba(167,139,250,0.06);stroke:rgba(167,139,250,0.2);stroke-width:1"/>
+          <text x="417" y="44" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:12px;font-weight:700">Weighted RR</text>
+          <circle cx="417" cy="100" r="20" style="fill:rgba(167,139,250,0.08);stroke:rgba(167,139,250,0.3);stroke-width:2"/>
+          <text x="417" y="105" text-anchor="middle" style="fill:#a78bfa;font-size:16px">⚖️</text>
+          <text x="417" y="140" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">S1 w=5 → 50%</text>
+          <text x="417" y="158" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">S2 w=3 → 30%</text>
+          <text x="417" y="176" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">S3 w=2 → 20%</text>
+          <text x="417" y="194" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:rgba(167,139,250,0.6);font-size:11px">→ by capacity</text>
+          <rect x="350" y="220" width="135" height="50" rx="6" style="fill:rgba(167,139,250,0.03)"/>
+          <text x="417" y="238" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Best for: Mixed</text>
+          <text x="417" y="253" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">server capacities</text>
+          <text x="417" y="271" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:10px">✓ Fine-grained</text>
+
+          <!-- IP Hash -->
+          <rect x="505" y="20" width="155" height="280" rx="10" style="fill:#0d1220;stroke:#1e2d45;stroke-width:1.5"/>
+          <rect x="505" y="20" width="155" height="36" rx="10" style="fill:rgba(255,107,53,0.06);stroke:rgba(255,107,53,0.2);stroke-width:1"/>
+          <text x="582" y="44" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#ff6b35;font-size:12px;font-weight:700">IP Hash</text>
+          <circle cx="582" cy="100" r="20" style="fill:rgba(255,107,53,0.08);stroke:rgba(255,107,53,0.25);stroke-width:2"/>
+          <text x="582" y="105" text-anchor="middle" style="fill:#ff6b35;font-size:16px">🔗</text>
+          <text x="582" y="140" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">192.168.1.1</text>
+          <text x="582" y="158" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">→ always S2</text>
+          <text x="582" y="176" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">192.168.1.2</text>
+          <text x="582" y="194" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">→ always S1</text>
+          <rect x="515" y="220" width="135" height="50" rx="6" style="fill:rgba(255,107,53,0.03)"/>
+          <text x="582" y="238" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Best for: Session</text>
+          <text x="582" y="253" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">sticky scenarios</text>
+          <text x="582" y="271" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#fbbf24;font-size:10px">⚠ Can cause hotspots</text>
+        </svg>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>How it works</th>
+              <th>Best for</th>
+              <th>Avoid when</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Round Robin</td>
+              <td>Requests cycle sequentially: S1 → S2 → S3 → S1...</td>
+              <td>Identical servers, stateless apps</td>
+              <td>Servers have different capacities</td>
+            </tr>
+            <tr>
+              <td>Weighted Round Robin</td>
+              <td>Like Round Robin but with proportional distribution based on weights</td>
+              <td>Mixed hardware (some servers more powerful)</td>
+              <td>Real-time load matters more than capacity</td>
+            </tr>
+            <tr>
+              <td>Least Connections</td>
+              <td>Routes to server with fewest active connections</td>
+              <td>Long-lived connections (WebSockets, file uploads)</td>
+              <td>Very short requests (adds tracking overhead)</td>
+            </tr>
+            <tr>
+              <td>IP Hash</td>
+              <td>Same client IP always routes to same server (hash-based)</td>
+              <td>Stateful apps without a shared session store</td>
+              <td>Servers go down often (breaks sessions)</td>
+            </tr>
+            <tr>
+              <td>Random</td>
+              <td>Picks a server randomly</td>
+              <td>Simple stateless APIs with identical servers</td>
+              <td>You need predictable distribution</td>
+            </tr>
+            <tr>
+              <td>Resource-Based</td>
+              <td>Considers CPU/memory of each server in real-time</td>
+              <td>Heavy compute tasks, ML inference</td>
+              <td>Low-overhead APIs (monitoring cost)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 5: TYPES -->
+    <section class="section" id="types">
+      <div class="section-label">Types</div>
+      <h2>Types of Load Balancers</h2>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🌐 Layer 4 (Transport Layer) Load Balancer
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Operates at the <strong>TCP/UDP transport layer</strong>. It routes traffic based on IP addresses and port numbers without looking at the application data. Much faster since it doesn't inspect packet content.</p>
+            <p><strong>When to use:</strong> Non-HTTP traffic (game servers, SMTP, FTP), extremely high throughput scenarios where L7 inspection overhead matters.</p>
+            <p><strong>Examples:</strong> AWS NLB (Network Load Balancer), HAProxy in TCP mode</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔍 Layer 7 (Application Layer) Load Balancer
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Operates at the <strong>HTTP/HTTPS application layer</strong>. It can read the full request — URL paths, headers, cookies, and body — to make intelligent routing decisions.</p>
+            <p><strong>Capabilities:</strong> Route <code>/api/*</code> to API servers, <code>/static/*</code> to CDN, <code>/checkout</code> to dedicated payment servers. Handle SSL termination, compression, and caching.</p>
+            <p><strong>Examples:</strong> Nginx, HAProxy, AWS ALB (Application Load Balancer), Traefik, Envoy</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🌍 Global Server Load Balancing (GSLB)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Routes traffic across <strong>multiple geographic data centers</strong> using DNS. When a user in India requests <code>api.yourapp.com</code>, DNS resolves to the Mumbai datacenter instead of US-East.</p>
+            <p><strong>How it works:</strong> Uses GeoDNS to return different IP addresses based on the requestor's location. TTLs are set very low (10-60 seconds) for fast failover.</p>
+            <p><strong>Examples:</strong> AWS Route 53 Latency Routing, Cloudflare Load Balancing, Google Cloud Global LB</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ☁️ Software vs Hardware Load Balancers
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Hardware LBs</strong> (F5 BigIP, Citrix ADC): Physical appliances. Extremely fast (10M+ requests/sec), but expensive ($50k-$1M), hard to scale, and inflexible. Used in large enterprises and telcos.</p>
+            <p><strong>Software LBs</strong> (Nginx, HAProxy): Run on commodity servers. Flexible, cheap, cloud-native, scriptable. Handle millions of req/sec on modern hardware. Used by 99% of companies today.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: CODE -->
+    <section class="section" id="config">
+      <div class="section-label">Configuration & Code</div>
+      <h2>Real-World Configurations</h2>
+
+      <h3>Nginx Load Balancer Config</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">NGINX</span>
+          <span class="code-file">nginx.conf</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm"># ─── Upstream block: defines your server pool ───</span>
+<span class="kw">upstream</span> <span class="fn">app_backend</span> {
+    <span class="cm"># Algorithm: least_conn routes to server with fewest active connections</span>
+    <span class="key">least_conn</span>;
+
+    <span class="cm"># Healthy servers with weights</span>
+    <span class="key">server</span> <span class="val">10.0.1.1:3000</span> <span class="key">weight=</span><span class="num">5</span>;
+    <span class="key">server</span> <span class="val">10.0.1.2:3000</span> <span class="key">weight=</span><span class="num">3</span>;
+    <span class="key">server</span> <span class="val">10.0.1.3:3000</span> <span class="key">weight=</span><span class="num">2</span>;
+
+    <span class="cm"># Backup server (only used if all above are down)</span>
+    <span class="key">server</span> <span class="val">10.0.1.4:3000</span> <span class="key">backup</span>;
+
+    <span class="cm"># Health check: mark server down after 3 fails in 30s</span>
+    <span class="cm"># Retry after 30s wait</span>
+    <span class="key">server</span> <span class="val">10.0.1.1:3000</span> <span class="key">max_fails=</span><span class="num">3</span> <span class="key">fail_timeout=</span><span class="num">30s</span>;
+
+    <span class="cm"># Keepalive: maintain persistent connections to upstreams</span>
+    <span class="key">keepalive</span> <span class="num">32</span>;
+}
+
+<span class="kw">server</span> {
+    <span class="key">listen</span> <span class="num">443</span> <span class="key">ssl http2</span>;
+    <span class="key">server_name</span> <span class="val">api.yourapp.com</span>;
+
+    <span class="cm"># SSL termination at the load balancer</span>
+    <span class="key">ssl_certificate</span>     <span class="str">/etc/ssl/certs/yourapp.crt</span>;
+    <span class="key">ssl_certificate_key</span> <span class="str">/etc/ssl/private/yourapp.key</span>;
+    <span class="key">ssl_protocols</span>       <span class="val">TLSv1.2 TLSv1.3</span>;
+
+    <span class="cm"># Rate limiting (100 req/s per IP)</span>
+    <span class="key">limit_req_zone</span> <span class="val">$binary_remote_addr</span> <span class="key">zone=</span><span class="val">api:10m</span> <span class="key">rate=</span><span class="num">100r</span><span class="val">/s</span>;
+
+    <span class="kw">location</span> <span class="val">/api/</span> {
+        <span class="key">limit_req</span> <span class="key">zone=</span><span class="val">api</span> <span class="key">burst=</span><span class="num">20</span> <span class="key">nodelay</span>;
+
+        <span class="cm"># Pass request to upstream pool</span>
+        <span class="key">proxy_pass</span>         <span class="val">http://app_backend</span>;
+        <span class="key">proxy_http_version</span> <span class="num">1.1</span>;
+
+        <span class="cm"># Pass client info to backend</span>
+        <span class="key">proxy_set_header</span> <span class="val">X-Real-IP</span>        <span class="val">$remote_addr</span>;
+        <span class="key">proxy_set_header</span> <span class="val">X-Forwarded-For</span>   <span class="val">$proxy_add_x_forwarded_for</span>;
+        <span class="key">proxy_set_header</span> <span class="val">X-Forwarded-Proto</span> <span class="val">$scheme</span>;
+        <span class="key">proxy_set_header</span> <span class="val">Host</span>              <span class="val">$host</span>;
+
+        <span class="cm"># Keepalive for upstream connections</span>
+        <span class="key">proxy_set_header</span> <span class="val">Connection</span> <span class="str">""</span>;
+
+        <span class="cm"># Timeouts</span>
+        <span class="key">proxy_connect_timeout</span> <span class="num">5s</span>;
+        <span class="key">proxy_send_timeout</span>    <span class="num">60s</span>;
+        <span class="key">proxy_read_timeout</span>    <span class="num">60s</span>;
+    }
+
+    <span class="cm"># Separate pool for static assets → CDN/storage</span>
+    <span class="kw">location</span> <span class="val">/static/</span> {
+        <span class="key">proxy_pass</span> <span class="val">http://static_servers</span>;
+        <span class="key">expires</span>    <span class="num">30d</span>;
+        <span class="key">add_header</span> <span class="val">Cache-Control</span> <span class="str">"public, max-age=2592000"</span>;
+    }
+}</code></pre>
+      </div>
+
+      <h3>HAProxy Configuration</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">HAPROXY</span>
+          <span class="code-file">haproxy.cfg</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">global</span>
+    <span class="key">maxconn</span>     <span class="num">100000</span>
+    <span class="key">log</span>         <span class="val">/dev/log local0</span>
+    <span class="key">user</span>        <span class="val">haproxy</span>
+    <span class="key">group</span>       <span class="val">haproxy</span>
+    <span class="key">nbproc</span>      <span class="num">4</span>       <span class="cm"># use 4 CPU cores</span>
+
+<span class="kw">defaults</span>
+    <span class="key">mode</span>        <span class="val">http</span>
+    <span class="key">timeout connect</span>  <span class="num">5s</span>
+    <span class="key">timeout client</span>   <span class="num">30s</span>
+    <span class="key">timeout server</span>   <span class="num">30s</span>
+    <span class="key">option</span>      <span class="val">httplog</span>
+    <span class="key">option</span>      <span class="val">dontlognull</span>
+    <span class="key">option</span>      <span class="val">redispatch</span>     <span class="cm"># retry on another server if one fails</span>
+    <span class="key">retries</span>     <span class="num">3</span>
+
+<span class="kw">frontend</span> <span class="fn">http_front</span>
+    <span class="key">bind</span> <span class="val">*:80</span>
+    <span class="key">bind</span> <span class="val">*:443</span> <span class="key">ssl crt</span> <span class="str">/etc/ssl/certs/server.pem</span>
+    <span class="key">redirect scheme</span> <span class="val">https</span> <span class="key">if</span> !{ <span class="val">ssl_fc</span> }
+
+    <span class="cm"># Route /api to API backend, /admin to admin backend</span>
+    <span class="key">acl</span>  <span class="val">is_api</span>   <span class="key">path_beg</span>  <span class="str">/api</span>
+    <span class="key">acl</span>  <span class="val">is_admin</span> <span class="key">path_beg</span>  <span class="str">/admin</span>
+    <span class="key">use_backend</span> <span class="val">api_pool</span>   <span class="key">if</span> <span class="val">is_api</span>
+    <span class="key">use_backend</span> <span class="val">admin_pool</span> <span class="key">if</span> <span class="val">is_admin</span>
+    <span class="key">default_backend</span> <span class="val">web_pool</span>
+
+<span class="kw">backend</span> <span class="fn">api_pool</span>
+    <span class="key">balance</span>      <span class="val">leastconn</span>
+    <span class="key">option</span>       <span class="val">httpchk</span> <span class="str">GET /health</span>  <span class="cm"># health check endpoint</span>
+    <span class="key">http-check</span>   <span class="val">expect status 200</span>
+    <span class="key">server</span> <span class="val">api1</span> <span class="val">10.0.1.1:3000</span> <span class="key">check inter</span> <span class="num">2000</span> <span class="key">rise</span> <span class="num">2</span> <span class="key">fall</span> <span class="num">3</span>
+    <span class="key">server</span> <span class="val">api2</span> <span class="val">10.0.1.2:3000</span> <span class="key">check inter</span> <span class="num">2000</span> <span class="key">rise</span> <span class="num">2</span> <span class="key">fall</span> <span class="num">3</span>
+    <span class="key">server</span> <span class="val">api3</span> <span class="val">10.0.1.3:3000</span> <span class="key">check inter</span> <span class="num">2000</span> <span class="key">rise</span> <span class="num">2</span> <span class="key">fall</span> <span class="num">3</span>
+
+    <span class="cm"># Sticky sessions via cookie</span>
+    <span class="key">cookie</span> <span class="val">SERVERID</span> <span class="key">insert indirect nocache</span></code></pre>
+      </div>
+
+      <h3>Node.js App — Trust Proxy & Real IP</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">app.js (Express)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> express = <span class="fn">require</span>(<span class="str">'express'</span>);
+<span class="kw">const</span> app = <span class="fn">express</span>();
+
+<span class="cm">// CRITICAL: Tell Express to trust the load balancer's X-Forwarded-For header</span>
+<span class="cm">// Without this, req.ip returns the LB's IP, not the real client IP</span>
+app.<span class="fn">set</span>(<span class="str">'trust proxy'</span>, <span class="num">1</span>);  <span class="cm">// trust first proxy hop</span>
+
+<span class="cm">// Health check endpoint (used by load balancer)</span>
+app.<span class="fn">get</span>(<span class="str">'/health'</span>, (req, res) => {
+  <span class="cm">// Check DB connectivity, memory, etc.</span>
+  <span class="kw">const</span> healthy = checkDbConnection() && process.memoryUsage().<span class="val">heapUsed</span> < <span class="num">512</span> * <span class="num">1024</span> * <span class="num">1024</span>;
+  
+  <span class="kw">if</span> (healthy) {
+    res.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>({ 
+      status: <span class="str">'ok'</span>, 
+      uptime: process.<span class="fn">uptime</span>(),
+      serverId: process.env.<span class="val">HOSTNAME</span>
+    });
+  } <span class="kw">else</span> {
+    <span class="cm">// 503 causes LB to stop routing to this instance</span>
+    res.<span class="fn">status</span>(<span class="num">503</span>).<span class="fn">json</span>({ status: <span class="str">'degraded'</span> });
+  }
+});
+
+app.<span class="fn">get</span>(<span class="str">'/api/users'</span>, (req, res) => {
+  <span class="cm">// req.ip now correctly shows the real client IP</span>
+  console.<span class="fn">log</span>(<span class="str">`Request from: ${req.ip}`</span>);
+  console.<span class="fn">log</span>(<span class="str">`Via servers: ${req.headers['x-forwarded-for']}`</span>);
+  
+  res.<span class="fn">json</span>({ message: <span class="str">'Hello!'</span>, server: process.env.<span class="val">HOSTNAME</span> });
+});</code></pre>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- SECTION 7: HOW COMPANIES USE IT -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Use Load Balancers</h2>
+
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">🎬 Netflix <span class="company-tech">AWS ALB + Envoy</span></div>
+          <div class="company-desc">Netflix uses <strong>Envoy service mesh</strong> for inter-service load balancing and AWS ALBs for edge traffic. Their "Chaos Monkey" randomly kills servers to ensure the load balancer fails over correctly. They handle 200M+ streaming sessions simultaneously.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🚗 Uber <span class="company-tech">NGINX + Custom</span></div>
+          <div class="company-desc">Uber built <strong>RING POP</strong>, a custom application-layer load balancer for their Node.js microservices. They use consistent hashing so trip data for a specific city always routes to the same cluster of servers for locality.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🔍 Google <span class="company-tech">Maglev</span></div>
+          <div class="company-desc">Google built <strong>Maglev</strong>, their own software L4 LB handling millions of connections per second. Maglev uses consistent hashing with connection tracking tables so existing connections aren't disrupted when servers are added/removed.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">📘 Facebook <span class="company-tech">Katran</span></div>
+          <div class="company-desc">Facebook's <strong>Katran</strong> is an eBPF-based L4 LB that runs in the kernel for ultra-low latency. It handles ~billions of requests per day across Facebook, Instagram, and WhatsApp infrastructure.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛒 Amazon <span class="company-tech">AWS ALB/NLB/GWLB</span></div>
+          <div class="company-desc">Amazon uses ALBs for HTTP/HTTPS, NLBs for TCP/UDP gaming, and Gateway LBs for security appliances. They invented <strong>target groups</strong> and <strong>weighted routing</strong> for canary deployments (send 5% to new version).</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">☁️ Cloudflare <span class="company-tech">Unimog</span></div>
+          <div class="company-desc">Cloudflare's <strong>Unimog</strong> load balancer handles traffic across 270+ global PoPs. It uses XDP (eXpress Data Path) for kernel bypass, achieving sub-100µs routing decisions for 70M+ HTTP requests per second.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8: PROS/CONS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>Advantages, Disadvantages & Tradeoffs</h2>
+
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">✅ Advantages</div>
+          <ul class="check-list">
+            <li>Horizontal scaling — add more servers without downtime</li>
+            <li>High availability — automatic failover when servers die</li>
+            <li>Zero-downtime deployments via rolling updates</li>
+            <li>SSL termination offloads crypto work from app servers</li>
+            <li>DDoS mitigation at the entry point</li>
+            <li>Centralized logging and monitoring point</li>
+            <li>A/B testing and canary deployments via weighted routing</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">❌ Disadvantages</div>
+          <ul class="check-list">
+            <li>Single point of failure (if not deployed in HA mode)</li>
+            <li>Added network hop increases latency by 1-5ms</li>
+            <li>Session stickiness problems with stateful apps</li>
+            <li>Load balancer itself can become the bottleneck</li>
+            <li>Complexity in debugging (which server handled request?)</li>
+            <li>Additional cost for managed LB services</li>
+            <li>WebSocket sticky sessions need special config</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Key Tradeoffs to Discuss in Interviews</h3>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔄 Stateless vs Stateful Application Handling
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Stateless apps</strong> (RESTful APIs) work perfectly with round-robin. Any server can handle any request. <strong>Stateful apps</strong> (shopping carts stored in server memory) break because different requests go to different servers.</p>
+            <p><strong>Solution:</strong> Move state out to a shared store (Redis). This is the real reason why "store sessions in Redis" is a fundamental best practice.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⚡ Performance vs Intelligence Tradeoff (L4 vs L7)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>L4 LBs are <strong>3-5x faster</strong> (no HTTP parsing), but they can't make content-aware decisions. L7 LBs can route based on URL, headers, cookies — enabling microservice routing and A/B testing — but at higher CPU cost per connection.</p>
+            <p><strong>Modern answer:</strong> Use L7 LBs for web APIs (the intelligence is worth it). Use L4 LBs for non-HTTP services or ultra-high throughput scenarios.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔒 Where to Terminate SSL?
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>SSL Termination at LB:</strong> LB decrypts traffic, internal network runs plain HTTP. Faster (no per-server SSL), easier certificate management. Risk: internal traffic unencrypted.</p>
+            <p><strong>SSL Passthrough:</strong> LB forwards encrypted TCP connections directly. Backend handles decryption. Secure end-to-end but LB can't inspect headers for routing. Can't do cookie-based routing.</p>
+            <p><strong>SSL Re-encryption:</strong> LB terminates SSL, then re-encrypts to backend. Best security, highest cost.</p>
+            <p><strong>Industry standard:</strong> Terminate at LB + use mTLS or private network for backend communication.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 9: HEALTH CHECKS -->
+    <section class="section" id="health">
+      <div class="section-label">Production Concepts</div>
+      <h2>Health Checks — The Heartbeat of Load Balancing</h2>
+
+      <p>Health checks are what allow load balancers to automatically exclude failed servers. Without them, the LB would continue sending requests to a dead server.</p>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent: var(--accent)">
+          <div class="card-icon">📡</div>
+          <div class="card-title">TCP Health Check</div>
+          <div class="card-text">LB tries to open a TCP connection to the server's port. If the port accepts the connection → healthy. Doesn't check if the <em>app</em> is functioning, just that something is listening.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent3)">
+          <div class="card-icon">🌐</div>
+          <div class="card-title">HTTP Health Check</div>
+          <div class="card-text">LB sends <code>GET /health</code> and expects HTTP 200. Your app can check DB connections, memory limits, dependencies. Returns 503 to signal "don't send me traffic."</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent5)">
+          <div class="card-icon">🩺</div>
+          <div class="card-title">Deep Health Check</div>
+          <div class="card-text">Custom endpoint that checks cache connectivity, queue depth, downstream service availability. Returns detailed JSON status for monitoring dashboards.</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">healthcheck.js — Production deep health check</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> router = <span class="fn">require</span>(<span class="str">'express'</span>).<span class="fn">Router</span>();
+
+router.<span class="fn">get</span>(<span class="str">'/health'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> checks = {};
+  <span class="kw">let</span> overallHealthy = <span class="kw">true</span>;
+
+  <span class="cm">// 1. Database check</span>
+  <span class="kw">try</span> {
+    <span class="kw">await</span> db.<span class="fn">query</span>(<span class="str">'SELECT 1'</span>);
+    checks.database = { status: <span class="str">'ok'</span>, latency: <span class="str">'2ms'</span> };
+  } <span class="kw">catch</span> (err) {
+    checks.database = { status: <span class="str">'error'</span>, message: err.message };
+    overallHealthy = <span class="kw">false</span>;
+  }
+
+  <span class="cm">// 2. Redis cache check</span>
+  <span class="kw">try</span> {
+    <span class="kw">await</span> redis.<span class="fn">ping</span>();
+    checks.cache = { status: <span class="str">'ok'</span> };
+  } <span class="kw">catch</span> (err) {
+    checks.cache = { status: <span class="str">'degraded'</span> };
+    <span class="cm">// Cache failure = degraded, not unhealthy (app still works)</span>
+  }
+
+  <span class="cm">// 3. Memory check (if too high, signal LB to stop sending)</span>
+  <span class="kw">const</span> mem = process.<span class="fn">memoryUsage</span>();
+  <span class="kw">const</span> heapUsedMB = Math.<span class="fn">round</span>(mem.heapUsed / <span class="num">1024</span> / <span class="num">1024</span>);
+  checks.memory = { heapUsedMB, status: heapUsedMB > <span class="num">800</span> ? <span class="str">'warning'</span> : <span class="str">'ok'</span> };
+  <span class="kw">if</span> (heapUsedMB > <span class="num">950</span>) overallHealthy = <span class="kw">false</span>;
+
+  <span class="kw">const</span> statusCode = overallHealthy ? <span class="num">200</span> : <span class="num">503</span>;
+
+  res.<span class="fn">status</span>(statusCode).<span class="fn">json</span>({
+    status:    overallHealthy ? <span class="str">'healthy'</span> : <span class="str">'unhealthy'</span>,
+    timestamp: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>(),
+    uptime:    process.<span class="fn">uptime</span>(),
+    checks,
+    <span class="cm">// Include which server responded (useful for debugging)</span>
+    server:    process.env.<span class="val">HOSTNAME</span>,
+    version:   process.env.<span class="val">APP_VERSION</span>
+  });
+});</code></pre>
+      </div>
+
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <div><strong>Senior Engineer Tip:</strong> Design your health check to be <em>honest but nuanced</em>. Return 503 for hard failures (DB down), but a "degraded" 200 for soft failures (cache miss). This prevents the LB from routing all traffic away during minor blips, causing a thundering herd on the remaining healthy servers.</div>
+      </div>
+    </section>
+
+    <!-- SECTION 10: SCALING -->
+    <section class="section" id="scaling">
+      <div class="section-label">Scaling</div>
+      <h2>Scaling Strategies with Load Balancers</h2>
+
+      <h3>Making the Load Balancer Itself Highly Available</h3>
+
+      <p>Ironically, a single load balancer is <strong>itself a SPOF</strong>. Production setups use multiple LBs in an Active-Passive or Active-Active configuration:</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// HA Load Balancer Setup — Active-Passive with VIP</div>
+        <svg class="diagram-svg" viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <!-- DNS/VIP -->
+          <rect x="240" y="20" width="160" height="60" rx="10" style="fill:rgba(0,212,255,0.08);stroke:rgba(0,212,255,0.3);stroke-width:1.5"/>
+          <text x="320" y="47" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:13px;font-weight:700">Virtual IP (VIP)</text>
+          <text x="320" y="67" text-anchor="middle" class="flow-text" style="font-size:11px">10.0.0.1 — Floating IP</text>
+
+          <!-- Arrows: VIP to LBs -->
+          <line x1="280" y1="80" x2="200" y2="130" class="flow-arrow-accent"/>
+          <line x1="360" y1="80" x2="440" y2="130" style="stroke:rgba(100,116,139,0.3);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arr)"/>
+
+          <!-- LB Primary -->
+          <rect x="100" y="130" width="180" height="80" rx="10" style="fill:rgba(0,255,136,0.06);stroke:rgba(0,255,136,0.3);stroke-width:2"/>
+          <text x="190" y="158" text-anchor="middle" class="flow-text-lg">⚖️ LB Primary</text>
+          <text x="190" y="176" text-anchor="middle" class="flow-text">Nginx Active</text>
+          <rect x="120" y="186" width="140" height="16" rx="4" style="fill:rgba(0,255,136,0.12)"/>
+          <text x="190" y="197" text-anchor="middle" class="flow-text" style="fill:#00ff88;font-size:10px">● ACTIVE — owns VIP</text>
+
+          <!-- LB Standby -->
+          <rect x="360" y="130" width="180" height="80" rx="10" style="fill:rgba(100,116,139,0.06);stroke:#1e2d45;stroke-width:1.5"/>
+          <text x="450" y="158" text-anchor="middle" class="flow-text-lg">⚖️ LB Standby</text>
+          <text x="450" y="176" text-anchor="middle" class="flow-text">Nginx Passive</text>
+          <rect x="380" y="186" width="140" height="16" rx="4" style="fill:rgba(100,116,139,0.08)"/>
+          <text x="450" y="197" text-anchor="middle" class="flow-text" style="fill:#64748b;font-size:10px">○ STANDBY — monitoring</text>
+
+          <!-- Heartbeat -->
+          <line x1="282" y1="170" x2="358" y2="170" style="stroke:rgba(251,191,36,0.4);stroke-width:1.5;stroke-dasharray:3,3;fill:none"/>
+          <text x="320" y="162" text-anchor="middle" class="flow-text" style="fill:rgba(251,191,36,0.6);font-size:10px">💓 Heartbeat</text>
+
+          <!-- Backend Servers -->
+          <rect x="30" y="250" width="100" height="24" rx="5" class="flow-box-green"/>
+          <text x="80" y="265" text-anchor="middle" class="flow-text" style="font-size:11px">Server 1</text>
+          <rect x="145" y="250" width="100" height="24" rx="5" class="flow-box-green"/>
+          <text x="195" y="265" text-anchor="middle" class="flow-text" style="font-size:11px">Server 2</text>
+          <rect x="260" y="250" width="100" height="24" rx="5" class="flow-box-green"/>
+          <text x="310" y="265" text-anchor="middle" class="flow-text" style="font-size:11px">Server 3</text>
+
+          <line x1="150" y1="212" x2="80"  y2="250" class="flow-arrow"/>
+          <line x1="190" y1="212" x2="195" y2="250" class="flow-arrow"/>
+          <line x1="230" y1="212" x2="310" y2="250" class="flow-arrow"/>
+
+          <!-- Failover label -->
+          <text x="510" y="250" text-anchor="middle" class="flow-text" style="fill:rgba(251,191,36,0.7);font-size:11px">If Primary fails:</text>
+          <text x="510" y="266" text-anchor="middle" class="flow-text" style="fill:rgba(251,191,36,0.7);font-size:11px">Standby claims VIP</text>
+          <text x="510" y="282" text-anchor="middle" class="flow-text" style="fill:rgba(251,191,36,0.5);font-size:10px">~2s failover</text>
+        </svg>
+      </div>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Primary LB owns the Virtual IP (VIP)</div>
+            <div class="step-desc">Both LBs have their own IPs, but only the primary "owns" the VIP (e.g. 10.0.0.1). DNS points to this VIP. VRRP/Keepalived protocol manages ownership.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Heartbeat monitoring between LBs</div>
+            <div class="step-desc">Both LBs send heartbeat packets to each other every 1 second. If the primary misses 3 consecutive heartbeats, the standby assumes the primary is dead.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Automatic VIP failover</div>
+            <div class="step-desc">The standby broadcasts a gratuitous ARP to claim the VIP. All routers update their ARP tables. Failover completes in ~2 seconds. Users experience a brief blip.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 11: MISTAKES & BEST PRACTICES -->
+    <section class="section" id="best-practices">
+      <div class="section-label">Engineering Wisdom</div>
+      <h2>Common Mistakes & Best Practices</h2>
+
+      <h3>🚨 Beginner Mistakes</h3>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Not setting <code>trust proxy</code> in Express
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>When running behind a load balancer, <code>req.ip</code> returns the LB's private IP, not the client's real IP. This breaks IP-based rate limiting — everyone looks like they're coming from the same IP.</p>
+            <p><strong>Fix:</strong> <code>app.set('trust proxy', 1)</code> in Express. In Nginx: use <code>$http_x_forwarded_for</code> for rate limiting, not <code>$remote_addr</code>.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Storing session in server memory
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Using <code>express-session</code> with the default <code>MemoryStore</code> means user sessions are stored on a specific server. The next request may go to a different server → user gets logged out.</p>
+            <p><strong>Fix:</strong> Use <code>connect-redis</code> or <code>connect-mongo</code> to store sessions in a shared external store. All servers share the same session data.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Health check endpoint that always returns 200
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>A health check that just returns <code>{"status":"ok"}</code> without actually checking the database, cache, or dependencies is useless. The LB will keep routing traffic to a server that's connected but broken.</p>
+            <p><strong>Fix:</strong> Genuinely check DB connectivity (SELECT 1), Redis PING, and memory usage. Return 503 when truly unhealthy. Check with a timeout so a slow health check doesn't hang the LB.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Setting session timeout too aggressive
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>If your health check timeout is 1 second but your app sometimes takes 2-3 seconds to respond under load, the LB marks healthy servers as "down" and creates a cascading failure.</p>
+            <p><strong>Fix:</strong> Set timeouts conservatively: <code>check inter 5000 fall 3 rise 2</code> means: check every 5 seconds, mark down after 3 failures, mark up after 2 successes.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>✅ Senior Engineer Best Practices</h3>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent: var(--accent3)">
+          <div class="card-icon">🔁</div>
+          <div class="card-title">Connection Draining</div>
+          <div class="card-text">When removing a server from rotation (deployment), enable <strong>connection draining</strong>. The LB stops sending new requests but lets existing connections finish (e.g. 30s timeout). AWS ALB calls this "deregistration delay."</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent)">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Slow Start</div>
+          <div class="card-text">When a new server joins, ramp up traffic gradually. Nginx's <code>slow_start=30s</code> parameter increases the server's weight from 0 to full over 30 seconds, avoiding JVM cold-start overload.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent5)">
+          <div class="card-icon">🔐</div>
+          <div class="card-title">mTLS Internally</div>
+          <div class="card-text">Don't trust your internal network. Use mutual TLS between the LB and backend servers. Service meshes like Istio do this automatically for every service-to-service call.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--warn)">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Monitor LB Metrics</div>
+          <div class="card-text">Track: active connections, requests/sec, error rates (4xx/5xx), backend response time p50/p95/p99, health check pass rates. Alert when any backend shows elevated error rate.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Production Warning:</strong> Never set <code>max_fails=0</code> in Nginx — this disables passive health checks entirely. Always set <code>max_fails ≥ 2</code> with a reasonable <code>fail_timeout</code> to prevent a single slow response from incorrectly marking a server as down.</div>
+      </div>
+    </section>
+
+    <!-- SECTION 12: SECURITY -->
+    <section class="section" id="security">
+      <div class="section-label">Security</div>
+      <h2>Security Considerations</h2>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent: var(--danger)">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">DDoS Mitigation</div>
+          <div class="card-text">Load balancers can absorb and distribute DDoS attacks. Configure connection limits per IP, request rate limits, and SYN cookie protection to handle SYN flood attacks at the LB level.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent)">
+          <div class="card-icon">🔒</div>
+          <div class="card-title">IP Whitelisting</div>
+          <div class="card-text">Restrict admin endpoints to specific IP ranges at the LB level. E.g., only allow <code>/admin/*</code> from office VPN CIDR blocks. Cheaper than building auth into every microservice.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent3)">
+          <div class="card-icon">🔑</div>
+          <div class="card-title">WAF Integration</div>
+          <div class="card-text">Modern L7 LBs (AWS ALB + WAF, Cloudflare) can inspect requests for SQL injection, XSS patterns, and block malicious payloads before they reach your application code.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent5)">
+          <div class="card-icon">📋</div>
+          <div class="card-title">Access Logs</div>
+          <div class="card-text">Centralize LB access logs (all requests, response codes, latency) to Elasticsearch or Splunk. The LB is the single choke point — you get 100% of traffic visibility in one place.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-danger">
+        <span class="alert-icon">🚨</span>
+        <div><strong>Critical Security:</strong> Never expose backend server IPs directly to the internet. All traffic MUST route through the load balancer. Use security groups/firewall rules to allow inbound traffic on app ports ONLY from the load balancer's private IP, not from <code>0.0.0.0/0</code>.</div>
+      </div>
+    </section>
+
+    <!-- SECTION 13: INTERVIEW QS -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the difference between a Load Balancer and a Reverse Proxy?</div>
+          <div class="interview-a">
+            A <strong>Reverse Proxy</strong> is a server that sits in front of web servers and forwards client requests to them. It handles one or more servers. A <strong>Load Balancer</strong> is a type of reverse proxy that specifically distributes traffic across a pool of servers. All load balancers are reverse proxies, but not all reverse proxies are load balancers. Nginx can function as both simultaneously — it can proxy and load balance at the same time.
+          </div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How would you handle WebSocket connections with a load balancer?</div>
+          <div class="interview-a">
+            WebSockets need <strong>sticky sessions</strong> (connection persistence) because the connection is long-lived. Configure Nginx with <code>ip_hash</code> or HAProxy with cookie-based persistence. The better solution is to offload WebSocket state to a pub/sub system (Redis Pub/Sub, Kafka) so any server can handle any connection. Also ensure the LB has long <code>proxy_read_timeout</code> values (minutes/hours, not seconds) since WebSocket connections are persistent.
+          </div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Explain how you would do a zero-downtime deployment with a load balancer.</div>
+          <div class="interview-a">
+            <strong>Rolling deployment strategy:</strong> (1) Remove Server 1 from the LB pool (enable connection draining, wait for existing connections to finish). (2) Deploy new version to Server 1. (3) Run smoke tests. (4) Add Server 1 back to the pool. (5) Repeat for Server 2, Server 3, etc. AWS uses this with target group deregistration delay (default 300s). The key is: never remove more servers than you can handle traffic without.
+          </div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the C10K problem and how do load balancers address it?</div>
+          <div class="interview-a">
+            C10K is the challenge of handling 10,000 concurrent connections on a single server. Traditional thread-per-connection models fail because each thread uses ~8MB stack memory — 10k threads = 80GB RAM. Load balancers solve this by: (1) Distributing connections across many servers, (2) Using event-loop architectures (Nginx's epoll) to handle thousands of connections with minimal threads, (3) Enabling horizontal scaling — you can handle C10M by adding more servers behind the LB.
+          </div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How does Consistent Hashing work in load balancing?</div>
+          <div class="interview-a">
+            Consistent hashing maps both servers and requests to points on a circular hash ring. Each request routes to the nearest server clockwise on the ring. <strong>Why it's better than regular hash:</strong> When you add/remove a server with normal hashing (key % N), almost ALL keys remap to different servers, invalidating cache. With consistent hashing, only (1/N) of keys need to move — minimizing cache misses. Used by Uber, Memcached, Cassandra, and Dynamo.
+          </div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Design a load balancer for a system handling 1 million requests per second.</div>
+          <div class="interview-a">
+            At 1M RPS: (1) Use an L4 LB for maximum throughput (Maglev-style or Katran with eBPF). (2) Use ECMP (Equal Cost Multi-Path) routing so multiple LB instances share the VIP. (3) Implement consistent hashing for connection affinity. (4) Use DPDK (Data Plane Development Kit) to bypass the Linux kernel for packet processing. (5) Deploy in multiple AZs with GeoDNS for geographic distribution. (6) Each LB cluster should handle 2x your peak traffic for redundancy. Cloudflare and Google use exactly this architecture.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 14: PRODUCTION CHALLENGES -->
+    <section class="section" id="production">
+      <div class="section-label">Production Ops</div>
+      <h2>Production Challenges & Debugging</h2>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔥 The Thundering Herd Problem
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Scenario:</strong> One backend server goes down. The LB routes its traffic to the remaining servers. Those servers are now overloaded, so they start failing health checks. The LB removes more servers. Cascade failure.</p>
+            <p><strong>Solutions:</strong> Circuit breaker pattern (stop sending traffic once error rate exceeds threshold), connection pooling with max limits, autoscaling triggered before LB removes servers, exponential backoff on health check retries.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🐌 Slow Backend Dragging Down Performance
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>With Least Connections algorithm, if one backend has a memory leak and all requests slow down, it accumulates the most connections and becomes a black hole — the LB keeps sending more because it has "least connections finishing per second."</p>
+            <p><strong>Solutions:</strong> Use <strong>Least Response Time</strong> algorithm instead of Least Connections. Set hard <code>proxy_read_timeout</code> values. Monitor p95 latency per backend, not just error rates.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔍 Debugging: Which Server Handled My Request?
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>When debugging issues behind a load balancer, you often need to know which server handled a specific request. Solutions: (1) Return <code>X-Server-ID</code> response header. (2) Include server hostname in structured log output. (3) Use distributed tracing (OpenTelemetry, Jaeger) where the trace ID ties together all logs from the same request across all servers.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Load balancers distribute traffic across multiple servers to prevent overload and enable high availability</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> L4 LBs work at TCP/IP level (fast, no content inspection); L7 LBs work at HTTP level (slower but intelligent routing)</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Algorithms: Round Robin (simple), Least Connections (variable requests), Weighted (mixed hardware), IP Hash (session stickiness)</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Health checks are what make auto-failover work — design them to be genuinely honest</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Session state must be externalized to Redis/DB to work with stateless server pools</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> The LB itself needs HA (Active-Passive with VIP via VRRP/Keepalived) or you haven't eliminated SPOFs</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Connection draining + slow start = safe zero-downtime deployments</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- NEXT TOPIC -->
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 02</div>
+        <div class="next-name">API Gateway</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+
+  </div>
+</main>
+
+<!-- ─── RIGHT TOC ─── -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#why" class="toc-link">Why Needed</a></li>
+      <li class="toc-item"><a href="#architecture" class="toc-link">Architecture</a></li>
+      <li class="toc-item"><a href="#algorithms" class="toc-link">Algorithms</a></li>
+      <li class="toc-item"><a href="#types" class="toc-link">Types</a></li>
+      <li class="toc-item"><a href="#config" class="toc-link">Configuration</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#health" class="toc-link">Health Checks</a></li>
+      <li class="toc-item"><a href="#scaling" class="toc-link">Scaling</a></li>
+      <li class="toc-item"><a href="#best-practices" class="toc-link">Best Practices</a></li>
+      <li class="toc-item"><a href="#security" class="toc-link">Security</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#production" class="toc-link">Production</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+
+</div>
+
+<script>
+// ─── Progress Bar ───
+window.addEventListener('scroll', () => {
+  const el = document.getElementById('progressBar');
+  const scrolled = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  el.style.width = scrolled + '%';
+});
+
+// ─── TOC Active State ───
+const sections = document.querySelectorAll('section[id]');
+const tocLinks = document.querySelectorAll('.toc-link');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+
+sections.forEach(s => observer.observe(s));
+
+// ─── Tabs ───
+function switchTab(id, btn) {
+  const parent = btn.closest('.tabs');
+  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  parent.querySelector('#tab-' + id).classList.add('active');
+}
+
+// ─── Accordion ───
+function toggleAccordion(btn) {
+  const item = btn.closest('.accordion-item');
+  const isOpen = item.classList.contains('open');
+  // Close all in same accordion
+  btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ─── Interview Q toggle ───
+function toggleInterview(item) {
+  item.classList.toggle('open');
+}
+
+// ─── Copy Code ───
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+// ─── Mobile sidebar ───
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ─── Entrance animations ───
+const cards = document.querySelectorAll('.info-card, .company-card');
+const cardObserver = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '0';
+      e.target.style.transform = 'translateY(16px)';
+      setTimeout(() => {
+        e.target.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'none';
+      }, 60);
+      cardObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+cards.forEach(c => cardObserver.observe(c));
+</script>
+</body>
+</html>

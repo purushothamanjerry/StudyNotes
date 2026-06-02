@@ -41,31 +41,12 @@ const topics = {
     ],
   },
 
-  Networking: {
-    color: "#4f8ef7",
-    icon: "🌐",
-    items: [
-      { title: "Introduction",            file: "networking/introduction" },
-      { title: "IP Address",              file: "networking/ip-address" },
-      { title: "TCP/IP",                  file: "networking/tcp-ip" },
-      { title: "OSI Model",               file: "networking/osi-model" },
-      { title: "DNS",                     file: "networking/dns" },
-      { title: "HTTP & HTTPS",            file: "networking/http-https" },
-    ],
-  },
 
-  DBMS: {
+  HLD: {
     color: "#a78bfa",
     icon: "🗃️",
     items: [
-      { title: "Introduction to DBMS",    file: "dbms/introduction" },
-      { title: "ER Model",                file: "dbms/er-model" },
-      { title: "Relational Model",        file: "dbms/relational-model" },
-      { title: "SQL Basics",              file: "dbms/sql-basics" },
-      { title: "Joins",                   file: "dbms/joins" },
-      { title: "Normalization",           file: "dbms/normalization" },
-      { title: "Transactions",            file: "dbms/transactions" },
-      { title: "Indexing",                file: "dbms/indexing" },
+      { title: "Load Balancer",    file: "hld/load-balancer" }
     ],
   },
 
@@ -79,6 +60,19 @@ const topics = {
       { title: "Dependency Injection",    file: "springboot/dependency-injection" },
       { title: "JPA & Hibernate",         file: "springboot/jpa-hibernate" },
       { title: "Spring Security",         file: "springboot/spring-security" },
+    ],
+  },
+  
+  Networking: {
+    color: "#4f8ef7",
+    icon: "🌐",
+    items: [
+      { title: "Introduction",            file: "networking/introduction" },
+      { title: "IP Address",              file: "networking/ip-address" },
+      { title: "TCP/IP",                  file: "networking/tcp-ip" },
+      { title: "OSI Model",               file: "networking/osi-model" },
+      { title: "DNS",                     file: "networking/dns" },
+      { title: "HTTP & HTTPS",            file: "networking/http-https" },
     ],
   },
 
