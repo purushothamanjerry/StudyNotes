@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redis Cache — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
+  --card:#0f1829;--border:#1e2d45;--border2:#243350;
+  --accent:#ff6b35;--accent2:#e55a2b;--accent3:#00ff88;
+  --accent4:#a78bfa;--accent5:#00d4ff;
+  --warn:#fbbf24;--danger:#f87171;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+.layout{display:grid;grid-template-columns:270px 1fr 220px;min-height:100vh;max-width:1600px;margin:0 auto}
+
+/* SIDEBAR */
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sidebar-nav{padding:16px 12px}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .2s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(255,107,53,.1);color:var(--accent);border-left:2px solid var(--accent)}
+.nav-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:18px}
+.nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(255,107,53,.1);color:var(--accent)}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#080c14 0%,#1a0f08 50%,#0a0c10 100%);padding:60px 60px 50px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,rgba(255,107,53,.07) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:160px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,212,255,.04) 0%,transparent 70%);pointer-events:none}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
+.breadcrumb span{color:var(--accent)}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent) 0%,var(--warn) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{font-size:17px;color:var(--text2);max-width:640px;margin-bottom:28px;line-height:1.7}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.meta-dot{width:6px;height:6px;border-radius:50%}
+
+/* MAIN */
+.main{padding:0;min-width:0}
+.content{padding:48px 60px;max-width:860px}
+.section{margin-bottom:64px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';display:block;width:16px;height:1px;background:var(--accent)}
+h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:16px;line-height:1.2}
+h3{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:28px}
+h4{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text2);margin-bottom:8px;margin-top:20px}
+p{color:var(--text2);margin-bottom:14px;font-size:15px}
+strong{color:var(--text);font-weight:600}
+
+.analogy-box{background:linear-gradient(135deg,rgba(255,107,53,.08) 0%,rgba(251,191,36,.05) 100%);border:1px solid rgba(255,107,53,.2);border-radius:12px;padding:24px 28px;margin:24px 0;position:relative}
+.analogy-box::before{content:'💡';position:absolute;top:-12px;left:20px;font-size:20px;background:var(--bg);padding:0 6px}
+.analogy-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,var(--accent))}
+.info-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-icon{font-size:24px;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--text2);line-height:1.5}
+
+.diagram-container{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px 24px;margin:24px 0;overflow-x:auto}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:24px;text-align:center;text-transform:uppercase;letter-spacing:.1em}
+.diagram-svg{display:block;margin:0 auto;max-width:100%}
+
+.code-wrap{margin:20px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.code-header{background:var(--bg4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.05em}
+.code-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);color:var(--accent);border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.copy-btn:hover{background:rgba(255,107,53,.15)}
+pre{background:#060a10;padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.kw{color:#ff79c6}.str{color:#f1fa8c}.cm{color:#6272a4;font-style:italic}.fn{color:#50fa7b}.num{color:#bd93f9}.key{color:#8be9fd}.val{color:#ffb86c}.op{color:#ff5555}
+
+.step-list{margin:20px 0}
+.step-item{display:flex;gap:16px;margin-bottom:20px;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:15px;top:36px;bottom:-20px;width:1px;background:linear-gradient(to bottom,var(--accent),transparent)}
+.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)}
+.step-title{font-weight:600;color:var(--text);font-size:15px;margin-bottom:4px}
+.step-desc{color:var(--text2);font-size:14px}
+
+.tabs{margin:24px 0}
+.tab-list{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:4px;border-radius:10px;width:fit-content}
+.tab-btn{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:'Inter',sans-serif}
+.tab-btn.active{background:rgba(255,107,53,.12);color:var(--accent);border:1px solid rgba(255,107,53,.2)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:8px}
+.tab-panel.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.accordion{margin:16px 0}
+.accordion-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.accordion-trigger{width:100%;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:none;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:background .2s}
+.accordion-trigger:hover{background:var(--bg4)}
+.accordion-icon{width:20px;height:20px;border-radius:50%;background:rgba(255,107,53,.1);display:flex;align-items:center;justify-content:center;font-size:12px;transition:transform .3s;flex-shrink:0}
+.accordion-item.open .accordion-icon{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;background:var(--card);padding:0 18px;font-size:14px;color:var(--text2)}
+.accordion-item.open .accordion-body{max-height:800px;padding:16px 18px}
+
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.pros-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:10px;padding:20px}
+.cons-box{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:20px}
+.box-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pros-box .box-title{color:var(--accent3)}.cons-box .box-title{color:var(--danger)}
+.check-list{list-style:none}
+.check-list li{font-size:13.5px;color:var(--text2);padding:4px 0;display:flex;gap:8px;align-items:flex-start}
+.pros-box .check-list li::before{content:'✓';color:var(--accent3);flex-shrink:0;margin-top:1px}
+.cons-box .check-list li::before{content:'✗';color:var(--danger);flex-shrink:0;margin-top:1px}
+
+.alert{border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.alert-icon{font-size:16px;flex-shrink:0}
+.alert-warn{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);color:var(--warn)}
+.alert-danger{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger)}
+.alert-info{background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);color:var(--accent)}
+.alert-success{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);color:var(--accent3)}
+.alert p{color:inherit;margin:0}
+
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:20px 0}
+.company-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;transition:all .25s}
+.company-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.company-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.company-tech{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(255,107,53,.08);padding:2px 8px;border-radius:4px}
+.company-desc{font-size:13px;color:var(--text2);line-height:1.5}
+
+.interview-list{margin:16px 0}
+.interview-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.interview-item:hover{border-color:var(--border2);background:var(--bg4)}
+.interview-q{font-size:14px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.interview-q::after{content:'›';color:var(--text3);font-size:18px;flex-shrink:0;transition:transform .2s}
+.interview-item.open .interview-q::after{transform:rotate(90deg)}
+.interview-a{max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;font-size:13.5px;color:var(--text2)}
+.interview-item.open .interview-a{max-height:400px;padding-top:10px}
+
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg4)}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+td{padding:11px 16px;font-size:13.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:var(--text);font-weight:500}
+
+.toc{position:sticky;top:24px;padding:24px 16px}
+.toc-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.toc-list{list-style:none}
+.toc-item{margin-bottom:2px}
+.toc-link{display:block;padding:5px 10px;border-radius:5px;color:var(--text3);text-decoration:none;font-size:12.5px;transition:all .2s;border-left:2px solid transparent}
+.toc-link:hover{color:var(--text);background:var(--bg3)}
+.toc-link.active{color:var(--accent);border-left-color:var(--accent);background:rgba(255,107,53,.05)}
+
+.progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent),var(--warn));z-index:100;transition:width .1s}
+
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid}
+.tag-orange{color:var(--accent);border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.06)}
+.tag-blue{color:var(--accent5);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.06)}
+.tag-green{color:var(--accent3);border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.06)}
+.tag-purple{color:var(--accent4);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+
+.sep{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:40px 0}
+.summary-box{background:linear-gradient(135deg,rgba(255,107,53,.06) 0%,rgba(251,191,36,.04) 100%);border:1px solid rgba(255,107,53,.2);border-radius:14px;padding:28px 32px;margin:32px 0}
+.summary-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(255,107,53,.08);color:var(--accent);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,107,53,.15)}
+pre code{background:transparent;color:inherit;padding:0;border:none;font-size:inherit}
+
+/* data type grid */
+.dtype-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:20px 0}
+.dtype-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;transition:all .25s}
+.dtype-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.dtype-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dtype-icon{font-size:20px}
+.dtype-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent)}
+.dtype-cmd{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:6px}
+.dtype-use{font-size:12px;color:var(--text2);line-height:1.5}
+
+.next-topic{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .25s;text-decoration:none}
+.next-topic:hover{border-color:rgba(255,107,53,.3);box-shadow:0 0 30px rgba(255,107,53,.1)}
+.next-label{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.next-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.next-arrow{font-size:24px;color:var(--accent)}
+
+.menu-toggle{display:none;position:fixed;bottom:24px;right:24px;z-index:300;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,107,53,.4);font-size:20px;color:var(--bg)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190}
+.overlay.show{display:block}
+@media(max-width:1100px){.layout{grid-template-columns:240px 1fr}.toc{display:none}.content{padding:36px 40px}.hero{padding:48px 40px}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;left:-280px;z-index:200;transition:left .3s;height:100vh;width:270px}.sidebar.open{left:0;box-shadow:8px 0 32px rgba(0,0,0,.5)}.content{padding:24px 20px}.hero{padding:32px 20px}.pros-cons{grid-template-columns:1fr}.card-grid{grid-template-columns:1fr}.menu-toggle{display:flex}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes nodeGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(255,107,53,0))}50%{filter:drop-shadow(0 0 10px rgba(255,107,53,.6))}}
+.node-animate{animation:nodeGlow 2.5s ease-in-out infinite}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><div class="logo-dot"></div>HLD Academy</div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item" href="load-balancer.html"><span class="nav-num">01</span> Load Balancer</a>
+      <a class="nav-item" href="api-gateway.html"><span class="nav-num">02</span> API Gateway</a>
+      <a class="nav-item" href="#"><span class="nav-num">08</span> CDN</a>
+      <a class="nav-item" href="#"><span class="nav-num">09</span> Reverse Proxy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item active" href="redis-cache.html"><span class="nav-num">03</span> Redis Cache <span class="nav-badge">Current</span></a>
+      <a class="nav-item" href="#"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item" href="#"><span class="nav-num">05</span> Message Queue</a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item" href="#"><span class="nav-num">06</span> Microservices</a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item" href="#"><span class="nav-num">07</span> Database Scaling</a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Caching & Queuing <span>›</span> Topic 03</div>
+    <div class="hero-tag">⚡ Topic 03 of 22</div>
+    <h1>Redis <em>Cache</em></h1>
+    <p class="hero-desc">The in-memory data structure store that makes your application blazing fast. Learn how Redis works internally, every data type, caching patterns, persistence strategies, clustering, and why it's the backbone of every high-scale backend.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>Beginner → Advanced</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>~45 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent5)"></div>Production Ready</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--warn)"></div>Interview Critical</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>What is Redis?</h2>
+      <p><strong>Redis</strong> (Remote Dictionary Server) is an open-source, <strong>in-memory data structure store</strong> that can be used as a database, cache, message broker, and queue. It stores data in RAM instead of disk, making reads and writes <strong>100–1000x faster</strong> than a traditional relational database.</p>
+      <p>Redis is single-threaded for command execution (no locking contention), uses non-blocking I/O for network handling, and achieves <strong>100,000–1,000,000+ operations per second</strong> on a single node.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">📚 Simple Analogy — The Desk vs Filing Cabinet</div>
+        <p style="color:var(--text2);margin:0">Your <strong>database</strong> is like a filing cabinet in a storage room. Fast to search, holds everything, but you have to walk there every time. <strong>Redis</strong> is your <em>desk</em> — the things you need most often are right in front of you, instantly accessible. You don't re-read a 100-page report every time someone asks about the summary. You keep the summary on your desk. When the summary changes, you update it. That's caching.</p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg',this)">👶 Beginner</button>
+          <button class="tab-btn" onclick="switchTab('adv',this)">🧠 Advanced</button>
+        </div>
+        <div class="tab-panel active" id="tab-beg">
+          <p>Every time a user loads their profile, your app queries the database: <em>"SELECT * FROM users WHERE id=123"</em>. This takes 20–50ms. With 10,000 users loading profiles per second, that's 10,000 database queries per second — the DB gets crushed.</p>
+          <p>With Redis: first request hits the DB (50ms), stores the result in Redis with a key <code>user:123</code>. Every subsequent request for the same user returns from Redis in <strong>under 1ms</strong>. Database load drops 99%.</p>
+        </div>
+        <div class="tab-panel" id="tab-adv">
+          <p>Redis uses an <strong>event loop</strong> (similar to Node.js) — a single thread processes commands sequentially using <code>epoll/kqueue</code> for I/O multiplexing. No locks, no thread context switches. This is why it achieves higher throughput than multi-threaded alternatives despite being single-threaded.</p>
+          <p>Memory allocation uses <strong>jemalloc</strong> for efficient fragmentation management. Data structures are implemented as compact encoding switching — a Hash with few fields uses <code>ziplist</code> (contiguous memory) and upgrades to <code>hashtable</code> when it grows. Redis 7+ uses <strong>listpack</strong> replacing ziplist for even better cache locality.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-orange">In-Memory Store</span>
+        <span class="tag tag-blue">100k+ OPS/sec</span>
+        <span class="tag tag-green">Sub-millisecond Latency</span>
+        <span class="tag tag-purple">Persistence Support</span>
+        <span class="tag tag-orange">Pub/Sub</span>
+        <span class="tag tag-blue">Lua Scripting</span>
+        <span class="tag tag-green">Clustering</span>
+      </div>
+    </section>
+
+    <!-- WHY -->
+    <section class="section" id="why">
+      <div class="section-label">Problem Statement</div>
+      <h2>Why Redis Exists — The Database Bottleneck</h2>
+      <p>Without caching, every user interaction hits your database. Here's what happens at scale:</p>
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--danger)">
+          <div class="card-icon">🐢</div>
+          <div class="card-title">Slow DB Queries</div>
+          <div class="card-text">Complex JOINs, aggregations, and full-table scans take 50–500ms. With thousands of users, this becomes the primary bottleneck. A single trending post can trigger millions of DB hits.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--warn)">
+          <div class="card-icon">💸</div>
+          <div class="card-title">Expensive Computation</div>
+          <div class="card-text">Leaderboards, recommendation scores, follower counts — computed data that takes seconds to calculate but rarely changes. Recalculating on every request wastes CPU and time.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">🔥</div>
+          <div class="card-title">Hot Data Problem</div>
+          <div class="card-text">80% of traffic hits 20% of your data (Pareto principle). A viral tweet, a trending product — the same rows are read millions of times per second. DB can't handle this without caching.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent3)">
+          <div class="card-icon">🔗</div>
+          <div class="card-title">Session & State Storage</div>
+          <div class="card-text">HTTP is stateless. Sessions stored in DB create DB traffic on every authenticated request. Redis gives sub-millisecond session lookup with automatic expiry — perfect for auth tokens.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="internals">
+      <div class="section-label">Internal Architecture</div>
+      <h2>How Redis Works Internally</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Redis Internal Architecture</div>
+        <svg class="diagram-svg" viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#243350"/></marker>
+            <marker id="arrO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(255,107,53,.6)"/></marker>
+          </defs>
+
+          <!-- Clients -->
+          <rect x="10" y="60" width="100" height="40" rx="7" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="60" y="85" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">App Client</text>
+          <rect x="10" y="114" width="100" height="40" rx="7" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="60" y="139" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">App Client</text>
+          <rect x="10" y="168" width="100" height="40" rx="7" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="60" y="193" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">App Client</text>
+
+          <!-- Network I/O -->
+          <line x1="112" y1="80" x2="165" y2="120" style="stroke:rgba(255,107,53,.4);stroke-width:1.5;fill:none;marker-end:url(#arrO)"/>
+          <line x1="112" y1="134" x2="165" y2="134" style="stroke:rgba(255,107,53,.4);stroke-width:1.5;fill:none;marker-end:url(#arrO)"/>
+          <line x1="112" y1="188" x2="165" y2="148" style="stroke:rgba(255,107,53,.4);stroke-width:1.5;fill:none;marker-end:url(#arrO)"/>
+
+          <!-- Redis Server Box -->
+          <rect x="167" y="20" width="380" height="310" rx="14" style="fill:rgba(255,107,53,.04);stroke:rgba(255,107,53,.3);stroke-width:2" class="node-animate"/>
+          <text x="357" y="44" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#ff6b35;font-size:13px;font-weight:800;letter-spacing:.1em">REDIS SERVER PROCESS</text>
+
+          <!-- Event Loop -->
+          <rect x="185" y="55" width="170" height="80" rx="8" style="fill:rgba(255,107,53,.08);stroke:rgba(255,107,53,.25);stroke-width:1.5"/>
+          <text x="270" y="80" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#ff6b35;font-size:12px;font-weight:700">⚡ Event Loop</text>
+          <text x="270" y="97" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">epoll / kqueue / libevent</text>
+          <text x="270" y="112" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Single-threaded command exec</text>
+          <text x="270" y="125" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">No locking overhead</text>
+
+          <!-- Command Parser -->
+          <rect x="370" y="55" width="160" height="80" rx="8" style="fill:rgba(0,212,255,.05);stroke:rgba(0,212,255,.2);stroke-width:1.5"/>
+          <text x="450" y="80" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:700">📝 Command Parser</text>
+          <text x="450" y="97" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">RESP3 Protocol</text>
+          <text x="450" y="112" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Parse SET/GET/HSET...</text>
+          <text x="450" y="126" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Validate & dispatch</text>
+
+          <!-- In-Memory Data Store -->
+          <rect x="185" y="155" width="345" height="100" rx="8" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2);stroke-width:1.5"/>
+          <text x="357" y="178" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:12px;font-weight:700">🧠 In-Memory Data Store (RAM)</text>
+          <!-- Data structure pills -->
+          <rect x="195" y="188" width="60" height="20" rx="4" style="fill:rgba(255,107,53,.15)"/>
+          <text x="225" y="202" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#ff6b35;font-size:10px">String</text>
+          <rect x="262" y="188" width="50" height="20" rx="4" style="fill:rgba(0,212,255,.1)"/>
+          <text x="287" y="202" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px">Hash</text>
+          <rect x="319" y="188" width="45" height="20" rx="4" style="fill:rgba(167,139,250,.1)"/>
+          <text x="341" y="202" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px">List</text>
+          <rect x="371" y="188" width="40" height="20" rx="4" style="fill:rgba(251,191,36,.1)"/>
+          <text x="391" y="202" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#fbbf24;font-size:10px">Set</text>
+          <rect x="418" y="188" width="55" height="20" rx="4" style="fill:rgba(0,255,136,.1)"/>
+          <text x="445" y="202" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:10px">ZSet</text>
+          <rect x="480" y="188" width="44" height="20" rx="4" style="fill:rgba(248,113,113,.1)"/>
+          <text x="502" y="202" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#f87171;font-size:10px">Stream</text>
+          <text x="357" y="236" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Global Hash Table: key → pointer to data structure</text>
+
+          <!-- Persistence -->
+          <rect x="185" y="270" width="160" height="50" rx="8" style="fill:rgba(251,191,36,.05);stroke:rgba(251,191,36,.2);stroke-width:1.5"/>
+          <text x="265" y="293" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:12px;font-weight:600">💾 RDB Snapshots</text>
+          <text x="265" y="310" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Periodic binary dump</text>
+
+          <rect x="357" y="270" width="160" height="50" rx="8" style="fill:rgba(167,139,250,.05);stroke:rgba(167,139,250,.2);stroke-width:1.5"/>
+          <text x="437" y="293" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:12px;font-weight:600">📋 AOF Log</text>
+          <text x="437" y="310" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Append-only write log</text>
+
+          <!-- Disk -->
+          <rect x="555" y="270" width="110" height="50" rx="8" style="fill:rgba(100,116,139,.06);stroke:#1e2d45;stroke-width:1.5"/>
+          <text x="610" y="293" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#94a3b8;font-size:12px;font-weight:600">💿 Disk</text>
+          <text x="610" y="310" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Persistent storage</text>
+
+          <line x1="347" y1="295" x2="555" y2="295" style="stroke:#243350;stroke-width:1.5;fill:none;marker-end:url(#arr)"/>
+          <line x1="516" y1="295" x2="555" y2="295" style="stroke:#243350;stroke-width:1.5;fill:none;marker-end:url(#arr)"/>
+        </svg>
+      </div>
+
+      <h3>Why Single-Threaded is Actually Fast</h3>
+      <p>Redis's single-threaded command execution seems counterintuitive, but here's why it works:</p>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">No locking overhead</div>
+            <div class="step-desc">Multi-threaded systems spend enormous time on mutex locks, condition variables, and thread synchronization. Redis avoids all of this — no lock contention, no deadlocks, no context switches between threads.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Memory operations are nanoseconds</div>
+            <div class="step-desc">RAM access is so fast (50–100ns) that even sequential processing handles millions of operations per second. The bottleneck is <em>network I/O</em>, not CPU — and that's handled asynchronously.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Multiplexed async I/O</div>
+            <div class="step-desc">Redis uses <code>epoll</code> (Linux) or <code>kqueue</code> (macOS) to handle thousands of concurrent client connections without blocking. Network I/O is async — the event loop processes all connections in one thread.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Redis 6+ I/O threads</div>
+            <div class="step-desc">Redis 6 introduced threaded I/O for reading/writing network data (while keeping command execution single-threaded). This removes the last bottleneck — now Redis can saturate a 10Gbps network interface.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- DATA TYPES -->
+    <section class="section" id="datatypes">
+      <div class="section-label">Core Concepts</div>
+      <h2>Redis Data Types — The Real Power</h2>
+      <p>Redis isn't just a key-value store. Its rich data structures are what make it uniquely powerful for different use cases.</p>
+
+      <div class="dtype-grid">
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">🔤</div><div class="dtype-name">STRING</div></div>
+          <div class="dtype-cmd">SET key value EX 3600</div>
+          <div class="dtype-use">Cache JSON responses, session tokens, counters (<code>INCR</code>), feature flags, rate limit counters. Max 512MB per value.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">#️⃣</div><div class="dtype-name">HASH</div></div>
+          <div class="dtype-cmd">HSET user:123 name Alice age 28</div>
+          <div class="dtype-use">User profiles, product objects, session data with multiple fields. More memory-efficient than storing serialized JSON strings.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">📋</div><div class="dtype-name">LIST</div></div>
+          <div class="dtype-cmd">LPUSH queue task1 / BRPOP queue 0</div>
+          <div class="dtype-use">Task queues, activity feeds, recent items list, message queues. Supports blocking pops for consumer pattern.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">🎯</div><div class="dtype-name">SET</div></div>
+          <div class="dtype-cmd">SADD online:users uid1 uid2</div>
+          <div class="dtype-use">Unique visitors, online users, tags, friends lists. Set operations: SUNION, SINTER, SDIFF for social graph queries.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">🏆</div><div class="dtype-name">SORTED SET (ZSet)</div></div>
+          <div class="dtype-cmd">ZADD leaderboard 9500 "alice"</div>
+          <div class="dtype-use">Leaderboards, priority queues, range queries by score. Twitter uses ZSets for timelines. Each member has a float score for ordering.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">🌊</div><div class="dtype-name">STREAM</div></div>
+          <div class="dtype-cmd">XADD events * action login uid 123</div>
+          <div class="dtype-use">Event sourcing, append-only logs, IoT sensor data, audit trails. Consumer groups for distributed processing. Added in Redis 5.0.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">📊</div><div class="dtype-name">BITMAP</div></div>
+          <div class="dtype-cmd">SETBIT active:2024-01-15 userId 1</div>
+          <div class="dtype-use">Track daily active users with 1 bit per user. 100M users = 12.5MB. Fast bitwise operations for analytics: BITCOUNT, BITOP.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">🔬</div><div class="dtype-name">HYPERLOGLOG</div></div>
+          <div class="dtype-cmd">PFADD visitors uid1 uid2 uid3</div>
+          <div class="dtype-use">Approximate unique count with 0.81% error, using only 12KB regardless of cardinality. Unique page views, unique IPs — perfect for analytics.</div>
+        </div>
+        <div class="dtype-card">
+          <div class="dtype-header"><div class="dtype-icon">📍</div><div class="dtype-name">GEO</div></div>
+          <div class="dtype-cmd">GEOADD drivers lon lat "driverID"</div>
+          <div class="dtype-use">Uber/Lyft driver locations, find nearby restaurants, geofencing. GEODIST, GEOSEARCH within radius. Internally uses a sorted set with geohash scores.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <div><strong>Interview Tip:</strong> When asked about Redis in system design, always mention <em>which data type</em> you'd use and why. "I'd use a Redis Sorted Set for the leaderboard because ZADD is O(log N) and ZRANGE lets me paginate the top-N efficiently" — this shows depth of knowledge.</div>
+      </div>
+    </section>
+
+    <!-- CACHING PATTERNS -->
+    <section class="section" id="patterns">
+      <div class="section-label">Caching Patterns</div>
+      <h2>Caching Patterns — Which One to Use?</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Cache-Aside (Lazy Loading) — Most Common Pattern</div>
+        <svg class="diagram-svg" viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrF" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(255,107,53,.6)"/></marker>
+            <marker id="arrG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.5)"/></marker>
+            <marker id="arrR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(248,113,113,.5)"/></marker>
+          </defs>
+          <!-- App -->
+          <rect x="20" y="90" width="100" height="60" rx="8" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="70" y="117" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">🖥️ App</text>
+          <text x="70" y="135" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">GET user:123</text>
+
+          <!-- Redis -->
+          <rect x="250" y="20" width="120" height="60" rx="8" style="fill:rgba(255,107,53,.07);stroke:rgba(255,107,53,.3);stroke-width:1.5"/>
+          <text x="310" y="47" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#ff6b35;font-size:12px;font-weight:600">⚡ Redis</text>
+          <text x="310" y="65" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Cache Store</text>
+
+          <!-- DB -->
+          <rect x="250" y="160" width="120" height="60" rx="8" style="fill:rgba(167,139,250,.07);stroke:rgba(167,139,250,.25);stroke-width:1.5"/>
+          <text x="310" y="187" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:12px;font-weight:600">🗄️ Database</text>
+          <text x="310" y="205" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">PostgreSQL</text>
+
+          <!-- CACHE HIT path -->
+          <line x1="122" y1="105" x2="248" y2="55" style="stroke:rgba(255,107,53,.5);stroke-width:1.5;fill:none;marker-end:url(#arrF)"/>
+          <text x="175" y="68" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:rgba(255,107,53,.7);font-size:11px">① Check cache</text>
+          <line x1="248" y1="65" x2="122" y2="115" style="stroke:rgba(0,255,136,.5);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arrG)"/>
+          <text x="148" y="100" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:rgba(0,255,136,.7);font-size:11px">② HIT → return</text>
+
+          <!-- CACHE MISS path -->
+          <line x1="122" y1="135" x2="248" y2="185" style="stroke:rgba(248,113,113,.5);stroke-width:1.5;fill:none;marker-end:url(#arrR)"/>
+          <text x="175" y="175" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:rgba(248,113,113,.7);font-size:11px">③ MISS → query DB</text>
+          <line x1="248" y1="195" x2="122" y2="145" style="stroke:rgba(0,212,255,.4);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arrF)"/>
+          <text x="148" y="160" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:rgba(0,212,255,.6);font-size:11px">⑤ Return result</text>
+
+          <!-- Store in cache -->
+          <line x1="310" y1="158" x2="310" y2="82" style="stroke:rgba(251,191,36,.4);stroke-width:1.5;stroke-dasharray:4,3;fill:none;marker-end:url(#arrF)"/>
+          <text x="336" y="126" style="font-family:'Inter',sans-serif;fill:rgba(251,191,36,.7);font-size:11px">④ Store in</text>
+          <text x="336" y="140" style="font-family:'Inter',sans-serif;fill:rgba(251,191,36,.7);font-size:11px">cache (TTL)</text>
+
+          <!-- Labels -->
+          <rect x="470" y="20" width="210" height="200" rx="8" style="fill:rgba(255,255,255,.02);stroke:#1e2d45;stroke-width:1"/>
+          <text x="575" y="44" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:700">Cache-Aside Summary</text>
+          <text x="482" y="68" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:12px">✓ Cache HIT: ~0.3ms</text>
+          <text x="482" y="88" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">  Return from Redis only</text>
+          <text x="482" y="116" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:12px">✗ Cache MISS: ~52ms</text>
+          <text x="482" y="136" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">  DB query + store in Redis</text>
+          <text x="482" y="164" style="font-family:'Inter',sans-serif;fill:#fbbf24;font-size:12px">⚠ Stale data possible</text>
+          <text x="482" y="184" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:12px">  Use TTL to expire</text>
+          <text x="482" y="204" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">  Invalidate on write</text>
+        </svg>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            1️⃣ Cache-Aside (Lazy Loading) — Most Common
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Flow:</strong> App checks Redis first. Cache HIT → return data. Cache MISS → query DB, store result in Redis with TTL, return data.</p>
+            <p><strong>Pros:</strong> Only caches data that's actually requested. Cache failure doesn't break the app (falls back to DB). Resilient.</p>
+            <p><strong>Cons:</strong> First request always slow (cache cold start). Risk of stale data between DB update and TTL expiry.</p>
+            <p><strong>Used by:</strong> Most web applications, REST APIs. Default pattern for user profiles, product pages.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            2️⃣ Write-Through — Cache Always in Sync
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Flow:</strong> Every write goes to Redis AND the database synchronously. Reads always hit Redis first.</p>
+            <p><strong>Pros:</strong> Cache is always up-to-date. No stale data problem. Cache never misses (once populated).</p>
+            <p><strong>Cons:</strong> Every write has double latency (Redis + DB). Cache fills with data that may never be read (write-heavy, read-light data wasted in cache).</p>
+            <p><strong>Used by:</strong> User settings, critical data where staleness is unacceptable.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            3️⃣ Write-Behind (Write-Back) — Performance First
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Flow:</strong> Write to Redis immediately (fast), queue a background job to write to DB asynchronously later.</p>
+            <p><strong>Pros:</strong> Extremely fast writes (just Redis). Can batch multiple writes into one DB operation.</p>
+            <p><strong>Cons:</strong> Risk of data loss if Redis crashes before DB write completes. Complexity in handling eventual consistency.</p>
+            <p><strong>Used by:</strong> View counters, like counts (exact count not critical), analytics event batching.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            4️⃣ Read-Through — Cache as Primary
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Flow:</strong> App always queries Redis. Redis itself (via a cache library) fetches from DB on miss and stores the result. App never directly calls the DB.</p>
+            <p><strong>Pros:</strong> App code is simpler — just talk to Redis. Cache miss logic handled by the cache layer.</p>
+            <p><strong>Cons:</strong> Cache must support read-through plugins. First request still slow on cold start. Less control over TTL per key.</p>
+            <p><strong>Used by:</strong> NCache, Amazon ElastiCache with read-through providers.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>Cache Eviction Policies</h3>
+      <p>When Redis runs out of memory, it uses eviction policies to free space:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Policy</th><th>Description</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td>allkeys-lru</td><td>Evict least recently used keys first (across all keys)</td><td>General purpose caching — most recommended</td></tr>
+            <tr><td>volatile-lru</td><td>LRU only on keys with TTL set</td><td>Mix of persistent + cached data</td></tr>
+            <tr><td>allkeys-lfu</td><td>Evict least frequently used (Redis 4+)</td><td>Hot/cold data with skewed access patterns</td></tr>
+            <tr><td>volatile-ttl</td><td>Evict keys with shortest TTL remaining</td><td>When TTL already encodes priority</td></tr>
+            <tr><td>allkeys-random</td><td>Evict random keys</td><td>Almost never — unpredictable</td></tr>
+            <tr><td>noeviction</td><td>Return OOM error on new writes</td><td>Databases where data loss is unacceptable</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CODE -->
+    <section class="section" id="config">
+      <div class="section-label">Configuration & Code</div>
+      <h2>Production Code Examples</h2>
+
+      <h3>Node.js — Cache-Aside Implementation</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">cache.service.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> Redis = <span class="fn">require</span>(<span class="str">'ioredis'</span>);
+
+<span class="cm">// Production Redis client with retry logic</span>
+<span class="kw">const</span> redis = <span class="kw">new</span> <span class="fn">Redis</span>({
+  host: process.env.<span class="val">REDIS_HOST</span> || <span class="str">'localhost'</span>,
+  port: <span class="num">6379</span>,
+  password: process.env.<span class="val">REDIS_PASSWORD</span>,
+  <span class="cm">// Retry with exponential backoff</span>
+  retryStrategy: (times) => Math.<span class="fn">min</span>(times * <span class="num">50</span>, <span class="num">2000</span>),
+  maxRetriesPerRequest: <span class="num">3</span>,
+  enableReadyCheck: <span class="kw">true</span>,
+  lazyConnect: <span class="kw">true</span>,
+});
+
+redis.on(<span class="str">'error'</span>, (err) => console.<span class="fn">error</span>(<span class="str">'Redis error:'</span>, err));
+
+<span class="cm">// ─── Cache-Aside Helper ──────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">cacheAside</span>(key, ttlSeconds, fetchFn) {
+  <span class="kw">try</span> {
+    <span class="cm">// 1. Try Redis first</span>
+    <span class="kw">const</span> cached = <span class="kw">await</span> redis.<span class="fn">get</span>(key);
+    <span class="kw">if</span> (cached) {
+      console.<span class="fn">log</span>(<span class="str">`Cache HIT: ${key}`</span>);
+      <span class="kw">return</span> <span class="fn">JSON</span>.<span class="fn">parse</span>(cached);
+    }
+    console.<span class="fn">log</span>(<span class="str">`Cache MISS: ${key}`</span>);
+  } <span class="kw">catch</span> (err) {
+    <span class="cm">// Redis failure → degrade gracefully, still serve from DB</span>
+    console.<span class="fn">error</span>(<span class="str">'Redis unavailable, falling back to DB'</span>, err);
+  }
+
+  <span class="cm">// 2. Cache miss — fetch from source (DB, API, etc.)</span>
+  <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetchFn</span>();
+
+  <span class="cm">// 3. Store in Redis with TTL (fire and forget — don't await)</span>
+  redis.<span class="fn">setex</span>(key, ttlSeconds, <span class="fn">JSON</span>.<span class="fn">stringify</span>(data))
+    .catch(err => console.<span class="fn">error</span>(<span class="str">'Failed to cache:'</span>, err));
+
+  <span class="kw">return</span> data;
+}
+
+<span class="cm">// ─── Usage ───────────────────────────────────────────</span>
+<span class="cm">// Get user — cached for 5 minutes</span>
+<span class="kw">async function</span> <span class="fn">getUser</span>(userId) {
+  <span class="kw">return</span> <span class="fn">cacheAside</span>(
+    <span class="str">`user:${userId}`</span>,
+    <span class="num">300</span>,  <span class="cm">// 5 min TTL</span>
+    () => db.<span class="fn">query</span>(<span class="str">'SELECT * FROM users WHERE id = $1'</span>, [userId])
+  );
+}
+
+<span class="cm">// Update user — invalidate cache on write</span>
+<span class="kw">async function</span> <span class="fn">updateUser</span>(userId, data) {
+  <span class="kw">await</span> db.<span class="fn">query</span>(<span class="str">'UPDATE users SET ... WHERE id = $1'</span>, [userId]);
+  <span class="cm">// Delete cache key so next read fetches fresh data</span>
+  <span class="kw">await</span> redis.<span class="fn">del</span>(<span class="str">`user:${userId}`</span>);
+}
+
+<span class="cm">// ─── Cache user's full profile as Hash ──────────────</span>
+<span class="kw">async function</span> <span class="fn">cacheUserHash</span>(userId, profile) {
+  <span class="kw">const</span> key = <span class="str">`profile:${userId}`</span>;
+  <span class="cm">// HSET stores as individual fields — can update single field</span>
+  <span class="kw">await</span> redis.<span class="fn">hset</span>(key, {
+    name:    profile.name,
+    email:   profile.email,
+    plan:    profile.plan,
+    credits: profile.credits,
+  });
+  <span class="kw">await</span> redis.<span class="fn">expire</span>(key, <span class="num">600</span>);  <span class="cm">// 10 min TTL</span>
+}
+
+<span class="cm">// Increment view count — atomic, no race conditions</span>
+<span class="kw">async function</span> <span class="fn">incrementViews</span>(postId) {
+  <span class="kw">return</span> redis.<span class="fn">incr</span>(<span class="str">`views:${postId}`</span>);
+  <span class="cm">// INCR is atomic in Redis — no race condition even with</span>
+  <span class="cm">// thousands of concurrent requests</span>
+}</code></pre>
+      </div>
+
+      <h3>Redis — Leaderboard with Sorted Sets</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">leaderboard.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm">// ─── Game Leaderboard using Redis Sorted Sets ────────</span>
+<span class="kw">const</span> LEADERBOARD_KEY = <span class="str">'leaderboard:global'</span>;
+
+<span class="cm">// Update player score — O(log N)</span>
+<span class="kw">async function</span> <span class="fn">updateScore</span>(playerId, newScore) {
+  <span class="kw">await</span> redis.<span class="fn">zadd</span>(LEADERBOARD_KEY, newScore, playerId);
+}
+
+<span class="cm">// Get top 10 players with scores — O(log N + M)</span>
+<span class="kw">async function</span> <span class="fn">getTopPlayers</span>(limit = <span class="num">10</span>) {
+  <span class="cm">// ZREVRANGE: highest scores first, WITHSCORES returns pairs</span>
+  <span class="kw">const</span> results = <span class="kw">await</span> redis.<span class="fn">zrevrange</span>(
+    LEADERBOARD_KEY, <span class="num">0</span>, limit - <span class="num">1</span>, <span class="str">'WITHSCORES'</span>
+  );
+  <span class="cm">// Transform [playerId, score, playerId, score...] into objects</span>
+  <span class="kw">const</span> leaderboard = [];
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; results.length; i += <span class="num">2</span>) {
+    leaderboard.<span class="fn">push</span>({
+      rank: i / <span class="num">2</span> + <span class="num">1</span>,
+      playerId: results[i],
+      score: <span class="fn">parseFloat</span>(results[i + <span class="num">1</span>])
+    });
+  }
+  <span class="kw">return</span> leaderboard;
+}
+
+<span class="cm">// Get player's rank — O(log N)</span>
+<span class="kw">async function</span> <span class="fn">getPlayerRank</span>(playerId) {
+  <span class="cm">// ZREVRANK: 0-indexed rank from top (0 = #1)</span>
+  <span class="kw">const</span> rank = <span class="kw">await</span> redis.<span class="fn">zrevrank</span>(LEADERBOARD_KEY, playerId);
+  <span class="kw">return</span> rank !== <span class="kw">null</span> ? rank + <span class="num">1</span> : <span class="kw">null</span>;
+}
+
+<span class="cm">// Get players around a given player (for context)</span>
+<span class="kw">async function</span> <span class="fn">getNeighbors</span>(playerId, range = <span class="num">2</span>) {
+  <span class="kw">const</span> rank = <span class="kw">await</span> redis.<span class="fn">zrevrank</span>(LEADERBOARD_KEY, playerId);
+  <span class="kw">const</span> start = Math.<span class="fn">max</span>(<span class="num">0</span>, rank - range);
+  <span class="kw">const</span> end = rank + range;
+  <span class="kw">return</span> redis.<span class="fn">zrevrange</span>(LEADERBOARD_KEY, start, end, <span class="str">'WITHSCORES'</span>);
+}</code></pre>
+      </div>
+
+      <h3>Redis Configuration — Production redis.conf</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">CONFIG</span>
+          <span class="code-file">redis.conf — Production settings</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm"># ─── Memory Management ──────────────────────────────</span>
+<span class="key">maxmemory</span>          <span class="num">4gb</span>            <span class="cm"># Max RAM Redis can use</span>
+<span class="key">maxmemory-policy</span>   <span class="val">allkeys-lru</span>   <span class="cm"># Evict LRU keys when full</span>
+<span class="key">maxmemory-samples</span>  <span class="num">10</span>            <span class="cm"># Higher = more accurate LRU</span>
+
+<span class="cm"># ─── Persistence (RDB + AOF hybrid) ─────────────────</span>
+<span class="cm"># RDB: snapshot every 900s if 1+ key changed</span>
+<span class="key">save</span> <span class="num">900 1</span>
+<span class="key">save</span> <span class="num">300 10</span>
+<span class="key">save</span> <span class="num">60 10000</span>
+<span class="key">rdbcompression</span>     <span class="val">yes</span>
+<span class="key">rdbfilename</span>        <span class="str">dump.rdb</span>
+
+<span class="cm"># AOF: append-only log for durability</span>
+<span class="key">appendonly</span>         <span class="val">yes</span>
+<span class="key">appendfilename</span>     <span class="str">"appendonly.aof"</span>
+<span class="cm"># everysec = fsync every second (good balance of safety/perf)</span>
+<span class="key">appendfsync</span>        <span class="val">everysec</span>
+<span class="key">auto-aof-rewrite-percentage</span> <span class="num">100</span>
+<span class="key">auto-aof-rewrite-min-size</span>   <span class="num">64mb</span>
+
+<span class="cm"># ─── Networking ─────────────────────────────────────</span>
+<span class="key">bind</span>               <span class="val">127.0.0.1 10.0.1.5</span>   <span class="cm"># Listen only on private IPs</span>
+<span class="key">protected-mode</span>    <span class="val">yes</span>
+<span class="key">requirepass</span>        <span class="str">your-strong-password-here</span>
+<span class="key">tcp-keepalive</span>      <span class="num">300</span>
+<span class="key">timeout</span>            <span class="num">0</span>                   <span class="cm"># Keep connections alive</span>
+<span class="key">tcp-backlog</span>        <span class="num">511</span>
+
+<span class="cm"># ─── Performance ─────────────────────────────────────</span>
+<span class="key">hz</span>                 <span class="num">20</span>   <span class="cm"># Event loop frequency (10-500)</span>
+<span class="key">lazyfree-lazy-eviction</span> <span class="val">yes</span>  <span class="cm"># Async key eviction</span>
+<span class="key">lazyfree-lazy-expire</span>   <span class="val">yes</span>  <span class="cm"># Async key expiry</span>
+<span class="key">io-threads</span>         <span class="num">4</span>    <span class="cm"># I/O threads (Redis 6+)</span>
+<span class="key">io-threads-do-reads</span> <span class="val">yes</span>
+
+<span class="cm"># ─── Slow Log ─────────────────────────────────────────</span>
+<span class="key">slowlog-log-slower-than</span> <span class="num">10000</span>  <span class="cm"># Log commands >10ms</span>
+<span class="key">slowlog-max-len</span>         <span class="num">128</span></code></pre>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- PERSISTENCE -->
+    <section class="section" id="persistence">
+      <div class="section-label">Durability</div>
+      <h2>Persistence — RDB vs AOF</h2>
+      <p>Redis is in-memory, but it offers two persistence mechanisms so data survives restarts:</p>
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">💾 RDB (Redis Database Backup)</div>
+          <ul class="check-list">
+            <li>Point-in-time snapshots saved to disk periodically</li>
+            <li>Compact binary format — small file size</li>
+            <li>Fast restart (load snapshot on boot)</li>
+            <li>Great for backups and disaster recovery</li>
+            <li>Configurable intervals (every N seconds if M keys changed)</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">📋 AOF (Append Only File)</div>
+          <ul class="check-list">
+            <li>Logs every write command to disk</li>
+            <li>Can replay on restart to reconstruct state</li>
+            <li>Better durability (can fsync every second or every write)</li>
+            <li>Larger file size than RDB</li>
+            <li>Slower restarts (must replay all commands)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="alert alert-success">
+        <span class="alert-icon">✅</span>
+        <div><strong>Production Best Practice:</strong> Use <strong>both RDB + AOF</strong> together. AOF for durability (max 1 second of data loss), RDB for fast restarts and backups. Redis 7.2+ supports <strong>RDB-AOF hybrid</strong> persistence which combines the best of both.</div>
+      </div>
+    </section>
+
+    <!-- HA & CLUSTERING -->
+    <section class="section" id="clustering">
+      <div class="section-label">High Availability</div>
+      <h2>Redis Replication, Sentinel & Cluster</h2>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔁 Master-Replica Replication
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>One <strong>master</strong> handles all writes. One or more <strong>replicas</strong> receive asynchronous copies of all writes. Read traffic can be distributed across replicas.</p>
+            <p>Config: <code>replicaof 10.0.1.1 6379</code> in replica's redis.conf. Or runtime: <code>REPLICAOF 10.0.1.1 6379</code>.</p>
+            <p><strong>Replication lag:</strong> Replicas are eventually consistent. For most use cases (cache reads), this is fine. For financial systems, always read from master.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🛡️ Redis Sentinel — Automatic Failover
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Redis Sentinel is a high-availability solution that: (1) <strong>Monitors</strong> master and replicas, (2) <strong>Notifies</strong> when something is wrong, (3) <strong>Promotes</strong> a replica to master if the master fails.</p>
+            <p>Requires minimum 3 Sentinel instances (to form quorum for failover decisions). Failover typically completes in 30–60 seconds.</p>
+            <p>Client must connect to Sentinel first: Sentinel tells the client which IP is the current master. ioredis and Jedis support Sentinel discovery natively.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🌐 Redis Cluster — Horizontal Scaling
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Redis Cluster shards data across multiple master nodes using <strong>16384 hash slots</strong>. Each key is assigned to a slot: <code>slot = CRC16(key) % 16384</code>.</p>
+            <p><strong>Example with 3 masters:</strong> Node A owns slots 0–5460, Node B owns 5461–10922, Node C owns 10923–16383. Each master has replicas for HA.</p>
+            <p>Minimum 6 nodes (3 masters + 3 replicas) for a production cluster. Supports automatic re-sharding when adding/removing nodes. Multi-key commands require all keys to be in the same slot (use hash tags: <code>{user}.profile</code> and <code>{user}.settings</code> both hash to same slot).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPANIES -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Use Redis</h2>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">🐦 Twitter/X <span class="company-tech">Timeline Cache</span></div>
+          <div class="company-desc">Twitter caches user timelines in Redis using <strong>Sorted Sets</strong> — tweet IDs scored by timestamp. When you open Twitter, your timeline is served entirely from Redis. They use a "timeline fanout" system where each tweet is pushed to all followers' Redis timeline caches. Handles billions of timeline reads per day at sub-5ms latency.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛒 Amazon <span class="company-tech">ElastiCache Redis</span></div>
+          <div class="company-desc">Amazon uses Redis (ElastiCache) for shopping cart storage, session management, and product recommendation caching. During Prime Day, their Redis cluster handles millions of cart reads per second. They also use Redis Cluster for horizontal scaling across availability zones.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🎮 Discord <span class="company-tech">Presence & Rate Limits</span></div>
+          <div class="company-desc">Discord uses Redis to track which users are online (presence). With 500M registered users, they use Redis <strong>Sets</strong> per server to track online members. Also uses Redis for rate limiting API calls. They switched from Redis to Cassandra for message storage but kept Redis for real-time features.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🚗 Uber <span class="company-tech">Geospatial + Sessions</span></div>
+          <div class="company-desc">Uber uses Redis <strong>GEO commands</strong> to track driver locations in real time. When you request a ride, Redis GEO finds all drivers within 5km of your location. Also uses Redis for session storage and surge pricing calculations. Their Redis deployment handles 40M+ location updates per day.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">📸 Instagram <span class="company-tech">Feed + Counters</span></div>
+          <div class="company-desc">Instagram uses Redis for user feed caching, like/follower counts (using Redis atomic INCR), and session tokens. They keep recent activity feeds in Redis Lists. Instagram's "Social Graph" service uses Redis Sets to compute mutual friends and follow suggestions.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🏦 GitHub <span class="company-tech">Job Queues + Cache</span></div>
+          <div class="company-desc">GitHub runs <strong>Resque</strong> (Ruby job queue) on Redis, processing millions of background jobs per day (CI notifications, webhook deliveries, code analysis). Also uses Redis for caching repository metadata, diff computations, and rate limiting API calls to 5000 req/hour per token.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEMS -->
+    <section class="section" id="problems">
+      <div class="section-label">Production Pitfalls</div>
+      <h2>Common Problems & How to Solve Them</h2>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🌩️ Cache Stampede (Thundering Herd)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Problem:</strong> A popular cached item expires. Simultaneously, 10,000 requests come in, all get cache miss, all hit the DB at once — DB is overloaded.</p>
+            <p><strong>Solutions:</strong></p>
+            <p><strong>1. Mutex Lock:</strong> First thread to get a cache miss acquires a Redis lock (<code>SET lock:key 1 NX EX 10</code>), fetches from DB, populates cache, releases lock. Other threads wait and retry.</p>
+            <p><strong>2. Probabilistic Early Expiration (XFetch):</strong> Before TTL expires, randomly decide to refresh based on how close to expiry. Spreads the refresh load over time.</p>
+            <p><strong>3. Stale-while-revalidate:</strong> Serve stale cache while asynchronously refreshing in the background.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            💥 Cache Avalanche
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Problem:</strong> Many cache keys expire at the same time (e.g., all set with TTL=3600 at startup). Massive DB load spike every hour.</p>
+            <p><strong>Solutions:</strong></p>
+            <p><strong>1. TTL Jitter:</strong> Add randomness to TTL: <code>TTL = base + Math.random() * jitter</code>. If base=3600, jitter=300, TTLs range from 3600–3900s. Expiries spread over 5 minutes instead of all at once.</p>
+            <p><strong>2. Different TTLs per data category:</strong> User profiles=5min, product data=30min, config=1hour. Natural spread.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔍 Cache Penetration — Non-Existent Keys
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Problem:</strong> Requests for data that doesn't exist in DB (e.g., user ID -1). Every request is a cache miss and a DB query (finding nothing). Attackers can exploit this to overload your DB with random IDs.</p>
+            <p><strong>Solutions:</strong></p>
+            <p><strong>1. Cache null values:</strong> When DB returns no result, cache <code>NULL</code> with a short TTL (30–60s). Next requests hit Redis and get null — no DB query.</p>
+            <p><strong>2. Bloom Filter:</strong> Before checking Redis, check a Bloom Filter (uses Redis module RedisBloom) — probabilistic data structure that tells if a key "definitely does not exist" or "probably exists." Near-zero false negatives. Block invalid requests before they reach Redis or DB.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔑 Big Key Problem
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Problem:</strong> A single Redis key holds too much data (e.g., a Set with 10 million members, or a String with 500MB JSON). When Redis tries to serialize, delete, or expire this key, it blocks the single-threaded event loop for seconds — all other commands are frozen.</p>
+            <p><strong>Solutions:</strong> (1) Split big keys into smaller chunks: <code>followers:userId:shard1</code>, <code>followers:userId:shard2</code>. (2) Use <code>UNLINK</code> instead of <code>DEL</code> — UNLINK deletes asynchronously without blocking. (3) Scan with <code>HSCAN</code>/<code>SSCAN</code> in batches instead of <code>HGETALL</code>/<code>SMEMBERS</code> which return everything at once.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROS/CONS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>Advantages, Disadvantages & Tradeoffs</h2>
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">✅ Advantages</div>
+          <ul class="check-list">
+            <li>Sub-millisecond latency — 100–10,000x faster than disk DBs</li>
+            <li>Rich data structures for complex use cases</li>
+            <li>Atomic operations eliminate race conditions</li>
+            <li>TTL/expiry built-in — automatic cache invalidation</li>
+            <li>Pub/Sub messaging built-in</li>
+            <li>Lua scripting for complex atomic operations</li>
+            <li>Horizontal scaling via Redis Cluster</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">❌ Disadvantages</div>
+          <ul class="check-list">
+            <li>Data limited by RAM — expensive at large scale</li>
+            <li>Not a primary database (no complex queries, no joins)</li>
+            <li>Single-threaded = one slow command blocks everything</li>
+            <li>Cluster multi-key operations have limitations</li>
+            <li>Eventual consistency with replicas</li>
+            <li>Complexity of cache invalidation (hardest problem in CS)</li>
+            <li>Memory fragmentation can waste 20–30% of RAM</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Why is Redis single-threaded but still so fast?</div>
+          <div class="interview-a">Redis processes commands in a single thread but uses non-blocking I/O (epoll/kqueue) to handle thousands of concurrent connections. The bottleneck isn't CPU (memory ops are nanoseconds) — it's network I/O, which is handled asynchronously. By avoiding thread context switches, mutex locks, and cache coherency overhead, Redis achieves 100k-1M ops/sec. Redis 6+ adds I/O threads for network reading/writing while keeping command execution single-threaded.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How would you implement a distributed rate limiter using Redis?</div>
+          <div class="interview-a">Use Redis INCR + EXPIRE for a fixed window counter: INCR the key for the current window (e.g., "ratelimit:{userId}:{minute}"), set EXPIRE on first increment. If count exceeds limit, reject. For a sliding window: store request timestamps in a Sorted Set, remove entries older than the window with ZREMRANGEBYSCORE, count remaining with ZCARD. For token bucket: store tokens as a float, use a Lua script to atomically check/decrement tokens and calculate refill based on elapsed time since last request. Redis Lua scripts execute atomically — no race conditions.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Explain the difference between Redis persistence options (RDB vs AOF).</div>
+          <div class="interview-a">RDB (Redis Database) takes periodic point-in-time snapshots of the entire dataset to a binary file. Fast to restore, small file size, but can lose up to minutes of data between snapshots. AOF (Append Only File) logs every write command — replays them on restart. Can be configured to fsync every second (max 1 second data loss) or every write (no data loss but slower). Best practice: use both. AOF for durability, RDB for fast backups. Redis 7.2+ has RDB-AOF hybrid mode which starts recovery from the latest RDB then replays only the AOF delta.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How does Redis Cluster work and what are its limitations?</div>
+          <div class="interview-a">Redis Cluster shards data across multiple master nodes using 16384 hash slots. Keys are mapped to slots via CRC16(key) % 16384. Each master owns a range of slots. Minimum 3 masters + 3 replicas. Supports automatic resharding and failover. Limitations: (1) Multi-key commands (MSET, MGET, SUNION) only work if all keys are in the same slot — use hash tags {tag} to force co-location. (2) Lua scripts can only reference keys in one slot. (3) Pub/Sub is per-node, not cluster-wide. (4) SCAN iterates per-node. (5) Cross-slot transactions not supported.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How would you design Twitter's timeline using Redis?</div>
+          <div class="interview-a">Use a Redis Sorted Set per user: key = "timeline:{userId}", member = tweetId, score = timestamp. On tweet post: ZADD all followers' timeline sorted sets with the new tweetId (fanout on write). On timeline read: ZREVRANGE "timeline:{userId}" 0 99 (latest 100 tweets), then multi-get tweet data from Redis or DB. Trim timelines to 800 entries (ZREMRANGEBYRANK). For celebrities (10M+ followers), use fanout on read — too slow to push to 10M timelines synchronously. Hybrid: push to regular users, pull for celebrities when timeline is requested.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Redis is an in-memory data store — 100–1000x faster than disk DBs, sub-millisecond latency</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Single-threaded + async I/O = no locking overhead → 100k-1M ops/sec on one node</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Rich data types: String, Hash, List, Set, Sorted Set, Stream, Bitmap, HyperLogLog, Geo</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Caching patterns: Cache-Aside (most common), Write-Through, Write-Behind, Read-Through</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Eviction: allkeys-lru is the go-to policy for caches</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Persistence: use RDB + AOF together for durability + fast recovery</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> HA: Master-Replica → Sentinel (auto-failover) → Cluster (horizontal scale)</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Pitfalls: Cache stampede (mutex/jitter), avalanche (TTL jitter), penetration (null caching/bloom filter), big key (UNLINK/SCAN)</li>
+        </ul>
+      </div>
+    </section>
+
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 04</div>
+        <div class="next-name">Rate Limiting</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<!-- TOC -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#why" class="toc-link">Why Redis Exists</a></li>
+      <li class="toc-item"><a href="#internals" class="toc-link">Internal Architecture</a></li>
+      <li class="toc-item"><a href="#datatypes" class="toc-link">Data Types</a></li>
+      <li class="toc-item"><a href="#patterns" class="toc-link">Caching Patterns</a></li>
+      <li class="toc-item"><a href="#config" class="toc-link">Configuration</a></li>
+      <li class="toc-item"><a href="#persistence" class="toc-link">Persistence</a></li>
+      <li class="toc-item"><a href="#clustering" class="toc-link">HA & Clustering</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#problems" class="toc-link">Production Problems</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{const e=document.getElementById('progressBar');e.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%'});
+const sections=document.querySelectorAll('section[id]'),tocLinks=document.querySelectorAll('.toc-link');
+new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.3}).observe||sections.forEach(s=>new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.3}).observe(s));
+const obs=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.25});sections.forEach(s=>obs.observe(s));
+function switchTab(id,btn){const p=btn.closest('.tabs');p.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));p.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');p.querySelector('#tab-'+id).classList.add('active')}
+function toggleAccordion(btn){const item=btn.closest('.accordion-item'),isOpen=item.classList.contains('open');btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open')}
+function toggleInterview(item){item.classList.toggle('open')}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+const cards=document.querySelectorAll('.info-card,.company-card,.dtype-card');
+new IntersectionObserver(e=>{e.forEach(c=>{if(c.isIntersecting){c.target.style.opacity='0';c.target.style.transform='translateY(14px)';setTimeout(()=>{c.target.style.transition='opacity .4s ease,transform .4s ease';c.target.style.opacity='1';c.target.style.transform='none'},60);obs2.unobserve(c.target)}})},{threshold:.1}).observe||cards.forEach(c=>c);
+const obs2=new IntersectionObserver(e=>{e.forEach(c=>{if(c.isIntersecting){c.target.style.opacity='0';c.target.style.transform='translateY(14px)';setTimeout(()=>{c.target.style.transition='opacity .4s ease,transform .4s ease';c.target.style.opacity='1';c.target.style.transform='none'},60);obs2.unobserve(c.target)}})},{threshold:.1});cards.forEach(c=>obs2.observe(c));
+</script>
+</body>
+</html>

@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Gateway — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c14;
+  --bg2: #0d1220;
+  --bg3: #111827;
+  --bg4: #1a2235;
+  --card: #0f1829;
+  --border: #1e2d45;
+  --border2: #243350;
+  --accent: #a78bfa;
+  --accent2: #7c3aed;
+  --accent3: #00ff88;
+  --accent4: #ff6b35;
+  --accent5: #00d4ff;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; overflow-x: hidden; }
+
+.layout { display: grid; grid-template-columns: 270px 1fr 220px; min-height: 100vh; max-width: 1600px; margin: 0 auto; }
+
+/* SIDEBAR */
+.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--bg2); border-right: 1px solid var(--border); scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+.sidebar-header { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); background: var(--bg); }
+.logo { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+.logo-sub { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.sidebar-nav { padding: 16px 12px; }
+.nav-section { margin-bottom: 8px; }
+.nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); padding: 0 8px; margin-bottom: 4px; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--text2); cursor: pointer; text-decoration: none; transition: all 0.2s; margin-bottom: 1px; }
+.nav-item:hover { background: var(--bg4); color: var(--text); }
+.nav-item.active { background: rgba(167,139,250,0.1); color: var(--accent); border-left: 2px solid var(--accent); }
+.nav-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3); min-width: 18px; }
+.nav-badge { margin-left: auto; font-size: 10px; padding: 1px 6px; border-radius: 20px; background: rgba(167,139,250,0.1); color: var(--accent); }
+
+/* HERO */
+.hero { background: linear-gradient(135deg, #080c14 0%, #120d2a 50%, #0a0f1e 100%); padding: 60px 60px 50px; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -80px; right: -80px; width: 420px; height: 420px; background: radial-gradient(circle, rgba(167,139,250,0.07) 0%, transparent 70%); pointer-events: none; }
+.hero::after { content: ''; position: absolute; bottom: -60px; left: 160px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(0,212,255,0.04) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text3); margin-bottom: 20px; display: flex; align-items: center; gap: 6px; }
+.breadcrumb span { color: var(--accent); }
+.hero-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; }
+.hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(32px, 4vw, 52px); font-weight: 800; line-height: 1.1; margin-bottom: 16px; background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent) 0%, var(--accent5) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-desc { font-size: 17px; color: var(--text2); max-width: 640px; margin-bottom: 28px; line-height: 1.7; }
+.hero-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+.meta-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.meta-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* MAIN */
+.main { padding: 0; min-width: 0; }
+.content { padding: 48px 60px; max-width: 860px; }
+.section { margin-bottom: 64px; }
+.section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.section-label::before { content: ''; display: block; width: 16px; height: 1px; background: var(--accent); }
+h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 16px; line-height: 1.2; }
+h3 { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 12px; margin-top: 28px; }
+h4 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text2); margin-bottom: 8px; margin-top: 20px; }
+p { color: var(--text2); margin-bottom: 14px; font-size: 15px; }
+strong { color: var(--text); font-weight: 600; }
+
+/* ANALOGY */
+.analogy-box { background: linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(0,212,255,0.04) 100%); border: 1px solid rgba(167,139,250,0.2); border-radius: 12px; padding: 24px 28px; margin: 24px 0; position: relative; }
+.analogy-box::before { content: '💡'; position: absolute; top: -12px; left: 20px; font-size: 20px; background: var(--bg); padding: 0 6px; }
+.analogy-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+
+/* CARDS */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+.info-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; transition: all 0.25s; position: relative; overflow: hidden; }
+.info-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--card-accent, var(--accent)); }
+.info-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.card-icon { font-size: 24px; margin-bottom: 12px; }
+.card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.card-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* DIAGRAM */
+.diagram-container { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 32px 24px; margin: 24px 0; overflow-x: auto; }
+.diagram-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text3); margin-bottom: 24px; text-align: center; text-transform: uppercase; letter-spacing: 0.1em; }
+.diagram-svg { display: block; margin: 0 auto; max-width: 100%; }
+
+/* CODE */
+.code-wrap { margin: 20px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.code-header { background: var(--bg4); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.code-lang { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.05em; }
+.code-file { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); }
+.copy-btn { font-size: 11px; padding: 4px 10px; background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); color: var(--accent); border-radius: 4px; cursor: pointer; font-family: 'JetBrains Mono', monospace; transition: all 0.2s; }
+.copy-btn:hover { background: rgba(167,139,250,0.15); }
+pre { background: #060a10; padding: 20px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+.kw { color: #ff79c6; } .str { color: #f1fa8c; } .cm { color: #6272a4; font-style: italic; } .fn { color: #50fa7b; } .num { color: #bd93f9; } .key { color: #8be9fd; } .val { color: #ffb86c; } .op { color: #ff5555; } .tag { color: var(--accent); }
+
+/* STEPS */
+.step-list { margin: 20px 0; }
+.step-item { display: flex; gap: 16px; margin-bottom: 20px; position: relative; }
+.step-item:not(:last-child)::after { content: ''; position: absolute; left: 15px; top: 36px; bottom: -20px; width: 1px; background: linear-gradient(to bottom, var(--accent), transparent); }
+.step-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--accent); }
+.step-title { font-weight: 600; color: var(--text); font-size: 15px; margin-bottom: 4px; }
+.step-desc { color: var(--text2); font-size: 14px; }
+
+/* TABS */
+.tabs { margin: 24px 0; }
+.tab-list { display: flex; gap: 4px; background: var(--bg2); border: 1px solid var(--border); padding: 4px; border-radius: 10px; width: fit-content; }
+.tab-btn { padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text2); transition: all 0.2s; font-family: 'Inter', sans-serif; }
+.tab-btn.active { background: rgba(167,139,250,0.12); color: var(--accent); border: 1px solid rgba(167,139,250,0.2); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+.tab-panel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-top: 8px; }
+.tab-panel.active { display: block; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+/* ACCORDION */
+.accordion { margin: 16px 0; }
+.accordion-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+.accordion-trigger { width: 100%; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; background: var(--bg2); border: none; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; text-align: left; transition: background 0.2s; }
+.accordion-trigger:hover { background: var(--bg4); }
+.accordion-icon { width: 20px; height: 20px; border-radius: 50%; background: rgba(167,139,250,0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; transition: transform 0.3s; flex-shrink: 0; }
+.accordion-item.open .accordion-icon { transform: rotate(180deg); }
+.accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.3s; background: var(--card); padding: 0 18px; font-size: 14px; color: var(--text2); }
+.accordion-item.open .accordion-body { max-height: 700px; padding: 16px 18px; }
+
+/* PROS/CONS */
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.pros-box { background: rgba(0,255,136,0.04); border: 1px solid rgba(0,255,136,0.15); border-radius: 10px; padding: 20px; }
+.cons-box { background: rgba(248,113,113,0.04); border: 1px solid rgba(248,113,113,0.15); border-radius: 10px; padding: 20px; }
+.box-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.pros-box .box-title { color: var(--accent3); } .cons-box .box-title { color: var(--danger); }
+.check-list { list-style: none; }
+.check-list li { font-size: 13.5px; color: var(--text2); padding: 4px 0; display: flex; gap: 8px; align-items: flex-start; }
+.pros-box .check-list li::before { content: '✓'; color: var(--accent3); flex-shrink: 0; margin-top: 1px; }
+.cons-box .check-list li::before { content: '✗'; color: var(--danger); flex-shrink: 0; margin-top: 1px; }
+
+/* ALERTS */
+.alert { border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 14px; display: flex; gap: 12px; align-items: flex-start; }
+.alert-icon { font-size: 16px; flex-shrink: 0; }
+.alert-warn { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2); color: var(--warn); }
+.alert-danger { background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.2); color: var(--danger); }
+.alert-info { background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.2); color: var(--accent); }
+.alert-success { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2); color: var(--accent3); }
+.alert p { color: inherit; margin: 0; }
+
+/* COMPANY CARDS */
+.company-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin: 20px 0; }
+.company-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; transition: all 0.25s; }
+.company-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.company-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.company-tech { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); background: rgba(167,139,250,0.08); padding: 2px 8px; border-radius: 4px; }
+.company-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* INTERVIEW */
+.interview-list { margin: 16px 0; }
+.interview-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.interview-item:hover { border-color: var(--border2); background: var(--bg4); }
+.interview-q { font-size: 14px; font-weight: 600; color: var(--text); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.interview-q::after { content: '›'; color: var(--text3); font-size: 18px; flex-shrink: 0; transition: transform 0.2s; }
+.interview-item.open .interview-q::after { transform: rotate(90deg); }
+.interview-a { max-height: 0; overflow: hidden; transition: max-height 0.3s, padding 0.3s; font-size: 13.5px; color: var(--text2); }
+.interview-item.open .interview-a { max-height: 400px; padding-top: 10px; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--bg4); }
+th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2); border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+td { padding: 11px 16px; font-size: 13.5px; color: var(--text2); border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+td:first-child { color: var(--text); font-weight: 500; }
+
+/* TOC */
+.toc { position: sticky; top: 24px; padding: 24px 16px; font-size: 13px; }
+.toc-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
+.toc-list { list-style: none; }
+.toc-item { margin-bottom: 2px; }
+.toc-link { display: block; padding: 5px 10px; border-radius: 5px; color: var(--text3); text-decoration: none; font-size: 12.5px; transition: all 0.2s; border-left: 2px solid transparent; }
+.toc-link:hover { color: var(--text); background: var(--bg3); }
+.toc-link.active { color: var(--accent); border-left-color: var(--accent); background: rgba(167,139,250,0.05); }
+
+/* PROGRESS */
+.progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(to right, var(--accent), var(--accent5)); z-index: 100; transition: width 0.1s; }
+
+/* TAGS */
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 10px; border-radius: 4px; border: 1px solid; }
+.tag-purple { color: var(--accent); border-color: rgba(167,139,250,0.25); background: rgba(167,139,250,0.06); }
+.tag-blue { color: var(--accent5); border-color: rgba(0,212,255,0.25); background: rgba(0,212,255,0.06); }
+.tag-green { color: var(--accent3); border-color: rgba(0,255,136,0.25); background: rgba(0,255,136,0.06); }
+.tag-orange { color: var(--accent4); border-color: rgba(255,107,53,0.25); background: rgba(255,107,53,0.06); }
+
+.sep { height: 1px; background: linear-gradient(to right, transparent, var(--border), transparent); margin: 40px 0; }
+
+.summary-box { background: linear-gradient(135deg, rgba(167,139,250,0.06) 0%, rgba(0,212,255,0.04) 100%); border: 1px solid rgba(167,139,250,0.2); border-radius: 14px; padding: 28px 32px; margin: 32px 0; }
+.summary-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+
+code { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; background: rgba(167,139,250,0.08); color: var(--accent); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(167,139,250,0.15); }
+pre code { background: transparent; color: inherit; padding: 0; border: none; font-size: inherit; }
+
+/* Feature badge */
+.feature-strip { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+.feature-badge { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--text2); transition: all 0.2s; }
+.feature-badge:hover { border-color: rgba(167,139,250,0.3); color: var(--text); }
+.feature-badge span { font-size: 16px; }
+
+.next-topic { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-top: 48px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+.next-topic:hover { border-color: rgba(167,139,250,0.3); box-shadow: 0 0 30px rgba(167,139,250,0.1); }
+.next-label { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+.next-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); }
+.next-arrow { font-size: 24px; color: var(--accent); }
+
+/* Mobile */
+.menu-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 300; width: 48px; height: 48px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(167,139,250,0.4); font-size: 20px; color: var(--bg); }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 190; }
+.overlay.show { display: block; }
+@media (max-width: 1100px) { .layout { grid-template-columns: 240px 1fr; } .toc { display: none; } .content { padding: 36px 40px; } .hero { padding: 48px 40px; } }
+@media (max-width: 768px) { .layout { grid-template-columns: 1fr; } .sidebar { position: fixed; left: -280px; z-index: 200; transition: left 0.3s; height: 100vh; width: 270px; } .sidebar.open { left: 0; box-shadow: 8px 0 32px rgba(0,0,0,0.5); } .content { padding: 24px 20px; } .hero { padding: 32px 20px; } .pros-cons { grid-template-columns: 1fr; } .card-grid { grid-template-columns: 1fr; } .company-grid { grid-template-columns: 1fr; } .menu-toggle { display: flex; } }
+::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+@keyframes nodeGlow { 0%,100%{filter:drop-shadow(0 0 4px rgba(167,139,250,0))} 50%{filter:drop-shadow(0 0 10px rgba(167,139,250,0.6))} }
+.node-animate { animation: nodeGlow 2.5s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><div class="logo-dot"></div>HLD Academy</div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item" href="load-balancer.html"><span class="nav-num">01</span> Load Balancer</a>
+      <a class="nav-item active" href="api-gateway.html"><span class="nav-num">02</span> API Gateway <span class="nav-badge">Current</span></a>
+      <a class="nav-item" href="#"><span class="nav-num">08</span> CDN</a>
+      <a class="nav-item" href="#"><span class="nav-num">09</span> Reverse Proxy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item" href="#"><span class="nav-num">03</span> Redis Cache</a>
+      <a class="nav-item" href="#"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item" href="#"><span class="nav-num">05</span> Message Queue</a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item" href="#"><span class="nav-num">06</span> Microservices</a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item" href="#"><span class="nav-num">07</span> Database Scaling</a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Infrastructure <span>›</span> Topic 02</div>
+    <div class="hero-tag">🚪 Topic 02 of 22</div>
+    <h1>API <em>Gateway</em></h1>
+    <p class="hero-desc">The single front door to your entire microservices backend. Learn how API gateways handle authentication, rate limiting, routing, transformation, and observability — so your services don't have to.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>Beginner → Intermediate</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>~40 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent5)"></div>Production Ready</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent4)"></div>Interview Critical</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>What is an API Gateway?</h2>
+      <p>An <strong>API Gateway</strong> is a server that acts as the single entry point for all client requests in a microservices architecture. It receives requests, applies cross-cutting concerns (auth, rate limiting, logging), and routes them to the appropriate downstream microservice.</p>
+      <p>Think of it as the <strong>receptionist at a large company HQ</strong> — every visitor checks in here, gets verified, gets a visitor badge, and is then directed to the right department. No visitor wanders directly into engineering or finance without going through reception first.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">🏢 Real-World Analogy — Airport Security</div>
+        <p style="color:var(--text2);margin:0">An airport has one <strong>security checkpoint</strong> all passengers must pass through, regardless of which gate they're heading to. The checkpoint: verifies your identity (authentication), checks your ticket (authorization), scans your luggage (request inspection), and directs you to the right terminal (routing). You don't go through security again at each gate. That checkpoint is your <em>API Gateway</em>.</p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg', this)">👶 Beginner Explanation</button>
+          <button class="tab-btn" onclick="switchTab('adv', this)">🧠 Advanced Explanation</button>
+        </div>
+        <div class="tab-panel active" id="tab-beg">
+          <p>Imagine you have 10 microservices: User Service, Order Service, Payment Service, etc. Without an API Gateway, clients need to know the address of every single service. They also have to handle authentication themselves for each service.</p>
+          <p>With an API Gateway: clients send ALL requests to <strong>one address</strong> (e.g. <code>api.yourapp.com</code>). The gateway checks auth once, then routes to the right service. Simple, clean, and centralized.</p>
+        </div>
+        <div class="tab-panel" id="tab-adv">
+          <p>An API Gateway implements the <strong>Backend for Frontend (BFF) pattern</strong> at its core. It handles cross-cutting concerns as <strong>middleware pipelines</strong> — each request passes through a chain of plugins: JWT validation → rate limit check → request transformation → service routing → response transformation → logging.</p>
+          <p>Modern gateways like Kong, AWS API GW, and Envoy support <strong>plugin architectures</strong> (written in Lua, Go, or Wasm) for extensibility. They maintain an upstream connection pool (like an L7 load balancer) and support <strong>circuit breaking, retries, and timeouts</strong> per route.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-purple">Single Entry Point</span>
+        <span class="tag tag-blue">Auth & AuthZ</span>
+        <span class="tag tag-green">Rate Limiting</span>
+        <span class="tag tag-orange">Request Routing</span>
+        <span class="tag tag-purple">SSL Termination</span>
+        <span class="tag tag-blue">Request Transformation</span>
+        <span class="tag tag-green">Observability</span>
+      </div>
+    </section>
+
+    <!-- WHY -->
+    <section class="section" id="why">
+      <div class="section-label">Problem Statement</div>
+      <h2>Why Does an API Gateway Exist?</h2>
+      <p>Before API Gateways, microservice architectures created a <strong>"cross-cutting concern explosion"</strong>. Every team had to implement the same boilerplate in every service:</p>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent: var(--danger)">
+          <div class="card-icon">🔐</div>
+          <div class="card-title">Auth Duplication</div>
+          <div class="card-text">Every service must validate JWT tokens, check user roles, and decode session data. 20 services = 20 copies of the same auth code, each potentially different and buggy.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--warn)">
+          <div class="card-icon">🌐</div>
+          <div class="card-title">Client Complexity</div>
+          <div class="card-text">Mobile apps need to know 20 different service endpoints. Manage 20 different TLS certs. Handle 20 different error formats. This is unmaintainable at scale.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent)">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Scattered Observability</div>
+          <div class="card-text">No single place to see total API traffic, error rates, or latency. Logs are in 20 different places. Debugging a user's request journey is nearly impossible.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent3)">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">Protocol Mismatch</div>
+          <div class="card-text">Clients speak HTTP/REST. Internal services may use gRPC, GraphQL, or AMQP. The gateway translates between external and internal protocols transparently.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <span class="alert-icon">💡</span>
+        <div><strong>Key Insight:</strong> An API Gateway solves the <em>DRY principle at the infrastructure level</em>. Instead of implementing auth, rate limiting, and logging in every service, you implement it <strong>once</strong> at the gateway. Services stay lean and focused on business logic.</div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section class="section" id="architecture">
+      <div class="section-label">Architecture</div>
+      <h2>Architecture & Full Request Flow</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// API Gateway — Complete Request Pipeline</div>
+        <svg class="diagram-svg" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#243350"/>
+            </marker>
+            <marker id="arrP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="rgba(167,139,250,0.6)"/>
+            </marker>
+          </defs>
+
+          <!-- Clients row -->
+          <rect x="10" y="20" width="80" height="50" rx="8" style="fill:rgba(0,212,255,0.07);stroke:rgba(0,212,255,0.25);stroke-width:1.5"/>
+          <text x="50" y="43" text-anchor="middle" style="font-size:18px">📱</text>
+          <text x="50" y="60" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Mobile</text>
+
+          <rect x="100" y="20" width="80" height="50" rx="8" style="fill:rgba(0,212,255,0.07);stroke:rgba(0,212,255,0.25);stroke-width:1.5"/>
+          <text x="140" y="43" text-anchor="middle" style="font-size:18px">🌐</text>
+          <text x="140" y="60" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Web App</text>
+
+          <rect x="190" y="20" width="80" height="50" rx="8" style="fill:rgba(0,212,255,0.07);stroke:rgba(0,212,255,0.25);stroke-width:1.5"/>
+          <text x="230" y="43" text-anchor="middle" style="font-size:18px">🤖</text>
+          <text x="230" y="60" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">3rd Party</text>
+
+          <!-- Arrow from clients to GW -->
+          <line x1="150" y1="72" x2="150" y2="105" style="stroke:rgba(167,139,250,0.5);stroke-width:1.5;stroke-dasharray:4,3;fill:none;marker-end:url(#arrP)"/>
+          <text x="180" y="92" style="font-family:'JetBrains Mono',monospace;fill:rgba(167,139,250,0.5);font-size:10px">HTTPS</text>
+
+          <!-- API Gateway box -->
+          <rect x="30" y="108" width="380" height="230" rx="14" style="fill:rgba(167,139,250,0.05);stroke:rgba(167,139,250,0.35);stroke-width:2" class="node-animate"/>
+          <text x="220" y="132" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:13px;font-weight:800;letter-spacing:0.1em">API GATEWAY</text>
+          <text x="220" y="148" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Kong / AWS API GW / Nginx / Envoy</text>
+
+          <!-- Pipeline steps inside GW -->
+          <!-- Step 1 -->
+          <rect x="50" y="158" width="340" height="32" rx="6" style="fill:rgba(248,113,113,0.08);stroke:rgba(248,113,113,0.25);stroke-width:1"/>
+          <text x="70" y="179" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:12px;font-weight:600">1. SSL Termination + Request Parsing</text>
+          <!-- Step 2 -->
+          <rect x="50" y="196" width="340" height="32" rx="6" style="fill:rgba(251,191,36,0.06);stroke:rgba(251,191,36,0.2);stroke-width:1"/>
+          <text x="70" y="217" style="font-family:'Inter',sans-serif;fill:#fbbf24;font-size:12px;font-weight:600">2. Authentication (JWT / OAuth2 / API Key)</text>
+          <!-- Step 3 -->
+          <rect x="50" y="234" width="340" height="32" rx="6" style="fill:rgba(255,107,53,0.06);stroke:rgba(255,107,53,0.2);stroke-width:1"/>
+          <text x="70" y="255" style="font-family:'Inter',sans-serif;fill:#ff6b35;font-size:12px;font-weight:600">3. Authorization (RBAC — can user access this?)</text>
+          <!-- Step 4 -->
+          <rect x="50" y="272" width="160" height="32" rx="6" style="fill:rgba(0,212,255,0.06);stroke:rgba(0,212,255,0.2);stroke-width:1"/>
+          <text x="70" y="293" style="font-family:'Inter',sans-serif;fill:#00d4ff;font-size:12px;font-weight:600">4. Rate Limiting</text>
+          <!-- Step 5 -->
+          <rect x="220" y="272" width="170" height="32" rx="6" style="fill:rgba(0,255,136,0.06);stroke:rgba(0,255,136,0.2);stroke-width:1"/>
+          <text x="240" y="293" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:12px;font-weight:600">5. Request Transform</text>
+          <!-- Step 6 -->
+          <rect x="50" y="310" width="340" height="22" rx="5" style="fill:rgba(167,139,250,0.08);stroke:rgba(167,139,250,0.2);stroke-width:1"/>
+          <text x="220" y="325" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#a78bfa;font-size:11px;font-weight:600">6. Route to Upstream Microservice + Log &amp; Trace</text>
+
+          <!-- Arrow: GW → Services -->
+          <line x1="412" y1="223" x2="460" y2="223" style="stroke:rgba(167,139,250,0.5);stroke-width:1.5;stroke-dasharray:4,3;fill:none;marker-end:url(#arrP)"/>
+
+          <!-- Microservices -->
+          <rect x="462" y="100" width="140" height="52" rx="8" style="fill:rgba(0,255,136,0.05);stroke:rgba(0,255,136,0.25);stroke-width:1.5"/>
+          <text x="532" y="124" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">👤 User Service</text>
+          <text x="532" y="141" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">/api/users/*</text>
+
+          <rect x="462" y="162" width="140" height="52" rx="8" style="fill:rgba(0,255,136,0.05);stroke:rgba(0,255,136,0.25);stroke-width:1.5"/>
+          <text x="532" y="186" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">📦 Order Service</text>
+          <text x="532" y="203" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">/api/orders/*</text>
+
+          <rect x="462" y="224" width="140" height="52" rx="8" style="fill:rgba(0,255,136,0.05);stroke:rgba(0,255,136,0.25);stroke-width:1.5"/>
+          <text x="532" y="248" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">💳 Payment Service</text>
+          <text x="532" y="265" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">/api/payments/*</text>
+
+          <rect x="462" y="286" width="140" height="52" rx="8" style="fill:rgba(0,255,136,0.05);stroke:rgba(0,255,136,0.25);stroke-width:1.5"/>
+          <text x="532" y="310" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">🔔 Notif. Service</text>
+          <text x="532" y="327" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">/api/notify/*</text>
+
+          <!-- Arrows from GW to each service -->
+          <line x1="412" y1="185" x2="460" y2="175" style="stroke:rgba(167,139,250,0.3);stroke-width:1;fill:none;marker-end:url(#arr)"/>
+          <line x1="412" y1="220" x2="460" y2="215" style="stroke:rgba(167,139,250,0.3);stroke-width:1;fill:none;marker-end:url(#arr)"/>
+          <line x1="412" y1="260" x2="460" y2="260" style="stroke:rgba(167,139,250,0.3);stroke-width:1;fill:none;marker-end:url(#arr)"/>
+          <line x1="412" y1="290" x2="460" y2="308" style="stroke:rgba(167,139,250,0.3);stroke-width:1;fill:none;marker-end:url(#arr)"/>
+
+          <!-- Shared services -->
+          <rect x="462" y="360" width="280" height="48" rx="8" style="fill:rgba(0,212,255,0.05);stroke:rgba(0,212,255,0.2);stroke-width:1"/>
+          <text x="602" y="382" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">⚡ Redis — Rate Limit Counters + Auth Token Cache</text>
+          <text x="602" y="399" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Shared by Gateway across all requests</text>
+
+          <rect x="462" y="420" width="280" height="48" rx="8" style="fill:rgba(251,191,36,0.04);stroke:rgba(251,191,36,0.18);stroke-width:1"/>
+          <text x="602" y="442" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">📊 Logging + Tracing (Datadog / Jaeger)</text>
+          <text x="602" y="459" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Every request logged with trace ID</text>
+
+          <!-- Arrows from GW down -->
+          <line x1="220" y1="340" x2="220" y2="380" style="stroke:rgba(167,139,250,0.3);stroke-width:1;stroke-dasharray:3,3;fill:none;marker-end:url(#arr)"/>
+          <line x1="300" y1="380" x2="460" y2="383" style="stroke:rgba(167,139,250,0.2);stroke-width:1;fill:none;marker-end:url(#arr)"/>
+          <line x1="300" y1="380" x2="460" y2="445" style="stroke:rgba(167,139,250,0.2);stroke-width:1;fill:none;marker-end:url(#arr)"/>
+
+          <!-- Response arrow back to client -->
+          <text x="420" y="92" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,212,255,0.5);font-size:10px">Response ←</text>
+          <line x1="460" y1="126" x2="412" y2="168" style="stroke:rgba(0,212,255,0.2);stroke-width:1;stroke-dasharray:3,3;fill:none;marker-end:url(#arr)"/>
+        </svg>
+      </div>
+
+      <h3>Request Flow — Every Request Goes Through This Pipeline</h3>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">SSL Termination + Parsing</div>
+            <div class="step-desc">HTTPS connection terminates at the gateway. The request is parsed: method, path, headers, body. The path determines which routing rule applies.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Authentication — Who are you?</div>
+            <div class="step-desc">The gateway validates the identity token: JWT signature check, OAuth introspection, or API key lookup. If invalid → immediate <code>401 Unauthorized</code> response, request never reaches services.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Authorization — Can you do this?</div>
+            <div class="step-desc">Even if you're authenticated, do you have permission? RBAC check: does this user's role include permission for <code>DELETE /api/users/:id</code>? Reject with <code>403 Forbidden</code> if not.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Rate Limiting — Throttle if needed</div>
+            <div class="step-desc">Check rate limit counters in Redis. If the user/API key has exceeded their quota (e.g. 1000 req/min), return <code>429 Too Many Requests</code> with <code>Retry-After</code> header.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Request Transformation</div>
+            <div class="step-desc">Rewrite headers, inject user context (user ID, roles from token), strip sensitive headers, transform request body format if needed (REST → gRPC). Add correlation/trace IDs.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Route to Microservice</div>
+            <div class="step-desc">Forward the request to the correct upstream service based on routing rules. The gateway load-balances across multiple instances of that service.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <div class="step-title">Response Transformation + Logging</div>
+            <div class="step-desc">Receive response from service. Optionally transform it (strip internal fields, format errors). Log request/response metadata with trace ID. Return to client.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- FEATURES -->
+    <section class="section" id="features">
+      <div class="section-label">Core Capabilities</div>
+      <h2>What an API Gateway Does — Feature Deep Dive</h2>
+
+      <div class="feature-strip">
+        <div class="feature-badge"><span>🔐</span> Authentication</div>
+        <div class="feature-badge"><span>🛡️</span> Authorization / RBAC</div>
+        <div class="feature-badge"><span>⏱️</span> Rate Limiting</div>
+        <div class="feature-badge"><span>🔀</span> Request Routing</div>
+        <div class="feature-badge"><span>🔄</span> Protocol Translation</div>
+        <div class="feature-badge"><span>📝</span> Request/Response Transform</div>
+        <div class="feature-badge"><span>⚡</span> Response Caching</div>
+        <div class="feature-badge"><span>🔁</span> Retries & Timeouts</div>
+        <div class="feature-badge"><span>⚡</span> Circuit Breaking</div>
+        <div class="feature-badge"><span>📊</span> Logging & Tracing</div>
+        <div class="feature-badge"><span>🌐</span> CORS Handling</div>
+        <div class="feature-badge"><span>🗜️</span> Compression</div>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔐 Authentication & JWT Validation (Deep Dive)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The gateway decodes the JWT from <code>Authorization: Bearer &lt;token&gt;</code>, verifies the signature using the public key (RS256) or shared secret (HS256), and checks expiry. On success, it extracts claims (user ID, roles) and injects them as headers for downstream services:</p>
+            <p><code>X-User-ID: 123</code>, <code>X-User-Role: admin</code>, <code>X-User-Email: user@app.com</code></p>
+            <p>Services trust these injected headers from the gateway — they don't need to decode JWT themselves. This is safe because services are only accessible internally through the gateway.</p>
+            <p><strong>Token caching:</strong> The gateway caches validated tokens in Redis for ~60 seconds to avoid re-validating every single request (especially important for JWTs that require a JWKS endpoint fetch).</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⏱️ Rate Limiting Strategies
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Fixed Window:</strong> Allow 100 requests per minute. Counter resets at the top of each minute. Simple but allows "burst at boundary" — 100 req at 11:59 + 100 req at 12:00 = 200 req in 2 seconds.</p>
+            <p><strong>Sliding Window Log:</strong> Store timestamps of all requests in Redis. Count how many fall within last 60 seconds. More accurate but memory-intensive.</p>
+            <p><strong>Token Bucket:</strong> Tokens refill at a constant rate. Each request consumes one token. Burst allowed up to bucket capacity. Used by AWS, Stripe.</p>
+            <p><strong>Leaky Bucket:</strong> Requests queued and processed at a constant output rate. Smooths traffic bursts. Used in network QoS.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔀 Advanced Routing (Path, Header, Weight-Based)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Path-based routing:</strong> <code>/api/users/*</code> → User Service, <code>/api/orders/*</code> → Order Service. Most common pattern.</p>
+            <p><strong>Header-based routing:</strong> Route based on <code>X-API-Version: v2</code> header. Allows versioning without URL changes. <code>Accept: application/vnd.api.v2+json</code> → v2 service.</p>
+            <p><strong>Weight-based (Canary):</strong> Send 5% of traffic to new service version, 95% to stable. Roll forward or back based on error rates. Used for zero-risk deployments.</p>
+            <p><strong>A/B testing:</strong> Route user IDs ending in 0-4 to variant A, 5-9 to variant B. Deterministic assignment by hashing user ID.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔄 Protocol Translation: REST → gRPC
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>External clients send standard HTTP/REST JSON. Internal services run gRPC (Protocol Buffers over HTTP/2) for performance. The gateway translates between them automatically using <strong>grpc-gateway</strong> or Envoy's gRPC-JSON transcoding.</p>
+            <p>Client sends: <code>POST /api/users {"name": "Alice"}</code><br/>
+            Gateway translates to: <code>UserService.CreateUser(CreateUserRequest{name: "Alice"})</code> via gRPC.</p>
+            <p>This lets your internal architecture use the fastest protocols while keeping the external API clean and standard.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CODE SECTION -->
+    <section class="section" id="config">
+      <div class="section-label">Configuration & Code</div>
+      <h2>Real Production Configurations</h2>
+
+      <h3>Kong Gateway — Declarative Config (kong.yml)</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <span class="code-file">kong.yml — Declarative configuration</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm"># Kong Gateway declarative config</span>
+<span class="key">_format_version</span>: <span class="str">"3.0"</span>
+
+<span class="key">services</span>:
+  <span class="cm"># User Service</span>
+  - <span class="key">name</span>: <span class="val">user-service</span>
+    <span class="key">url</span>: <span class="str">http://user-service:3001</span>
+    <span class="key">connect_timeout</span>: <span class="num">5000</span>
+    <span class="key">read_timeout</span>: <span class="num">30000</span>
+    <span class="key">write_timeout</span>: <span class="num">30000</span>
+    <span class="key">retries</span>: <span class="num">2</span>
+    <span class="key">routes</span>:
+      - <span class="key">name</span>: <span class="val">user-routes</span>
+        <span class="key">paths</span>: [<span class="str">/api/users</span>]
+        <span class="key">methods</span>: [<span class="str">GET</span>, <span class="str">POST</span>, <span class="str">PUT</span>, <span class="str">DELETE</span>]
+        <span class="key">strip_path</span>: <span class="kw">false</span>
+    <span class="key">plugins</span>:
+      <span class="cm"># JWT authentication on this service</span>
+      - <span class="key">name</span>: <span class="val">jwt</span>
+        <span class="key">config</span>:
+          <span class="key">secret_is_base64</span>: <span class="kw">false</span>
+          <span class="key">claims_to_verify</span>: [<span class="str">exp</span>]
+          <span class="key">key_claim_name</span>: <span class="str">kid</span>
+      <span class="cm"># Rate limit: 100 req/min per consumer</span>
+      - <span class="key">name</span>: <span class="val">rate-limiting</span>
+        <span class="key">config</span>:
+          <span class="key">minute</span>: <span class="num">100</span>
+          <span class="key">policy</span>: <span class="str">redis</span>
+          <span class="key">redis_host</span>: <span class="str">redis</span>
+          <span class="key">redis_port</span>: <span class="num">6379</span>
+
+  <span class="cm"># Payment Service — stricter limits</span>
+  - <span class="key">name</span>: <span class="val">payment-service</span>
+    <span class="key">url</span>: <span class="str">http://payment-service:3003</span>
+    <span class="key">routes</span>:
+      - <span class="key">name</span>: <span class="val">payment-routes</span>
+        <span class="key">paths</span>: [<span class="str">/api/payments</span>]
+        <span class="key">methods</span>: [<span class="str">POST</span>]
+    <span class="key">plugins</span>:
+      - <span class="key">name</span>: <span class="val">jwt</span>
+      - <span class="key">name</span>: <span class="val">rate-limiting</span>
+        <span class="key">config</span>:
+          <span class="key">minute</span>: <span class="num">10</span>   <span class="cm"># Much stricter for payments</span>
+          <span class="key">policy</span>: <span class="str">redis</span>
+          <span class="key">redis_host</span>: <span class="str">redis</span>
+      <span class="cm"># IP restriction — only allow from trusted networks</span>
+      - <span class="key">name</span>: <span class="val">ip-restriction</span>
+        <span class="key">config</span>:
+          <span class="key">allow</span>: [<span class="str">10.0.0.0/8</span>, <span class="str">172.16.0.0/12</span>]
+
+<span class="cm"># Global plugins applied to all services</span>
+<span class="key">plugins</span>:
+  - <span class="key">name</span>: <span class="val">correlation-id</span>
+    <span class="key">config</span>:
+      <span class="key">header_name</span>: <span class="str">X-Correlation-ID</span>
+      <span class="key">generator</span>: <span class="str">uuid</span>
+  - <span class="key">name</span>: <span class="val">http-log</span>
+    <span class="key">config</span>:
+      <span class="key">http_endpoint</span>: <span class="str">http://logstash:5044</span>
+      <span class="key">method</span>: <span class="str">POST</span>
+  - <span class="key">name</span>: <span class="val">response-transformer</span>
+    <span class="key">config</span>:
+      <span class="key">remove</span>:
+        <span class="key">headers</span>: [<span class="str">X-Powered-By</span>, <span class="str">Server</span>]  <span class="cm"># Hide internal tech stack</span></code></pre>
+      </div>
+
+      <h3>Node.js — Building a Lightweight Custom Gateway</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">gateway.js — Custom Express API Gateway</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> express     = <span class="fn">require</span>(<span class="str">'express'</span>);
+<span class="kw">const</span> { createProxyMiddleware } = <span class="fn">require</span>(<span class="str">'http-proxy-middleware'</span>);
+<span class="kw">const</span> jwt         = <span class="fn">require</span>(<span class="str">'jsonwebtoken'</span>);
+<span class="kw">const</span> rateLimit   = <span class="fn">require</span>(<span class="str">'express-rate-limit'</span>);
+<span class="kw">const</span> RedisStore   = <span class="fn">require</span>(<span class="str">'rate-limit-redis'</span>);
+<span class="kw">const</span> redis        = <span class="fn">require</span>(<span class="str">'ioredis'</span>);
+<span class="kw">const</span> { v4: uuidv4 } = <span class="fn">require</span>(<span class="str">'uuid'</span>);
+
+<span class="kw">const</span> app         = <span class="fn">express</span>();
+<span class="kw">const</span> redisClient = <span class="kw">new</span> <span class="fn">redis</span>({ host: <span class="str">'redis'</span>, port: <span class="num">6379</span> });
+
+<span class="cm">// ─── 1. Correlation ID Middleware ───────────────────────</span>
+app.<span class="fn">use</span>((req, res, next) => {
+  req.correlationId = req.headers[<span class="str">'x-correlation-id'</span>] || <span class="fn">uuidv4</span>();
+  res.<span class="fn">setHeader</span>(<span class="str">'X-Correlation-ID'</span>, req.correlationId);
+  <span class="fn">next</span>();
+});
+
+<span class="cm">// ─── 2. JWT Authentication Middleware ───────────────────</span>
+<span class="kw">const</span> authenticate = <span class="kw">async</span> (req, res, next) => {
+  <span class="kw">const</span> authHeader = req.headers[<span class="str">'authorization'</span>];
+  <span class="kw">if</span> (!authHeader?.startsWith(<span class="str">'Bearer '</span>))
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Missing token'</span> });
+
+  <span class="kw">const</span> token = authHeader.<span class="fn">slice</span>(<span class="num">7</span>);
+
+  <span class="cm">// Check Redis cache first (avoid repeated JWT decoding)</span>
+  <span class="kw">const</span> cached = <span class="kw">await</span> redisClient.<span class="fn">get</span>(<span class="str">`token:${token.slice(-16)}`</span>);
+  <span class="kw">if</span> (cached) {
+    req.user = <span class="fn">JSON</span>.<span class="fn">parse</span>(cached);
+    <span class="kw">return</span> <span class="fn">next</span>();
+  }
+
+  <span class="kw">try</span> {
+    <span class="kw">const</span> decoded = jwt.<span class="fn">verify</span>(token, process.env.<span class="val">JWT_SECRET</span>);
+    req.user = { id: decoded.sub, role: decoded.role, email: decoded.email };
+
+    <span class="cm">// Cache for 60 seconds</span>
+    <span class="kw">await</span> redisClient.<span class="fn">setex</span>(
+      <span class="str">`token:${token.slice(-16)}`</span>, <span class="num">60</span>,
+      <span class="fn">JSON</span>.<span class="fn">stringify</span>(req.user)
+    );
+    <span class="fn">next</span>();
+  } <span class="kw">catch</span> (err) {
+    res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid or expired token'</span> });
+  }
+};
+
+<span class="cm">// ─── 3. Rate Limiting (Redis-backed, per user) ──────────</span>
+<span class="kw">const</span> apiLimiter = <span class="fn">rateLimit</span>({
+  windowMs: <span class="num">60</span> * <span class="num">1000</span>,
+  max: <span class="num">100</span>,
+  standardHeaders: <span class="kw">true</span>,
+  legacyHeaders: <span class="kw">false</span>,
+  store: <span class="kw">new</span> <span class="fn">RedisStore</span>({ client: redisClient }),
+  keyGenerator: (req) => req.user?.id || req.ip,   <span class="cm">// per-user limits</span>
+  handler: (req, res) =>
+    res.<span class="fn">status</span>(<span class="num">429</span>).<span class="fn">json</span>({
+      error: <span class="str">'Too many requests'</span>,
+      retryAfter: res.<span class="fn">getHeader</span>(<span class="str">'RateLimit-Reset'</span>)
+    })
+});
+
+<span class="cm">// ─── 4. Inject User Context into upstream headers ───────</span>
+<span class="kw">const</span> injectUserContext = (req, res, next) => {
+  req.headers[<span class="str">'x-user-id'</span>]    = req.user?.id;
+  req.headers[<span class="str">'x-user-role'</span>]  = req.user?.role;
+  req.headers[<span class="str">'x-user-email'</span>] = req.user?.email;
+  <span class="cm">// Remove raw JWT so services don't re-validate (trust gateway)</span>
+  <span class="kw">delete</span> req.headers[<span class="str">'authorization'</span>];
+  <span class="fn">next</span>();
+};
+
+<span class="cm">// ─── 5. Route Definitions ───────────────────────────────</span>
+<span class="kw">const</span> routes = [
+  { prefix: <span class="str">'/api/users'</span>,    target: <span class="str">'http://user-service:3001'</span>    },
+  { prefix: <span class="str">'/api/orders'</span>,   target: <span class="str">'http://order-service:3002'</span>   },
+  { prefix: <span class="str">'/api/payments'</span>, target: <span class="str">'http://payment-service:3003'</span> },
+  { prefix: <span class="str">'/api/notify'</span>,   target: <span class="str">'http://notif-service:3004'</span>   },
+];
+
+routes.<span class="fn">forEach</span>(({ prefix, target }) => {
+  app.<span class="fn">use</span>(
+    prefix,
+    authenticate,
+    apiLimiter,
+    injectUserContext,
+    <span class="fn">createProxyMiddleware</span>({
+      target,
+      changeOrigin: <span class="kw">true</span>,
+      on: {
+        error: (err, req, res) => {
+          console.<span class="fn">error</span>(<span class="str">`[${req.correlationId}] Upstream error: ${err.message}`</span>);
+          res.<span class="fn">status</span>(<span class="num">502</span>).<span class="fn">json</span>({ error: <span class="str">'Bad Gateway'</span>, id: req.correlationId });
+        }
+      }
+    })
+  );
+});
+
+app.<span class="fn">listen</span>(<span class="num">8080</span>, () => console.<span class="fn">log</span>(<span class="str">'🚪 API Gateway running on :8080'</span>));</code></pre>
+      </div>
+
+      <h3>AWS API Gateway — Terraform Config</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">HCL</span>
+          <span class="code-file">api-gateway.tf — AWS API Gateway v2 (HTTP API)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm"># HTTP API Gateway (cheaper, lower latency than REST API GW)</span>
+<span class="kw">resource</span> <span class="str">"aws_apigatewayv2_api"</span> <span class="str">"main"</span> {
+  <span class="key">name</span>          = <span class="str">"production-api"</span>
+  <span class="key">protocol_type</span> = <span class="str">"HTTP"</span>
+  <span class="key">cors_configuration</span> {
+    <span class="key">allow_origins</span> = [<span class="str">"https://yourapp.com"</span>]
+    <span class="key">allow_methods</span> = [<span class="str">"GET"</span>, <span class="str">"POST"</span>, <span class="str">"PUT"</span>, <span class="str">"DELETE"</span>]
+    <span class="key">allow_headers</span> = [<span class="str">"Authorization"</span>, <span class="str">"Content-Type"</span>]
+    <span class="key">max_age</span>       = <span class="num">86400</span>
+  }
+}
+
+<span class="cm"># JWT Authorizer — validate tokens from Auth0</span>
+<span class="kw">resource</span> <span class="str">"aws_apigatewayv2_authorizer"</span> <span class="str">"jwt"</span> {
+  <span class="key">api_id</span>           = aws_apigatewayv2_api.main.id
+  <span class="key">authorizer_type</span>  = <span class="str">"JWT"</span>
+  <span class="key">name</span>             = <span class="str">"jwt-auth"</span>
+  <span class="key">identity_sources</span> = [<span class="str">"$request.header.Authorization"</span>]
+  <span class="key">jwt_configuration</span> {
+    <span class="key">audience</span> = [<span class="str">"https://api.yourapp.com"</span>]
+    <span class="key">issuer</span>   = <span class="str">"https://yourapp.auth0.com/"</span>
+  }
+}
+
+<span class="cm"># Route: GET /api/users → Lambda or VPC integration</span>
+<span class="kw">resource</span> <span class="str">"aws_apigatewayv2_route"</span> <span class="str">"users"</span> {
+  <span class="key">api_id</span>             = aws_apigatewayv2_api.main.id
+  <span class="key">route_key</span>          = <span class="str">"GET /api/users"</span>
+  <span class="key">target</span>             = <span class="str">"integrations/${aws_apigatewayv2_integration.user_lambda.id}"</span>
+  <span class="key">authorization_type</span> = <span class="str">"JWT"</span>
+  <span class="key">authorizer_id</span>      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+<span class="cm"># Throttling per stage</span>
+<span class="kw">resource</span> <span class="str">"aws_apigatewayv2_stage"</span> <span class="str">"prod"</span> {
+  <span class="key">api_id</span>      = aws_apigatewayv2_api.main.id
+  <span class="key">name</span>        = <span class="str">"prod"</span>
+  <span class="key">auto_deploy</span> = <span class="kw">true</span>
+  <span class="key">default_route_settings</span> {
+    <span class="key">throttling_burst_limit</span>  = <span class="num">1000</span>  <span class="cm"># max concurrent</span>
+    <span class="key">throttling_rate_limit</span>   = <span class="num">500</span>   <span class="cm"># steady-state req/s</span>
+  }
+  <span class="key">access_log_settings</span> {
+    <span class="key">destination_arn</span> = aws_cloudwatch_log_group.gw_logs.arn
+  }
+}</code></pre>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- PATTERNS -->
+    <section class="section" id="patterns">
+      <div class="section-label">Design Patterns</div>
+      <h2>API Gateway Patterns</h2>
+
+      <h3>Backend for Frontend (BFF) Pattern</h3>
+      <p>Instead of one generic API Gateway, create <strong>purpose-built gateways per client type</strong>. The mobile app has different data needs than the web app — different response shapes, different auth flows, different caching TTLs.</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// BFF Pattern — One Gateway Per Client Type</div>
+        <svg class="diagram-svg" viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrS" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="#243350"/>
+            </marker>
+          </defs>
+          <!-- Clients -->
+          <rect x="10" y="90" width="90" height="60" rx="8" style="fill:rgba(0,212,255,0.07);stroke:rgba(0,212,255,0.25);stroke-width:1.5"/>
+          <text x="55" y="117" text-anchor="middle" style="font-size:18px">📱</text>
+          <text x="55" y="139" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Mobile App</text>
+
+          <rect x="10" y="30" width="90" height="50" rx="8" style="fill:rgba(167,139,250,0.07);stroke:rgba(167,139,250,0.25);stroke-width:1.5"/>
+          <text x="55" y="52" text-anchor="middle" style="font-size:18px">🌐</text>
+          <text x="55" y="69" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Web App</text>
+
+          <rect x="10" y="160" width="90" height="50" rx="8" style="fill:rgba(255,107,53,0.07);stroke:rgba(255,107,53,0.25);stroke-width:1.5"/>
+          <text x="55" y="182" text-anchor="middle" style="font-size:18px">🤖</text>
+          <text x="55" y="199" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">3rd Party</text>
+
+          <!-- BFF Gateways -->
+          <rect x="150" y="82" width="130" height="60" rx="8" style="fill:rgba(0,212,255,0.06);stroke:rgba(0,212,255,0.3);stroke-width:1.5"/>
+          <text x="215" y="107" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:600">📱 Mobile BFF</text>
+          <text x="215" y="123" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Compact responses</text>
+          <text x="215" y="136" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Offline-first caching</text>
+
+          <rect x="150" y="22" width="130" height="50" rx="8" style="fill:rgba(167,139,250,0.06);stroke:rgba(167,139,250,0.3);stroke-width:1.5"/>
+          <text x="215" y="45" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:12px;font-weight:600">🌐 Web BFF</text>
+          <text x="215" y="61" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Full responses + SSR data</text>
+
+          <rect x="150" y="156" width="130" height="50" rx="8" style="fill:rgba(255,107,53,0.06);stroke:rgba(255,107,53,0.3);stroke-width:1.5"/>
+          <text x="215" y="178" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#ff6b35;font-size:12px;font-weight:600">🤖 Partner BFF</text>
+          <text x="215" y="194" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Strict rate limits, API keys</text>
+
+          <!-- Arrows clients to BFFs -->
+          <line x1="102" y1="120" x2="148" y2="114" style="stroke:rgba(0,212,255,0.3);stroke-width:1.5;fill:none;marker-end:url(#arrS)"/>
+          <line x1="102" y1="55" x2="148" y2="47" style="stroke:rgba(167,139,250,0.3);stroke-width:1.5;fill:none;marker-end:url(#arrS)"/>
+          <line x1="102" y1="185" x2="148" y2="181" style="stroke:rgba(255,107,53,0.3);stroke-width:1.5;fill:none;marker-end:url(#arrS)"/>
+
+          <!-- All BFFs point to same services -->
+          <line x1="282" y1="110" x2="360" y2="120" style="stroke:#243350;stroke-width:1.5;fill:none;marker-end:url(#arrS)"/>
+          <line x1="282" y1="47" x2="360" y2="100" style="stroke:#243350;stroke-width:1.5;fill:none;marker-end:url(#arrS)"/>
+          <line x1="282" y1="181" x2="360" y2="140" style="stroke:#243350;stroke-width:1.5;fill:none;marker-end:url(#arrS)"/>
+
+          <!-- Shared services -->
+          <rect x="362" y="80" width="140" height="80" rx="10" style="fill:rgba(0,255,136,0.05);stroke:rgba(0,255,136,0.2);stroke-width:1.5"/>
+          <text x="432" y="108" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">Shared</text>
+          <text x="432" y="124" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:600">Microservices</text>
+          <text x="432" y="142" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Users / Orders / Payments</text>
+
+          <text x="540" y="120" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:12px">Each BFF optimizes</text>
+          <text x="540" y="136" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:12px">for its client's needs</text>
+        </svg>
+      </div>
+
+      <div class="alert alert-success">
+        <span class="alert-icon">✅</span>
+        <div><strong>When to use BFF:</strong> Use BFF when your mobile app, web app, and partner API have significantly different data shapes and auth requirements. Netflix uses BFF for their device-specific APIs (TV, mobile, browser all have different gateway logic).</div>
+      </div>
+
+      <h3>API Gateway vs Load Balancer — Know the Difference</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Load Balancer</th><th>API Gateway</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Primary job</td><td>Distribute traffic across server pool</td><td>Cross-cutting concerns + intelligent routing</td></tr>
+            <tr><td>OSI Layer</td><td>L4 (TCP) or L7 (HTTP)</td><td>L7 Application layer</td></tr>
+            <tr><td>Authentication</td><td>❌ Not typically</td><td>✅ Core feature</td></tr>
+            <tr><td>Rate Limiting</td><td>Basic (connection limits)</td><td>✅ Fine-grained per user/key</td></tr>
+            <tr><td>Request Transform</td><td>❌</td><td>✅ Full header/body manipulation</td></tr>
+            <tr><td>Protocol translation</td><td>❌</td><td>✅ REST → gRPC, WebSocket etc.</td></tr>
+            <tr><td>Used together?</td><td colspan="2">✅ Yes — LB in front of API Gateway, or API GW routes to LB pools</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- COMPANIES -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Use API Gateways</h2>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">🎬 Netflix <span class="company-tech">Zuul → Zuul 2</span></div>
+          <div class="company-desc">Netflix built <strong>Zuul</strong>, their open-source API Gateway. Zuul 2 uses Netty for non-blocking I/O, handling 100+ billion requests per day. They use it for dynamic routing, stress testing (inject failures), AB testing, and authentication. Each filter in Zuul is a separate microservice that can be pushed live without gateway restart.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🚗 Uber <span class="company-tech">NGINX + custom</span></div>
+          <div class="company-desc">Uber processes 2M+ trips per day through their gateway. They use it to solve the "1000 client types" problem — drivers, riders, restaurants, couriers all have different API requirements. Their gateway handles protocol translation, auth, and dynamic service discovery through Consul.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">💳 Stripe <span class="company-tech">Custom + Envoy</span></div>
+          <div class="company-desc">Stripe's gateway is famous for API versioning — they maintain <strong>every API version ever released</strong>. The gateway detects the version requested (header or URL), transforms the request to the current internal API, and transforms the response back to the requested version format. Zero breaking changes, ever.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">📦 Amazon <span class="company-tech">AWS API Gateway</span></div>
+          <div class="company-desc">Amazon uses their own API GW product internally and for millions of customers. Handles 100s of billions of API calls per month. Features usage plans, API keys, Lambda authorizers, and WAF integration. Their gateway charges per request + per GB transferred, which drove the architectural choice to minimize response payload sizes.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🔍 LinkedIn <span class="company-tech">Pegasus</span></div>
+          <div class="company-desc">LinkedIn built <strong>Pegasus</strong>, a REST-to-Avro/Protobuf gateway. External REST requests get translated to their internal Pegasus protocol. Handles schema evolution (they can change internal data models without breaking external APIs) for 900M+ member profiles.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🏦 PayPal <span class="company-tech">Apigee / Custom</span></div>
+          <div class="company-desc">PayPal's gateway enforces PCI-DSS compliance at the border — ensuring card data is tokenized before reaching any service. The gateway also handles international compliance: EU requests go through GDPR-compliant data paths, US requests go through a different pipeline. Regulatory routing via gateway.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROS/CONS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>Advantages, Disadvantages & Tradeoffs</h2>
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">✅ Advantages</div>
+          <ul class="check-list">
+            <li>Single entry point simplifies client code enormously</li>
+            <li>Cross-cutting concerns (auth, logging, rate limiting) in one place</li>
+            <li>Services stay lean — no auth boilerplate in each service</li>
+            <li>Easy API versioning and backward compatibility</li>
+            <li>Centralized observability — one place to see all traffic</li>
+            <li>Protocol translation enables technology freedom internally</li>
+            <li>Security: backend services never exposed to internet</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">❌ Disadvantages</div>
+          <ul class="check-list">
+            <li>Single point of failure (if not deployed in HA)</li>
+            <li>Additional network hop adds latency (~2-10ms)</li>
+            <li>Can become a development bottleneck ("gateway team" becomes a blocker)</li>
+            <li>Increases complexity — another system to operate and monitor</li>
+            <li>Risk of "fat gateway" anti-pattern (business logic creeping in)</li>
+            <li>Hard to test locally with all plugins enabled</li>
+            <li>Vendor lock-in with managed services (AWS API GW)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert alert-danger">
+        <span class="alert-icon">🚨</span>
+        <div><strong>Anti-Pattern Warning: The Fat Gateway</strong><br/>Never put <em>business logic</em> in the API Gateway. The gateway should only handle infrastructure concerns (auth, rate limiting, routing). If you find yourself writing code like "if user is premium then fetch recommendations" in the gateway, that's a sign you need a BFF service layer, not gateway logic. Gateways are infrastructure, not application code.</div>
+      </div>
+    </section>
+
+    <!-- BEST PRACTICES -->
+    <section class="section" id="best-practices">
+      <div class="section-label">Engineering Wisdom</div>
+      <h2>Common Mistakes & Best Practices</h2>
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Mistake: Synchronous auth call on every request
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Calling your Auth Service for every single request adds 10-50ms latency on every API call and creates a dependency: if Auth Service is slow or down, your entire API goes down.</p>
+            <p><strong>Fix:</strong> Use stateless JWT tokens (self-contained, verify with public key locally) + cache validated tokens in Redis for 60 seconds. No network call needed per request.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Mistake: One gateway for everything (no BFF)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>A single generic gateway for mobile, web, and partner APIs means you're always making tradeoffs. Mobile needs compact payloads, web needs full data, partners need strict rate limits. One gateway tries to serve all three and serves none well.</p>
+            <p><strong>Fix:</strong> Implement BFF — separate gateway or gateway configuration per client type. Netflix's device-specific gateways are a good model.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ✅ Best Practice: Always add Correlation IDs
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Generate a unique <code>X-Correlation-ID</code> (UUID) at the gateway for every incoming request. Pass it to all downstream services in their request headers. All services include it in their logs.</p>
+            <p>Now you can search your Elasticsearch/Splunk logs for a single UUID and see the <em>complete journey</em> of a user's request across all 10 microservices. Invaluable for debugging production issues.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ✅ Best Practice: Circuit Breaking at the Gateway
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>If a downstream service (e.g. Recommendation Service) is returning errors >50% of the time, the circuit breaker "opens" — the gateway immediately returns a cached fallback response instead of hammering the failing service. This prevents cascade failures.</p>
+            <p>Configure per-route: open after 50% error rate in 10 seconds, try one request every 30 seconds to check recovery. Libraries: Hystrix, Resilience4j, Envoy circuit breaker.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ✅ Best Practice: API Versioning Strategy
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Version your APIs from day one. Three approaches: URL versioning (<code>/v1/users</code>, <code>/v2/users</code>), Header versioning (<code>Accept: application/vnd.api.v2+json</code>), or Query param (<code>?version=2</code>).</p>
+            <p>URL versioning is most visible and cacheable. The gateway routes <code>/v1/*</code> to v1 services and <code>/v2/*</code> to v2 services. Maintain both in parallel during migration. Deprecate with a sunset header: <code>Sunset: Sat, 31 Dec 2025 00:00:00 GMT</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECURITY -->
+    <section class="section" id="security">
+      <div class="section-label">Security</div>
+      <h2>Security at the API Gateway</h2>
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent: var(--danger)">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Input Validation</div>
+          <div class="card-text">Validate request size limits (reject bodies &gt; 1MB for most APIs), content-type headers, URL parameter lengths. Block oversized requests before they reach services.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent)">
+          <div class="card-icon">🚫</div>
+          <div class="card-title">OWASP Top 10</div>
+          <div class="card-text">Use WAF integration to block SQL injection, XSS, path traversal, and SSRF attacks at the gateway. Services should never trust raw user input — but the gateway is the first defense.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--accent3)">
+          <div class="card-icon">🔑</div>
+          <div class="card-title">API Key Management</div>
+          <div class="card-text">Never hardcode API keys. Use the gateway's key management (Kong credentials, AWS API Keys). Keys should be rotatable, scoped (read-only vs write), and revocable instantly without code deploys.</div>
+        </div>
+        <div class="info-card" style="--card-accent: var(--warn)">
+          <div class="card-icon">📋</div>
+          <div class="card-title">Security Headers</div>
+          <div class="card-text">Add <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>HSTS</code>, <code>Content-Security-Policy</code> at the gateway. One place for all security headers across all services.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the difference between an API Gateway and a Load Balancer?</div>
+          <div class="interview-a">A Load Balancer distributes traffic across a pool of identical servers — it knows about servers, not APIs. An API Gateway is application-aware — it understands HTTP methods, routes, auth tokens, and rate limits. An LB operates at L4/L7 for distribution; an API Gateway operates at L7 for intelligence. In production, you often have both: LB distributes traffic to API Gateway instances, and the gateway routes to microservices. Load balancer = traffic distribution. API Gateway = API management.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How would you handle API versioning in an API Gateway?</div>
+          <div class="interview-a">Three strategies: (1) URL-based: <code>/v1/users</code> and <code>/v2/users</code> — gateway routes to different service versions. Easy to test, cache, and understand. (2) Header-based: <code>Accept: application/vnd.api.v2+json</code> — cleaner URLs but harder to test in browser. (3) Query param: <code>?version=2</code> — easy to test but pollutes URLs. Best practice: URL versioning + maintain v1 and v2 simultaneously during transition. Use <code>Sunset</code> header to communicate deprecation. Gateway routes based on path prefix with weighted routing for gradual migration.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How does an API Gateway handle authentication vs authorization?</div>
+          <div class="interview-a"><strong>Authentication (AuthN) = Who are you?</strong> — Gateway validates JWT signature + expiry, or calls OAuth2 introspection, or checks API key. This is stateless (JWT) or involves a Redis cache. <strong>Authorization (AuthZ) = Can you do this?</strong> — Once identity is confirmed, the gateway checks RBAC rules: does this role have permission for this method+path? E.g., <code>POST /api/admin/*</code> requires <code>admin</code> role. Downstream services get <code>X-User-ID</code> and <code>X-User-Role</code> headers injected by the gateway and trust them — they never re-validate the JWT.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Design an API Gateway for a system with 1 million requests per minute.</div>
+          <div class="interview-a">(1) Deploy multiple gateway instances behind an L4 Load Balancer. (2) Use Redis Cluster for distributed rate limiting counters shared across all gateway instances. (3) Use stateless JWT auth to avoid network calls per request — validate locally with public key. (4) Use keepalive connections to upstream services (connection pooling) to avoid TCP handshake overhead. (5) Enable horizontal autoscaling (Kubernetes HPA) triggered by CPU/RPS metrics. (6) Use gzip compression for response bodies. (7) Cache JWT public keys (JWKS) locally with 5-minute TTL. At 1M RPM (~16k RPS), a single Nginx gateway instance handles this — but run at least 3 for HA.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the BFF (Backend for Frontend) pattern and when would you use it?</div>
+          <div class="interview-a">BFF creates a dedicated API Gateway per client type (mobile, web, partner). Each BFF is optimized for its client: mobile BFF returns compact payloads (bandwidth constrained), web BFF returns full data for SSR, partner BFF enforces strict API contracts and rate limits. Use BFF when: (1) clients have meaningfully different data requirements, (2) you want to avoid over-fetching/under-fetching, (3) clients have different auth requirements (mobile uses device certs, web uses session cookies, partners use API keys). Netflix, Uber, and Amazon all use BFF. Trade-off: more gateways to maintain, but teams can own their own BFF independently.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCTION -->
+    <section class="section" id="production">
+      <div class="section-label">Production Ops</div>
+      <h2>Production Challenges & Debugging</h2>
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔥 The Gateway Bottleneck Problem
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>When every request goes through one gateway, it becomes a scalability bottleneck. Symptoms: gateway CPU pegged at 90%+, p99 latency spikes to 500ms+, connection timeouts.</p>
+            <p><strong>Solutions:</strong> (1) Deploy multiple gateway instances + LB in front, (2) Move heavy plugins (complex transformations) to async processing, (3) Cache JWT validation results in Redis, (4) Use keepalive connection pools to services, (5) Profile which plugins consume the most CPU per request — usually it's JWT crypto.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🐛 Debugging: Request Transformed But Service Failing
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Gateway shows 200 OK received from service, but the actual response body is an error. This happens when services return HTTP 200 with an error in the JSON body (bad practice but common legacy behavior).</p>
+            <p><strong>Debug steps:</strong> (1) Check gateway access logs for upstream response code + body, (2) Use the Correlation-ID to find matching service logs, (3) Enable gateway debug mode to log full request/response headers and bodies (temporarily), (4) Use curl directly to the service bypassing the gateway to isolate the issue.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⚡ Rate Limit Spikes — Why Users Hit Limits Unexpectedly
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Common production issue: users complain about 429 errors but they claim they're not making many requests. Root cause is usually: (1) <code>trust proxy</code> not set — all users appear to come from one LB IP, sharing one rate limit pool. (2) Multiple services retry on failure, multiplying the actual request count. (3) Frontend JavaScript loops/polling not accounting for backoff.</p>
+            <p><strong>Fix:</strong> Rate limit on User ID (from JWT), not IP address. Return <code>X-RateLimit-Remaining</code> and <code>Retry-After</code> headers so clients can self-throttle.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> API Gateway is the single front door — all external traffic enters here, never directly to services</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Core pipeline: SSL termination → Auth → Authorization → Rate limit → Transform → Route → Log</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Gateway vs Load Balancer: LB = traffic distribution; API GW = API management and intelligence</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> BFF pattern = separate gateway per client type (mobile, web, partner) for optimized APIs</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Auth: gateway validates JWT once, injects user context headers — services trust them without re-validating</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Correlation IDs are essential for debugging distributed requests across microservices</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Anti-pattern: Fat Gateway — never put business logic in the gateway</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Tools: Kong, AWS API Gateway, Nginx, Envoy, Traefik, custom Express gateway</li>
+        </ul>
+      </div>
+    </section>
+
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 03</div>
+        <div class="next-name">Redis Cache</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+
+  </div>
+</main>
+
+<!-- TOC -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#why" class="toc-link">Why Needed</a></li>
+      <li class="toc-item"><a href="#architecture" class="toc-link">Architecture</a></li>
+      <li class="toc-item"><a href="#features" class="toc-link">Core Features</a></li>
+      <li class="toc-item"><a href="#config" class="toc-link">Configuration</a></li>
+      <li class="toc-item"><a href="#patterns" class="toc-link">Design Patterns</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#best-practices" class="toc-link">Best Practices</a></li>
+      <li class="toc-item"><a href="#security" class="toc-link">Security</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#production" class="toc-link">Production</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+
+</div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const el = document.getElementById('progressBar');
+  const scrolled = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  el.style.width = scrolled + '%';
+});
+
+const sections = document.querySelectorAll('section[id]');
+const tocLinks = document.querySelectorAll('.toc-link');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+function switchTab(id, btn) {
+  const parent = btn.closest('.tabs');
+  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  parent.querySelector('#tab-' + id).classList.add('active');
+}
+
+function toggleAccordion(btn) {
+  const item = btn.closest('.accordion-item');
+  const isOpen = item.classList.contains('open');
+  btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+function toggleInterview(item) { item.classList.toggle('open'); }
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+const cards = document.querySelectorAll('.info-card, .company-card');
+const cardObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '0';
+      e.target.style.transform = 'translateY(16px)';
+      setTimeout(() => {
+        e.target.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'none';
+      }, 60);
+      cardObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+cards.forEach(c => cardObserver.observe(c));
+</script>
+</body>
+</html>

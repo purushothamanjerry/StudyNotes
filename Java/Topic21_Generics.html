@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 21 — Generics in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #4a044e 0%, #86198f 60%, #e879f9 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #86198f; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #4a044e; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #86198f; padding-bottom: 12px; }
+  .section-num { background: #86198f; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #4a044e; }
+  h3 { font-size: 1.05rem; color: #86198f; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #fdf4ff; border-left: 4px solid #86198f; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #4a044e; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fdf4ff; }
+  tr:hover { background: #fae8ff; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #4a044e; margin-top: 0; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #86198f; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 21 OF 26</div>
+  <h1>🔷 Generics in Java</h1>
+  <p>Type Safety · Generic Class · Generic Method · Wildcards · Bounded Types · Type Erasure</p>
+  <div class="meta">
+    <span>Phase 4 — Core Java</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What are Generics? Why needed?</a></li>
+    <li><a href="#before">Before Generics — The Problem</a></li>
+    <li><a href="#generic-class">Generic Class</a></li>
+    <li><a href="#generic-method">Generic Method</a></li>
+    <li><a href="#generic-interface">Generic Interface</a></li>
+    <li><a href="#bounded">Bounded Type Parameters</a></li>
+    <li><a href="#wildcards">Wildcards — ? extends, ? super, ?</a></li>
+    <li><a href="#multiple">Multiple Type Parameters</a></li>
+    <li><a href="#erasure">Type Erasure</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What are Generics? Why needed?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Generics</strong> allow you to write <strong>type-safe, reusable code</strong> that works with any data type. Instead of hardcoding a type, you use a <strong>type parameter</strong> (like <code>T</code>) that gets replaced by an actual type when used. Introduced in Java 5.
+  </div>
+
+  <h3>3 Benefits of Generics</h3>
+  <ul>
+    <li><strong>Type Safety</strong> — compiler catches type errors at compile time, not runtime</li>
+    <li><strong>Code Reuse</strong> — write one class/method that works with any type</li>
+    <li><strong>Eliminates Casting</strong> — no need for explicit type casts when retrieving elements</li>
+  </ul>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Common Type Parameter Names (conventions)</h4>
+      <ul>
+        <li><code>T</code> — Type (general)</li>
+        <li><code>E</code> — Element (used in collections)</li>
+        <li><code>K</code> — Key (used in Map)</li>
+        <li><code>V</code> — Value (used in Map)</li>
+        <li><code>N</code> — Number</li>
+        <li><code>R</code> — Return type</li>
+        <li><code>S, U</code> — Second, third type params</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Where Generics Are Used</h4>
+      <ul>
+        <li>Classes: <code>Box&lt;T&gt;</code></li>
+        <li>Interfaces: <code>Comparable&lt;T&gt;</code></li>
+        <li>Methods: <code>&lt;T&gt; T getValue()</code></li>
+        <li>Collections: <code>List&lt;String&gt;</code></li>
+        <li>Functional interfaces: <code>Function&lt;T,R&gt;</code></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: BEFORE -->
+<div class="section" id="before">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Before Generics — The Problem</div>
+  </div>
+
+<pre><span class="cm">// BEFORE generics (Java 1.4) — raw types</span>
+<span class="kw">import</span> java.util.ArrayList;
+
+<span class="cl">ArrayList</span> list = <span class="kw">new</span> <span class="cl">ArrayList</span>();  <span class="cm">// raw type — no type info!</span>
+list.add(<span class="st">"Hello"</span>);
+list.add(<span class="num">42</span>);            <span class="cm">// no error — anything goes!</span>
+list.add(<span class="kw">new</span> <span class="cl">Dog</span>());    <span class="cm">// still no error</span>
+
+<span class="cm">// Problems:</span>
+<span class="cl">String</span> s = (<span class="cl">String</span>) list.get(<span class="num">1</span>);  <span class="cm">// ❌ ClassCastException at RUNTIME!</span>
+<span class="cm">// Need explicit cast — ugly and risky</span>
+
+<span class="cm">// AFTER generics (Java 5+)</span>
+<span class="cl">ArrayList</span>&lt;<span class="cl">String</span>&gt; safeList = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+safeList.add(<span class="st">"Hello"</span>);
+<span class="cm">// safeList.add(42); ❌ COMPILE ERROR — caught early!</span>
+
+<span class="cl">String</span> str = safeList.get(<span class="num">0</span>);  <span class="cm">// ✅ no cast needed!</span></pre>
+
+  <div class="highlight-box">
+    <strong>Generics shift errors from RUNTIME to COMPILE TIME — much safer!</strong>
+  </div>
+</div>
+
+
+<!-- SECTION 3: GENERIC CLASS -->
+<div class="section" id="generic-class">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Generic Class</div>
+  </div>
+
+<pre><span class="cm">// Generic class — T is type parameter (placeholder)</span>
+<span class="kw">public class</span> <span class="cl">Box</span>&lt;T&gt; {
+    <span class="kw">private</span> T value;   <span class="cm">// T used as field type</span>
+
+    <span class="kw">public</span> <span class="cl">Box</span>(T value) {     <span class="cm">// T used as constructor param</span>
+        <span class="kw">this</span>.value = value;
+    }
+
+    <span class="kw">public</span> T getValue() { <span class="kw">return</span> value; }  <span class="cm">// T used as return type</span>
+    <span class="kw">public void</span> setValue(T value) { <span class="kw">this</span>.value = value; }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="cl">String</span> toString() { <span class="kw">return</span> <span class="st">"Box["</span> + value + <span class="st">"]"</span>; }
+}
+
+<span class="cm">// Using Box with different types</span>
+<span class="cl">Box</span>&lt;<span class="cl">String</span>&gt;  strBox  = <span class="kw">new</span> <span class="cl">Box</span>&lt;&gt;(<span class="st">"Hello"</span>);   <span class="cm">// T = String</span>
+<span class="cl">Box</span>&lt;<span class="cl">Integer</span>&gt; intBox  = <span class="kw">new</span> <span class="cl">Box</span>&lt;&gt;(<span class="num">42</span>);         <span class="cm">// T = Integer</span>
+<span class="cl">Box</span>&lt;<span class="cl">Dog</span>&gt;     dogBox  = <span class="kw">new</span> <span class="cl">Box</span>&lt;&gt;(<span class="kw">new</span> <span class="cl">Dog</span>()); <span class="cm">// T = Dog</span>
+
+<span class="cl">String</span>  s = strBox.getValue();   <span class="cm">// no cast needed!</span>
+<span class="cl">Integer</span> i = intBox.getValue();   <span class="cm">// no cast needed!</span>
+
+System.out.println(strBox);  <span class="cm">// Box[Hello]</span>
+System.out.println(intBox);  <span class="cm">// Box[42]</span>
+
+<span class="cm">// Diamond operator <> — type inferred from left side (Java 7)</span>
+<span class="cl">Box</span>&lt;<span class="cl">String</span>&gt; b = <span class="kw">new</span> <span class="cl">Box</span>&lt;&gt;(<span class="st">"World"</span>);  <span class="cm">// compiler infers String</span></pre>
+
+  <h3>Generic class with multiple type parameters</h3>
+<pre><span class="kw">public class</span> <span class="cl">Pair</span>&lt;K, V&gt; {
+    <span class="kw">private</span> K key;
+    <span class="kw">private</span> V value;
+
+    <span class="kw">public</span> <span class="cl">Pair</span>(K key, V value) { <span class="kw">this</span>.key = key; <span class="kw">this</span>.value = value; }
+    <span class="kw">public</span> K getKey()   { <span class="kw">return</span> key; }
+    <span class="kw">public</span> V getValue() { <span class="kw">return</span> value; }
+}
+
+<span class="cl">Pair</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; p = <span class="kw">new</span> <span class="cl">Pair</span>&lt;&gt;(<span class="st">"age"</span>, <span class="num">25</span>);
+System.out.println(p.getKey() + <span class="st">": "</span> + p.getValue());  <span class="cm">// age: 25</span></pre>
+</div>
+
+
+<!-- SECTION 4: GENERIC METHOD -->
+<div class="section" id="generic-method">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Generic Method</div>
+  </div>
+
+  <div class="highlight-box">
+    A generic method declares its own type parameter <strong>before the return type</strong>: <code>&lt;T&gt; returnType methodName(params)</code>. It can be in any class — even non-generic ones.
+  </div>
+
+<pre><span class="kw">public class</span> <span class="cl">Utils</span> {
+
+    <span class="cm">// Generic method — &lt;T&gt; before return type</span>
+    <span class="kw">public static</span> &lt;T&gt; <span class="kw">void</span> printArray(T[] array) {
+        <span class="kw">for</span> (T item : array) {
+            System.out.print(item + <span class="st">" "</span>);
+        }
+        System.out.println();
+    }
+
+    <span class="cm">// Generic method with return type</span>
+    <span class="kw">public static</span> &lt;T&gt; T getFirst(<span class="cl">List</span>&lt;T&gt; list) {
+        <span class="kw">if</span> (list.isEmpty()) <span class="kw">return null</span>;
+        <span class="kw">return</span> list.get(<span class="num">0</span>);
+    }
+
+    <span class="cm">// Generic swap</span>
+    <span class="kw">public static</span> &lt;T&gt; <span class="kw">void</span> swap(T[] arr, <span class="kw">int</span> i, <span class="kw">int</span> j) {
+        T temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+
+<span class="cm">// Works with ANY array type!</span>
+<span class="cl">Integer</span>[] ints    = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};
+<span class="cl">String</span>[]  strings = {<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>};
+<span class="cl">Double</span>[]  doubles = {<span class="num">1.1</span>, <span class="num">2.2</span>};
+
+<span class="cl">Utils</span>.printArray(ints);     <span class="cm">// 1 2 3</span>
+<span class="cl">Utils</span>.printArray(strings);  <span class="cm">// a b c</span>
+<span class="cl">Utils</span>.printArray(doubles);  <span class="cm">// 1.1 2.2</span></pre>
+</div>
+
+
+<!-- SECTION 5: GENERIC INTERFACE -->
+<div class="section" id="generic-interface">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Generic Interface</div>
+  </div>
+
+<pre><span class="cm">// Generic interface</span>
+<span class="kw">public interface</span> <span class="cl">Repository</span>&lt;T, ID&gt; {
+    <span class="kw">void</span> save(T entity);
+    T    findById(ID id);
+    <span class="cl">List</span>&lt;T&gt; findAll();
+    <span class="kw">void</span> delete(ID id);
+}
+
+<span class="cm">// Concrete implementation — specify the type</span>
+<span class="kw">public class</span> <span class="cl">UserRepository</span> <span class="kw">implements</span> <span class="cl">Repository</span>&lt;<span class="cl">User</span>, <span class="cl">Integer</span>&gt; {
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> save(<span class="cl">User</span> user) { <span class="cm">/* ... */</span> }
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="cl">User</span> findById(<span class="cl">Integer</span> id) { <span class="kw">return null</span>; }
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="cl">List</span>&lt;<span class="cl">User</span>&gt; findAll() { <span class="kw">return null</span>; }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> delete(<span class="cl">Integer</span> id) { <span class="cm">/* ... */</span> }
+}
+
+<span class="cm">// Generic implementation — keeps type parameter</span>
+<span class="kw">public class</span> <span class="cl">GenericRepo</span>&lt;T, ID&gt; <span class="kw">implements</span> <span class="cl">Repository</span>&lt;T, ID&gt; {
+    <span class="cm">// works for any type</span>
+}</pre>
+</div>
+
+
+<!-- SECTION 6: BOUNDED TYPE -->
+<div class="section" id="bounded">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Bounded Type Parameters</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Bounded types</strong> restrict what types can be used as type arguments. Use <code>extends</code> to set an upper bound.
+  </div>
+
+<pre><span class="cm">// Unbounded — T can be anything</span>
+<span class="kw">public</span> &lt;T&gt; <span class="kw">void</span> print(T item) { System.out.println(item); }
+
+<span class="cm">// Upper bound — T must be Number or its subclass</span>
+<span class="kw">public</span> &lt;T <span class="kw">extends</span> <span class="cl">Number</span>&gt; <span class="kw">double</span> sum(<span class="cl">List</span>&lt;T&gt; list) {
+    <span class="kw">double</span> total = <span class="num">0</span>;
+    <span class="kw">for</span> (T item : list) {
+        total += item.doubleValue();  <span class="cm">// Number method — allowed!</span>
+    }
+    <span class="kw">return</span> total;
+}
+
+<span class="cm">// Works with Integer, Double, Long (all extend Number)</span>
+<span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; ints    = <span class="cl">Arrays</span>.asList(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>);
+<span class="cl">List</span>&lt;<span class="cl">Double</span>&gt;  doubles = <span class="cl">Arrays</span>.asList(<span class="num">1.5</span>, <span class="num">2.5</span>);
+sum(ints);    <span class="cm">// ✅ 6.0</span>
+sum(doubles); <span class="cm">// ✅ 4.0</span>
+<span class="cm">// sum(Arrays.asList("a","b")); ❌ compile error — String not a Number</span>
+
+<span class="cm">// Bound with interface — T must implement Comparable</span>
+<span class="kw">public</span> &lt;T <span class="kw">extends</span> <span class="cl">Comparable</span>&lt;T&gt;&gt; T max(T a, T b) {
+    <span class="kw">return</span> a.compareTo(b) &gt; <span class="num">0</span> ? a : b;
+}
+System.out.println(max(<span class="num">10</span>, <span class="num">20</span>));        <span class="cm">// 20</span>
+System.out.println(max(<span class="st">"apple"</span>, <span class="st">"banana"</span>)); <span class="cm">// banana</span>
+
+<span class="cm">// Multiple bounds — extends class AND interface</span>
+<span class="kw">public</span> &lt;T <span class="kw">extends</span> <span class="cl">Number</span> &amp; <span class="cl">Comparable</span>&lt;T&gt;&gt; T clamp(T val, T min, T max) {
+    <span class="kw">if</span> (val.compareTo(min) &lt; <span class="num">0</span>) <span class="kw">return</span> min;
+    <span class="kw">if</span> (val.compareTo(max) &gt; <span class="num">0</span>) <span class="kw">return</span> max;
+    <span class="kw">return</span> val;
+}</pre>
+</div>
+
+
+<!-- SECTION 7: WILDCARDS -->
+<div class="section" id="wildcards">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Wildcards — ?, ? extends, ? super</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Wildcard <code>?</code></strong> represents an unknown type. Used in method parameters to increase flexibility. Three forms: unbounded, upper-bounded, lower-bounded.
+  </div>
+
+  <h3>1. Unbounded Wildcard — <code>?</code></h3>
+<pre><span class="cm">// List&lt;?&gt; — list of any type, READ ONLY</span>
+<span class="kw">public static void</span> printList(<span class="cl">List</span>&lt;?&gt; list) {
+    <span class="kw">for</span> (<span class="cl">Object</span> obj : list) {
+        System.out.print(obj + <span class="st">" "</span>);
+    }
+}
+printList(<span class="cl">List</span>.of(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>));          <span class="cm">// ✅</span>
+printList(<span class="cl">List</span>.of(<span class="st">"a"</span>, <span class="st">"b"</span>));          <span class="cm">// ✅</span>
+<span class="cm">// list.add("x"); ❌ cannot add to wildcard list</span></pre>
+
+  <h3>2. Upper-Bounded Wildcard — <code>? extends T</code></h3>
+<pre><span class="cm">// ? extends Number — Number or any subclass (Integer, Double...)</span>
+<span class="kw">public static double</span> sumList(<span class="cl">List</span>&lt;? <span class="kw">extends</span> <span class="cl">Number</span>&gt; list) {
+    <span class="kw">double</span> sum = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="cl">Number</span> n : list) sum += n.doubleValue();
+    <span class="kw">return</span> sum;
+}
+sumList(<span class="cl">List</span>.of(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>));         <span class="cm">// ✅ Integer extends Number</span>
+sumList(<span class="cl">List</span>.of(<span class="num">1.5</span>, <span class="num">2.5</span>));       <span class="cm">// ✅ Double extends Number</span>
+<span class="cm">// Good for READING — you know it's at least a Number</span></pre>
+
+  <h3>3. Lower-Bounded Wildcard — <code>? super T</code></h3>
+<pre><span class="cm">// ? super Integer — Integer or any superclass (Number, Object)</span>
+<span class="kw">public static void</span> addNumbers(<span class="cl">List</span>&lt;? <span class="kw">super</span> <span class="cl">Integer</span>&gt; list) {
+    list.add(<span class="num">1</span>);
+    list.add(<span class="num">2</span>);
+    list.add(<span class="num">3</span>);
+}
+<span class="cl">List</span>&lt;<span class="cl">Number</span>&gt;  nums  = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+<span class="cl">List</span>&lt;<span class="cl">Object</span>&gt; objs  = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+addNumbers(nums);   <span class="cm">// ✅ Number is super of Integer</span>
+addNumbers(objs);   <span class="cm">// ✅ Object is super of Integer</span>
+<span class="cm">// Good for WRITING — you're adding Integers</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 PECS Rule — Producer Extends, Consumer Super:</strong><br>
+    If the collection <strong>produces</strong> (you read from it) → <code>? extends T</code><br>
+    If the collection <strong>consumes</strong> (you write to it) → <code>? super T</code><br>
+    If both → use explicit type parameter <code>T</code>
+  </div>
+
+  <table>
+    <tr><th>Wildcard</th><th>Meaning</th><th>Read?</th><th>Write?</th><th>Use for</th></tr>
+    <tr><td><code>?</code></td><td>Any type</td><td>As Object</td><td>❌ No</td><td>Just printing/counting</td></tr>
+    <tr><td><code>? extends T</code></td><td>T or subtype</td><td>✅ As T</td><td>❌ No</td><td>Reading/consuming</td></tr>
+    <tr><td><code>? super T</code></td><td>T or supertype</td><td>As Object</td><td>✅ T types</td><td>Writing/producing</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 8: MULTIPLE TYPE PARAMS -->
+<div class="section" id="multiple">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Multiple Type Parameters</div>
+  </div>
+
+<pre><span class="cm">// Generic class with 3 type params</span>
+<span class="kw">public class</span> <span class="cl">Triple</span>&lt;A, B, C&gt; {
+    <span class="kw">private</span> A first;
+    <span class="kw">private</span> B second;
+    <span class="kw">private</span> C third;
+
+    <span class="kw">public</span> <span class="cl">Triple</span>(A a, B b, C c) {
+        <span class="kw">this</span>.first  = a;
+        <span class="kw">this</span>.second = b;
+        <span class="kw">this</span>.third  = c;
+    }
+    <span class="cm">// getters...</span>
+}
+
+<span class="cl">Triple</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>, <span class="cl">Boolean</span>&gt; t = <span class="kw">new</span> <span class="cl">Triple</span>&lt;&gt;(<span class="st">"Alice"</span>, <span class="num">25</span>, <span class="kw">true</span>);
+
+<span class="cm">// Generic method with multiple params</span>
+<span class="kw">public static</span> &lt;K, V&gt; <span class="kw">void</span> printMap(<span class="cl">Map</span>&lt;K, V&gt; map) {
+    <span class="kw">for</span> (<span class="cl">Map</span>.<span class="cl">Entry</span>&lt;K, V&gt; entry : map.entrySet()) {
+        System.out.println(entry.getKey() + <span class="st">" → "</span> + entry.getValue());
+    }
+}
+<span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; ages = <span class="cl">Map</span>.of(<span class="st">"Alice"</span>, <span class="num">25</span>, <span class="st">"Bob"</span>, <span class="num">30</span>);
+printMap(ages);</pre>
+</div>
+
+
+<!-- SECTION 9: TYPE ERASURE -->
+<div class="section" id="erasure">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Type Erasure</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Type Erasure</strong> — Java generics are a compile-time feature only. The compiler checks types, then <strong>removes all generic type information</strong> from the bytecode. At runtime, there are no generics — just raw types.
+  </div>
+
+<pre><span class="cm">// What you write:</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; list = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;<span class="cl">String</span>&gt;();
+list.add(<span class="st">"hello"</span>);
+<span class="cl">String</span> s = list.get(<span class="num">0</span>);
+
+<span class="cm">// What the compiler turns it into (after erasure):</span>
+<span class="cl">List</span> list = <span class="kw">new</span> <span class="cl">ArrayList</span>();
+list.add(<span class="st">"hello"</span>);
+<span class="cl">String</span> s = (<span class="cl">String</span>) list.get(<span class="num">0</span>);  <span class="cm">// cast inserted by compiler</span>
+
+<span class="cm">// At runtime — generics don't exist</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; strList  = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+<span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; intList = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+System.out.println(strList.getClass() == intList.getClass()); <span class="cm">// true!</span>
+<span class="cm">// Both are just ArrayList at runtime</span></pre>
+
+  <h3>Consequences of Type Erasure</h3>
+  <ul>
+    <li>Cannot do <code>new T()</code> — type not known at runtime</li>
+    <li>Cannot do <code>T[] arr = new T[10]</code> — cannot create generic arrays</li>
+    <li>Cannot use <code>instanceof</code> with generic type: <code>obj instanceof List&lt;String&gt;</code> ❌</li>
+    <li>Cannot have <code>static T field</code> — T is instance-level, not class-level</li>
+    <li><code>List&lt;String&gt;</code> and <code>List&lt;Integer&gt;</code> are same class at runtime</li>
+  </ul>
+
+  <div class="warning-box">
+    <strong>⚠️ Cannot create generic arrays:</strong><br>
+    <code>T[] arr = new T[10];</code> → ❌ compile error<br>
+    Workaround: <code>T[] arr = (T[]) new Object[10];</code> or use <code>ArrayList&lt;T&gt;</code>
+  </div>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What are Generics? What are the benefits?</div>
+    <div class="a">Generics allow writing type-safe, reusable code that works with any data type using type parameters like T. Three key benefits: (1) Type safety — compiler catches ClassCastException at compile time, not runtime. (2) Code reuse — one class/method works with any type. (3) Eliminates casting — no explicit casts needed when retrieving elements from collections.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between List&lt;?&gt;, List&lt;? extends T&gt;, and List&lt;? super T&gt;?</div>
+    <div class="a"><code>List&lt;?&gt;</code> — list of unknown type, read-only (only as Object). <code>List&lt;? extends T&gt;</code> — list of T or any subtype — you can read as T but cannot add (producer). <code>List&lt;? super T&gt;</code> — list of T or any supertype — you can add T objects but read only as Object (consumer). Remember PECS: Producer Extends, Consumer Super.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is type erasure?</div>
+    <div class="a">Type erasure is the process by which the Java compiler removes all generic type information from bytecode. Generics are a compile-time feature only — after compilation, <code>List&lt;String&gt;</code> and <code>List&lt;Integer&gt;</code> are both just <code>List</code> at runtime. The compiler adds necessary casts automatically. This was done for backward compatibility with pre-Java 5 code that used raw types.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. Can you use primitive types with generics?</div>
+    <div class="a">No. Generics only work with reference types (objects), not primitives. You cannot write <code>List&lt;int&gt;</code> — you must use the wrapper class: <code>List&lt;Integer&gt;</code>. Java automatically autoboxes primitives to their wrapper types when adding to generic collections. This is because after type erasure, generics become Object, and primitives don't extend Object.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is a bounded type parameter? Give an example.</div>
+    <div class="a">A bounded type parameter restricts which types can be used as type arguments. <code>&lt;T extends Number&gt;</code> means T must be Number or a subclass (Integer, Double, etc.). This allows calling Number's methods on T inside the method. Use <code>&amp;</code> for multiple bounds: <code>&lt;T extends Number &amp; Comparable&lt;T&gt;&gt;</code> — class bound must come first.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is the diamond operator &lt;&gt;?</div>
+    <div class="a">The diamond operator (introduced Java 7) allows type inference on the right side of a generic declaration. Instead of <code>List&lt;String&gt; list = new ArrayList&lt;String&gt;()</code>, you can write <code>List&lt;String&gt; list = new ArrayList&lt;&gt;()</code> — the compiler infers the type from the left side. It reduces verbosity without losing type safety.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. Can you create a generic array? Why not?</div>
+    <div class="a">No. <code>T[] arr = new T[10]</code> is not allowed because of type erasure — at runtime, T is erased to Object, and arrays are reifiable (their type is known at runtime). Creating a generic array would allow heap pollution (mixing types). Workaround: use <code>new Object[10]</code> and cast, or prefer <code>ArrayList&lt;T&gt;</code> which handles this internally.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 21: Generics · 21 of 26 complete
+</div>
+
+</body>
+</html>

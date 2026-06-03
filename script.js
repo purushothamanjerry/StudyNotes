@@ -38,8 +38,9 @@ const topics = {
       { title: "Non-Access Modifiers",    file: "java/Topic17_NonAccess_Modifiers" },
       { title: "String",                  file: "java/Topic18_String" },
       { title: "Arrays",                  file: "java/Topic19_Arrays" },
-      { title: "Exception Handling",                  file: "java/Topic20_Exception_Handling" },
-      
+      { title: "Exception Handling",      file: "java/Topic20_Exception_Handling" },
+      { title: "Generics",                file: "java/Topic21_Generics" },
+
     ],
   },
 
@@ -48,7 +49,9 @@ const topics = {
     color: "#a78bfa",
     icon: "🗃️",
     items: [
-      { title: "Load Balancer",    file: "hld/load-balancer" }
+      { title: "Load Balancer",    file: "hld/load-balancer" },
+      { title: "Api GateWay",    file: "hld/api-gateway" },
+      { title: "Redis Cache",    file: "hld/redis-cache" },
     ],
   },
 
