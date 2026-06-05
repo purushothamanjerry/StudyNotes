@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDN — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
+  --card:#0f1829;--border:#1e2d45;--border2:#243350;
+  --accent:#00d4ff;--accent2:#0099cc;--accent3:#00ff88;
+  --accent4:#a78bfa;--accent5:#ff6b35;
+  --warn:#fbbf24;--danger:#f87171;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+.layout{display:grid;grid-template-columns:270px 1fr 220px;min-height:100vh;max-width:1600px;margin:0 auto}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sidebar-nav{padding:16px 12px}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .2s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(0,212,255,.1);color:var(--accent);border-left:2px solid var(--accent)}
+.nav-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:18px}
+.nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(0,212,255,.1);color:var(--accent)}
+.hero{background:linear-gradient(135deg,#080c14 0%,#091520 50%,#0a0e18 100%);padding:60px 60px 50px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,rgba(0,212,255,.07) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:160px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,255,136,.04) 0%,transparent 70%);pointer-events:none}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
+.breadcrumb span{color:var(--accent)}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent) 0%,var(--accent3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{font-size:17px;color:var(--text2);max-width:640px;margin-bottom:28px;line-height:1.7}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.meta-dot{width:6px;height:6px;border-radius:50%}
+.main{padding:0;min-width:0}
+.content{padding:48px 60px;max-width:880px}
+.section{margin-bottom:64px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';display:block;width:16px;height:1px;background:var(--accent)}
+h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:16px;line-height:1.2}
+h3{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:28px}
+p{color:var(--text2);margin-bottom:14px;font-size:15px}
+strong{color:var(--text);font-weight:600}
+.analogy-box{background:linear-gradient(135deg,rgba(0,212,255,.08) 0%,rgba(0,255,136,.04) 100%);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:24px 28px;margin:24px 0;position:relative}
+.analogy-box::before{content:'💡';position:absolute;top:-12px;left:20px;font-size:20px;background:var(--bg);padding:0 6px}
+.analogy-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,var(--accent))}
+.info-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-icon{font-size:24px;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--text2);line-height:1.5}
+.diagram-container{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px 24px;margin:24px 0;overflow-x:auto}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:24px;text-align:center;text-transform:uppercase;letter-spacing:.1em}
+.diagram-svg{display:block;margin:0 auto;max-width:100%}
+.code-wrap{margin:20px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.code-header{background:var(--bg4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600}
+.code-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--accent);border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.copy-btn:hover{background:rgba(0,212,255,.15)}
+pre{background:#060a10;padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.kw{color:#ff79c6}.str{color:#f1fa8c}.cm{color:#6272a4;font-style:italic}.fn{color:#50fa7b}.num{color:#bd93f9}.key{color:#8be9fd}.val{color:#ffb86c}.op{color:#ff5555}
+.step-list{margin:20px 0}
+.step-item{display:flex;gap:16px;margin-bottom:20px;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:15px;top:36px;bottom:-20px;width:1px;background:linear-gradient(to bottom,var(--accent),transparent)}
+.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)}
+.step-title{font-weight:600;color:var(--text);font-size:15px;margin-bottom:4px}
+.step-desc{color:var(--text2);font-size:14px}
+.tabs{margin:24px 0}
+.tab-list{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:4px;border-radius:10px;width:fit-content;flex-wrap:wrap}
+.tab-btn{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:'Inter',sans-serif}
+.tab-btn.active{background:rgba(0,212,255,.12);color:var(--accent);border:1px solid rgba(0,212,255,.2)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:8px}
+.tab-panel.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.accordion{margin:16px 0}
+.accordion-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.accordion-trigger{width:100%;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:none;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:background .2s}
+.accordion-trigger:hover{background:var(--bg4)}
+.accordion-icon{width:20px;height:20px;border-radius:50%;background:rgba(0,212,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;transition:transform .3s;flex-shrink:0}
+.accordion-item.open .accordion-icon{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;background:var(--card);padding:0 18px;font-size:14px;color:var(--text2)}
+.accordion-item.open .accordion-body{max-height:900px;padding:16px 18px}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.pros-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:10px;padding:20px}
+.cons-box{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:20px}
+.box-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px}
+.pros-box .box-title{color:var(--accent3)}.cons-box .box-title{color:var(--danger)}
+.check-list{list-style:none}
+.check-list li{font-size:13.5px;color:var(--text2);padding:4px 0;display:flex;gap:8px;align-items:flex-start}
+.pros-box .check-list li::before{content:'✓';color:var(--accent3);flex-shrink:0;margin-top:1px}
+.cons-box .check-list li::before{content:'✗';color:var(--danger);flex-shrink:0;margin-top:1px}
+.alert{border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.alert-icon{font-size:16px;flex-shrink:0}
+.alert-warn{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);color:var(--warn)}
+.alert-danger{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger)}
+.alert-info{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:var(--accent)}
+.alert-success{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);color:var(--accent3)}
+.alert p{color:inherit;margin:0}
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:20px 0}
+.company-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;transition:all .25s}
+.company-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.company-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.company-tech{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(0,212,255,.08);padding:2px 8px;border-radius:4px}
+.company-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.interview-list{margin:16px 0}
+.interview-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.interview-item:hover{border-color:var(--border2);background:var(--bg4)}
+.interview-q{font-size:14px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.interview-q::after{content:'›';color:var(--text3);font-size:18px;flex-shrink:0;transition:transform .2s}
+.interview-item.open .interview-q::after{transform:rotate(90deg)}
+.interview-a{max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;font-size:13.5px;color:var(--text2)}
+.interview-item.open .interview-a{max-height:500px;padding-top:10px}
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg4)}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+td{padding:11px 16px;font-size:13.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:var(--text);font-weight:500}
+.toc{position:sticky;top:24px;padding:24px 16px}
+.toc-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.toc-list{list-style:none}
+.toc-item{margin-bottom:2px}
+.toc-link{display:block;padding:5px 10px;border-radius:5px;color:var(--text3);text-decoration:none;font-size:12.5px;transition:all .2s;border-left:2px solid transparent}
+.toc-link:hover{color:var(--text);background:var(--bg3)}
+.toc-link.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,212,255,.05)}
+.progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent),var(--accent3));z-index:100;transition:width .1s}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid}
+.tag-blue{color:var(--accent);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.06)}
+.tag-green{color:var(--accent3);border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.06)}
+.tag-purple{color:var(--accent4);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+.tag-orange{color:var(--accent5);border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.06)}
+.sep{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:40px 0}
+.summary-box{background:linear-gradient(135deg,rgba(0,212,255,.06) 0%,rgba(0,255,136,.04) 100%);border:1px solid rgba(0,212,255,.2);border-radius:14px;padding:28px 32px;margin:32px 0}
+.summary-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px}
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(0,212,255,.08);color:var(--accent);padding:1px 6px;border-radius:4px;border:1px solid rgba(0,212,255,.15)}
+pre code{background:transparent;color:inherit;padding:0;border:none;font-size:inherit}
+.next-topic{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .25s;text-decoration:none}
+.next-topic:hover{border-color:rgba(0,212,255,.3);box-shadow:0 0 30px rgba(0,212,255,.08)}
+.next-label{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.next-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.next-arrow{font-size:24px;color:var(--accent)}
+.menu-toggle{display:none;position:fixed;bottom:24px;right:24px;z-index:300;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,212,255,.4);font-size:20px;color:var(--bg)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190}
+.overlay.show{display:block}
+@media(max-width:1100px){.layout{grid-template-columns:240px 1fr}.toc{display:none}.content{padding:36px 40px}.hero{padding:48px 40px}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;left:-280px;z-index:200;transition:left .3s;height:100vh;width:270px}.sidebar.open{left:0;box-shadow:8px 0 32px rgba(0,0,0,.5)}.content{padding:24px 20px}.hero{padding:32px 20px}.pros-cons{grid-template-columns:1fr}.card-grid{grid-template-columns:1fr}.menu-toggle{display:flex}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes nodeGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(0,212,255,0))}50%{filter:drop-shadow(0 0 10px rgba(0,212,255,.55))}}
+.node-animate{animation:nodeGlow 2.5s ease-in-out infinite}
+/* Globe animation for PoP map */
+@keyframes popPulse{0%,100%{opacity:.4;r:4}50%{opacity:1;r:6}}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><div class="logo-dot"></div>HLD Academy</div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item" href="load-balancer.html"><span class="nav-num">01</span> Load Balancer</a>
+      <a class="nav-item" href="api-gateway.html"><span class="nav-num">02</span> API Gateway</a>
+      <a class="nav-item active" href="cdn.html"><span class="nav-num">08</span> CDN <span class="nav-badge">Current</span></a>
+      <a class="nav-item" href="#"><span class="nav-num">09</span> Reverse Proxy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item" href="redis-cache.html"><span class="nav-num">03</span> Redis Cache</a>
+      <a class="nav-item" href="rate-limiting.html"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item" href="message-queue.html"><span class="nav-num">05</span> Message Queue</a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item" href="microservices.html"><span class="nav-num">06</span> Microservices</a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item" href="database-scaling.html"><span class="nav-num">07</span> Database Scaling</a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Infrastructure <span>›</span> Topic 08</div>
+    <div class="hero-tag">🌍 Topic 08 of 22</div>
+    <h1>Content Delivery <em>Network</em></h1>
+    <p class="hero-desc">The global cache that makes your app fast everywhere on Earth. Learn how CDNs work internally — PoPs, edge caching, cache invalidation, origin pull vs push, dynamic acceleration, and how Cloudflare, Akamai, and AWS CloudFront serve billions of requests per second at the speed of light.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>Beginner → Advanced</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>~40 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent4)"></div>Interview Important</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent5)"></div>Performance Core</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>What is a CDN?</h2>
+      <p>A <strong>Content Delivery Network (CDN)</strong> is a globally distributed network of proxy servers (called <strong>Points of Presence</strong> or PoPs) that cache your content close to your users. Instead of every user hitting your origin server in one datacenter, they fetch content from the nearest CDN edge node — potentially 100× closer geographically.</p>
+      <p>The fundamental insight: <strong>latency is dominated by physical distance</strong>. A user in Tokyo hitting a server in Virginia travels ~14,000 km — that's ~140ms of round-trip latency just from the speed of light, before any processing. A CDN edge in Tokyo reduces that to ~5ms.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">🏪 Analogy — Supermarket vs Local Corner Shop</div>
+        <p style="color:var(--text2);margin:0">Your <strong>origin server</strong> is like a large central warehouse — it has everything, but it's far away. Every time someone wants milk, they drive 2 hours to the warehouse. A <strong>CDN PoP</strong> is like a local corner shop — it stocks the most popular items (cached content). Most people buy milk from the corner shop (edge node) in 2 minutes. Only when the shop runs out of a specific item does someone go to the warehouse (origin). The warehouse still controls what's stocked — it just doesn't serve every individual customer.</p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg',this)">👶 Beginner</button>
+          <button class="tab-btn" onclick="switchTab('adv',this)">🧠 Advanced</button>
+        </div>
+        <div class="tab-panel active" id="tab-beg">
+          <p>When you visit a website, your browser downloads files — HTML, CSS, JavaScript, images, videos. Without a CDN, all of these come from one server, say, in New York. If you're in Mumbai, every file travels halfway around the world. That's slow.</p>
+          <p>A CDN puts copies of those files in servers all around the world. Now when you visit from Mumbai, the files come from a server in Mumbai (or Singapore). Fast. Netflix uses this so your movie streams smoothly even though the files originally live in Amazon's US data centres.</p>
+        </div>
+        <div class="tab-panel" id="tab-adv">
+          <p>CDNs operate at multiple protocol layers. At the DNS level, <strong>Anycast routing</strong> announces the same IP address from multiple locations simultaneously — BGP automatically routes users to the topologically closest PoP. At the transport layer, PoPs maintain persistent TCP connections to origin and terminate TLS at the edge, amortising handshake costs. At the application layer, edge nodes cache HTTP responses, apply transformation logic (image resizing, minification), and perform DDoS mitigation before traffic reaches origin.</p>
+          <p>Modern CDNs like Cloudflare also offer <strong>edge compute</strong> (Workers/Lambda@Edge) — running JavaScript at 300+ PoPs with sub-millisecond cold starts, enabling personalisation, A/B testing, and auth at the edge without hitting origin.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-blue">Edge Caching</span>
+        <span class="tag tag-green">Anycast Routing</span>
+        <span class="tag tag-purple">Cache Invalidation</span>
+        <span class="tag tag-orange">TLS Termination</span>
+        <span class="tag tag-blue">DDoS Mitigation</span>
+        <span class="tag tag-green">Edge Compute</span>
+        <span class="tag tag-purple">Origin Pull / Push</span>
+      </div>
+    </section>
+
+    <!-- WHY -->
+    <section class="section" id="why">
+      <div class="section-label">Problem Statement</div>
+      <h2>Why CDNs Are Essential at Scale</h2>
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--danger)">
+          <div class="card-icon">🌍</div>
+          <div class="card-title">Geographic Latency</div>
+          <div class="card-text">Speed of light limits: US↔Europe = ~80ms, US↔Asia = ~140ms. Every additional round trip (TCP handshake, TLS, HTTP) multiplies this. A page with 20 assets needs 20+ RTTs from a single origin — easily 3+ seconds for global users.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--warn)">
+          <div class="card-icon">💥</div>
+          <div class="card-title">Origin Server Overload</div>
+          <div class="card-text">A viral post, product launch, or news event creates a sudden traffic spike. Without a CDN, every request hits your origin. With CDN, 95%+ of requests are served from edge cache — your origin only handles the remaining cache misses.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">💰</div>
+          <div class="card-title">Bandwidth Costs</div>
+          <div class="card-text">Egress bandwidth from cloud providers (AWS, GCP) costs $0.05–$0.08/GB. CDN bandwidth costs $0.005–$0.01/GB — 5–10× cheaper. For a platform serving 1 PB/month, CDN saves $40,000–$70,000 monthly versus direct origin serving.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent3)">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">DDoS Protection</div>
+          <div class="card-text">CDN PoPs absorb attack traffic across their massive network capacity. Cloudflare has 321 Tbps of global DDoS mitigation capacity. Attack traffic is filtered at the edge before it ever reaches your origin — your origin IP is hidden behind the CDN.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="internals">
+      <div class="section-label">Internal Architecture</div>
+      <h2>How a CDN Works — Step by Step</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// CDN Request Flow — Cache HIT vs Cache MISS</div>
+        <svg class="diagram-svg" viewBox="0 0 740 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,212,255,.6)"/></marker>
+            <marker id="arrG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.5)"/></marker>
+            <marker id="arrO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(255,107,53,.5)"/></marker>
+            <marker id="arrB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#243350"/></marker>
+          </defs>
+
+          <!-- User (India) -->
+          <circle cx="55" cy="200" r="32" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="55" y="196" text-anchor="middle" style="font-size:18px">👤</text>
+          <text x="55" y="214" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:10px">User India</text>
+
+          <!-- DNS Resolution -->
+          <line x1="88" y1="200" x2="140" y2="200" style="stroke:rgba(0,212,255,.5);stroke-width:1.5;fill:none;marker-end:url(#arrC)"/>
+          <text x="114" y="192" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,212,255,.5);font-size:9px">① DNS</text>
+
+          <!-- Anycast DNS -->
+          <rect x="142" y="174" width="110" height="52" rx="8" style="fill:rgba(167,139,250,.07);stroke:rgba(167,139,250,.25);stroke-width:1.5"/>
+          <text x="197" y="196" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:11px;font-weight:600">🌐 Anycast</text>
+          <text x="197" y="212" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Routes to nearest</text>
+          <text x="197" y="224" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">PoP via BGP</text>
+
+          <!-- Arrow to PoP -->
+          <line x1="254" y1="200" x2="305" y2="200" style="stroke:rgba(0,212,255,.5);stroke-width:1.5;fill:none;marker-end:url(#arrC)"/>
+          <text x="279" y="192" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,212,255,.5);font-size:9px">② HTTP</text>
+
+          <!-- CDN PoP (Mumbai) -->
+          <rect x="307" y="140" width="160" height="120" rx="12" style="fill:rgba(0,212,255,.06);stroke:rgba(0,212,255,.35);stroke-width:2" class="node-animate"/>
+          <text x="387" y="165" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:800">CDN PoP — Mumbai</text>
+          <!-- Cache store inside PoP -->
+          <rect x="320" y="174" width="134" height="40" rx="6" style="fill:rgba(0,212,255,.08);stroke:rgba(0,212,255,.2)"/>
+          <text x="387" y="191" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px;font-weight:600">💾 Edge Cache</text>
+          <text x="387" y="206" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">SSD + RAM cache</text>
+          <!-- TLS termination -->
+          <rect x="320" y="220" width="134" height="28" rx="5" style="fill:rgba(0,255,136,.06);stroke:rgba(0,255,136,.15)"/>
+          <text x="387" y="238" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:9px">🔒 TLS Termination</text>
+
+          <!-- CACHE HIT path -->
+          <line x1="307" y1="180" x2="240" y2="160" style="stroke:rgba(0,255,136,.5);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arrG)"/>
+          <text x="270" y="152" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:10px;font-weight:600">✅ CACHE HIT</text>
+          <text x="270" y="164" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">~5ms response</text>
+
+          <!-- CACHE MISS path → Origin -->
+          <line x1="469" y1="200" x2="530" y2="200" style="stroke:rgba(255,107,53,.5);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arrO)"/>
+          <text x="499" y="192" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(255,107,53,.5);font-size:9px">③ MISS→ fetch</text>
+
+          <!-- Origin Server (US) -->
+          <rect x="532" y="155" width="170" height="90" rx="10" style="fill:rgba(255,107,53,.06);stroke:rgba(255,107,53,.25);stroke-width:1.5"/>
+          <text x="617" y="182" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#ff6b35;font-size:13px;font-weight:700">🏢 Origin</text>
+          <text x="617" y="200" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#94a3b8;font-size:11px">Your Server (US-East)</text>
+          <text x="617" y="218" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Serves all cache misses</text>
+          <text x="617" y="234" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Returns Cache-Control</text>
+
+          <!-- Origin returns to PoP -->
+          <line x1="530" y1="215" x2="469" y2="215" style="stroke:rgba(255,107,53,.3);stroke-width:1.5;fill:none;marker-end:url(#arrO)"/>
+          <text x="499" y="227" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(255,107,53,.3);font-size:9px">④ response + store</text>
+
+          <!-- Other PoPs -->
+          <rect x="532" y="270" width="90" height="40" rx="7" style="fill:rgba(0,212,255,.04);stroke:rgba(0,212,255,.15)"/>
+          <text x="577" y="294" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">PoP — Singapore</text>
+          <rect x="632" y="270" width="78" height="40" rx="7" style="fill:rgba(0,212,255,.04);stroke:rgba(0,212,255,.15)"/>
+          <text x="671" y="294" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">PoP — London</text>
+
+          <!-- Performance box -->
+          <rect x="20" y="290" width="280" height="90" rx="8" style="fill:rgba(0,212,255,.04);stroke:rgba(0,212,255,.15)"/>
+          <text x="160" y="313" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:600">Latency Comparison</text>
+          <text x="35" y="334" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:11px">✅ CDN Cache HIT:   ~5ms</text>
+          <text x="35" y="352" style="font-family:'JetBrains Mono',monospace;fill:#fbbf24;font-size:11px">⚡ CDN Cache MISS: ~150ms</text>
+          <text x="35" y="370" style="font-family:'JetBrains Mono',monospace;fill:#f87171;font-size:11px">❌ Direct to Origin: ~280ms</text>
+        </svg>
+      </div>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">DNS Resolution via Anycast</div>
+            <div class="step-desc">User's browser resolves <code>cdn.yourapp.com</code>. The CDN's DNS responds with the same IP address (Anycast) that is announced from 300+ locations globally. BGP routing automatically directs the user to the topologically nearest PoP — usually the one with fewest network hops, not necessarily geographic distance.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">TLS Handshake at Edge</div>
+            <div class="step-desc">The TLS handshake (normally 2 RTTs = 2 × latency) happens at the nearby edge PoP instead of the distant origin. For a Mumbai user, TLS completes in 10ms (local PoP) instead of 280ms (US origin). The PoP maintains a persistent, pre-warmed TLS connection to the origin for cache miss fetches.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Cache Lookup at Edge</div>
+            <div class="step-desc">The edge node checks its local cache (usually SSD + RAM) for the requested URL. Cache key is typically the full URL (scheme + host + path + relevant query params). A <strong>cache HIT</strong> returns the cached response immediately — no origin contact needed. This is typically 99%+ of requests for static assets.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Cache MISS → Origin Pull</div>
+            <div class="step-desc">On a cache miss, the edge node fetches from the origin over an optimised private network backbone (CDN providers have their own intercontinental fiber). The response is cached at the edge with TTL from the <code>Cache-Control</code> header, then returned to the user. Subsequent requests for the same asset get the cached version.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Cache Headers Control Behaviour</div>
+            <div class="step-desc">Your origin controls CDN caching via HTTP headers. <code>Cache-Control: public, max-age=31536000</code> caches for 1 year. <code>Cache-Control: no-cache</code> checks origin on every request (but can still serve stale if origin returns 304 Not Modified). <code>Surrogate-Control</code> or <code>CDN-Cache-Control</code> can set CDN TTLs independently from browser TTLs.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CACHING STRATEGIES -->
+    <section class="section" id="caching">
+      <div class="section-label">Cache Configuration</div>
+      <h2>CDN Cache Configuration — What to Cache and How Long</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Content Type</th><th>Cache Duration</th><th>Cache-Control Header</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>JS/CSS with hash in filename</td><td>1 year</td><td>public, max-age=31536000, immutable</td><td>Content-hashed filenames = safe to cache forever</td></tr>
+            <tr><td>Images / Videos</td><td>30–365 days</td><td>public, max-age=2592000</td><td>Version via URL params when updated</td></tr>
+            <tr><td>HTML pages</td><td>0–5 min</td><td>public, max-age=300, stale-while-revalidate=3600</td><td>Short TTL; use stale-while-revalidate for UX</td></tr>
+            <tr><td>API responses (public)</td><td>1–60 min</td><td>public, max-age=60, s-maxage=300</td><td>s-maxage overrides for CDN only</td></tr>
+            <tr><td>API responses (user-specific)</td><td>Never</td><td>private, no-store</td><td>Never cache personalised data at CDN edge</td></tr>
+            <tr><td>404 / error pages</td><td>1–5 min</td><td>public, max-age=60</td><td>Short TTL so errors clear quickly after fix</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Cache Invalidation — The Hardest Problem</h3>
+      <p>Phil Karlton famously said: <em>"There are only two hard things in Computer Science: cache invalidation and naming things."</em> CDN cache invalidation is exactly this problem at global scale.</p>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⏰ TTL-Based Expiry (Simplest)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Set <code>max-age</code> appropriately and let content expire naturally. When TTL expires, the edge re-fetches from origin. Simple but means potentially stale content for up to TTL duration after an update.</p>
+            <p><strong>Best practice:</strong> Use short TTLs for content that changes (5–60 minutes) and long TTLs for truly immutable content (content-hashed files). Don't use the same TTL for everything.</p>
+            <p><strong>stale-while-revalidate:</strong> Serve stale content immediately while fetching a fresh version in the background. User gets instant response (no wait); they'll get fresh content on the next request. Excellent for pages that update every few minutes.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔥 Purge / Instant Invalidation (Best for Deployments)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>All major CDNs provide an API to instantly purge cached content across all PoPs globally. This typically propagates in 1–5 seconds worldwide.</p>
+            <p><strong>Purge by URL:</strong> <code>DELETE https://api.cloudflare.com/zones/{zone}/purge_cache</code> with specific URLs or patterns. Use this in your deployment pipeline — after every deploy, purge the HTML files and any updated JS/CSS chunks.</p>
+            <p><strong>Purge by cache tag (Surrogate-Key):</strong> Tag cached responses with logical identifiers. <code>Surrogate-Key: product:123 category:electronics</code>. Purge all content tagged <code>product:123</code> when that product updates. Much more efficient than URL-by-URL purges for content-rich sites.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🏷️ Content-Addressed URLs (Best for Static Assets)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The cleanest solution: include a hash of the file content in the URL. <code>app.a3f4c8b9.js</code>, <code>styles.7d2e1f45.css</code>. The file content never changes for a given URL, so you can safely set <code>max-age=31536000, immutable</code> — cache forever.</p>
+            <p>When you update the code, webpack/Vite generates a new hash → new URL → CDN fetches and caches the new version. Old version stays cached (harmless — nobody requests it anymore). Zero cache invalidation needed. This is what every modern build tool (Next.js, Vite, webpack) does for production builds.</p>
+            <p><strong>Only cache for HTML and API endpoints needs active management</strong> — they don't have content-hashed URLs.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORIGIN PUSH vs PULL -->
+    <section class="section" id="push-pull">
+      <div class="section-label">Delivery Models</div>
+      <h2>Origin Pull vs Push — How Content Gets to the Edge</h2>
+
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">📥 Origin Pull (Lazy Caching)</div>
+          <ul class="check-list">
+            <li>Edge fetches content from origin on first request (cache miss)</li>
+            <li>Zero setup — CDN automatically caches what users request</li>
+            <li>Only popular content uses edge storage</li>
+            <li>Origin is the source of truth</li>
+            <li><strong>Used for:</strong> websites, APIs, most web assets</li>
+            <li>Cache warms automatically as users request content</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">📤 Push (Pre-loading Cache)</div>
+          <ul class="check-list">
+            <li>You proactively push content to CDN edge nodes</li>
+            <li>No origin hit on first request — always a cache hit</li>
+            <li>Higher storage usage — pushing everything everywhere</li>
+            <li>You manage what's on the CDN explicitly</li>
+            <li><strong>Used for:</strong> software downloads, large media files, game patches</li>
+            <li>Requires CDN API integration for upload workflows</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert alert-success">
+        <span class="alert-icon">✅</span>
+        <div><strong>Real World:</strong> Most websites use <strong>Origin Pull</strong> — it's simpler and CDN providers like Cloudflare, Fastly, and CloudFront all default to this. Push is used by Steam (game patches), Microsoft (Windows updates), and video platforms (pre-stage movie releases before premiere night).</div>
+      </div>
+    </section>
+
+    <!-- ADVANCED FEATURES -->
+    <section class="section" id="advanced">
+      <div class="section-label">Advanced Features</div>
+      <h2>Modern CDN Capabilities Beyond Caching</h2>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⚡ Edge Compute — Running Code at the CDN Edge
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Modern CDNs let you run JavaScript/WASM directly at the edge PoP, without hitting origin. <strong>Cloudflare Workers</strong>, <strong>AWS Lambda@Edge</strong>, <strong>Fastly Compute@Edge</strong>.</p>
+            <p><strong>Use cases:</strong> A/B testing (split traffic at edge based on cookie), auth token validation (verify JWT without hitting auth service), personalisation (inject user-specific headers before serving cached HTML), bot detection, request transformation, geo-based redirects.</p>
+            <p><strong>Why it's powerful:</strong> Instead of origin → app server → personalise → respond (200ms), it's edge → run worker (1ms) → serve cached/personalised response. Dramatic latency reduction for personalised content.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🖼️ Image Optimisation at Edge
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>CDNs can resize, format-convert, and compress images on-the-fly based on request parameters or Accept headers. Upload one high-resolution image to origin; CDN serves the right size and format to each device.</p>
+            <p><strong>Example:</strong> Mobile user with <code>Accept: image/avif, image/webp</code> gets an AVIF-converted, 400px-wide version. Desktop gets WebP at 1200px. Same origin URL, different CDN-transformed responses. Services: Cloudflare Images, Imgix, Cloudinary, AWS CloudFront + Lambda@Edge.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔒 TLS Termination & HTTP/2-3 at Edge
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>CDN terminates HTTPS at the edge PoP, managing TLS certificates automatically (Let's Encrypt or their own CA). This eliminates the TLS handshake round-trip to your origin for users.</p>
+            <p>The CDN-to-origin connection can use HTTP/1.1 (simpler for origin) while the CDN serves users over HTTP/2 or HTTP/3 (QUIC) — automatically upgrading the protocol at the edge. Users get modern protocol performance; origin doesn't need to support it.</p>
+            <p><strong>0-RTT TLS resumption:</strong> Returning users reconnect with 0 round trips for TLS. The CDN stores session tickets and presents them, eliminating the handshake entirely for repeat visitors.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📡 Dynamic Content Acceleration (No Caching)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Even for uncacheable dynamic API responses, CDNs provide significant performance improvement through:</p>
+            <p><strong>TCP connection multiplexing:</strong> The CDN maintains persistent multiplexed HTTP/2 connections to your origin. Users share this warm connection pool — no per-user TCP handshake to origin.</p>
+            <p><strong>Private backbone routing:</strong> CDN providers own intercontinental fiber networks. Your user's request travels on Cloudflare's/AWS's private network from PoP to origin, avoiding public internet routing inefficiencies and congestion.</p>
+            <p><strong>Result:</strong> Even non-cached API calls can be 20–50% faster through a CDN vs direct connection to origin due to TCP optimisation and private network routing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- CODE / CONFIG -->
+    <section class="section" id="config">
+      <div class="section-label">Configuration</div>
+      <h2>Real Production Configurations</h2>
+
+      <h3>Nginx Origin — Cache-Control Headers</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">NGINX</span>
+          <span class="code-file">nginx.conf — Serving assets with proper cache headers</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">server</span> {
+  <span class="key">listen</span> <span class="num">80</span>;
+  <span class="key">server_name</span> <span class="val">origin.yourapp.com</span>;
+  <span class="key">root</span> <span class="str">/var/www/html</span>;
+
+  <span class="cm"># ─── Hashed static assets — cache forever ─────────────</span>
+  <span class="cm"># These files have content hash in filename (app.a3f4c8.js)</span>
+  <span class="kw">location</span> ~* <span class="str">\.(js|css)$</span> {
+    <span class="key">expires</span> <span class="val">1y</span>;
+    <span class="key">add_header</span> <span class="val">Cache-Control</span> <span class="str">"public, max-age=31536000, immutable"</span>;
+    <span class="key">add_header</span> <span class="val">Vary</span> <span class="str">"Accept-Encoding"</span>;
+    <span class="key">gzip_static</span> <span class="val">on</span>;
+    <span class="key">brotli_static</span> <span class="val">on</span>;
+  }
+
+  <span class="cm"># ─── Images — cache 30 days ───────────────────────────</span>
+  <span class="kw">location</span> ~* <span class="str">\.(png|jpg|jpeg|gif|svg|webp|avif|ico)$</span> {
+    <span class="key">expires</span> <span class="val">30d</span>;
+    <span class="key">add_header</span> <span class="val">Cache-Control</span> <span class="str">"public, max-age=2592000"</span>;
+    <span class="key">add_header</span> <span class="val">Vary</span> <span class="str">"Accept"</span>; <span class="cm"># For WebP/AVIF content negotiation</span>
+  }
+
+  <span class="cm"># ─── HTML — short TTL, stale-while-revalidate ─────────</span>
+  <span class="kw">location</span> <span class="str">/</span> {
+    <span class="key">try_files</span> <span class="val">$uri $uri/ /index.html</span>;
+    <span class="key">add_header</span> <span class="val">Cache-Control</span>
+      <span class="str">"public, max-age=300, stale-while-revalidate=3600, stale-if-error=86400"</span>;
+    <span class="cm"># Cache for 5 min, serve stale for 1hr while revalidating,</span>
+    <span class="cm"># serve stale for 24hr if origin is down</span>
+  }
+
+  <span class="cm"># ─── API responses — no CDN caching ──────────────────</span>
+  <span class="kw">location</span> <span class="str">/api/</span> {
+    <span class="key">proxy_pass</span> <span class="val">http://backend:3000</span>;
+    <span class="key">add_header</span> <span class="val">Cache-Control</span> <span class="str">"private, no-store"</span>;
+    <span class="cm"># CDN will not cache — goes to origin every time</span>
+  }
+
+  <span class="cm"># ─── Public API responses — cache at CDN ─────────────</span>
+  <span class="kw">location</span> <span class="str">/api/public/</span> {
+    <span class="key">proxy_pass</span> <span class="val">http://backend:3000</span>;
+    <span class="cm"># s-maxage = CDN TTL (5 min); max-age = browser TTL (1 min)</span>
+    <span class="key">add_header</span> <span class="val">Cache-Control</span> <span class="str">"public, max-age=60, s-maxage=300"</span>;
+    <span class="cm"># Surrogate-Key for tag-based invalidation</span>
+    <span class="key">add_header</span> <span class="val">Surrogate-Key</span> <span class="str">"public-api v1"</span>;
+  }
+}</code></pre>
+      </div>
+
+      <h3>Cloudflare Cache Invalidation via API</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">deploy/purge-cdn.js — Post-deploy cache purge</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> CF_ZONE_ID  = process.env.<span class="val">CF_ZONE_ID</span>;
+<span class="kw">const</span> CF_API_TOKEN = process.env.<span class="val">CF_API_TOKEN</span>;
+<span class="kw">const</span> BASE_URL    = <span class="str">'https://yourapp.com'</span>;
+
+<span class="cm">/**
+ * Purge specific URLs from Cloudflare cache after deployment.
+ * Call this from your CI/CD pipeline after a successful deploy.
+ */</span>
+<span class="kw">async function</span> <span class="fn">purgeCDNCache</span>() {
+  <span class="cm">// 1. Purge HTML pages (these don't have content hashes)</span>
+  <span class="kw">const</span> urlsToPurge = [
+    <span class="str">`${BASE_URL}/`</span>,
+    <span class="str">`${BASE_URL}/about`</span>,
+    <span class="str">`${BASE_URL}/pricing`</span>,
+    <span class="cm">// Add all routes that serve HTML</span>
+  ];
+
+  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(
+    <span class="str">`https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache`</span>,
+    {
+      method: <span class="str">'POST'</span>,
+      headers: {
+        <span class="str">'Authorization'</span>: <span class="str">`Bearer ${CF_API_TOKEN}`</span>,
+        <span class="str">'Content-Type'</span>:  <span class="str">'application/json'</span>,
+      },
+      body: <span class="fn">JSON</span>.<span class="fn">stringify</span>({ files: urlsToPurge }),
+    }
+  );
+
+  <span class="kw">const</span> data = <span class="kw">await</span> response.<span class="fn">json</span>();
+  <span class="kw">if</span> (!data.success) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`CDN purge failed: ${JSON.stringify(data.errors)}`</span>);
+  console.<span class="fn">log</span>(<span class="str">`✅ Purged ${urlsToPurge.length} URLs from Cloudflare CDN`</span>);
+  <span class="kw">return</span> data;
+}
+
+<span class="cm">// 2. Tag-based purge (requires Cloudflare Enterprise or Cache Rules)</span>
+<span class="kw">async function</span> <span class="fn">purgeByTag</span>(tags) {
+  <span class="kw">return</span> <span class="fn">fetch</span>(
+    <span class="str">`https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache`</span>,
+    {
+      method: <span class="str">'POST'</span>,
+      headers: { <span class="str">'Authorization'</span>: <span class="str">`Bearer ${CF_API_TOKEN}`</span>, <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+      body: <span class="fn">JSON</span>.<span class="fn">stringify</span>({ tags }),
+    }
+  );
+  <span class="cm">// tags: ['product:123', 'category:electronics']</span>
+  <span class="cm">// Purges all URLs tagged with any of these in Surrogate-Key header</span>
+}
+
+<span class="cm">// Run in CI/CD after deploy</span>
+<span class="fn">purgeCDNCache</span>()
+  .then(() => console.<span class="fn">log</span>(<span class="str">'Cache purge complete'</span>))
+  .catch(err => {
+    console.<span class="fn">error</span>(<span class="str">'Cache purge failed (non-fatal):'</span>, err);
+    <span class="cm">// Don't fail the deploy for a cache purge error</span>
+    <span class="cm">// Old content will expire via TTL anyway</span>
+  });</code></pre>
+      </div>
+
+      <h3>Cloudflare Worker — JWT Auth at Edge</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">worker.js — Auth + personalisation at Cloudflare Edge</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm">/**
+ * Cloudflare Worker: runs at the CDN edge, not on origin.
+ * Validates JWT and injects user context before serving cached content.
+ * Zero latency added for authenticated requests — auth happens at edge.
+ */</span>
+<span class="kw">export default</span> {
+  <span class="kw">async</span> <span class="fn">fetch</span>(request, env) {
+    <span class="kw">const</span> url = <span class="kw">new</span> <span class="fn">URL</span>(request.url);
+
+    <span class="cm">// 1. Allow public assets through without auth check</span>
+    <span class="kw">if</span> (url.pathname.<span class="fn">startsWith</span>(<span class="str">'/static/'</span>) ||
+        url.pathname.<span class="fn">startsWith</span>(<span class="str">'/api/public/'</span>)) {
+      <span class="kw">return</span> <span class="fn">fetch</span>(request);  <span class="cm">// pass through to origin/cache</span>
+    }
+
+    <span class="cm">// 2. Extract and validate JWT at edge (no origin round-trip)</span>
+    <span class="kw">const</span> token = request.headers.<span class="fn">get</span>(<span class="str">'Authorization'</span>)?.split(<span class="str">' '</span>)[<span class="num">1</span>];
+    <span class="kw">if</span> (!token) {
+      <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Response</span>(<span class="str">'Unauthorized'</span>, { status: <span class="num">401</span> });
+    }
+
+    <span class="kw">try</span> {
+      <span class="cm">// Verify JWT using Web Crypto API (available in Workers)</span>
+      <span class="kw">const</span> payload = <span class="kw">await</span> <span class="fn">verifyJWT</span>(token, env.<span class="val">JWT_PUBLIC_KEY</span>);
+
+      <span class="cm">// 3. Inject user context as headers (origin/cached service reads these)</span>
+      <span class="kw">const</span> modifiedRequest = <span class="kw">new</span> <span class="fn">Request</span>(request, {
+        headers: {
+          ...Object.<span class="fn">fromEntries</span>(request.headers),
+          <span class="str">'X-User-ID'</span>:    payload.sub,
+          <span class="str">'X-User-Role'</span>:  payload.role,
+          <span class="str">'X-User-Country'</span>: request.cf?.country || <span class="str">'unknown'</span>,
+        }
+      });
+
+      <span class="cm">// 4. A/B test routing at edge</span>
+      <span class="kw">const</span> variant = parseInt(payload.sub) % <span class="num">2</span> === <span class="num">0</span> ? <span class="str">'A'</span> : <span class="str">'B'</span>;
+      <span class="kw">if</span> (url.pathname === <span class="str">'/'</span>) {
+        url.pathname = variant === <span class="str">'A'</span> ? <span class="str">/v2/'</span> : <span class="str">'/'</span>;
+      }
+
+      <span class="kw">return</span> <span class="fn">fetch</span>(<span class="kw">new</span> <span class="fn">Request</span>(url.toString(), modifiedRequest));
+    } <span class="kw">catch</span> (err) {
+      <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Response</span>(<span class="str">'Invalid token'</span>, { status: <span class="num">401</span> });
+    }
+  }
+};</code></pre>
+      </div>
+    </section>
+
+    <!-- COMPANIES -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Use CDNs</h2>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">🎬 Netflix <span class="company-tech">Open Connect</span></div>
+          <div class="company-desc">Netflix built their own CDN called <strong>Open Connect</strong>, partnering directly with ISPs to place dedicated Netflix appliances (OCA — Open Connect Appliances) inside ISP networks. Over 17,000 OCAs in 158 countries serve 95%+ of Netflix traffic directly from the ISP's network — zero public internet hops. Each appliance holds popular titles pre-staged. New season drops: pre-push to all appliances before release.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🌐 Cloudflare <span class="company-tech">Own Network</span></div>
+          <div class="company-desc">Cloudflare operates the world's largest CDN — 321+ Tbps capacity across 300+ cities. Their key innovation: <strong>every PoP runs every product</strong> — CDN, DDoS protection, Zero Trust, Workers, DNS. No separate networks for different products. This lets them announce every customer's IP from all 300+ locations simultaneously via Anycast, routing traffic optimally worldwide.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛒 Amazon <span class="company-tech">CloudFront</span></div>
+          <div class="company-desc">AWS CloudFront deeply integrates with S3 (origin), Lambda@Edge, and WAF. Amazon.com's product images, JS/CSS assets, and video content are all served through CloudFront. During Prime Day, CloudFront serves tens of millions of requests per second. Their <strong>Origin Shield</strong> feature adds a regional caching tier between edge PoPs and origin, reducing origin load by 60–80%.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🐦 Twitter/X <span class="company-tech">Akamai + own</span></div>
+          <div class="company-desc">Twitter uses Akamai for media content (images, videos) and has their own CDN for tweet API responses with short TTLs. During major events (elections, sports, disasters), tweet traffic spikes 10–20× — CDN caching of public timelines absorbs the load. The <strong>Search API</strong> results are cached at CDN edge with 15-second TTL for trending topics.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">📦 GitHub <span class="company-tech">Fastly</span></div>
+          <div class="company-desc">GitHub uses Fastly as their CDN for serving git objects, release assets, and Pages sites. They leverage Fastly's <strong>Surrogate-Key</strong> (cache tagging) to instantly invalidate all pages related to a repository when a push happens. A push to <code>main</code> purges cache for that repo's pages within milliseconds — ensuring visitors always see fresh content.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🎮 Steam <span class="company-tech">Akamai + own</span></div>
+          <div class="company-desc">Valve's Steam uses CDN for game downloads (petabytes daily), with a unique twist: they use <strong>content addressing</strong> (chunks identified by SHA-1 hash) so if you already have a file chunk from another game, the CDN knows and doesn't re-download it. Game updates only download changed chunks. Akamai handles global distribution; Valve has dedicated edge nodes in large cities.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRADEOFFS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>Advantages, Disadvantages & When NOT to Use</h2>
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">✅ Advantages</div>
+          <ul class="check-list">
+            <li>Dramatically lower latency for global users</li>
+            <li>Reduces origin server load by 80–99%</li>
+            <li>Cheaper bandwidth (CDN egress vs cloud egress)</li>
+            <li>Built-in DDoS protection and WAF capabilities</li>
+            <li>Automatic HTTPS certificate management</li>
+            <li>HTTP/2 and HTTP/3 without origin changes</li>
+            <li>High availability — CDN stays up even if origin is down (stale content)</li>
+            <li>Edge compute for personalisation without origin latency</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">❌ Disadvantages</div>
+          <ul class="check-list">
+            <li>Cache invalidation is complex — stale content bugs</li>
+            <li>Debugging harder — is issue at edge or origin?</li>
+            <li>Vendor lock-in for advanced features (Workers, Lambda@Edge)</li>
+            <li>Private/personalised content cannot be cached at edge</li>
+            <li>Additional cost (though usually cheaper than origin bandwidth)</li>
+            <li>Cache poisoning attacks if cache keys poorly configured</li>
+            <li>Geographic compliance issues (data residency laws)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Common CDN Mistakes</h3>
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Caching user-specific content at the CDN edge
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The most dangerous mistake: an API that returns user-specific data (name, account details, private content) accidentally returns <code>Cache-Control: public</code>. The CDN caches the first user's response and serves it to ALL subsequent users requesting the same URL. User A sees User B's data.</p>
+            <p><strong>Fix:</strong> Always set <code>Cache-Control: private, no-store</code> for authenticated/personalised endpoints. Audit all your API routes. Use CDN-specific cache headers (<code>CDN-Cache-Control: no-store</code>) to control CDN behaviour independently from browser cache.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Not varying cache by Accept-Encoding
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>If you serve both gzip and uncompressed responses based on the <code>Accept-Encoding</code> request header, but don't add <code>Vary: Accept-Encoding</code> to your response, the CDN caches one version and serves it to everyone. A user without gzip support gets a compressed response they can't decode.</p>
+            <p><strong>Fix:</strong> Always add <code>Vary: Accept-Encoding</code> for compressed responses. The CDN stores separate cache entries for each Accept-Encoding value. Similarly, use <code>Vary: Accept</code> for content negotiation (WebP vs JPEG).</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Cache-busting with random query params (wrong approach)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Some developers append <code>?v=random</code> or <code>?t=timestamp</code> to bypass the CDN cache during debugging. This is fine temporarily but terrible as a production pattern — every request is a cache miss, you lose all CDN benefits and hammer your origin.</p>
+            <p><strong>Correct approach:</strong> For static assets, use content-hashed filenames (webpack/Vite handles this). For HTML/API, use CDN purge APIs after deployment. For debugging, use the CDN dashboard's "bypass cache" feature or set <code>Cache-Control: no-cache</code> temporarily in dev environments.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How does a CDN work and what are PoPs?</div>
+          <div class="interview-a">A CDN (Content Delivery Network) is a geographically distributed network of proxy servers that cache content close to users. PoPs (Points of Presence) are the individual edge server locations — data centres deployed in cities worldwide (Cloudflare has 300+, Akamai has 4000+). When a user requests a resource: (1) DNS resolves via Anycast — the same IP is advertised from all PoPs globally, BGP routes users to the nearest PoP. (2) The edge PoP checks its local cache. Cache HIT: serve immediately from edge (~5ms). Cache MISS: fetch from origin over CDN's private backbone, cache the response, then serve it. (3) Subsequent requests for the same resource hit the cache. The key benefit: instead of Sydney users hitting a US server (150ms RTT), they hit the Sydney PoP (2ms RTT).</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How do you handle CDN cache invalidation?</div>
+          <div class="interview-a">Three strategies depending on content type: (1) Content-hashed URLs for static assets (JS/CSS/images). webpack/Vite generates filenames like app.a3f4c8.js. The content never changes for a given URL, so cache forever (max-age=31536000, immutable). When code changes, a new hash/new URL is generated — automatic invalidation by URL change. (2) TTL-based expiry for HTML and API responses. Set appropriate max-age (5 minutes for HTML). Use stale-while-revalidate to serve stale immediately while refreshing in background. (3) Active purge via CDN API for immediate invalidation. Call Cloudflare/CloudFront purge API from your deployment pipeline. Can purge by specific URL, URL pattern, or cache tag (Surrogate-Key). Tags allow "purge all content about product:123" atomically. Priority: always use (1) for static assets. Use (2) + (3) together for HTML — short TTL as safety net plus active purge on deploy.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">When should you NOT cache a response at the CDN?</div>
+          <div class="interview-a">Never cache at CDN: (1) User-authenticated responses — profile data, account details, private content. Any response whose content differs per user must use Cache-Control: private, no-store. If accidentally cached, User A's data could be served to User B. (2) POST/PUT/DELETE responses — non-idempotent methods should not be cached. (3) Responses with Set-Cookie headers containing session tokens. (4) Financial/sensitive data — payment status, balances, personal health info. (5) Short-lived tokens and nonces. Cache but with very short TTL: search results (30s), product inventory (1min), pricing (5min). Can cache with moderate TTL: product descriptions (1hr), public blog posts (24hr). Always cache long: versioned static assets (1 year), public media files.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Design a CDN strategy for a video streaming platform.</div>
+          <div class="interview-a">Video streaming CDN strategy: (1) Origin storage: videos stored in S3/GCS as HLS/DASH segments (.ts files, .mpd manifests). (2) CDN layer: CloudFront or Akamai in front of S3. Video segments (.ts): Cache-Control: public, max-age=31536000 — immutable once uploaded. Manifests (.m3u8/.mpd): Cache-Control: public, max-age=3600 for VOD, max-age=3 for live streams. (3) Pre-staging popular content: before a major release, use CDN push APIs to pre-populate all PoPs (like Netflix Open Connect). (4) Multi-bitrate: same video in 360p/720p/1080p/4K. Each stored as separate file paths, cached independently. Player selects quality based on bandwidth. (5) Geo-restrictions: CDN enforces country blocks using signed URLs with geo-restriction policies, or edge Workers check geo header. (6) Token-based access: signed URLs with expiry so only paying subscribers can download segments. CDN validates the signature at edge — no origin call needed.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the difference between a CDN and a reverse proxy?</div>
+          <div class="interview-a">A reverse proxy is a server that sits in front of one or more origin servers and forwards client requests to them — it's typically deployed in your own infrastructure in one location. A CDN is a globally distributed network of reverse proxies (edge nodes) deployed in 100s of locations worldwide. Key differences: (1) Scale and distribution — CDN has hundreds of PoPs globally; a single reverse proxy is in one datacenter. (2) Primary purpose — CDN prioritizes geographic proximity and caching for latency; reverse proxy handles routing, load balancing, SSL termination in one location. (3) Ownership — CDN is a managed service (Cloudflare, Akamai); reverse proxy is your own infrastructure (Nginx, HAProxy). In practice: you often use both together — Nginx/Traefik as reverse proxy within your datacenter handling internal routing, plus Cloudflare CDN in front handling global caching, DDoS, and edge delivery. The CDN handles the "last mile" from user to your infrastructure; the reverse proxy handles routing within your infrastructure.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> CDN = geographically distributed cache that serves content from the nearest edge PoP, not from a central origin</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Anycast routing: same IP announced from 300+ locations — BGP directs users to nearest PoP automatically</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Cache HIT: ~5ms from edge. Cache MISS: origin fetch (~150ms). Direct to origin: ~280ms for global users</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Static assets with content hashes: cache forever (immutable). HTML: short TTL + stale-while-revalidate. APIs: s-maxage for CDN TTL</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Cache invalidation: content-hashed URLs (best) + TTL + active API purge on deploy</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Never cache user-specific content at edge — Cache-Control: private, no-store for authenticated responses</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Origin Pull (lazy) vs Push (proactive pre-staging) — Pull for websites, Push for large media/game downloads</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Edge compute (Cloudflare Workers, Lambda@Edge): auth, A/B testing, personalisation without origin latency</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> CDN also handles TLS termination, HTTP/3, DDoS absorption, image optimisation, and dynamic acceleration</li>
+        </ul>
+      </div>
+    </section>
+
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 09</div>
+        <div class="next-name">Reverse Proxy</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<!-- TOC -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#why" class="toc-link">Why CDNs</a></li>
+      <li class="toc-item"><a href="#internals" class="toc-link">How It Works</a></li>
+      <li class="toc-item"><a href="#caching" class="toc-link">Cache Config</a></li>
+      <li class="toc-item"><a href="#push-pull" class="toc-link">Pull vs Push</a></li>
+      <li class="toc-item"><a href="#advanced" class="toc-link">Advanced Features</a></li>
+      <li class="toc-item"><a href="#config" class="toc-link">Configuration</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{const e=document.getElementById('progressBar');e.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%'});
+const sections=document.querySelectorAll('section[id]'),tocLinks=document.querySelectorAll('.toc-link');
+const obs=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.25});
+sections.forEach(s=>obs.observe(s));
+function switchTab(id,btn){const p=btn.closest('.tabs');p.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));p.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');p.querySelector('#tab-'+id).classList.add('active')}
+function toggleAccordion(btn){const item=btn.closest('.accordion-item'),isOpen=item.classList.contains('open');btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open')}
+function toggleInterview(item){item.classList.toggle('open')}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+const obs2=new IntersectionObserver(e=>{e.forEach(c=>{if(c.isIntersecting){c.target.style.opacity='0';c.target.style.transform='translateY(14px)';setTimeout(()=>{c.target.style.transition='opacity .4s ease,transform .4s ease';c.target.style.opacity='1';c.target.style.transform='none'},60);obs2.unobserve(c.target)}})},{threshold:.08});
+document.querySelectorAll('.info-card,.company-card').forEach(c=>obs2.observe(c));
+</script>
+</body>
+</html>

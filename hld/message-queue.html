@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Queue — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
+  --card:#0f1829;--border:#1e2d45;--border2:#243350;
+  --accent:#00ff88;--accent2:#00cc6a;--accent3:#00d4ff;
+  --accent4:#a78bfa;--accent5:#ff6b35;
+  --warn:#fbbf24;--danger:#f87171;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+.layout{display:grid;grid-template-columns:270px 1fr 220px;min-height:100vh;max-width:1600px;margin:0 auto}
+
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sidebar-nav{padding:16px 12px}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .2s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(0,255,136,.08);color:var(--accent);border-left:2px solid var(--accent)}
+.nav-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:18px}
+.nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(0,255,136,.1);color:var(--accent)}
+
+.hero{background:linear-gradient(135deg,#080c14 0%,#091a0f 50%,#0a0c10 100%);padding:60px 60px 50px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,rgba(0,255,136,.06) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:160px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,212,255,.04) 0%,transparent 70%);pointer-events:none}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
+.breadcrumb span{color:var(--accent)}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent) 0%,var(--accent3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{font-size:17px;color:var(--text2);max-width:640px;margin-bottom:28px;line-height:1.7}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.meta-dot{width:6px;height:6px;border-radius:50%}
+
+.main{padding:0;min-width:0}
+.content{padding:48px 60px;max-width:860px}
+.section{margin-bottom:64px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';display:block;width:16px;height:1px;background:var(--accent)}
+h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:16px;line-height:1.2}
+h3{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:28px}
+p{color:var(--text2);margin-bottom:14px;font-size:15px}
+strong{color:var(--text);font-weight:600}
+
+.analogy-box{background:linear-gradient(135deg,rgba(0,255,136,.07) 0%,rgba(0,212,255,.04) 100%);border:1px solid rgba(0,255,136,.2);border-radius:12px;padding:24px 28px;margin:24px 0;position:relative}
+.analogy-box::before{content:'💡';position:absolute;top:-12px;left:20px;font-size:20px;background:var(--bg);padding:0 6px}
+.analogy-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,var(--accent))}
+.info-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-icon{font-size:24px;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--text2);line-height:1.5}
+
+.diagram-container{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px 24px;margin:24px 0;overflow-x:auto}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:24px;text-align:center;text-transform:uppercase;letter-spacing:.1em}
+.diagram-svg{display:block;margin:0 auto;max-width:100%}
+
+.code-wrap{margin:20px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.code-header{background:var(--bg4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600}
+.code-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);color:var(--accent);border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.copy-btn:hover{background:rgba(0,255,136,.14)}
+pre{background:#060a10;padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.kw{color:#ff79c6}.str{color:#f1fa8c}.cm{color:#6272a4;font-style:italic}.fn{color:#50fa7b}.num{color:#bd93f9}.key{color:#8be9fd}.val{color:#ffb86c}.op{color:#ff5555}
+
+.step-list{margin:20px 0}
+.step-item{display:flex;gap:16px;margin-bottom:20px;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:15px;top:36px;bottom:-20px;width:1px;background:linear-gradient(to bottom,var(--accent),transparent)}
+.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)}
+.step-title{font-weight:600;color:var(--text);font-size:15px;margin-bottom:4px}
+.step-desc{color:var(--text2);font-size:14px}
+
+.tabs{margin:24px 0}
+.tab-list{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:4px;border-radius:10px;width:fit-content;flex-wrap:wrap}
+.tab-btn{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:'Inter',sans-serif}
+.tab-btn.active{background:rgba(0,255,136,.1);color:var(--accent);border:1px solid rgba(0,255,136,.2)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:8px}
+.tab-panel.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.accordion{margin:16px 0}
+.accordion-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.accordion-trigger{width:100%;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:none;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:background .2s}
+.accordion-trigger:hover{background:var(--bg4)}
+.accordion-icon{width:20px;height:20px;border-radius:50%;background:rgba(0,255,136,.08);display:flex;align-items:center;justify-content:center;font-size:12px;transition:transform .3s;flex-shrink:0}
+.accordion-item.open .accordion-icon{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;background:var(--card);padding:0 18px;font-size:14px;color:var(--text2)}
+.accordion-item.open .accordion-body{max-height:900px;padding:16px 18px}
+
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.pros-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:10px;padding:20px}
+.cons-box{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:20px}
+.box-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pros-box .box-title{color:var(--accent)}.cons-box .box-title{color:var(--danger)}
+.check-list{list-style:none}
+.check-list li{font-size:13.5px;color:var(--text2);padding:4px 0;display:flex;gap:8px;align-items:flex-start}
+.pros-box .check-list li::before{content:'✓';color:var(--accent);flex-shrink:0;margin-top:1px}
+.cons-box .check-list li::before{content:'✗';color:var(--danger);flex-shrink:0;margin-top:1px}
+
+.alert{border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.alert-icon{font-size:16px;flex-shrink:0}
+.alert-warn{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);color:var(--warn)}
+.alert-danger{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger)}
+.alert-info{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);color:var(--accent)}
+.alert-success{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:var(--accent3)}
+.alert p{color:inherit;margin:0}
+
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:20px 0}
+.company-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;transition:all .25s}
+.company-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.company-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.company-tech{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(0,255,136,.07);padding:2px 8px;border-radius:4px}
+.company-desc{font-size:13px;color:var(--text2);line-height:1.5}
+
+.interview-list{margin:16px 0}
+.interview-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.interview-item:hover{border-color:var(--border2);background:var(--bg4)}
+.interview-q{font-size:14px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.interview-q::after{content:'›';color:var(--text3);font-size:18px;flex-shrink:0;transition:transform .2s}
+.interview-item.open .interview-q::after{transform:rotate(90deg)}
+.interview-a{max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;font-size:13.5px;color:var(--text2)}
+.interview-item.open .interview-a{max-height:500px;padding-top:10px}
+
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg4)}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+td{padding:11px 16px;font-size:13.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:var(--text);font-weight:500}
+
+.toc{position:sticky;top:24px;padding:24px 16px}
+.toc-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.toc-list{list-style:none}
+.toc-item{margin-bottom:2px}
+.toc-link{display:block;padding:5px 10px;border-radius:5px;color:var(--text3);text-decoration:none;font-size:12.5px;transition:all .2s;border-left:2px solid transparent}
+.toc-link:hover{color:var(--text);background:var(--bg3)}
+.toc-link.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,255,136,.05)}
+
+.progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent),var(--accent3));z-index:100;transition:width .1s}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid}
+.tag-green{color:var(--accent);border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.06)}
+.tag-blue{color:var(--accent3);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.06)}
+.tag-purple{color:var(--accent4);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+.tag-orange{color:var(--accent5);border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.06)}
+
+.sep{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:40px 0}
+.summary-box{background:linear-gradient(135deg,rgba(0,255,136,.06) 0%,rgba(0,212,255,.04) 100%);border:1px solid rgba(0,255,136,.2);border-radius:14px;padding:28px 32px;margin:32px 0}
+.summary-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px}
+
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(0,255,136,.07);color:var(--accent);padding:1px 6px;border-radius:4px;border:1px solid rgba(0,255,136,.15)}
+pre code{background:transparent;color:inherit;padding:0;border:none;font-size:inherit}
+
+/* MQ comparison cards */
+.mq-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:24px 0}
+.mq-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .25s;position:relative}
+.mq-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;background:var(--mq-color,var(--accent))}
+.mq-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.mq-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px}
+.mq-tagline{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:12px}
+.mq-row{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.mq-key{color:var(--text3)}
+.mq-val{color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px}
+
+/* Message anatomy */
+.msg-box{background:#060a10;border:1px solid var(--border);border-radius:10px;padding:20px;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:13px}
+.msg-field{display:flex;gap:12px;margin-bottom:8px;align-items:flex-start}
+.msg-key{color:#8be9fd;min-width:120px;flex-shrink:0}
+.msg-val{color:#f1fa8c}
+.msg-comment{color:#6272a4;font-size:11px;margin-top:2px}
+
+.next-topic{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .25s;text-decoration:none}
+.next-topic:hover{border-color:rgba(0,255,136,.3);box-shadow:0 0 30px rgba(0,255,136,.08)}
+.next-label{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.next-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.next-arrow{font-size:24px;color:var(--accent)}
+
+.menu-toggle{display:none;position:fixed;bottom:24px;right:24px;z-index:300;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,255,136,.35);font-size:20px;color:var(--bg)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190}
+.overlay.show{display:block}
+@media(max-width:1100px){.layout{grid-template-columns:240px 1fr}.toc{display:none}.content{padding:36px 40px}.hero{padding:48px 40px}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;left:-280px;z-index:200;transition:left .3s;height:100vh;width:270px}.sidebar.open{left:0;box-shadow:8px 0 32px rgba(0,0,0,.5)}.content{padding:24px 20px}.hero{padding:32px 20px}.pros-cons,.mq-compare{grid-template-columns:1fr}.card-grid{grid-template-columns:1fr}.menu-toggle{display:flex}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes nodeGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(0,255,136,0))}50%{filter:drop-shadow(0 0 10px rgba(0,255,136,.5))}}
+.node-animate{animation:nodeGlow 2.5s ease-in-out infinite}
+@keyframes flowAnim{0%{stroke-dashoffset:20}100%{stroke-dashoffset:0}}
+.flow-animate{animation:flowAnim 1.5s linear infinite}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><div class="logo-dot"></div>HLD Academy</div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item" href="load-balancer.html"><span class="nav-num">01</span> Load Balancer</a>
+      <a class="nav-item" href="api-gateway.html"><span class="nav-num">02</span> API Gateway</a>
+      <a class="nav-item" href="#"><span class="nav-num">08</span> CDN</a>
+      <a class="nav-item" href="#"><span class="nav-num">09</span> Reverse Proxy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item" href="redis-cache.html"><span class="nav-num">03</span> Redis Cache</a>
+      <a class="nav-item" href="rate-limiting.html"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item active" href="message-queue.html"><span class="nav-num">05</span> Message Queue <span class="nav-badge">Current</span></a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item" href="#"><span class="nav-num">06</span> Microservices</a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item" href="#"><span class="nav-num">07</span> Database Scaling</a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Caching & Queuing <span>›</span> Topic 05</div>
+    <div class="hero-tag">📨 Topic 05 of 22</div>
+    <h1>Message <em>Queue</em></h1>
+    <p class="hero-desc">The backbone of every async, decoupled, fault-tolerant system. Learn how message queues decouple producers from consumers, enable horizontal scaling, guarantee delivery, and turn fragile synchronous systems into resilient asynchronous architectures — with deep dives into RabbitMQ, Kafka, SQS, and BullMQ.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>Beginner → Advanced</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>~45 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent4)"></div>Interview Critical</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--warn)"></div>Architecture Essential</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>What is a Message Queue?</h2>
+      <p>A <strong>message queue</strong> is a form of asynchronous communication between services. A <strong>producer</strong> sends a message to a queue; a <strong>consumer</strong> reads and processes it later. The producer and consumer are completely <em>decoupled</em> — they don't need to be running at the same time, don't need to know about each other, and run at their own pace.</p>
+      <p>Message queues are the foundation of <strong>event-driven architecture</strong>, microservice communication, background job processing, and reliable inter-service coordination.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">📮 Analogy — The Post Office</div>
+        <p style="color:var(--text2);margin:0">You write a letter (message) and drop it at the post office (queue). You don't wait for the recipient to be home — you go about your day. The post office holds the letter until the recipient collects it. The recipient opens it on their own schedule. If the recipient is on vacation, the letter waits. Neither you nor the recipient need to be available simultaneously. This is <em>asynchronous, decoupled communication</em> — exactly what a message queue provides for services.</p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg',this)">👶 Beginner</button>
+          <button class="tab-btn" onclick="switchTab('adv',this)">🧠 Advanced</button>
+        </div>
+        <div class="tab-panel active" id="tab-beg">
+          <p>When a user places an order on an e-commerce site, your Order Service needs to: charge payment, send confirmation email, update inventory, notify shipping. Without a queue, your API does all of this synchronously — the user waits 3–5 seconds and if any step fails, the whole order fails.</p>
+          <p>With a queue: Order Service saves the order, <strong>publishes one message</strong> to the queue, and immediately returns <em>"Order confirmed!"</em> to the user. Background workers pick up the message and handle payment, email, inventory, shipping independently and in parallel. User experience is instant.</p>
+        </div>
+        <div class="tab-panel" id="tab-adv">
+          <p>Message queues implement the <strong>Producer-Consumer pattern</strong> with configurable delivery guarantees (at-most-once, at-least-once, exactly-once). Messages are persisted to disk with configurable durability levels. Consumers use <strong>acknowledgment protocols</strong> — a message is only removed from the queue when the consumer explicitly ACKs it, preventing message loss on consumer crash.</p>
+          <p>Advanced features: <strong>Dead Letter Queues</strong> (DLQ) for failed messages, <strong>consumer groups</strong> for parallel processing with load balancing, <strong>priority queues</strong>, <strong>delayed messages</strong>, and <strong>message TTL</strong>. Distributed queues like Kafka use partitioned logs for horizontal scaling to millions of messages/sec.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-green">Async Decoupling</span>
+        <span class="tag tag-blue">At-Least-Once Delivery</span>
+        <span class="tag tag-purple">Dead Letter Queue</span>
+        <span class="tag tag-orange">Consumer Groups</span>
+        <span class="tag tag-green">Backpressure</span>
+        <span class="tag tag-blue">Message Persistence</span>
+        <span class="tag tag-purple">Fan-out</span>
+      </div>
+    </section>
+
+    <!-- WHY -->
+    <section class="section" id="why">
+      <div class="section-label">Problem Statement</div>
+      <h2>Why Message Queues Exist — The Synchronous System Problem</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Synchronous vs Asynchronous Architecture</div>
+        <svg class="diagram-svg" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrSync" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f87171"/></marker>
+            <marker id="arrAsync" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.6)"/></marker>
+          </defs>
+
+          <!-- SYNC side -->
+          <text x="180" y="24" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:13px;font-weight:700">❌ Synchronous (Fragile)</text>
+
+          <rect x="20" y="40" width="90" height="40" rx="6" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="65" y="65" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Order API</text>
+
+          <!-- Sync calls cascade -->
+          <rect x="130" y="40" width="80" height="40" rx="6" style="fill:rgba(248,113,113,.07);stroke:rgba(248,113,113,.25);stroke-width:1"/>
+          <text x="170" y="65" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:10px">Payment</text>
+          <rect x="225" y="40" width="80" height="40" rx="6" style="fill:rgba(248,113,113,.07);stroke:rgba(248,113,113,.25);stroke-width:1"/>
+          <text x="265" y="65" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:10px">Email Svc</text>
+          <rect x="320" y="40" width="80" height="40" rx="6" style="fill:rgba(248,113,113,.07);stroke:rgba(248,113,113,.25);stroke-width:1"/>
+          <text x="360" y="65" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:10px">Inventory</text>
+
+          <line x1="112" y1="60" x2="128" y2="60" style="stroke:#f87171;stroke-width:1.5;fill:none;marker-end:url(#arrSync)"/>
+          <line x1="212" y1="60" x2="223" y2="60" style="stroke:#f87171;stroke-width:1.5;fill:none;marker-end:url(#arrSync)"/>
+          <line x1="307" y1="60" x2="318" y2="60" style="stroke:#f87171;stroke-width:1.5;fill:none;marker-end:url(#arrSync)"/>
+
+          <!-- Problems below sync -->
+          <text x="65" y="105" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">User waits</text>
+          <text x="65" y="118" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">3-5 seconds</text>
+
+          <rect x="130" y="95" width="270" height="50" rx="6" style="fill:rgba(248,113,113,.05);stroke:rgba(248,113,113,.2);stroke-width:1"/>
+          <text x="265" y="117" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px;font-weight:600">⚡ Email Service down → entire order fails</text>
+          <text x="265" y="133" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">Tightly coupled: one failure cascades to all</text>
+
+          <!-- SEPARATOR -->
+          <line x1="415" y1="20" x2="415" y2="280" style="stroke:#1e2d45;stroke-width:1;stroke-dasharray:6,4"/>
+
+          <!-- ASYNC side -->
+          <text x="567" y="24" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:13px;font-weight:700">✅ Async Queue (Resilient)</text>
+
+          <rect x="425" y="40" width="90" height="40" rx="6" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="470" y="65" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Order API</text>
+
+          <!-- Arrow to queue -->
+          <line x1="517" y1="60" x2="547" y2="60" style="stroke:rgba(0,255,136,.6);stroke-width:1.5;fill:none;marker-end:url(#arrAsync)"/>
+
+          <!-- Queue -->
+          <rect x="549" y="33" width="90" height="54" rx="8" style="fill:rgba(0,255,136,.07);stroke:rgba(0,255,136,.3);stroke-width:2" class="node-animate"/>
+          <text x="594" y="57" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:11px;font-weight:700">📨 Queue</text>
+          <text x="594" y="73" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">order:created</text>
+
+          <!-- Arrow from queue to consumers -->
+          <line x1="641" y1="50" x2="665" y2="40" style="stroke:rgba(0,255,136,.4);stroke-width:1;fill:none;marker-end:url(#arrAsync)"/>
+          <line x1="641" y1="60" x2="665" y2="60" style="stroke:rgba(0,255,136,.4);stroke-width:1;fill:none;marker-end:url(#arrAsync)"/>
+          <line x1="641" y1="72" x2="665" y2="80" style="stroke:rgba(0,255,136,.4);stroke-width:1;fill:none;marker-end:url(#arrAsync)"/>
+
+          <!-- Consumers -->
+          <rect x="667" y="25" width="48" height="26" rx="4" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2);stroke-width:1"/>
+          <text x="691" y="42" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:9px">Payment</text>
+          <rect x="667" y="47" width="48" height="26" rx="4" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2);stroke-width:1"/>
+          <text x="691" y="64" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:9px">Email</text>
+          <rect x="667" y="69" width="48" height="26" rx="4" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2);stroke-width:1"/>
+          <text x="691" y="86" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:9px">Inventory</text>
+
+          <!-- Benefits -->
+          <text x="470" y="105" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:10px">Instant response</text>
+          <text x="470" y="118" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">to user (&lt;50ms)</text>
+
+          <rect x="425" y="130" width="288" height="60" rx="6" style="fill:rgba(0,255,136,.04);stroke:rgba(0,255,136,.15);stroke-width:1"/>
+          <text x="569" y="154" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">✅ Email Service down → message waits</text>
+          <text x="569" y="170" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">Decoupled: failure isolated, retried independently</text>
+
+          <!-- Scale benefit -->
+          <rect x="425" y="205" width="288" height="60" rx="6" style="fill:rgba(0,212,255,.04);stroke:rgba(0,212,255,.15);stroke-width:1"/>
+          <text x="569" y="229" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00d4ff;font-size:11px;font-weight:600">⚡ Scale consumers independently</text>
+          <text x="569" y="245" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">Add more Payment workers during peak hours</text>
+        </svg>
+      </div>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Decoupling</div>
+          <div class="card-text">Producer and consumer are completely independent. Producer doesn't know how many consumers exist. Consumers can be added/removed/updated without touching producer code.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent3)">
+          <div class="card-icon">💪</div>
+          <div class="card-title">Resilience</div>
+          <div class="card-text">If a consumer goes down, messages wait in the queue. When it comes back up, it processes them. No data loss. Producers keep working regardless of consumer health.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent4)">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Independent Scaling</div>
+          <div class="card-text">Scale consumers based on queue depth. 10,000 messages backed up? Add 50 more consumer instances. Shrink back to 2 when the queue drains. Consumers scale independently of producers.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--warn)">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Backpressure</div>
+          <div class="card-text">Queue naturally absorbs traffic spikes. Producers push at their own rate; consumers pull at their capacity. The queue acts as a buffer preventing consumer overload — natural backpressure mechanism.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CORE CONCEPTS -->
+    <section class="section" id="concepts">
+      <div class="section-label">Core Concepts</div>
+      <h2>Key Concepts You Must Know</h2>
+
+      <h3>Anatomy of a Message</h3>
+      <div class="msg-box">
+        <div class="msg-field">
+          <span class="msg-key">messageId:</span>
+          <div><span class="msg-val">"msg_01HX2K9QP3N4R5T6V7W8X9Y0Z"</span>
+          <div class="msg-comment">// Unique ID — for deduplication and tracing</div></div>
+        </div>
+        <div class="msg-field">
+          <span class="msg-key">timestamp:</span>
+          <div><span class="msg-val">"2024-01-15T10:30:00.000Z"</span>
+          <div class="msg-comment">// When message was published</div></div>
+        </div>
+        <div class="msg-field">
+          <span class="msg-key">type:</span>
+          <div><span class="msg-val">"order.created"</span>
+          <div class="msg-comment">// Event type — consumers filter/route by this</div></div>
+        </div>
+        <div class="msg-field">
+          <span class="msg-key">version:</span>
+          <div><span class="msg-val">"1.0"</span>
+          <div class="msg-comment">// Schema version — for backward compatibility</div></div>
+        </div>
+        <div class="msg-field">
+          <span class="msg-key">retryCount:</span>
+          <div><span class="msg-val">0</span>
+          <div class="msg-comment">// How many times delivery has been attempted</div></div>
+        </div>
+        <div class="msg-field">
+          <span class="msg-key">ttl:</span>
+          <div><span class="msg-val">86400</span>
+          <div class="msg-comment">// Time-to-live in seconds — expire unprocessed messages</div></div>
+        </div>
+        <div class="msg-field">
+          <span class="msg-key">payload:</span>
+          <div><span class="msg-val">{ orderId: "ord_123", userId: "usr_456", items: [...], total: 99.99 }</span>
+          <div class="msg-comment">// The actual business data</div></div>
+        </div>
+      </div>
+
+      <h3>Delivery Guarantees — Critical to Understand</h3>
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📌 At-Most-Once — Fire and Forget
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Message is delivered <strong>zero or one time</strong>. No retry on failure. The producer fires the message and forgets about it. If the consumer crashes mid-processing, the message is lost forever.</p>
+            <p><strong>When to use:</strong> Telemetry/metrics, log streams, real-time dashboards where a few dropped data points are acceptable and performance matters more than completeness.</p>
+            <p><strong>Implementation:</strong> Producer publishes, consumer does NOT send ACK. Queue deletes message immediately after delivery.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📌 At-Least-Once — Guaranteed but Possibly Duplicate
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Message is delivered <strong>one or more times</strong>. If consumer crashes before ACKing, the message is re-delivered. This guarantees no message loss but may cause <strong>duplicate processing</strong>.</p>
+            <p><strong>When to use:</strong> Most production systems — email sending, payment processing triggers, order notifications. Make your consumer <strong>idempotent</strong> (processing the same message twice has no extra effect).</p>
+            <p><strong>How it works:</strong> Consumer receives message → processes → sends ACK. If ACK not received within timeout, queue re-delivers. Consumer must handle duplicates (use messageId to check if already processed).</p>
+            <p><strong>Idempotency pattern:</strong> <code>INSERT INTO processed_messages (message_id) VALUES ($1) ON CONFLICT DO NOTHING</code> — skip processing if messageId already in DB.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📌 Exactly-Once — The Holy Grail (and Why It's Hard)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Message is delivered and processed <strong>exactly one time</strong>. No loss, no duplicates. This is the hardest guarantee to provide in a distributed system.</p>
+            <p><strong>Why it's hard:</strong> To guarantee exactly-once, you need atomic coordination between the message queue and your database — "process this message AND mark it done" must happen atomically. Network partitions can make this impossible without 2-phase commit.</p>
+            <p><strong>How Kafka achieves it:</strong> Transactional producers + idempotent consumers. The producer uses transactions to write to multiple partitions atomically. The consumer commits its offset in the same transaction as its DB write — they're atomic together.</p>
+            <p><strong>Practical advice:</strong> Use at-least-once + idempotent consumers in 95% of cases. True exactly-once is expensive and complex. "Effectively exactly-once" via idempotency is almost always sufficient.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>Dead Letter Queue (DLQ) — The Safety Net</h3>
+      <p>When a message fails processing repeatedly (e.g., 3 retries), instead of discarding it or blocking the queue, it's moved to a <strong>Dead Letter Queue</strong>. This allows:</p>
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--danger)">
+          <div class="card-icon">🔬</div>
+          <div class="card-title">Debugging</div>
+          <div class="card-text">Inspect failed messages to understand what caused processing failures. The message payload is preserved so you can reproduce and debug the exact issue.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--warn)">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">Replay</div>
+          <div class="card-text">After fixing the bug, replay DLQ messages back to the main queue for reprocessing. No data is permanently lost — every failed message is recoverable.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">🚫</div>
+          <div class="card-title">Queue Unblocking</div>
+          <div class="card-text">Without DLQ, a poison message (one that always fails) could block the entire queue forever. DLQ isolates it so other messages continue processing normally.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- TOOLS COMPARISON -->
+    <section class="section" id="tools">
+      <div class="section-label">Technology Comparison</div>
+      <h2>RabbitMQ vs Kafka vs SQS vs BullMQ</h2>
+      <p>Choosing the right message queue is one of the most impactful architectural decisions. Each has fundamentally different models.</p>
+
+      <div class="mq-compare">
+        <div class="mq-card" style="--mq-color:#ff6b35">
+          <div class="mq-name">RabbitMQ</div>
+          <div class="mq-tagline">// Traditional message broker</div>
+          <div class="mq-row"><span class="mq-key">Model</span><span class="mq-val">Push (broker → consumer)</span></div>
+          <div class="mq-row"><span class="mq-key">Throughput</span><span class="mq-val">~50k msg/sec</span></div>
+          <div class="mq-row"><span class="mq-key">Retention</span><span class="mq-val">Until consumed</span></div>
+          <div class="mq-row"><span class="mq-key">Ordering</span><span class="mq-val">Per-queue FIFO</span></div>
+          <div class="mq-row"><span class="mq-key">Protocol</span><span class="mq-val">AMQP 0-9-1</span></div>
+          <div class="mq-row"><span class="mq-key">Best for</span><span class="mq-val">Task queues, RPC</span></div>
+        </div>
+        <div class="mq-card" style="--mq-color:#00d4ff">
+          <div class="mq-name">Apache Kafka</div>
+          <div class="mq-tagline">// Distributed event log</div>
+          <div class="mq-row"><span class="mq-key">Model</span><span class="mq-val">Pull (consumer polls)</span></div>
+          <div class="mq-row"><span class="mq-key">Throughput</span><span class="mq-val">~1M+ msg/sec</span></div>
+          <div class="mq-row"><span class="mq-key">Retention</span><span class="mq-val">Configurable (days/weeks)</span></div>
+          <div class="mq-row"><span class="mq-key">Ordering</span><span class="mq-val">Per-partition</span></div>
+          <div class="mq-row"><span class="mq-key">Protocol</span><span class="mq-val">Custom binary</span></div>
+          <div class="mq-row"><span class="mq-key">Best for</span><span class="mq-val">Event streaming, analytics</span></div>
+        </div>
+        <div class="mq-card" style="--mq-color:#fbbf24">
+          <div class="mq-name">AWS SQS</div>
+          <div class="mq-tagline">// Managed cloud queue</div>
+          <div class="mq-row"><span class="mq-key">Model</span><span class="mq-val">Pull (long polling)</span></div>
+          <div class="mq-row"><span class="mq-key">Throughput</span><span class="mq-val">Unlimited (managed)</span></div>
+          <div class="mq-row"><span class="mq-key">Retention</span><span class="mq-val">Up to 14 days</span></div>
+          <div class="mq-row"><span class="mq-key">Ordering</span><span class="mq-val">FIFO queue option</span></div>
+          <div class="mq-row"><span class="mq-key">Protocol</span><span class="mq-val">HTTP/HTTPS</span></div>
+          <div class="mq-row"><span class="mq-key">Best for</span><span class="mq-val">AWS-native, serverless</span></div>
+        </div>
+        <div class="mq-card" style="--mq-color:#a78bfa">
+          <div class="mq-name">BullMQ</div>
+          <div class="mq-tagline">// Redis-backed job queue</div>
+          <div class="mq-row"><span class="mq-key">Model</span><span class="mq-val">Pull (workers)</span></div>
+          <div class="mq-row"><span class="mq-key">Throughput</span><span class="mq-val">~100k jobs/sec</span></div>
+          <div class="mq-row"><span class="mq-key">Retention</span><span class="mq-val">Redis memory-limited</span></div>
+          <div class="mq-row"><span class="mq-key">Ordering</span><span class="mq-val">Priority + FIFO</span></div>
+          <div class="mq-row"><span class="mq-key">Protocol</span><span class="mq-val">Redis protocol</span></div>
+          <div class="mq-row"><span class="mq-key">Best for</span><span class="mq-val">Node.js background jobs</span></div>
+        </div>
+      </div>
+
+      <h3>When to Use Which</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Use Case</th><th>Best Choice</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Background job processing (emails, reports)</td><td>BullMQ / RabbitMQ</td><td>Simple job queuing, retry logic, DLQ built-in</td></tr>
+            <tr><td>Real-time event streaming (logs, metrics)</td><td>Kafka</td><td>High throughput, log retention, replay events</td></tr>
+            <tr><td>Microservice event bus</td><td>Kafka / RabbitMQ</td><td>Kafka for durability, RabbitMQ for routing flexibility</td></tr>
+            <tr><td>Serverless/Lambda triggers</td><td>AWS SQS</td><td>Native AWS integration, managed, pay-per-use</td></tr>
+            <tr><td>Task queues on existing Redis infra</td><td>BullMQ</td><td>No new infra needed, great Node.js ecosystem</td></tr>
+            <tr><td>Financial transactions, audit logs</td><td>Kafka</td><td>Immutable log, replayable, long retention</td></tr>
+            <tr><td>IoT sensor data ingestion</td><td>Kafka / AWS Kinesis</td><td>Millions of events/sec, partitioned by device</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- KAFKA DEEP DIVE -->
+    <section class="section" id="kafka">
+      <div class="section-label">Kafka Deep Dive</div>
+      <h2>Apache Kafka — Internal Architecture</h2>
+      <p>Kafka is not a traditional message queue — it's a <strong>distributed commit log</strong>. Understanding this distinction is critical for system design interviews.</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Kafka Architecture — Topics, Partitions, Consumer Groups</div>
+        <svg class="diagram-svg" viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrK" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,212,255,.6)"/></marker>
+            <marker id="arrKG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.5)"/></marker>
+          </defs>
+
+          <!-- Producers -->
+          <rect x="10" y="100" width="90" height="40" rx="6" style="fill:rgba(167,139,250,.07);stroke:rgba(167,139,250,.25);stroke-width:1.5"/>
+          <text x="55" y="125" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Producer 1</text>
+          <rect x="10" y="155" width="90" height="40" rx="6" style="fill:rgba(167,139,250,.07);stroke:rgba(167,139,250,.25);stroke-width:1.5"/>
+          <text x="55" y="180" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Producer 2</text>
+          <rect x="10" y="210" width="90" height="40" rx="6" style="fill:rgba(167,139,250,.07);stroke:rgba(167,139,250,.25);stroke-width:1.5"/>
+          <text x="55" y="235" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Producer 3</text>
+
+          <!-- Topic label -->
+          <text x="280" y="22" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:700">TOPIC: "orders" — 3 Partitions</text>
+
+          <!-- Partition 0 -->
+          <rect x="115" y="30" width="330" height="60" rx="6" style="fill:rgba(0,212,255,.05);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="128" y="48" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px;font-weight:600">Partition 0</text>
+          <!-- Offset cells -->
+          <rect x="160" y="38" width="36" height="24" rx="3" style="fill:rgba(0,212,255,.1);stroke:rgba(0,212,255,.2)"/>
+          <text x="178" y="54" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px">off:0</text>
+          <rect x="200" y="38" width="36" height="24" rx="3" style="fill:rgba(0,212,255,.1);stroke:rgba(0,212,255,.2)"/>
+          <text x="218" y="54" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px">off:1</text>
+          <rect x="240" y="38" width="36" height="24" rx="3" style="fill:rgba(0,212,255,.1);stroke:rgba(0,212,255,.2)"/>
+          <text x="258" y="54" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px">off:2</text>
+          <rect x="280" y="38" width="36" height="24" rx="3" style="fill:rgba(0,212,255,.1);stroke:rgba(0,212,255,.2)"/>
+          <text x="298" y="54" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px">off:3</text>
+          <rect x="320" y="38" width="36" height="24" rx="3" style="fill:rgba(0,212,255,.15);stroke:rgba(0,212,255,.3)"/>
+          <text x="338" y="54" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00d4ff;font-size:10px">off:4</text>
+          <text x="375" y="54" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">→ newest</text>
+
+          <!-- Partition 1 -->
+          <rect x="115" y="100" width="330" height="60" rx="6" style="fill:rgba(0,255,136,.04);stroke:rgba(0,255,136,.2);stroke-width:1.5"/>
+          <text x="128" y="118" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:10px;font-weight:600">Partition 1</text>
+          <rect x="160" y="108" width="36" height="24" rx="3" style="fill:rgba(0,255,136,.08);stroke:rgba(0,255,136,.15)"/>
+          <text x="178" y="124" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:10px">off:0</text>
+          <rect x="200" y="108" width="36" height="24" rx="3" style="fill:rgba(0,255,136,.08);stroke:rgba(0,255,136,.15)"/>
+          <text x="218" y="124" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:10px">off:1</text>
+          <rect x="240" y="108" width="36" height="24" rx="3" style="fill:rgba(0,255,136,.08);stroke:rgba(0,255,136,.15)"/>
+          <text x="258" y="124" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:10px">off:2</text>
+          <rect x="280" y="108" width="36" height="24" rx="3" style="fill:rgba(0,255,136,.12);stroke:rgba(0,255,136,.2)"/>
+          <text x="298" y="124" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#00ff88;font-size:10px">off:3</text>
+          <text x="340" y="124" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">→ newest</text>
+
+          <!-- Partition 2 -->
+          <rect x="115" y="170" width="330" height="60" rx="6" style="fill:rgba(167,139,250,.04);stroke:rgba(167,139,250,.2);stroke-width:1.5"/>
+          <text x="128" y="188" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px;font-weight:600">Partition 2</text>
+          <rect x="160" y="178" width="36" height="24" rx="3" style="fill:rgba(167,139,250,.08);stroke:rgba(167,139,250,.15)"/>
+          <text x="178" y="194" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px">off:0</text>
+          <rect x="200" y="178" width="36" height="24" rx="3" style="fill:rgba(167,139,250,.08);stroke:rgba(167,139,250,.15)"/>
+          <text x="218" y="194" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px">off:1</text>
+          <rect x="240" y="178" width="36" height="24" rx="3" style="fill:rgba(167,139,250,.08);stroke:rgba(167,139,250,.15)"/>
+          <text x="258" y="194" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px">off:2</text>
+          <rect x="280" y="178" width="36" height="24" rx="3" style="fill:rgba(167,139,250,.12);stroke:rgba(167,139,250,.2)"/>
+          <text x="298" y="194" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px">off:3</text>
+          <rect x="320" y="178" width="36" height="24" rx="3" style="fill:rgba(167,139,250,.15);stroke:rgba(167,139,250,.25)"/>
+          <text x="338" y="194" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px">off:4</text>
+          <rect x="360" y="178" width="36" height="24" rx="3" style="fill:rgba(167,139,250,.18);stroke:rgba(167,139,250,.3)"/>
+          <text x="378" y="194" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#a78bfa;font-size:10px">off:5</text>
+
+          <!-- Producer arrows -->
+          <line x1="102" y1="120" x2="113" y2="120" style="stroke:rgba(167,139,250,.4);stroke-width:1.5;fill:none;marker-end:url(#arrK)"/>
+          <line x1="102" y1="175" x2="113" y2="150" style="stroke:rgba(167,139,250,.4);stroke-width:1.5;fill:none;marker-end:url(#arrK)"/>
+          <line x1="102" y1="230" x2="113" y2="195" style="stroke:rgba(167,139,250,.4);stroke-width:1.5;fill:none;marker-end:url(#arrK)"/>
+
+          <!-- Consumer Group -->
+          <rect x="460" y="20" width="250" height="220" rx="10" style="fill:rgba(0,255,136,.03);stroke:rgba(0,255,136,.2);stroke-width:1.5"/>
+          <text x="585" y="42" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:11px;font-weight:700">Consumer Group: "payment-service"</text>
+          <text x="585" y="57" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Each partition assigned to one consumer</text>
+
+          <rect x="473" y="70" width="224" height="50" rx="6" style="fill:rgba(0,212,255,.05);stroke:rgba(0,212,255,.2);stroke-width:1"/>
+          <text x="585" y="92" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00d4ff;font-size:11px;font-weight:600">Consumer A → Partition 0</text>
+          <text x="585" y="108" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">committed offset: 3 (reading off:4)</text>
+
+          <rect x="473" y="130" width="224" height="50" rx="6" style="fill:rgba(0,255,136,.04);stroke:rgba(0,255,136,.2);stroke-width:1"/>
+          <text x="585" y="152" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">Consumer B → Partition 1</text>
+          <text x="585" y="168" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">committed offset: 2 (reading off:3)</text>
+
+          <rect x="473" y="190" width="224" height="42" rx="6" style="fill:rgba(167,139,250,.04);stroke:rgba(167,139,250,.2);stroke-width:1"/>
+          <text x="585" y="211" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#a78bfa;font-size:11px;font-weight:600">Consumer C → Partition 2</text>
+          <text x="585" y="226" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">committed offset: 4 (reading off:5)</text>
+
+          <!-- Arrows from partitions to consumers -->
+          <line x1="447" y1="60" x2="471" y2="94" style="stroke:rgba(0,212,255,.3);stroke-width:1;fill:none;marker-end:url(#arrKG)"/>
+          <line x1="447" y1="130" x2="471" y2="154" style="stroke:rgba(0,255,136,.3);stroke-width:1;fill:none;marker-end:url(#arrKG)"/>
+          <line x1="447" y1="200" x2="471" y2="210" style="stroke:rgba(167,139,250,.3);stroke-width:1;fill:none;marker-end:url(#arrKG)"/>
+
+          <!-- ZooKeeper/KRaft note -->
+          <rect x="115" y="250" width="330" height="60" rx="8" style="fill:rgba(251,191,36,.04);stroke:rgba(251,191,36,.18);stroke-width:1"/>
+          <text x="280" y="274" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:11px;font-weight:600">⚙️ Kafka Broker Cluster (Metadata: KRaft / ZooKeeper)</text>
+          <text x="280" y="293" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Partition leader election, replication factor, broker health</text>
+
+          <!-- Key insight -->
+          <rect x="460" y="255" width="250" height="75" rx="8" style="fill:rgba(255,107,53,.04);stroke:rgba(255,107,53,.2);stroke-width:1"/>
+          <text x="585" y="276" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#ff6b35;font-size:11px;font-weight:600">🔑 Key Insight</text>
+          <text x="585" y="294" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Messages NOT deleted on consume.</text>
+          <text x="585" y="310" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Consumer tracks its own offset.</text>
+          <text x="585" y="325" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">Replay by resetting offset to 0.</text>
+        </svg>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔑 Kafka vs Traditional Queue — The Fundamental Difference
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Traditional queue (RabbitMQ, SQS):</strong> Message is deleted once consumed. Like a to-do list — check it off and it's gone. Each message is delivered to exactly one consumer.</p>
+            <p><strong>Kafka:</strong> Messages are written to an <em>immutable log</em> and retained for days/weeks. Multiple consumer groups can all read the same messages independently. Consumers track their own position (offset) in the log. You can rewind and re-read old messages at any time.</p>
+            <p>Analogy: Traditional queue = newspaper that's thrown away after reading. Kafka = a library where the newspaper editions are kept for 7 days and anyone can read any edition at any time.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📐 How Kafka Achieves High Throughput (1M+ msg/sec)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>1. Sequential disk writes:</strong> Messages appended to partition log sequentially. Sequential I/O on modern SSDs is nearly as fast as RAM writes — 500MB/s+. Random writes (what databases do) are 100× slower.</p>
+            <p><strong>2. Zero-copy:</strong> Uses Linux <code>sendfile()</code> syscall to transfer data directly from disk to network socket, bypassing user space entirely. No CPU time spent copying bytes.</p>
+            <p><strong>3. Batching:</strong> Producers batch multiple messages together and send in one network request. Consumers fetch batches. Amortizes network overhead over many messages.</p>
+            <p><strong>4. Message compression:</strong> Batch-level compression (LZ4, Snappy, zstd) achieves 5-10× compression ratios on typical JSON messages, reducing both network and disk I/O.</p>
+            <p><strong>5. Partitioning:</strong> Horizontally parallelize by adding more partitions across more brokers. Throughput scales linearly.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🎯 Partition Keys — Ordering Guarantees
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Kafka guarantees message ordering <strong>only within a partition</strong>, not across partitions. To ensure all messages for a given entity are in order, use a <strong>partition key</strong>.</p>
+            <p>Example: All order events for orderId=123 should be processed in order. Set partition key = orderId. Kafka hashes the key and always routes it to the same partition → same consumer → sequential processing guaranteed for that order.</p>
+            <p><code>producer.send({ topic: 'orders', key: orderId.toString(), value: JSON.stringify(event) })</code></p>
+            <p>Without a key: round-robin across partitions → no ordering guarantee. Good for high-throughput events where order doesn't matter (metrics, logs).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CODE -->
+    <section class="section" id="code">
+      <div class="section-label">Implementation</div>
+      <h2>Production Code Examples</h2>
+
+      <h3>BullMQ — Node.js Job Queue (Recommended for Most Apps)</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">queue/email.queue.js — Producer + Consumer</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> { Queue, Worker, QueueEvents } = <span class="fn">require</span>(<span class="str">'bullmq'</span>);
+<span class="kw">const</span> Redis = <span class="fn">require</span>(<span class="str">'ioredis'</span>);
+
+<span class="kw">const</span> connection = <span class="kw">new</span> <span class="fn">Redis</span>({ host: <span class="str">'redis'</span>, port: <span class="num">6379</span>, maxRetriesPerRequest: <span class="kw">null</span> });
+
+<span class="cm">// ─── PRODUCER ─────────────────────────────────────────</span>
+<span class="kw">const</span> emailQueue = <span class="kw">new</span> <span class="fn">Queue</span>(<span class="str">'email'</span>, {
+  connection,
+  defaultJobOptions: {
+    attempts:     <span class="num">3</span>,           <span class="cm">// Retry up to 3 times on failure</span>
+    backoff: {
+      type:       <span class="str">'exponential'</span>,
+      delay:      <span class="num">1000</span>,        <span class="cm">// Start with 1s, then 2s, 4s</span>
+    },
+    removeOnComplete: { count: <span class="num">100</span> },  <span class="cm">// Keep last 100 completed</span>
+    removeOnFail:     { count: <span class="num">500</span> },  <span class="cm">// Keep last 500 failed (for debugging)</span>
+  }
+});
+
+<span class="cm">// Enqueue an email job</span>
+<span class="kw">async function</span> <span class="fn">sendOrderConfirmation</span>(order) {
+  <span class="kw">const</span> job = <span class="kw">await</span> emailQueue.<span class="fn">add</span>(
+    <span class="str">'order-confirmation'</span>,  <span class="cm">// Job name (for routing)</span>
+    {                        <span class="cm">// Job payload</span>
+      to:       order.userEmail,
+      orderId:  order.id,
+      items:    order.items,
+      total:    order.total,
+    },
+    {
+      jobId:    <span class="str">`order-confirm-${order.id}`</span>,  <span class="cm">// Deduplication key</span>
+      priority: order.isPriority ? <span class="num">1</span> : <span class="num">10</span>,  <span class="cm">// Lower = higher priority</span>
+      delay:    <span class="num">0</span>,                           <span class="cm">// Process immediately</span>
+    }
+  );
+  console.<span class="fn">log</span>(<span class="str">`Email job queued: ${job.id}`</span>);
+  <span class="kw">return</span> job;
+}
+
+<span class="cm">// Schedule a delayed job (send 24hr reminder)</span>
+<span class="kw">async function</span> <span class="fn">scheduleAbandonedCartEmail</span>(userId, cartId) {
+  <span class="kw">await</span> emailQueue.<span class="fn">add</span>(
+    <span class="str">'abandoned-cart'</span>,
+    { userId, cartId },
+    {
+      delay:  <span class="num">24</span> * <span class="num">60</span> * <span class="num">60</span> * <span class="num">1000</span>,  <span class="cm">// 24 hours in ms</span>
+      jobId:  <span class="str">`abandoned-${cartId}`</span>,    <span class="cm">// Prevents duplicate schedules</span>
+    }
+  );
+}
+
+<span class="cm">// ─── CONSUMER (Worker) ─────────────────────────────────</span>
+<span class="kw">const</span> emailWorker = <span class="kw">new</span> <span class="fn">Worker</span>(
+  <span class="str">'email'</span>,
+  <span class="kw">async</span> (job) => {
+    console.<span class="fn">log</span>(<span class="str">`Processing job ${job.id}: ${job.name}`</span>);
+
+    <span class="kw">if</span> (job.name === <span class="str">'order-confirmation'</span>) {
+      <span class="kw">const</span> { to, orderId, items, total } = job.data;
+
+      <span class="cm">// Idempotency check — don't send twice</span>
+      <span class="kw">const</span> alreadySent = <span class="kw">await</span> redis.<span class="fn">get</span>(<span class="str">`email-sent:order:${orderId}`</span>);
+      <span class="kw">if</span> (alreadySent) {
+        console.<span class="fn">log</span>(<span class="str">`Email already sent for order ${orderId}, skipping`</span>);
+        <span class="kw">return</span> { skipped: <span class="kw">true</span> };
+      }
+
+      <span class="cm">// Actually send the email</span>
+      <span class="kw">await</span> emailService.<span class="fn">send</span>({ to, subject: <span class="str">`Order #${orderId} confirmed`</span>, items, total });
+
+      <span class="cm">// Mark as sent (idempotency record, expires in 7 days)</span>
+      <span class="kw">await</span> redis.<span class="fn">setex</span>(<span class="str">`email-sent:order:${orderId}`</span>, <span class="num">604800</span>, <span class="str">'1'</span>);
+      <span class="kw">return</span> { sent: <span class="kw">true</span>, to };
+    }
+
+    <span class="kw">if</span> (job.name === <span class="str">'abandoned-cart'</span>) {
+      <span class="cm">// Check if cart was purchased (don't spam buyers!)</span>
+      <span class="kw">const</span> cart = <span class="kw">await</span> db.<span class="fn">getCart</span>(job.data.cartId);
+      <span class="kw">if</span> (cart?.purchased) <span class="kw">return</span> { skipped: <span class="str">'cart purchased'</span> };
+      <span class="kw">await</span> emailService.<span class="fn">sendAbandonedCart</span>(job.data);
+    }
+  },
+  {
+    connection,
+    concurrency:   <span class="num">10</span>,   <span class="cm">// Process 10 jobs simultaneously</span>
+    limiter: { max: <span class="num">100</span>, duration: <span class="num">60000</span> },  <span class="cm">// 100 jobs/min rate limit</span>
+  }
+);
+
+<span class="cm">// Worker event listeners</span>
+emailWorker.on(<span class="str">'completed'</span>, (job, result) =>
+  console.<span class="fn">log</span>(<span class="str">`✅ Job ${job.id} done:`, result));
+
+emailWorker.on(<span class="str">'failed'</span>, (job, err) =>
+  console.<span class="fn">error</span>(<span class="str">`❌ Job ${job?.id} failed (attempt ${job?.attemptsMade}):`, err.message));
+
+<span class="cm">// ─── DEAD LETTER QUEUE ─────────────────────────────────</span>
+<span class="cm">// BullMQ auto-moves to failed state after maxAttempts</span>
+<span class="cm">// Monitor and replay via Bull Board dashboard</span></code></pre>
+      </div>
+
+      <h3>Kafka Producer + Consumer (Node.js)</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">kafka/order-events.js — KafkaJS producer & consumer</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> { Kafka, Partitioners } = <span class="fn">require</span>(<span class="str">'kafkajs'</span>);
+
+<span class="kw">const</span> kafka = <span class="kw">new</span> <span class="fn">Kafka</span>({
+  clientId: <span class="str">'order-service'</span>,
+  brokers:  [<span class="str">'kafka-1:9092'</span>, <span class="str">'kafka-2:9092'</span>, <span class="str">'kafka-3:9092'</span>],
+  retry: { initialRetryTime: <span class="num">300</span>, retries: <span class="num">8</span> },
+});
+
+<span class="cm">// ─── PRODUCER ─────────────────────────────────────────</span>
+<span class="kw">const</span> producer = kafka.<span class="fn">producer</span>({
+  createPartitioner: Partitioners.<span class="val">DefaultPartitioner</span>,
+  <span class="cm">// Idempotent: prevents duplicate messages on retry</span>
+  idempotent: <span class="kw">true</span>,
+  <span class="cm">// transactionTimeout: 30000, // For exactly-once semantics</span>
+});
+
+<span class="kw">await</span> producer.<span class="fn">connect</span>();
+
+<span class="kw">async function</span> <span class="fn">publishOrderEvent</span>(eventType, orderData) {
+  <span class="kw">await</span> producer.<span class="fn">send</span>({
+    topic: <span class="str">'order-events'</span>,
+    messages: [{
+      <span class="cm">// Partition key: same orderId always goes to same partition</span>
+      <span class="cm">// This guarantees in-order processing for one order</span>
+      key:   orderData.orderId,
+      value: <span class="fn">JSON</span>.<span class="fn">stringify</span>({
+        eventType,
+        orderId:   orderData.orderId,
+        userId:    orderData.userId,
+        payload:   orderData,
+        timestamp: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>(),
+        version:   <span class="str">'1.0'</span>,
+      }),
+      <span class="cm">// Headers for routing/filtering without deserializing</span>
+      headers: {
+        eventType: Buffer.<span class="fn">from</span>(eventType),
+        source:    Buffer.<span class="fn">from</span>(<span class="str">'order-service'</span>),
+      }
+    }],
+  });
+}
+
+<span class="cm">// Usage</span>
+<span class="kw">await</span> <span class="fn">publishOrderEvent</span>(<span class="str">'ORDER_CREATED'</span>, { orderId: <span class="str">'ord_123'</span>, userId: <span class="str">'usr_456'</span>, total: <span class="num">99.99</span> });
+<span class="kw">await</span> <span class="fn">publishOrderEvent</span>(<span class="str">'ORDER_PAID'</span>,    { orderId: <span class="str">'ord_123'</span>, paymentId: <span class="str">'pay_789'</span> });
+
+<span class="cm">// ─── CONSUMER ─────────────────────────────────────────</span>
+<span class="kw">const</span> consumer = kafka.<span class="fn">consumer</span>({
+  groupId: <span class="str">'payment-service'</span>,  <span class="cm">// All instances share work</span>
+});
+
+<span class="kw">await</span> consumer.<span class="fn">connect</span>();
+<span class="kw">await</span> consumer.<span class="fn">subscribe</span>({ topic: <span class="str">'order-events'</span>, fromBeginning: <span class="kw">false</span> });
+
+<span class="kw">await</span> consumer.<span class="fn">run</span>({
+  <span class="cm">// eachBatch: for high-throughput batch processing</span>
+  eachMessage: <span class="kw">async</span> ({ topic, partition, message }) => {
+    <span class="kw">const</span> event = <span class="fn">JSON</span>.<span class="fn">parse</span>(message.value.toString());
+    console.<span class="fn">log</span>(<span class="str">`[P${partition}] offset:${message.offset} type:${event.eventType}`</span>);
+
+    <span class="kw">try</span> {
+      <span class="kw">switch</span> (event.eventType) {
+        <span class="kw">case</span> <span class="str">'ORDER_CREATED'</span>:
+          <span class="kw">await</span> paymentService.<span class="fn">initiatePayment</span>(event.payload);
+          <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="str">'ORDER_PAID'</span>:
+          <span class="kw">await</span> shippingService.<span class="fn">scheduleShipment</span>(event.payload);
+          <span class="kw">break</span>;
+      }
+      <span class="cm">// Offset committed automatically after eachMessage resolves</span>
+    } <span class="kw">catch</span> (err) {
+      <span class="cm">// Don't throw — it would pause the entire partition</span>
+      <span class="cm">// Instead, send to DLQ for manual inspection</span>
+      <span class="kw">await</span> <span class="fn">publishOrderEvent</span>(<span class="str">'ORDER_PROCESSING_FAILED'</span>, {
+        originalEvent: event, error: err.message, partition, offset: message.offset
+      });
+    }
+  },
+});</code></pre>
+      </div>
+
+      <h3>RabbitMQ with Node.js</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">rabbitmq/consumer.js — with DLQ and manual ACK</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> amqp = <span class="fn">require</span>(<span class="str">'amqplib'</span>);
+
+<span class="kw">async function</span> <span class="fn">startConsumer</span>() {
+  <span class="kw">const</span> conn    = <span class="kw">await</span> amqp.<span class="fn">connect</span>(<span class="str">'amqp://user:pass@rabbitmq:5672'</span>);
+  <span class="kw">const</span> channel = <span class="kw">await</span> conn.<span class="fn">createChannel</span>();
+
+  <span class="kw">const</span> QUEUE     = <span class="str">'order.processing'</span>;
+  <span class="kw">const</span> DLQ       = <span class="str">'order.processing.dlq'</span>;
+  <span class="kw">const</span> EXCHANGE  = <span class="str">'orders'</span>;
+
+  <span class="cm">// Declare Dead Letter Queue first</span>
+  <span class="kw">await</span> channel.<span class="fn">assertQueue</span>(DLQ, { durable: <span class="kw">true</span> });
+
+  <span class="cm">// Declare main queue with DLQ routing</span>
+  <span class="kw">await</span> channel.<span class="fn">assertQueue</span>(QUEUE, {
+    durable: <span class="kw">true</span>,
+    arguments: {
+      <span class="str">'x-dead-letter-exchange'</span>:    <span class="str">''</span>,       <span class="cm">// Default exchange</span>
+      <span class="str">'x-dead-letter-routing-key'</span>: DLQ,      <span class="cm">// Route failed to DLQ</span>
+      <span class="str">'x-message-ttl'</span>:             <span class="num">86400000</span>, <span class="cm">// 24h message TTL</span>
+      <span class="str">'x-max-retries'</span>:             <span class="num">3</span>,         <span class="cm">// Custom header tracking</span>
+    }
+  });
+
+  <span class="cm">// prefetch: process one message at a time per consumer</span>
+  <span class="cm">// prevents overloading slow consumers</span>
+  channel.<span class="fn">prefetch</span>(<span class="num">10</span>);
+
+  console.<span class="fn">log</span>(<span class="str">'👂 Listening for messages...'</span>);
+
+  channel.<span class="fn">consume</span>(QUEUE, <span class="kw">async</span> (msg) => {
+    <span class="kw">if</span> (!msg) <span class="kw">return</span>;
+
+    <span class="kw">let</span> retryCount = msg.properties.headers[<span class="str">'x-retry-count'</span>] || <span class="num">0</span>;
+
+    <span class="kw">try</span> {
+      <span class="kw">const</span> event = <span class="fn">JSON</span>.<span class="fn">parse</span>(msg.content.toString());
+      <span class="kw">await</span> <span class="fn">processOrder</span>(event);
+
+      <span class="cm">// ✅ ACK: message successfully processed, remove from queue</span>
+      channel.<span class="fn">ack</span>(msg);
+    } <span class="kw">catch</span> (err) {
+      console.<span class="fn">error</span>(<span class="str">`Processing failed (attempt ${retryCount + 1}):`, err.message);
+
+      <span class="kw">if</span> (retryCount < <span class="num">3</span>) {
+        <span class="cm">// NACK + requeue with incremented retry count</span>
+        channel.<span class="fn">nack</span>(msg, <span class="kw">false</span>, <span class="kw">false</span>); <span class="cm">// false = don't requeue (goes to DLQ)</span>
+        <span class="cm">// Re-publish with retry count header</span>
+        channel.<span class="fn">sendToQueue</span>(QUEUE, msg.content, {
+          headers: { <span class="str">'x-retry-count'</span>: retryCount + <span class="num">1</span> },
+          persistent: <span class="kw">true</span>,
+          expiration: String(<span class="num">5000</span> * Math.<span class="fn">pow</span>(<span class="num">2</span>, retryCount)), <span class="cm">// Exp backoff</span>
+        });
+      } <span class="kw">else</span> {
+        <span class="cm">// ❌ NACK without requeue → goes to Dead Letter Queue</span>
+        console.<span class="fn">error</span>(<span class="str">`Moving to DLQ after 3 failures: ${msg.properties.messageId}`</span>);
+        channel.<span class="fn">nack</span>(msg, <span class="kw">false</span>, <span class="kw">false</span>);
+      }
+    }
+  }, { noAck: <span class="kw">false</span> }); <span class="cm">// Manual ACK mode — critical!</span>
+}</code></pre>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- PATTERNS -->
+    <section class="section" id="patterns">
+      <div class="section-label">Architecture Patterns</div>
+      <h2>Common Message Queue Patterns</h2>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📢 Fan-Out — One Message, Many Consumers
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>One message is delivered to <strong>multiple independent consumers</strong>. RabbitMQ Fanout Exchange, Kafka consumer groups reading the same topic, AWS SNS → multiple SQS queues.</p>
+            <p>Example: <code>user.registered</code> event → Email Service sends welcome email, Analytics Service tracks signup, Onboarding Service creates tutorial, CRM Service adds contact. All triggered by one event simultaneously.</p>
+            <p>In Kafka: all consumer groups reading the same topic each get every message independently. No need to duplicate messages — just add a new consumer group.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔄 Competing Consumers — Parallel Processing
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Multiple worker instances compete to process messages from one queue. Each message is delivered to exactly one worker. Used to <strong>scale throughput horizontally</strong>.</p>
+            <p>Example: Image processing queue with 10 worker instances. A 1000-image upload creates 1000 messages. 10 workers each pick up ~100 images and process in parallel. Total time: 1/10th of single-worker processing.</p>
+            <p>In BullMQ: <code>new Worker('image-processing', processor, { concurrency: 10 })</code> — 10 concurrent jobs per worker instance. Run 5 instances → 50 concurrent jobs.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📬 Request-Reply (RPC over Queue)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Implement synchronous-style RPC using async queues. Caller sends a message with a <code>correlationId</code> and <code>replyTo</code> queue name. Worker processes and publishes result to the reply queue. Caller awaits on reply queue filtering by <code>correlationId</code>.</p>
+            <p>Used when you need a response but want the benefits of queue decoupling (retries, routing, load balancing).</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📦 Outbox Pattern — Transactional Message Publishing
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The hardest problem: how do you atomically update your database AND publish a message? If the DB update succeeds but queue publish fails (network error), your data is inconsistent.</p>
+            <p><strong>Outbox Pattern:</strong> Write the message to an <code>outbox</code> table in the same DB transaction as your business data. A separate background process (or change data capture with Debezium) reads unprocessed outbox records and publishes them to the queue. If publishing fails, it retries. The outbox record is never deleted until confirmed published.</p>
+            <p>This guarantees: if the DB write succeeds, the message will <em>eventually</em> be published — no silent failures.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPANIES -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Use Message Queues</h2>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">🎬 Netflix <span class="company-tech">Kafka</span></div>
+          <div class="company-desc">Netflix processes <strong>700 billion messages per day</strong> through Kafka. Used for real-time recommendations (viewing events → Kafka → ML pipeline → recommendations), billing, monitoring, and video encoding pipelines. Their Kafka cluster handles 30M+ messages/sec during peak. They also built <strong>Mantis</strong> for real-time stream processing on top of Kafka.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛒 Uber <span class="company-tech">Kafka + Cherami</span></div>
+          <div class="company-desc">Uber publishes driver location updates every second for 5M+ active drivers → Kafka → real-time tracking. Built <strong>Cherami</strong> (their own durable task queue) for long-running background tasks. Use Kafka for event sourcing their surge pricing model — replay events to test pricing algorithm changes without impacting production.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🔗 LinkedIn <span class="company-tech">Kafka (invented it)</span></div>
+          <div class="company-desc">LinkedIn <strong>created Kafka</strong> in 2011 to handle activity streams (profile views, connection requests, job applications). Today they process 7 trillion messages per day across 10,000+ Kafka brokers. Every LinkedIn notification, feed update, and analytics event flows through Kafka.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">📱 WhatsApp <span class="company-tech">RabbitMQ</span></div>
+          <div class="company-desc">WhatsApp built their message queuing on <strong>Erlang + RabbitMQ</strong> to handle message delivery for 2 billion users. Their architecture: message arrives → published to user's queue → delivered to device → ACKed → deleted. RabbitMQ's Erlang foundation gives them lightweight processes (millions of queues) and built-in fault tolerance.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛍️ Shopify <span class="company-tech">Kafka + Resque</span></div>
+          <div class="company-desc">Shopify uses Kafka for real-time event streaming (checkout events, inventory updates) and Redis-backed Resque for background job processing (email, reports, webhooks). During Black Friday, their message queue acts as the buffer that absorbs the traffic spike — queues fill up during the rush and workers drain them steadily over hours.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">✈️ Airbnb <span class="company-tech">Kafka + SQS</span></div>
+          <div class="company-desc">Airbnb uses Kafka for their data pipeline (user actions → Kafka → data warehouse → analytics) and SQS for task queues. After a booking, SQS queues trigger: host notification, calendar block, payment capture, dynamic pricing update. Each runs independently with its own retry logic, so a payment delay doesn't block the notification.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRADEOFFS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>Advantages, Disadvantages & When NOT to Use</h2>
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">✅ Advantages</div>
+          <ul class="check-list">
+            <li>Decouples services — independent deployability</li>
+            <li>Absorbs traffic spikes via natural buffering</li>
+            <li>Enables horizontal scaling of consumers independently</li>
+            <li>Guaranteed delivery with retry and DLQ support</li>
+            <li>Async processing improves user-facing response time</li>
+            <li>Fan-out: one event triggers many downstream effects</li>
+            <li>Replay historical events (Kafka) for debugging/migration</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">❌ Disadvantages</div>
+          <ul class="check-list">
+            <li>Adds operational complexity — another system to run/monitor</li>
+            <li>Eventual consistency — downstream effects aren't immediate</li>
+            <li>Harder to debug (trace a request across async hops)</li>
+            <li>Duplicate message handling (idempotency) is your responsibility</li>
+            <li>Message ordering is hard to guarantee at scale</li>
+            <li>Queue depth monitoring essential (silent backlogs)</li>
+            <li>Overkill for simple, low-traffic applications</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>When NOT to Use a Message Queue</h3>
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--danger)">
+          <div class="card-icon">🚫</div>
+          <div class="card-title">You Need Immediate Results</div>
+          <div class="card-text">If a user submits a form and needs to see the result instantly (search results, login, checkout total) — use synchronous calls. Queues are for work that can happen in the background.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--warn)">
+          <div class="card-icon">🔢</div>
+          <div class="card-title">Simple Low-Traffic App</div>
+          <div class="card-text">If you're processing &lt;100 events/minute, a cron job or simple DB-backed task table is cheaper and simpler. Don't add Kafka for a 100-user app — operational overhead isn't worth it.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent4)">
+          <div class="card-icon">💰</div>
+          <div class="card-title">Strong Consistency Required</div>
+          <div class="card-text">If you need "process payment AND confirm stock in the same transaction" — that's a distributed transaction. A queue makes this harder. Use a saga pattern or consider keeping it in one service.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Common Mistake:</strong> Queuing everything "just in case" creates a distributed monolith — all the complexity of microservices with none of the benefits. Only use async queues when the work is genuinely separable from the request lifecycle and eventual consistency is acceptable.</div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the difference between a Message Queue and a Message Broker? Between RabbitMQ and Kafka?</div>
+          <div class="interview-a">A Message Queue is a simple first-in, first-out buffer — producer adds, consumer takes. A Message Broker is a more capable system that routes messages, supports multiple patterns (topics, exchanges, fan-out), and manages delivery guarantees. RabbitMQ is a message broker; SQS is a managed queue. RabbitMQ vs Kafka: RabbitMQ is a traditional push-based broker — great for task queues, routing, RPC. Messages are deleted once consumed. Kafka is a pull-based distributed log — messages persist for days/weeks, multiple consumers can independently read the same messages, designed for event streaming and high throughput. Use RabbitMQ when you need complex routing, RPC patterns, or traditional task queues. Use Kafka when you need event streaming, log replay, multiple independent consumers reading the same events, or high throughput (millions/sec).</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How do you ensure a message is processed exactly once?</div>
+          <div class="interview-a">True exactly-once is extremely hard in distributed systems. The practical approach is at-least-once delivery + idempotent consumers (effectively exactly-once). For at-least-once: consumer ACKs only after successful processing. Queue re-delivers on timeout. For idempotency: each message has a unique ID. Before processing, check if that ID exists in a "processed messages" table/Redis set. If yes, skip. If no, process and record the ID atomically. For true exactly-once in Kafka: use transactional producers (idempotent=true) + exactly-once semantics (enable.idempotence=true). Consumer commits its Kafka offset in the same database transaction as the business operation — atomic commit means both happen or neither does. This is expensive but guarantees exactly-once.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Design an order processing system using message queues.</div>
+          <div class="interview-a">User places order → Order Service saves to DB and publishes ORDER_CREATED event to Kafka (key=orderId for ordering). Consumer groups: (1) Payment Service subscribes → charges card → publishes PAYMENT_SUCCESS or PAYMENT_FAILED. (2) Inventory Service subscribes → reserves stock → publishes STOCK_RESERVED or STOCK_UNAVAILABLE. (3) Email Service subscribes to ORDER_CREATED → sends confirmation email via BullMQ job (email is background work). On PAYMENT_SUCCESS + STOCK_RESERVED → Shipping Service publishes SHIPMENT_SCHEDULED. On failure events → Saga orchestrator publishes compensating events (refund payment, release stock). Use the Outbox Pattern for atomically saving order to DB and publishing event. DLQ catches any processing failures for manual review. Monitor queue depth + consumer lag as key health metrics.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the Outbox Pattern and why is it important?</div>
+          <div class="interview-a">The Outbox Pattern solves the dual-write problem: you need to atomically update your DB and publish a message. If you do them separately, the DB might succeed and the queue publish might fail (network error), leaving inconsistent state. Solution: Write the event to an "outbox" table in the SAME database transaction as the business data. A separate process (poller or CDC tool like Debezium) reads unprocessed outbox records and publishes them to the message broker, marking them as sent only when publish is confirmed. This guarantees at-least-once delivery — if the publish fails, the record stays in outbox and is retried. No dual-write inconsistency possible. This is how Stripe, Shopify, and most production financial systems handle event publishing.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How does Kafka guarantee message ordering?</div>
+          <div class="interview-a">Kafka guarantees ordering only within a partition. All messages with the same partition key go to the same partition, processed by one consumer at a time. To ensure orderly processing for an entity (e.g., order events), use orderId as the partition key — all events for that order are in sequence. Cross-partition ordering is NOT guaranteed. If a consumer crashes mid-partition, after restart it re-reads from last committed offset — messages are replayed in original order (but potentially reprocessed, so idempotency still needed). Increasing partition count is great for throughput but can break per-key ordering if done incorrectly (partitions reassigned). Solution: pre-provision enough partitions (cannot be reduced later) and never repartition live data.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Message queues decouple producer from consumer — they run independently, scale independently, fail independently</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Delivery guarantees: at-most-once (lose data), at-least-once (duplicates), exactly-once (hard) — use at-least-once + idempotency</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Dead Letter Queue: failed messages go here instead of being lost — inspect, debug, and replay</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> RabbitMQ: push-based, routing, task queues. Kafka: pull-based log, retention, replay, high throughput</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Kafka ordering: per-partition only — use partition keys to co-locate related events</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Patterns: Fan-out, Competing consumers, Request-Reply, Outbox Pattern</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Outbox Pattern: solves the dual-write problem — atomically write event to DB, then publish from outbox</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Don't overuse: low-traffic apps, immediate-result needs, and strong-consistency scenarios don't need queues</li>
+        </ul>
+      </div>
+    </section>
+
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 06</div>
+        <div class="next-name">Microservices</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<!-- TOC -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#why" class="toc-link">Why It Exists</a></li>
+      <li class="toc-item"><a href="#concepts" class="toc-link">Core Concepts</a></li>
+      <li class="toc-item"><a href="#tools" class="toc-link">Tool Comparison</a></li>
+      <li class="toc-item"><a href="#kafka" class="toc-link">Kafka Deep Dive</a></li>
+      <li class="toc-item"><a href="#code" class="toc-link">Implementation</a></li>
+      <li class="toc-item"><a href="#patterns" class="toc-link">Patterns</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{const e=document.getElementById('progressBar');e.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%'});
+const sections=document.querySelectorAll('section[id]'),tocLinks=document.querySelectorAll('.toc-link');
+const obs=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.25});
+sections.forEach(s=>obs.observe(s));
+function switchTab(id,btn){const p=btn.closest('.tabs');p.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));p.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');p.querySelector('#tab-'+id).classList.add('active')}
+function toggleAccordion(btn){const item=btn.closest('.accordion-item'),isOpen=item.classList.contains('open');btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open')}
+function toggleInterview(item){item.classList.toggle('open')}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+const obs2=new IntersectionObserver(e=>{e.forEach(c=>{if(c.isIntersecting){c.target.style.opacity='0';c.target.style.transform='translateY(14px)';setTimeout(()=>{c.target.style.transition='opacity .4s ease,transform .4s ease';c.target.style.opacity='1';c.target.style.transform='none'},60);obs2.unobserve(c.target)}})},{threshold:.08});
+document.querySelectorAll('.info-card,.company-card,.mq-card').forEach(c=>obs2.observe(c));
+</script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 23 — Java 8+ Features</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #064e3b 0%, #059669 60%, #34d399 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #059669; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #064e3b; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #059669; padding-bottom: 12px; }
+  .section-num { background: #059669; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #064e3b; }
+  h3 { font-size: 1.05rem; color: #059669; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #ecfdf5; border-left: 4px solid #059669; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  .an  { color: #f9a8d4; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #064e3b; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #ecfdf5; }
+  tr:hover { background: #d1fae5; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #064e3b; margin-top: 0; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #059669; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 23 OF 26</div>
+  <h1>🚀 Java 8+ Features</h1>
+  <p>Lambda · Stream API · Optional · Method References · Date/Time API · var</p>
+  <div class="meta">
+    <span>Phase 5 — Advanced</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#lambda">Lambda Expressions</a></li>
+    <li><a href="#functional">Functional Interfaces</a></li>
+    <li><a href="#methodref">Method References</a></li>
+    <li><a href="#stream">Stream API</a></li>
+    <li><a href="#optional">Optional</a></li>
+    <li><a href="#datetime">New Date/Time API</a></li>
+    <li><a href="#default">Default & Static Interface Methods</a></li>
+    <li><a href="#var">var keyword (Java 10)</a></li>
+    <li><a href="#records">Records (Java 16)</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: LAMBDA -->
+<div class="section" id="lambda">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Lambda Expressions (Java 8)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Lambda</strong> = a short, anonymous function. It is the implementation of a <strong>functional interface</strong>. Eliminates the need for verbose anonymous class syntax.<br>
+    <strong>Syntax:</strong> <code>(parameters) -> expression</code> or <code>(parameters) -> { body }</code>
+  </div>
+
+<pre><span class="cm">// Before Java 8 — anonymous class (verbose)</span>
+<span class="cl">Runnable</span> r1 = <span class="kw">new</span> <span class="cl">Runnable</span>() {
+    <span class="kw">public void</span> run() {
+        System.out.println(<span class="st">"Running..."</span>);
+    }
+};
+
+<span class="cm">// Java 8+ — lambda (concise)</span>
+<span class="cl">Runnable</span> r2 = () -> System.out.println(<span class="st">"Running..."</span>);
+
+<span class="cm">// Lambda syntax variations</span>
+<span class="cm">// No params</span>
+<span class="cl">Runnable</span>   run    = () -> System.out.println(<span class="st">"Hi"</span>);
+
+<span class="cm">// One param — parentheses optional</span>
+<span class="cl">Consumer</span>&lt;<span class="cl">String</span>&gt;  print  = s -> System.out.println(s);
+<span class="cl">Consumer</span>&lt;<span class="cl">String</span>&gt;  print2 = (s) -> System.out.println(s);  <span class="cm">// same</span>
+
+<span class="cm">// Two params</span>
+<span class="cl">Comparator</span>&lt;<span class="cl">Integer</span>&gt; comp = (a, b) -> a - b;
+
+<span class="cm">// Multi-line body — use braces and return</span>
+<span class="cl">Comparator</span>&lt;<span class="cl">String</span>&gt; byLen = (a, b) -> {
+    <span class="kw">if</span> (a.length() != b.length()) <span class="kw">return</span> a.length() - b.length();
+    <span class="kw">return</span> a.compareTo(b);
+};
+
+<span class="cm">// Lambda with collections — very common!</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; names = <span class="cl">Arrays</span>.asList(<span class="st">"Charlie"</span>, <span class="st">"Alice"</span>, <span class="st">"Bob"</span>);
+names.sort((a, b) -> a.compareTo(b));          <span class="cm">// sort alphabetically</span>
+names.forEach(name -> System.out.println(name)); <span class="cm">// print each</span></pre>
+</div>
+
+
+<!-- SECTION 2: FUNCTIONAL INTERFACES -->
+<div class="section" id="functional">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Functional Interfaces (java.util.function)</div>
+  </div>
+
+  <table>
+    <tr><th>Interface</th><th>Method</th><th>Input → Output</th><th>Lambda Example</th></tr>
+    <tr><td><code>Predicate&lt;T&gt;</code></td><td><code>test(T)</code></td><td>T → boolean</td><td><code>x -> x > 0</code></td></tr>
+    <tr><td><code>Function&lt;T,R&gt;</code></td><td><code>apply(T)</code></td><td>T → R</td><td><code>s -> s.length()</code></td></tr>
+    <tr><td><code>Consumer&lt;T&gt;</code></td><td><code>accept(T)</code></td><td>T → void</td><td><code>x -> System.out.println(x)</code></td></tr>
+    <tr><td><code>Supplier&lt;T&gt;</code></td><td><code>get()</code></td><td>nothing → T</td><td><code>() -> "Hello"</code></td></tr>
+    <tr><td><code>BiFunction&lt;T,U,R&gt;</code></td><td><code>apply(T,U)</code></td><td>T,U → R</td><td><code>(a,b) -> a+b</code></td></tr>
+    <tr><td><code>BiPredicate&lt;T,U&gt;</code></td><td><code>test(T,U)</code></td><td>T,U → boolean</td><td><code>(a,b) -> a > b</code></td></tr>
+    <tr><td><code>UnaryOperator&lt;T&gt;</code></td><td><code>apply(T)</code></td><td>T → T</td><td><code>x -> x * 2</code></td></tr>
+    <tr><td><code>BinaryOperator&lt;T&gt;</code></td><td><code>apply(T,T)</code></td><td>T,T → T</td><td><code>(a,b) -> a+b</code></td></tr>
+  </table>
+
+<pre><span class="cl">Predicate</span>&lt;<span class="cl">Integer</span>&gt; isEven = n -> n % <span class="num">2</span> == <span class="num">0</span>;
+System.out.println(isEven.test(<span class="num">4</span>));   <span class="cm">// true</span>
+System.out.println(isEven.test(<span class="num">3</span>));   <span class="cm">// false</span>
+
+<span class="cm">// Predicate composition</span>
+<span class="cl">Predicate</span>&lt;<span class="cl">Integer</span>&gt; isPositive = n -> n &gt; <span class="num">0</span>;
+<span class="cl">Predicate</span>&lt;<span class="cl">Integer</span>&gt; isEvenAndPositive = isEven.and(isPositive);
+<span class="cl">Predicate</span>&lt;<span class="cl">Integer</span>&gt; isEvenOrPositive  = isEven.or(isPositive);
+<span class="cl">Predicate</span>&lt;<span class="cl">Integer</span>&gt; isOdd             = isEven.negate();
+
+<span class="cl">Function</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; strLen = String::length;
+<span class="cl">Function</span>&lt;<span class="cl">Integer</span>, <span class="cl">Integer</span>&gt; doubleIt = x -> x * <span class="num">2</span>;
+<span class="cm">// Function composition</span>
+<span class="cl">Function</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; lenThenDouble = strLen.andThen(doubleIt);
+System.out.println(lenThenDouble.apply(<span class="st">"Hello"</span>));  <span class="cm">// 10 (len=5, 5*2=10)</span></pre>
+</div>
+
+
+<!-- SECTION 3: METHOD REFERENCES -->
+<div class="section" id="methodref">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Method References</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Method reference</strong> = a shorthand for a lambda that just calls a single method. Syntax: <code>ClassName::methodName</code>
+  </div>
+
+  <table>
+    <tr><th>Type</th><th>Syntax</th><th>Lambda equivalent</th></tr>
+    <tr><td>Static method</td><td><code>ClassName::staticMethod</code></td><td><code>x -> ClassName.staticMethod(x)</code></td></tr>
+    <tr><td>Instance method (specific obj)</td><td><code>obj::instanceMethod</code></td><td><code>x -> obj.instanceMethod(x)</code></td></tr>
+    <tr><td>Instance method (any obj)</td><td><code>ClassName::instanceMethod</code></td><td><code>x -> x.instanceMethod()</code></td></tr>
+    <tr><td>Constructor</td><td><code>ClassName::new</code></td><td><code>args -> new ClassName(args)</code></td></tr>
+  </table>
+
+<pre><span class="cl">List</span>&lt;<span class="cl">String</span>&gt; names = <span class="cl">Arrays</span>.asList(<span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Charlie"</span>);
+
+<span class="cm">// Instance method of any object — String::toUpperCase</span>
+names.stream()
+     .map(<span class="cl">String</span>::toUpperCase)         <span class="cm">// same as s -> s.toUpperCase()</span>
+     .forEach(System.out::println);    <span class="cm">// same as s -> System.out.println(s)</span>
+
+<span class="cm">// Static method reference</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; nums = <span class="cl">Arrays</span>.asList(<span class="st">"3"</span>, <span class="st">"1"</span>, <span class="st">"2"</span>);
+nums.stream()
+    .map(<span class="cl">Integer</span>::parseInt)             <span class="cm">// static method: Integer.parseInt(s)</span>
+    .sorted()
+    .forEach(System.out::println);
+
+<span class="cm">// Constructor reference</span>
+<span class="cl">Supplier</span>&lt;<span class="cl">ArrayList</span>&gt; listFactory = <span class="cl">ArrayList</span>::<span class="kw">new</span>;
+<span class="cl">ArrayList</span> newList = listFactory.get();</pre>
+</div>
+
+
+<!-- SECTION 4: STREAM API -->
+<div class="section" id="stream">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Stream API (Java 8)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Stream</strong> = a pipeline for processing collections of data in a functional style. Streams are lazy — intermediate operations are not executed until a terminal operation is called. Streams do NOT modify the original collection.
+  </div>
+
+  <h3>Stream Pipeline</h3>
+  <p style="text-align:center; font-weight:600; color:#059669; margin:10px 0;">
+    Source → Intermediate Operations (lazy) → Terminal Operation (triggers execution)
+  </p>
+
+<pre><span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; numbers = <span class="cl">Arrays</span>.asList(<span class="num">5</span>, <span class="num">3</span>, <span class="num">8</span>, <span class="num">1</span>, <span class="num">9</span>, <span class="num">2</span>, <span class="num">7</span>, <span class="num">4</span>, <span class="num">6</span>);
+
+<span class="cm">// Classic example pipeline</span>
+<span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; result = numbers.stream()
+    .filter(n -> n &gt; <span class="num">3</span>)          <span class="cm">// keep: 5,8,9,7,4,6</span>
+    .sorted()                      <span class="cm">// sort: 4,5,6,7,8,9</span>
+    .limit(<span class="num">4</span>)                     <span class="cm">// take first 4: 4,5,6,7</span>
+    .collect(<span class="cl">Collectors</span>.toList()); <span class="cm">// terminal — collect to list</span>
+System.out.println(result);  <span class="cm">// [4, 5, 6, 7]</span></pre>
+
+  <h3>Intermediate Operations (return Stream — lazy)</h3>
+<pre><span class="cl">List</span>&lt;<span class="cl">String</span>&gt; names = <span class="cl">Arrays</span>.asList(<span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Charlie"</span>, <span class="st">"Alice"</span>, <span class="st">"Dave"</span>);
+
+names.stream().filter(s -> s.length() &gt; <span class="num">3</span>);       <span class="cm">// filter elements</span>
+names.stream().map(<span class="cl">String</span>::toUpperCase);           <span class="cm">// transform each element</span>
+names.stream().sorted();                             <span class="cm">// natural sort</span>
+names.stream().sorted(<span class="cl">Comparator</span>.reverseOrder());  <span class="cm">// custom sort</span>
+names.stream().distinct();                           <span class="cm">// remove duplicates</span>
+names.stream().limit(<span class="num">3</span>);                            <span class="cm">// take first 3</span>
+names.stream().skip(<span class="num">2</span>);                             <span class="cm">// skip first 2</span>
+names.stream().peek(System.out::println);            <span class="cm">// debug — doesn't consume</span>
+names.stream().flatMap(s -> <span class="cl">Arrays</span>.stream(s.split(<span class="st">""</span>))); <span class="cm">// flatten nested</span></pre>
+
+  <h3>Terminal Operations (trigger execution)</h3>
+<pre><span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; nums = <span class="cl">Arrays</span>.asList(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>);
+
+<span class="cm">// Collect to collections</span>
+<span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; list    = nums.stream().collect(<span class="cl">Collectors</span>.toList());
+<span class="cl">Set</span>&lt;<span class="cl">Integer</span>&gt;  set     = nums.stream().collect(<span class="cl">Collectors</span>.toSet());
+<span class="cl">String</span>       joined  = <span class="cl">Arrays</span>.asList(<span class="st">"a"</span>,<span class="st">"b"</span>,<span class="st">"c"</span>).stream()
+                           .collect(<span class="cl">Collectors</span>.joining(<span class="st">", "</span>));  <span class="cm">// "a, b, c"</span>
+
+<span class="cm">// Reduce operations</span>
+<span class="kw">int</span> sum  = nums.stream().mapToInt(<span class="cl">Integer</span>::intValue).sum(); <span class="cm">// 15</span>
+<span class="kw">int</span> max  = nums.stream().mapToInt(<span class="cl">Integer</span>::intValue).max().getAsInt(); <span class="cm">// 5</span>
+<span class="kw">double</span> avg = nums.stream().mapToInt(<span class="cl">Integer</span>::intValue).average().getAsDouble(); <span class="cm">// 3.0</span>
+
+<span class="cm">// Custom reduce</span>
+<span class="kw">int</span> product = nums.stream().reduce(<span class="num">1</span>, (a, b) -> a * b); <span class="cm">// 120 (1*2*3*4*5)</span>
+
+<span class="cm">// Count, any/all/none match, findFirst/Any</span>
+<span class="kw">long</span> count    = nums.stream().filter(n -> n &gt; <span class="num">3</span>).count();  <span class="cm">// 2</span>
+<span class="kw">boolean</span> anyPos = nums.stream().anyMatch(n -> n &gt; <span class="num">4</span>);  <span class="cm">// true (5 > 4)</span>
+<span class="kw">boolean</span> allPos = nums.stream().allMatch(n -> n &gt; <span class="num">0</span>);  <span class="cm">// true</span>
+<span class="kw">boolean</span> noneNeg = nums.stream().noneMatch(n -> n &lt; <span class="num">0</span>); <span class="cm">// true</span>
+<span class="cl">Optional</span>&lt;<span class="cl">Integer</span>&gt; first = nums.stream().findFirst();    <span class="cm">// Optional[1]</span>
+
+<span class="cm">// Grouping (very powerful!)</span>
+<span class="cl">Map</span>&lt;<span class="cl">Integer</span>, <span class="cl">List</span>&lt;<span class="cl">String</span>&gt;&gt; byLength = names.stream()
+    .collect(<span class="cl">Collectors</span>.groupingBy(<span class="cl">String</span>::length));
+<span class="cm">// {3=[Bob], 4=[Dave], 5=[Alice, Alice], 7=[Charlie]}</span>
+
+<span class="cm">// Counting per group</span>
+<span class="cl">Map</span>&lt;<span class="cl">Integer</span>, <span class="cl">Long</span>&gt; countByLength = names.stream()
+    .collect(<span class="cl">Collectors</span>.groupingBy(<span class="cl">String</span>::length, <span class="cl">Collectors</span>.counting()));</pre>
+
+  <div class="tip-box">
+    <strong>💡 Parallel Streams — easy parallelism:</strong><br>
+    <code>list.parallelStream().filter(...).collect(...)</code><br>
+    Automatically uses multiple CPU cores. Good for large datasets. Not always faster — overhead for small collections.
+  </div>
+</div>
+
+
+<!-- SECTION 5: OPTIONAL -->
+<div class="section" id="optional">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Optional (Java 8)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Optional&lt;T&gt;</strong> is a container that may or may not hold a value. It is a better way to handle null — forces you to explicitly deal with the case where a value might be absent, avoiding NullPointerException.
+  </div>
+
+<pre><span class="cm">// Create Optional</span>
+<span class="cl">Optional</span>&lt;<span class="cl">String</span>&gt; present = <span class="cl">Optional</span>.of(<span class="st">"Hello"</span>);     <span class="cm">// has value</span>
+<span class="cl">Optional</span>&lt;<span class="cl">String</span>&gt; empty   = <span class="cl">Optional</span>.empty();           <span class="cm">// no value</span>
+<span class="cl">Optional</span>&lt;<span class="cl">String</span>&gt; maybe   = <span class="cl">Optional</span>.ofNullable(null);  <span class="cm">// null → empty</span>
+<span class="cl">Optional</span>&lt;<span class="cl">String</span>&gt; maybe2  = <span class="cl">Optional</span>.ofNullable(<span class="st">"Hi"</span>);  <span class="cm">// "Hi" → present</span>
+
+<span class="cm">// Check and get</span>
+present.isPresent();              <span class="cm">// true</span>
+empty.isPresent();                <span class="cm">// false</span>
+empty.isEmpty();                  <span class="cm">// true (Java 11)</span>
+present.get();                    <span class="cm">// "Hello" — throws if empty!</span>
+
+<span class="cm">// Safe access</span>
+present.orElse(<span class="st">"default"</span>);      <span class="cm">// "Hello" (has value)</span>
+empty.orElse(<span class="st">"default"</span>);         <span class="cm">// "default"</span>
+empty.orElseGet(() -> <span class="st">"computed"</span>); <span class="cm">// lazy default</span>
+empty.orElseThrow(() -> <span class="kw">new</span> <span class="cl">RuntimeException</span>(<span class="st">"No value!"</span>)); <span class="cm">// throw</span>
+
+<span class="cm">// Transform</span>
+present.map(<span class="cl">String</span>::toUpperCase);         <span class="cm">// Optional["HELLO"]</span>
+present.filter(s -> s.length() &gt; <span class="num">3</span>);      <span class="cm">// Optional["Hello"]</span>
+present.filter(s -> s.length() &gt; <span class="num">10</span>);     <span class="cm">// Optional.empty</span>
+
+<span class="cm">// ifPresent — execute only if has value</span>
+present.ifPresent(s -> System.out.println(s));  <span class="cm">// prints "Hello"</span>
+empty.ifPresent(s -> System.out.println(s));    <span class="cm">// nothing happens</span>
+
+<span class="cm">// Real use case — chain nullable calls safely</span>
+<span class="cm">// Instead of: if (user != null && user.getAddress() != null) ...</span>
+<span class="cl">Optional</span>.ofNullable(user)
+    .map(u -> u.getAddress())
+    .map(a -> a.getCity())
+    .orElse(<span class="st">"Unknown city"</span>);</pre>
+
+  <div class="warning-box">
+    <strong>⚠️ Don't use Optional as field type or method parameter — only as return type!</strong><br>
+    <code>Optional</code> is designed to be a return type for methods that might not return a value. Using it as a field wastes memory and breaks serialization.
+  </div>
+</div>
+
+
+<!-- SECTION 6: DATE TIME -->
+<div class="section" id="datetime">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">New Date/Time API (java.time — Java 8)</div>
+  </div>
+
+  <div class="highlight-box">
+    The old <code>java.util.Date</code> and <code>Calendar</code> were notoriously broken (mutable, not thread-safe, confusing). Java 8 introduced <code>java.time</code> package with immutable, thread-safe, intuitive classes.
+  </div>
+
+<pre><span class="kw">import</span> java.time.*;
+<span class="kw">import</span> java.time.format.DateTimeFormatter;
+
+<span class="cm">// LocalDate — date only (no time, no timezone)</span>
+<span class="cl">LocalDate</span> today   = <span class="cl">LocalDate</span>.now();              <span class="cm">// 2025-06-03</span>
+<span class="cl">LocalDate</span> specific = <span class="cl">LocalDate</span>.of(<span class="num">2024</span>, <span class="num">1</span>, <span class="num">15</span>);   <span class="cm">// 2024-01-15</span>
+<span class="cl">LocalDate</span> parsed  = <span class="cl">LocalDate</span>.parse(<span class="st">"2024-06-15"</span>);
+
+today.getYear();         <span class="cm">// 2025</span>
+today.getMonthValue();   <span class="cm">// 6</span>
+today.getDayOfMonth();   <span class="cm">// 3</span>
+today.getDayOfWeek();    <span class="cm">// TUESDAY</span>
+today.plusDays(<span class="num">7</span>);       <span class="cm">// 7 days from now (immutable — returns new)</span>
+today.minusMonths(<span class="num">1</span>);   <span class="cm">// 1 month ago</span>
+today.isAfter(specific); <span class="cm">// true</span>
+today.isBefore(specific);<span class="cm">// false</span>
+
+<span class="cm">// LocalTime — time only</span>
+<span class="cl">LocalTime</span> now  = <span class="cl">LocalTime</span>.now();             <span class="cm">// 14:30:00.123</span>
+<span class="cl">LocalTime</span> time = <span class="cl">LocalTime</span>.of(<span class="num">10</span>, <span class="num">30</span>, <span class="num">0</span>);    <span class="cm">// 10:30:00</span>
+time.getHour();   <span class="cm">// 10</span>
+time.getMinute(); <span class="cm">// 30</span>
+
+<span class="cm">// LocalDateTime — date + time (no timezone)</span>
+<span class="cl">LocalDateTime</span> dt = <span class="cl">LocalDateTime</span>.now();
+<span class="cl">LocalDateTime</span> dt2 = <span class="cl">LocalDateTime</span>.of(<span class="num">2024</span>, <span class="num">6</span>, <span class="num">15</span>, <span class="num">10</span>, <span class="num">30</span>);
+
+<span class="cm">// ZonedDateTime — with timezone</span>
+<span class="cl">ZonedDateTime</span> zdt = <span class="cl">ZonedDateTime</span>.now(<span class="cl">ZoneId</span>.of(<span class="st">"America/New_York"</span>));
+
+<span class="cm">// Period — date-based duration (days, months, years)</span>
+<span class="cl">Period</span> p = <span class="cl">Period</span>.between(specific, today);
+System.out.println(p.getYears() + <span class="st">" years, "</span> + p.getMonths() + <span class="st">" months"</span>);
+
+<span class="cm">// Duration — time-based duration (hours, minutes, seconds)</span>
+<span class="cl">Duration</span> d = <span class="cl">Duration</span>.between(<span class="cl">LocalTime</span>.of(<span class="num">9</span>, <span class="num">0</span>), <span class="cl">LocalTime</span>.of(<span class="num">17</span>, <span class="num">0</span>));
+System.out.println(d.toHours());  <span class="cm">// 8</span>
+
+<span class="cm">// Formatting</span>
+<span class="cl">DateTimeFormatter</span> fmt = <span class="cl">DateTimeFormatter</span>.ofPattern(<span class="st">"dd/MM/yyyy"</span>);
+System.out.println(today.format(fmt));              <span class="cm">// 03/06/2025</span>
+<span class="cl">LocalDate</span> parsed2 = <span class="cl">LocalDate</span>.parse(<span class="st">"15/06/2024"</span>, fmt);</pre>
+</div>
+
+
+<!-- SECTION 7: DEFAULT STATIC INTERFACE -->
+<div class="section" id="default">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Default & Static Interface Methods (Java 8)</div>
+  </div>
+
+<pre><span class="kw">interface</span> <span class="cl">Greeter</span> {
+    <span class="kw">void</span> greet(<span class="cl">String</span> name);  <span class="cm">// abstract</span>
+
+    <span class="cm">// Default method — has implementation</span>
+    <span class="kw">default void</span> greetLoud(<span class="cl">String</span> name) {
+        greet(name.toUpperCase());
+    }
+
+    <span class="cm">// Static method — utility</span>
+    <span class="kw">static</span> <span class="cl">Greeter</span> casual() {
+        <span class="kw">return</span> name -> System.out.println(<span class="st">"Hey, "</span> + name + <span class="st">"!"</span>);
+    }
+}
+
+<span class="cl">Greeter</span> formal = name -> System.out.println(<span class="st">"Good morning, "</span> + name);
+formal.greet(<span class="st">"Alice"</span>);       <span class="cm">// Good morning, Alice</span>
+formal.greetLoud(<span class="st">"Alice"</span>);   <span class="cm">// Good morning, ALICE</span>
+
+<span class="cl">Greeter</span> c = <span class="cl">Greeter</span>.casual();
+c.greet(<span class="st">"Bob"</span>);              <span class="cm">// Hey, Bob!</span></pre>
+
+  <div class="info-box">
+    <strong>Real examples from Java 8 stdlib:</strong><br>
+    <code>List.sort()</code> — default method on List interface<br>
+    <code>Collection.stream()</code> — default method on Collection<br>
+    <code>Map.forEach()</code> — default method on Map<br>
+    <code>Comparator.comparing()</code> — static method on Comparator
+  </div>
+</div>
+
+
+<!-- SECTION 8: VAR -->
+<div class="section" id="var">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">var keyword (Java 10)</div>
+  </div>
+
+<pre><span class="cm">// var — local variable type inference</span>
+<span class="kw">var</span> name   = <span class="st">"Alice"</span>;                  <span class="cm">// inferred: String</span>
+<span class="kw">var</span> age    = <span class="num">25</span>;                       <span class="cm">// inferred: int</span>
+<span class="kw">var</span> list   = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;<span class="cl">String</span>&gt;(); <span class="cm">// inferred: ArrayList&lt;String&gt;</span>
+<span class="kw">var</span> map    = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt;();
+
+<span class="cm">// Useful in loops</span>
+<span class="kw">for</span> (<span class="kw">var</span> entry : map.entrySet()) {
+    System.out.println(entry.getKey() + <span class="st">" = "</span> + entry.getValue());
+}
+
+<span class="cm">// var is still strongly typed — just inferred</span>
+<span class="kw">var</span> x = <span class="num">10</span>;
+<span class="cm">// x = "hello"; ❌ compile error — x is int!</span>
+
+<span class="cm">// var restrictions</span>
+<span class="cm">// var x;          ❌ must initialize</span>
+<span class="cm">// var x = null;   ❌ type unknown</span>
+<span class="cm">// var[] arr;      ❌ no var arrays</span>
+<span class="cm">// Only for local variables inside methods</span></pre>
+</div>
+
+
+<!-- SECTION 9: RECORDS -->
+<div class="section" id="records">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Records (Java 16)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Records</strong> are immutable data classes. Java auto-generates constructor, getters, equals(), hashCode(), and toString(). Perfect for DTOs and value objects.
+  </div>
+
+<pre><span class="cm">// Before Records — verbose boilerplate</span>
+<span class="kw">class</span> <span class="cl">PersonOld</span> {
+    <span class="kw">private final</span> <span class="cl">String</span> name;
+    <span class="kw">private final int</span>    age;
+    <span class="kw">public</span> <span class="cl">PersonOld</span>(<span class="cl">String</span> name, <span class="kw">int</span> age) { <span class="kw">this</span>.name = name; <span class="kw">this</span>.age = age; }
+    <span class="kw">public</span> <span class="cl">String</span> getName() { <span class="kw">return</span> name; }
+    <span class="kw">public int</span>    getAge()  { <span class="kw">return</span> age; }
+    <span class="cm">// + equals, hashCode, toString...</span>
+}
+
+<span class="cm">// With Records — all above in ONE LINE!</span>
+<span class="kw">record</span> <span class="cl">Person</span>(<span class="cl">String</span> name, <span class="kw">int</span> age) { }
+
+<span class="cl">Person</span> p = <span class="kw">new</span> <span class="cl">Person</span>(<span class="st">"Alice"</span>, <span class="num">25</span>);
+System.out.println(p.name());       <span class="cm">// Alice (accessor, not getName)</span>
+System.out.println(p.age());        <span class="cm">// 25</span>
+System.out.println(p);              <span class="cm">// Person[name=Alice, age=25]</span>
+
+<span class="cl">Person</span> p2 = <span class="kw">new</span> <span class="cl">Person</span>(<span class="st">"Alice"</span>, <span class="num">25</span>);
+System.out.println(p.equals(p2));   <span class="cm">// true — content-based equals</span>
+
+<span class="cm">// Records are immutable — no setters!</span>
+<span class="cm">// p.name = "Bob"; ❌ fields are final</span></pre>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is a lambda expression? What is its purpose?</div>
+    <div class="a">A lambda expression is a concise, anonymous function that implements a functional interface. Its purpose is to enable functional-style programming in Java, reducing boilerplate anonymous class code. Syntax: <code>(params) -> expression</code>. Lambdas can only be used where a functional interface (exactly one abstract method) is expected — like Runnable, Comparator, Predicate, etc.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the Stream API? What is the difference between intermediate and terminal operations?</div>
+    <div class="a">Stream API provides functional-style operations on collections — filter, map, sort, reduce, collect. Intermediate operations (filter, map, sorted, distinct, limit) return a Stream and are lazy — they don't execute until a terminal operation is called. Terminal operations (collect, forEach, count, reduce, findFirst, anyMatch) trigger the pipeline execution and produce a result. Streams don't modify the source collection.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is Optional? Why was it introduced?</div>
+    <div class="a">Optional is a container object that may or may not hold a value. It was introduced to solve the NullPointerException problem — instead of returning null, methods return Optional, forcing callers to explicitly handle the empty case. Key methods: isPresent(), get(), orElse(), orElseGet(), orElseThrow(), map(), filter(), ifPresent(). Use it as a method return type — not as a field or parameter.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the difference between map() and flatMap() in Stream?</div>
+    <div class="a"><code>map()</code> transforms each element into exactly one element — one-to-one transformation. <code>flatMap()</code> transforms each element into zero or more elements and flattens the result into a single stream — one-to-many. Example: <code>map(s -> s.split(""))</code> gives <code>Stream&lt;String[]&gt;</code>; <code>flatMap(s -> Arrays.stream(s.split("")))</code> gives <code>Stream&lt;String&gt;</code> — the arrays are flattened.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is a method reference? Give the 4 types.</div>
+    <div class="a">A method reference is shorthand for a lambda that calls a single method. 4 types: (1) Static method: <code>Integer::parseInt</code>. (2) Instance method of specific object: <code>System.out::println</code>. (3) Instance method of any instance of a class: <code>String::toUpperCase</code>. (4) Constructor: <code>ArrayList::new</code>. All are equivalent to corresponding lambdas but more readable.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is wrong with the old java.util.Date class?</div>
+    <div class="a">java.util.Date is mutable — not thread-safe, can be changed unexpectedly. Month indexing is 0-based (January = 0) causing confusion. Date also contains time, making date-only comparisons tricky. Calendar class is complex and verbose. Java 8's java.time package (LocalDate, LocalTime, LocalDateTime) is immutable, thread-safe, clearly named, and uses proper month numbering (January = 1).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What are Records in Java? When would you use them?</div>
+    <div class="a">Records (Java 16) are immutable data carrier classes. Declaring <code>record Person(String name, int age) {}</code> auto-generates: canonical constructor, accessors (name(), age()), equals(), hashCode(), and toString(). Fields are final — no setters. Use records for DTOs (Data Transfer Objects), value objects, and simple data containers where you want immutability and don't want to write boilerplate. They replace verbose POJO classes for pure data-holding purposes.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 23: Java 8+ Features · 23 of 26 complete
+</div>
+
+</body>
+</html>

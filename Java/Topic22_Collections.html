@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 22 — Collections in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 60%, #38bdf8 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #0369a1; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #0c4a6e; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #0369a1; padding-bottom: 12px; }
+  .section-num { background: #0369a1; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #0c4a6e; }
+  h3 { font-size: 1.05rem; color: #0369a1; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #e0f2fe; border-left: 4px solid #0369a1; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #0c4a6e; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #e0f2fe; }
+  tr:hover { background: #bae6fd; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #0c4a6e; margin-top: 0; }
+  .hier-box { background: #f0f9ff; border-radius: 12px; padding: 20px; margin: 14px 0; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 2; border: 1px solid #bae6fd; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #0369a1; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 22 OF 26</div>
+  <h1>📦 Collections in Java</h1>
+  <p>List · Set · Map · Queue · ArrayList · HashMap · TreeMap · LinkedList · Comparator</p>
+  <div class="meta">
+    <span>Phase 5 — Advanced</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#overview">Collections Framework Overview</a></li>
+    <li><a href="#hierarchy">Collection Hierarchy</a></li>
+    <li><a href="#list">List — ArrayList & LinkedList</a></li>
+    <li><a href="#set">Set — HashSet, LinkedHashSet, TreeSet</a></li>
+    <li><a href="#map">Map — HashMap, LinkedHashMap, TreeMap</a></li>
+    <li><a href="#queue">Queue & Deque</a></li>
+    <li><a href="#collections-class">Collections Utility Class</a></li>
+    <li><a href="#comparable">Comparable vs Comparator</a></li>
+    <li><a href="#iterator">Iterator & for-each</a></li>
+    <li><a href="#chooseguide">Which Collection to Choose?</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: OVERVIEW -->
+<div class="section" id="overview">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Collections Framework Overview</div>
+  </div>
+
+  <div class="highlight-box">
+    The <strong>Java Collections Framework (JCF)</strong> is a unified architecture for storing and manipulating groups of objects. It provides ready-made data structures (List, Set, Map, Queue) and algorithms (sort, search, shuffle) — no need to build from scratch.
+  </div>
+
+  <ul>
+    <li><strong>java.util</strong> package — where all collections live</li>
+    <li>Based on <strong>interfaces</strong> — code to interface, not implementation</li>
+    <li>All use <strong>Generics</strong> for type safety</li>
+    <li>Replaces arrays for most use cases — dynamic size, rich API</li>
+  </ul>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>Collection (stores individual objects)</h4>
+      <ul>
+        <li><strong>List</strong> — ordered, allows duplicates</li>
+        <li><strong>Set</strong> — no duplicates</li>
+        <li><strong>Queue</strong> — FIFO ordering</li>
+        <li><strong>Deque</strong> — double-ended queue</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Map (stores key-value pairs)</h4>
+      <ul>
+        <li><strong>HashMap</strong> — no order, fast</li>
+        <li><strong>LinkedHashMap</strong> — insertion order</li>
+        <li><strong>TreeMap</strong> — sorted by key</li>
+        <li>Map does NOT extend Collection!</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 2: HIERARCHY -->
+<div class="section" id="hierarchy">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Collection Hierarchy</div>
+  </div>
+
+  <div class="hier-box">
+    <span style="color:#7dd3fc">Iterable</span><br>
+    └── <span style="color:#93c5fd">Collection</span> (interface)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp; ├── <span style="color:#86efac">List</span> (interface)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp; ├── ArrayList &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fcd34d">← most used</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp; ├── LinkedList<br>
+    &nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp; └── Vector (legacy)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp; ├── <span style="color:#f9a8d4">Set</span> (interface)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp; ├── HashSet &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fcd34d">← no order, fast</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp; ├── LinkedHashSet &nbsp;<span style="color:#fcd34d">← insertion order</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp; └── TreeSet &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fcd34d">← sorted</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp; └── <span style="color:#fca5a5">Queue</span> (interface)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── LinkedList<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── PriorityQueue<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── Deque → ArrayDeque<br>
+    <br>
+    <span style="color:#c4b5fd">Map</span> (interface) &nbsp;<span style="color:#fcd34d">← separate hierarchy!</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp; ├── HashMap &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fcd34d">← most used</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp; ├── LinkedHashMap &nbsp;<span style="color:#fcd34d">← insertion order</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp; └── TreeMap &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#fcd34d">← sorted by key</span>
+  </div>
+</div>
+
+
+<!-- SECTION 3: LIST -->
+<div class="section" id="list">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">List — ArrayList & LinkedList</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>List</strong> = ordered collection that allows duplicates. Elements have an index (0-based). Most used collection type.
+  </div>
+
+  <h3>ArrayList</h3>
+<pre><span class="kw">import</span> java.util.*;
+
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; list = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+
+<span class="cm">// Add</span>
+list.add(<span class="st">"Alice"</span>);
+list.add(<span class="st">"Bob"</span>);
+list.add(<span class="st">"Charlie"</span>);
+list.add(<span class="num">1</span>, <span class="st">"Dave"</span>);   <span class="cm">// insert at index 1</span>
+
+<span class="cm">// Access</span>
+System.out.println(list.get(<span class="num">0</span>));    <span class="cm">// Alice</span>
+System.out.println(list.size());     <span class="cm">// 4</span>
+System.out.println(list.contains(<span class="st">"Bob"</span>)); <span class="cm">// true</span>
+System.out.println(list.indexOf(<span class="st">"Bob"</span>));  <span class="cm">// index of Bob</span>
+
+<span class="cm">// Update</span>
+list.set(<span class="num">0</span>, <span class="st">"Alex"</span>);  <span class="cm">// replace index 0</span>
+
+<span class="cm">// Remove</span>
+list.remove(<span class="st">"Bob"</span>);    <span class="cm">// remove by value</span>
+list.remove(<span class="num">0</span>);        <span class="cm">// remove by index</span>
+
+<span class="cm">// Iterate</span>
+<span class="kw">for</span> (<span class="cl">String</span> s : list) System.out.println(s);
+
+<span class="cm">// Sort</span>
+<span class="cl">Collections</span>.sort(list);                         <span class="cm">// natural order</span>
+list.sort(<span class="cl">Comparator</span>.reverseOrder());            <span class="cm">// reverse</span>
+list.sort((<span class="cl">a</span>, b) -> a.length() - b.length());    <span class="cm">// by length</span>
+
+<span class="cm">// Convert array → List and List → array</span>
+<span class="cl">String</span>[] arr  = {<span class="st">"x"</span>, <span class="st">"y"</span>};
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; fromArr = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;(<span class="cl">Arrays</span>.asList(arr));
+<span class="cl">String</span>[] toArr = list.toArray(<span class="kw">new</span> <span class="cl">String</span>[<span class="num">0</span>]);</pre>
+
+  <h3>LinkedList</h3>
+<pre><span class="cl">LinkedList</span>&lt;<span class="cl">String</span>&gt; ll = <span class="kw">new</span> <span class="cl">LinkedList</span>&lt;&gt;();
+ll.addFirst(<span class="st">"A"</span>);    <span class="cm">// add to front</span>
+ll.addLast(<span class="st">"B"</span>);     <span class="cm">// add to end</span>
+ll.add(<span class="st">"C"</span>);
+System.out.println(ll.getFirst());  <span class="cm">// A</span>
+System.out.println(ll.getLast());   <span class="cm">// C</span>
+ll.removeFirst();
+ll.removeLast();</pre>
+
+  <table>
+    <tr><th>Feature</th><th>ArrayList</th><th>LinkedList</th></tr>
+    <tr><td>Internal structure</td><td>Dynamic array</td><td>Doubly linked nodes</td></tr>
+    <tr><td>Random access (get by index)</td><td>✅ O(1) — fast</td><td>❌ O(n) — slow</td></tr>
+    <tr><td>Insert/delete at middle</td><td>❌ O(n) — slow (shift)</td><td>✅ O(1) — fast</td></tr>
+    <tr><td>Insert/delete at end</td><td>✅ O(1) amortized</td><td>✅ O(1)</td></tr>
+    <tr><td>Memory</td><td>Less overhead</td><td>More (node pointers)</td></tr>
+    <tr><td>Use when</td><td>Frequent reads, rare inserts</td><td>Frequent inserts/deletes</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 4: SET -->
+<div class="section" id="set">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Set — HashSet, LinkedHashSet, TreeSet</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Set</strong> = collection that does NOT allow duplicates. Adding a duplicate is silently ignored (no error). No index-based access.
+  </div>
+
+<pre><span class="cm">// HashSet — fastest, NO order guaranteed</span>
+<span class="cl">Set</span>&lt;<span class="cl">String</span>&gt; hashSet = <span class="kw">new</span> <span class="cl">HashSet</span>&lt;&gt;();
+hashSet.add(<span class="st">"Banana"</span>);
+hashSet.add(<span class="st">"Apple"</span>);
+hashSet.add(<span class="st">"Cherry"</span>);
+hashSet.add(<span class="st">"Apple"</span>);   <span class="cm">// duplicate — silently ignored!</span>
+System.out.println(hashSet.size());        <span class="cm">// 3</span>
+System.out.println(hashSet.contains(<span class="st">"Apple"</span>)); <span class="cm">// true</span>
+
+<span class="cm">// LinkedHashSet — maintains INSERTION ORDER</span>
+<span class="cl">Set</span>&lt;<span class="cl">String</span>&gt; linkedSet = <span class="kw">new</span> <span class="cl">LinkedHashSet</span>&lt;&gt;();
+linkedSet.add(<span class="st">"Banana"</span>);
+linkedSet.add(<span class="st">"Apple"</span>);
+linkedSet.add(<span class="st">"Cherry"</span>);
+System.out.println(linkedSet);  <span class="cm">// [Banana, Apple, Cherry] — insertion order</span>
+
+<span class="cm">// TreeSet — SORTED (natural order or custom Comparator)</span>
+<span class="cl">Set</span>&lt;<span class="cl">String</span>&gt; treeSet = <span class="kw">new</span> <span class="cl">TreeSet</span>&lt;&gt;();
+treeSet.add(<span class="st">"Banana"</span>);
+treeSet.add(<span class="st">"Apple"</span>);
+treeSet.add(<span class="st">"Cherry"</span>);
+System.out.println(treeSet);    <span class="cm">// [Apple, Banana, Cherry] — sorted!</span>
+
+<span class="cm">// Set operations</span>
+<span class="cl">Set</span>&lt;<span class="cl">Integer</span>&gt; setA = <span class="kw">new</span> <span class="cl">HashSet</span>&lt;&gt;(<span class="cl">Arrays</span>.asList(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>));
+<span class="cl">Set</span>&lt;<span class="cl">Integer</span>&gt; setB = <span class="kw">new</span> <span class="cl">HashSet</span>&lt;&gt;(<span class="cl">Arrays</span>.asList(<span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>));
+setA.retainAll(setB);  <span class="cm">// intersection: {3, 4}</span>
+setA.addAll(setB);     <span class="cm">// union</span>
+setA.removeAll(setB);  <span class="cm">// difference</span></pre>
+
+  <table>
+    <tr><th>Feature</th><th>HashSet</th><th>LinkedHashSet</th><th>TreeSet</th></tr>
+    <tr><td>Order</td><td>No order</td><td>Insertion order</td><td>Sorted (natural/custom)</td></tr>
+    <tr><td>Duplicates</td><td>❌ No</td><td>❌ No</td><td>❌ No</td></tr>
+    <tr><td>Null allowed</td><td>✅ One null</td><td>✅ One null</td><td>❌ No null</td></tr>
+    <tr><td>Performance</td><td>O(1) add/contains</td><td>O(1) add/contains</td><td>O(log n) add/contains</td></tr>
+    <tr><td>Use when</td><td>Fast lookup, no order needed</td><td>Maintain insert order + no dups</td><td>Need sorted unique elements</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 5: MAP -->
+<div class="section" id="map">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">Map — HashMap, LinkedHashMap, TreeMap</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Map</strong> stores <strong>key-value pairs</strong>. Keys are unique — adding same key overwrites value. Values can duplicate. Map does NOT extend Collection.
+  </div>
+
+<pre><span class="cm">// HashMap — most used, NO order</span>
+<span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; map = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+
+<span class="cm">// Put (add/update)</span>
+map.put(<span class="st">"Alice"</span>, <span class="num">25</span>);
+map.put(<span class="st">"Bob"</span>,   <span class="num">30</span>);
+map.put(<span class="st">"Alice"</span>, <span class="num">26</span>);  <span class="cm">// overwrites Alice's value!</span>
+
+<span class="cm">// Get</span>
+System.out.println(map.get(<span class="st">"Alice"</span>));         <span class="cm">// 26</span>
+System.out.println(map.get(<span class="st">"Unknown"</span>));        <span class="cm">// null</span>
+System.out.println(map.getOrDefault(<span class="st">"X"</span>, <span class="num">0</span>)); <span class="cm">// 0 (safe)</span>
+
+<span class="cm">// Check</span>
+map.containsKey(<span class="st">"Alice"</span>);    <span class="cm">// true</span>
+map.containsValue(<span class="num">30</span>);        <span class="cm">// true</span>
+map.size();                     <span class="cm">// 2</span>
+
+<span class="cm">// Remove</span>
+map.remove(<span class="st">"Bob"</span>);
+
+<span class="cm">// Iterate — 3 ways</span>
+<span class="cm">// 1. entrySet — most efficient</span>
+<span class="kw">for</span> (<span class="cl">Map</span>.<span class="cl">Entry</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; entry : map.entrySet()) {
+    System.out.println(entry.getKey() + <span class="st">" → "</span> + entry.getValue());
+}
+<span class="cm">// 2. keySet</span>
+<span class="kw">for</span> (<span class="cl">String</span> key : map.keySet()) {
+    System.out.println(key + <span class="st">" → "</span> + map.get(key));
+}
+<span class="cm">// 3. forEach (Java 8)</span>
+map.forEach((k, v) -> System.out.println(k + <span class="st">" → "</span> + v));
+
+<span class="cm">// putIfAbsent — only add if key doesn't exist</span>
+map.putIfAbsent(<span class="st">"Alice"</span>, <span class="num">99</span>);  <span class="cm">// won't change Alice's value</span>
+map.putIfAbsent(<span class="st">"Carol"</span>, <span class="num">22</span>);  <span class="cm">// adds Carol</span>
+
+<span class="cm">// merge — useful for counting</span>
+<span class="cl">String</span>[] words = {<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"apple"</span>, <span class="st">"cherry"</span>, <span class="st">"apple"</span>};
+<span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; freq = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+<span class="kw">for</span> (<span class="cl">String</span> w : words) {
+    freq.merge(w, <span class="num">1</span>, <span class="cl">Integer</span>::sum);
+}
+System.out.println(freq);  <span class="cm">// {apple=3, banana=1, cherry=1}</span></pre>
+
+  <h3>LinkedHashMap & TreeMap</h3>
+<pre><span class="cm">// LinkedHashMap — maintains INSERTION ORDER</span>
+<span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; linked = <span class="kw">new</span> <span class="cl">LinkedHashMap</span>&lt;&gt;();
+linked.put(<span class="st">"C"</span>, <span class="num">3</span>); linked.put(<span class="st">"A"</span>, <span class="num">1</span>); linked.put(<span class="st">"B"</span>, <span class="num">2</span>);
+System.out.println(linked);  <span class="cm">// {C=3, A=1, B=2} — insertion order</span>
+
+<span class="cm">// TreeMap — SORTED by key (natural or custom)</span>
+<span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; tree = <span class="kw">new</span> <span class="cl">TreeMap</span>&lt;&gt;();
+tree.put(<span class="st">"C"</span>, <span class="num">3</span>); tree.put(<span class="st">"A"</span>, <span class="num">1</span>); tree.put(<span class="st">"B"</span>, <span class="num">2</span>);
+System.out.println(tree);    <span class="cm">// {A=1, B=2, C=3} — sorted by key!</span>
+
+<span class="cm">// TreeMap extra methods</span>
+<span class="cl">TreeMap</span>&lt;<span class="cl">Integer</span>, <span class="cl">String</span>&gt; tm = <span class="kw">new</span> <span class="cl">TreeMap</span>&lt;&gt;();
+tm.put(<span class="num">10</span>, <span class="st">"ten"</span>); tm.put(<span class="num">20</span>, <span class="st">"twenty"</span>); tm.put(<span class="num">30</span>, <span class="st">"thirty"</span>);
+tm.firstKey();     <span class="cm">// 10</span>
+tm.lastKey();      <span class="cm">// 30</span>
+tm.headMap(<span class="num">20</span>);    <span class="cm">// {10=ten} — keys less than 20</span>
+tm.tailMap(<span class="num">20</span>);    <span class="cm">// {20=twenty, 30=thirty}</span></pre>
+
+  <table>
+    <tr><th>Feature</th><th>HashMap</th><th>LinkedHashMap</th><th>TreeMap</th></tr>
+    <tr><td>Order</td><td>No order</td><td>Insertion order</td><td>Sorted by key</td></tr>
+    <tr><td>Null key</td><td>✅ One null key</td><td>✅ One null key</td><td>❌ No null key</td></tr>
+    <tr><td>Performance</td><td>O(1) get/put</td><td>O(1) get/put</td><td>O(log n) get/put</td></tr>
+    <tr><td>Thread-safe</td><td>❌ No</td><td>❌ No</td><td>❌ No</td></tr>
+    <tr><td>Use when</td><td>Fast lookup</td><td>Order + fast lookup</td><td>Sorted keys needed</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 6: QUEUE -->
+<div class="section" id="queue">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Queue & Deque</div>
+  </div>
+
+<pre><span class="cm">// Queue — FIFO (First In, First Out)</span>
+<span class="cl">Queue</span>&lt;<span class="cl">String</span>&gt; queue = <span class="kw">new</span> <span class="cl">LinkedList</span>&lt;&gt;();
+queue.offer(<span class="st">"Alice"</span>);   <span class="cm">// add to tail (safe — returns false if full)</span>
+queue.offer(<span class="st">"Bob"</span>);
+queue.offer(<span class="st">"Charlie"</span>);
+
+System.out.println(queue.peek());   <span class="cm">// Alice — view front, don't remove</span>
+System.out.println(queue.poll());   <span class="cm">// Alice — view AND remove</span>
+System.out.println(queue.size());   <span class="cm">// 2</span>
+
+<span class="cm">// PriorityQueue — elements ordered by priority (min-heap by default)</span>
+<span class="cl">PriorityQueue</span>&lt;<span class="cl">Integer</span>&gt; pq = <span class="kw">new</span> <span class="cl">PriorityQueue</span>&lt;&gt;();
+pq.add(<span class="num">5</span>); pq.add(<span class="num">1</span>); pq.add(<span class="num">3</span>);
+System.out.println(pq.poll());  <span class="cm">// 1 (smallest first!)</span>
+System.out.println(pq.poll());  <span class="cm">// 3</span>
+
+<span class="cm">// Max heap</span>
+<span class="cl">PriorityQueue</span>&lt;<span class="cl">Integer</span>&gt; maxPQ = <span class="kw">new</span> <span class="cl">PriorityQueue</span>&lt;&gt;(<span class="cl">Collections</span>.reverseOrder());
+maxPQ.add(<span class="num">5</span>); maxPQ.add(<span class="num">1</span>); maxPQ.add(<span class="num">3</span>);
+System.out.println(maxPQ.poll()); <span class="cm">// 5 (largest first!)</span>
+
+<span class="cm">// Deque (Double-Ended Queue) — add/remove from both ends</span>
+<span class="cl">Deque</span>&lt;<span class="cl">String</span>&gt; deque = <span class="kw">new</span> <span class="cl">ArrayDeque</span>&lt;&gt;();
+deque.addFirst(<span class="st">"B"</span>);
+deque.addFirst(<span class="st">"A"</span>);
+deque.addLast(<span class="st">"C"</span>);
+System.out.println(deque);        <span class="cm">// [A, B, C]</span>
+deque.pollFirst();                <span class="cm">// remove A</span>
+deque.pollLast();                 <span class="cm">// remove C</span>
+
+<span class="cm">// ArrayDeque as Stack (faster than Stack class)</span>
+<span class="cl">Deque</span>&lt;<span class="cl">Integer</span>&gt; stack = <span class="kw">new</span> <span class="cl">ArrayDeque</span>&lt;&gt;();
+stack.push(<span class="num">1</span>);  <span class="cm">// LIFO push</span>
+stack.push(<span class="num">2</span>);
+stack.push(<span class="num">3</span>);
+System.out.println(stack.pop());  <span class="cm">// 3 (LIFO)</span></pre>
+</div>
+
+
+<!-- SECTION 7: COLLECTIONS CLASS -->
+<div class="section" id="collections-class">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Collections Utility Class</div>
+  </div>
+
+<pre><span class="cl">List</span>&lt;<span class="cl">Integer</span>&gt; nums = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;(<span class="cl">Arrays</span>.asList(<span class="num">3</span>, <span class="num">1</span>, <span class="num">4</span>, <span class="num">1</span>, <span class="num">5</span>, <span class="num">9</span>));
+
+<span class="cl">Collections</span>.sort(nums);                          <span class="cm">// [1, 1, 3, 4, 5, 9]</span>
+<span class="cl">Collections</span>.sort(nums, <span class="cl">Comparator</span>.reverseOrder()); <span class="cm">// [9, 5, 4, 3, 1, 1]</span>
+<span class="cl">Collections</span>.reverse(nums);                       <span class="cm">// reverses the list</span>
+<span class="cl">Collections</span>.shuffle(nums);                       <span class="cm">// random shuffle</span>
+<span class="cl">Collections</span>.min(nums);                           <span class="cm">// smallest element</span>
+<span class="cl">Collections</span>.max(nums);                           <span class="cm">// largest element</span>
+<span class="cl">Collections</span>.frequency(nums, <span class="num">1</span>);                 <span class="cm">// count of value 1 → 2</span>
+<span class="cl">Collections</span>.fill(nums, <span class="num">0</span>);                      <span class="cm">// set all to 0</span>
+<span class="cl">Collections</span>.binarySearch(nums, <span class="num">4</span>);              <span class="cm">// find index (must be sorted!)</span>
+<span class="cl">Collections</span>.swap(nums, <span class="num">0</span>, <span class="num">1</span>);                   <span class="cm">// swap elements at index 0 and 1</span>
+
+<span class="cm">// Unmodifiable — read-only wrapper</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; immutable = <span class="cl">Collections</span>.unmodifiableList(list);
+<span class="cm">// immutable.add("x"); ❌ UnsupportedOperationException</span>
+
+<span class="cm">// Synchronized — thread-safe wrapper</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; synced = <span class="cl">Collections</span>.synchronizedList(<span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;());
+
+<span class="cm">// Singleton — immutable single-element collection</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt; single = <span class="cl">Collections</span>.singletonList(<span class="st">"only"</span>);
+
+<span class="cm">// Empty collections</span>
+<span class="cl">List</span>&lt;<span class="cl">String</span>&gt;  emptyList = <span class="cl">Collections</span>.emptyList();
+<span class="cl">Set</span>&lt;<span class="cl">String</span>&gt;   emptySet  = <span class="cl">Collections</span>.emptySet();
+<span class="cl">Map</span>&lt;<span class="cl">String</span>,<span class="cl">Integer</span>&gt; emptyMap = <span class="cl">Collections</span>.emptyMap();</pre>
+</div>
+
+
+<!-- SECTION 8: COMPARABLE VS COMPARATOR -->
+<div class="section" id="comparable">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Comparable vs Comparator</div>
+  </div>
+
+<pre><span class="cm">// Comparable — natural ordering (built into the class)</span>
+<span class="kw">public class</span> <span class="cl">Student</span> <span class="kw">implements</span> <span class="cl">Comparable</span>&lt;<span class="cl">Student</span>&gt; {
+    <span class="cl">String</span> name;
+    <span class="kw">int</span>    age;
+
+    <span class="an">@Override</span>
+    <span class="kw">public int</span> compareTo(<span class="cl">Student</span> other) {
+        <span class="kw">return</span> <span class="kw">this</span>.age - other.age;  <span class="cm">// sort by age ascending</span>
+    }
+}
+<span class="cl">List</span>&lt;<span class="cl">Student</span>&gt; students = ...;
+<span class="cl">Collections</span>.sort(students);  <span class="cm">// uses compareTo</span>
+
+<span class="cm">// Comparator — external/custom ordering</span>
+<span class="cl">Comparator</span>&lt;<span class="cl">Student</span>&gt; byName = (<span class="cl">a</span>, b) -> a.name.compareTo(b.name);
+<span class="cl">Comparator</span>&lt;<span class="cl">Student</span>&gt; byAge  = <span class="cl">Comparator</span>.comparingInt(s -> s.age);
+<span class="cl">Comparator</span>&lt;<span class="cl">Student</span>&gt; byAgeDesc = byAge.reversed();
+<span class="cl">Comparator</span>&lt;<span class="cl">Student</span>&gt; byNameThenAge = byName.thenComparingInt(s -> s.age);
+
+students.sort(byName);          <span class="cm">// sort by name</span>
+students.sort(byAge.reversed()); <span class="cm">// sort by age desc</span></pre>
+
+  <table>
+    <tr><th>Feature</th><th>Comparable</th><th>Comparator</th></tr>
+    <tr><td>Package</td><td>java.lang</td><td>java.util</td></tr>
+    <tr><td>Method</td><td><code>compareTo(T o)</code></td><td><code>compare(T o1, T o2)</code></td></tr>
+    <tr><td>Implemented by</td><td>The class itself</td><td>Separate class or lambda</td></tr>
+    <tr><td>Sorting order</td><td>One natural order</td><td>Multiple custom orders</td></tr>
+    <tr><td>Changes class?</td><td>Yes (adds interface)</td><td>No (external)</td></tr>
+    <tr><td>Use when</td><td>One default sort order</td><td>Multiple/different sort orders</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 9: ITERATOR -->
+<div class="section" id="iterator">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Iterator & Safe Removal</div>
+  </div>
+
+<pre><span class="cl">List</span>&lt;<span class="cl">String</span>&gt; list = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;(<span class="cl">Arrays</span>.asList(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"d"</span>));
+
+<span class="cm">// Iterator — safe way to remove while iterating</span>
+<span class="cl">Iterator</span>&lt;<span class="cl">String</span>&gt; it = list.iterator();
+<span class="kw">while</span> (it.hasNext()) {
+    <span class="cl">String</span> s = it.next();
+    <span class="kw">if</span> (s.equals(<span class="st">"b"</span>)) {
+        it.remove();  <span class="cm">// ✅ safe removal via iterator</span>
+    }
+}
+System.out.println(list);  <span class="cm">// [a, c, d]</span>
+
+<span class="cm">// BAD — modifying list during for-each → ConcurrentModificationException!</span>
+<span class="kw">for</span> (<span class="cl">String</span> s : list) {
+    <span class="cm">// list.remove(s); ❌ ConcurrentModificationException!</span>
+}
+
+<span class="cm">// Java 8 — removeIf (cleanest)</span>
+list.removeIf(s -> s.equals(<span class="st">"c"</span>));  <span class="cm">// ✅ safe and clean</span></pre>
+</div>
+
+
+<!-- SECTION 10: CHOOSE GUIDE -->
+<div class="section" id="chooseguide">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Which Collection to Choose?</div>
+  </div>
+
+  <table>
+    <tr><th>Need</th><th>Use</th><th>Why</th></tr>
+    <tr><td>Ordered list, allow duplicates</td><td>ArrayList</td><td>Fast random access, dynamic array</td></tr>
+    <tr><td>Frequent insert/delete at middle</td><td>LinkedList</td><td>O(1) insert/delete with node pointer</td></tr>
+    <tr><td>No duplicates, fast lookup</td><td>HashSet</td><td>O(1) add/contains via hashing</td></tr>
+    <tr><td>No duplicates, insertion order</td><td>LinkedHashSet</td><td>HashSet + linked list for order</td></tr>
+    <tr><td>No duplicates, sorted</td><td>TreeSet</td><td>Red-black tree, O(log n)</td></tr>
+    <tr><td>Key-value pairs, fast access</td><td>HashMap</td><td>O(1) get/put via hashing</td></tr>
+    <tr><td>Key-value, insertion order</td><td>LinkedHashMap</td><td>HashMap + linked list for order</td></tr>
+    <tr><td>Key-value, sorted by key</td><td>TreeMap</td><td>Red-black tree, O(log n)</td></tr>
+    <tr><td>FIFO queue</td><td>LinkedList / ArrayDeque</td><td>O(1) add/remove from ends</td></tr>
+    <tr><td>Priority-based processing</td><td>PriorityQueue</td><td>Min/max heap, O(log n) poll</td></tr>
+    <tr><td>Stack (LIFO)</td><td>ArrayDeque</td><td>Faster than Stack class</td></tr>
+  </table>
+
+  <div class="tip-box">
+    <strong>💡 Interview rule of thumb:</strong><br>
+    Default choice → <strong>ArrayList</strong> for list, <strong>HashMap</strong> for map, <strong>HashSet</strong> for set<br>
+    Need order → <strong>LinkedHashMap/LinkedHashSet</strong><br>
+    Need sorted → <strong>TreeMap/TreeSet</strong><br>
+    Need thread-safety → <strong>ConcurrentHashMap</strong> or <code>Collections.synchronizedXxx()</code>
+  </div>
+</div>
+
+
+<!-- SECTION 11: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is the difference between ArrayList and LinkedList?</div>
+    <div class="a">ArrayList uses a dynamic array internally — O(1) for random access (get by index), but O(n) for insert/delete in the middle (elements must shift). LinkedList uses doubly-linked nodes — O(1) for insert/delete at any position once you have the node, but O(n) for random access. Use ArrayList for frequent reads; LinkedList for frequent middle insertions/deletions.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between HashMap and TreeMap?</div>
+    <div class="a">HashMap stores key-value pairs with no ordering — O(1) for get/put using hashing. TreeMap stores entries sorted by key using a Red-Black tree — O(log n) for get/put. HashMap allows one null key; TreeMap does not allow null keys (comparison would throw NPE). Use HashMap for fast lookups; TreeMap when you need keys in sorted order.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is the difference between HashSet and TreeSet?</div>
+    <div class="a">HashSet stores elements with no ordering — O(1) for add/contains/remove using hashing. TreeSet stores elements in sorted (natural or custom) order using a Red-Black tree — O(log n) for operations. HashSet allows one null; TreeSet does not. Use HashSet for fast membership testing; TreeSet when you need sorted unique elements.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is the difference between Comparable and Comparator?</div>
+    <div class="a">Comparable is implemented by the class itself (java.lang) with the <code>compareTo()</code> method — defines the natural/default sort order. Comparator is an external comparison strategy (java.util) with the <code>compare()</code> method — defines custom sort orders. Use Comparable for one default sort; use Comparator when you need multiple different sort orders or can't modify the class.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. How does HashMap work internally?</div>
+    <div class="a">HashMap uses an array of buckets. When you put(key, value): (1) hashCode() of key is calculated, (2) hash is mapped to a bucket index, (3) key-value is stored in that bucket as a linked list node (or tree node if chain > 8). On get(key): same hash calculation, find bucket, compare keys using equals(). If two keys have the same hash (collision), they go in the same bucket and are chained. Requires that equal objects have equal hash codes — why you must override both equals() and hashCode() together.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is ConcurrentModificationException? How do you avoid it?</div>
+    <div class="a">ConcurrentModificationException is thrown when you modify a collection while iterating over it with a for-each loop. Avoid it by: (1) Using <code>Iterator.remove()</code> instead of <code>collection.remove()</code> during iteration. (2) Using <code>list.removeIf(predicate)</code> (Java 8). (3) Collecting elements to remove in a separate list, then call removeAll after iteration. (4) Using concurrent collections like CopyOnWriteArrayList.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the difference between fail-fast and fail-safe iterators?</div>
+    <div class="a">Fail-fast iterators (ArrayList, HashMap) throw ConcurrentModificationException if the collection is modified during iteration — they detect structural changes via a modCount counter. Fail-safe iterators (CopyOnWriteArrayList, ConcurrentHashMap) work on a copy or snapshot of the collection — no exception, but may not reflect recent changes. Use fail-safe collections in multi-threaded environments.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 22: Collections · 22 of 26 complete
+</div>
+
+</body>
+</html>

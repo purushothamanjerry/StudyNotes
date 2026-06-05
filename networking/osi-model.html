@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSI Model — Deep Dive Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --surface: #0d1120;
+  --surface2: #131829;
+  --border: rgba(99,130,255,0.15);
+  --accent: #4f7bff;
+  --accent2: #a855f7;
+  --accent3: #22d3ee;
+  --accent4: #f59e0b;
+  --text: #e2e8f0;
+  --text-muted: #7c8db5;
+  --text-dim: #4a5578;
+  --green: #10b981;
+  --red: #f43f5e;
+  --orange: #f97316;
+  --l1: #ff6b6b; --l2: #ffa600; --l3: #48bb78; --l4: #4299e1;
+  --l5: #9f7aea; --l6: #ed8936; --l7: #f687b3;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --glow: 0 0 30px rgba(79,123,255,0.2);
+  --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.7; overflow-x: hidden; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+#progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 9999; width: 0%; transition: width 0.1s; }
+#back-top { position: fixed; bottom: 28px; right: 28px; width: 44px; height: 44px; border-radius: 12px; background: var(--accent); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateY(20px); transition: all .3s; z-index: 999; color: #fff; font-size: 20px; }
+#back-top.show { opacity: 1; transform: translateY(0); }
+#back-top:hover { background: var(--accent2); transform: translateY(-3px); }
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 260px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 0; z-index: 100; }
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar-brand { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.sidebar-brand h2 { font-family: var(--font-display); font-size: 1rem; color: var(--accent); font-weight: 800; letter-spacing: 0.05em; }
+.sidebar-brand p { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.nav-group-label { padding: 6px 20px; font-size: 0.65rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+.nav-link { display: block; padding: 7px 20px; font-size: 0.8rem; color: var(--text-muted); text-decoration: none; border-left: 3px solid transparent; transition: all .2s; }
+.nav-link:hover { color: var(--text); background: rgba(79,123,255,0.08); }
+.nav-link.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,123,255,0.1); }
+.main { flex: 1; min-width: 0; }
+.hero { position: relative; overflow: hidden; padding: 100px 60px 80px; background: radial-gradient(ellipse at 30% 50%, rgba(79,123,255,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 20%, rgba(168,85,247,0.1) 0%, transparent 50%), var(--bg); border-bottom: 1px solid var(--border); }
+.hero-grid { position: absolute; inset: 0; opacity: 0.08; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(79,123,255,0.15); border: 1px solid rgba(79,123,255,0.3); border-radius: 100px; padding: 6px 16px; font-size: 0.75rem; color: var(--accent); font-weight: 500; margin-bottom: 24px; animation: fadeInDown .6s ease; }
+.hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+@keyframes fadeInDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+.hero h1 { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; animation: fadeInUp .7s ease .1s both; }
+.hero h1 span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-sub { font-size: 1.15rem; color: var(--text-muted); margin-top: 16px; max-width: 600px; animation: fadeInUp .7s ease .2s both; }
+.hero-stats { display: flex; gap: 32px; margin-top: 40px; flex-wrap: wrap; animation: fadeInUp .7s ease .3s both; }
+.hero-stat { text-align: center; }
+.hero-stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--accent); }
+.hero-stat-label { font-size: 0.75rem; color: var(--text-muted); }
+.hero-osi-mini { position: absolute; right: 60px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; animation: fadeInUp .7s ease .4s both; }
+.hero-layer { width: 200px; height: 34px; border-radius: 8px; display: flex; align-items: center; padding: 0 14px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.hero-layer:hover { transform: translateX(-6px); }
+.hero-layer span { margin-left: auto; font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.7; }
+.hl7 { background: rgba(246,135,179,0.2); color: var(--l7); border: 1px solid rgba(246,135,179,0.3); }
+.hl6 { background: rgba(237,137,54,0.2); color: var(--l6); border: 1px solid rgba(237,137,54,0.3); }
+.hl5 { background: rgba(159,122,234,0.2); color: var(--l5); border: 1px solid rgba(159,122,234,0.3); }
+.hl4 { background: rgba(66,153,225,0.2); color: var(--l4); border: 1px solid rgba(66,153,225,0.3); }
+.hl3 { background: rgba(72,187,120,0.2); color: var(--l3); border: 1px solid rgba(72,187,120,0.3); }
+.hl2 { background: rgba(255,166,0,0.2); color: var(--l2); border: 1px solid rgba(255,166,0,0.3); }
+.hl1 { background: rgba(255,107,107,0.2); color: var(--l1); border: 1px solid rgba(255,107,107,0.3); }
+.content { padding: 60px; max-width: 1000px; }
+section { margin-bottom: 80px; }
+.section-header { margin-bottom: 32px; }
+.section-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 8px; }
+.section-title { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
+.section-desc { color: var(--text-muted); margin-top: 12px; max-width: 680px; font-size: 0.95rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: border-color .2s, box-shadow .2s; }
+.card:hover { border-color: rgba(79,123,255,0.3); box-shadow: var(--glow); }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.card-title { font-weight: 600; margin-bottom: 8px; }
+.card-text { font-size: 0.9rem; color: var(--text-muted); }
+.osi-stack { display: flex; flex-direction: column; gap: 4px; margin: 32px 0; }
+.osi-row { display: grid; grid-template-columns: 50px 1fr 1fr 200px; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; transition: all .2s; cursor: pointer; position: relative; overflow: hidden; }
+.osi-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.osi-row:hover { transform: translateX(4px); }
+.osi-row[data-layer="7"]::before { background: var(--l7); }
+.osi-row[data-layer="6"]::before { background: var(--l6); }
+.osi-row[data-layer="5"]::before { background: var(--l5); }
+.osi-row[data-layer="4"]::before { background: var(--l4); }
+.osi-row[data-layer="3"]::before { background: var(--l3); }
+.osi-row[data-layer="2"]::before { background: var(--l2); }
+.osi-row[data-layer="1"]::before { background: var(--l1); }
+.osi-num { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+.osi-name { font-weight: 700; font-size: 0.95rem; }
+.osi-desc { font-size: 0.8rem; color: var(--text-muted); }
+.osi-pdu { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
+.osi-proto { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.proto-badge { background: rgba(79,123,255,0.15); border: 1px solid rgba(79,123,255,0.25); border-radius: 5px; padding: 2px 8px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent3); }
+.layer-detail { display: none; background: var(--surface2); border: 1px solid var(--border); border-top: none; padding: 24px; margin-top: -4px; border-radius: 0 0 10px 10px; font-size: 0.88rem; color: var(--text-muted); }
+.layer-detail.open { display: block; animation: fadeInDown .3s ease; }
+.code-block { background: #080d1a; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 20px 0; }
+.code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+.code-lang { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.copy-btn { background: rgba(79,123,255,0.15); border: 1px solid rgba(79,123,255,0.3); color: var(--accent); border-radius: 6px; padding: 4px 12px; font-size: 0.72rem; cursor: pointer; transition: all .2s; }
+.copy-btn:hover { background: var(--accent); color: #fff; }
+.code-body { padding: 18px 20px; overflow-x: auto; }
+.code-body pre { font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; color: #a9b1d6; white-space: pre; }
+.kw { color: #7aa2f7; } .fn { color: #7dcfff; } .str { color: #9ece6a; }
+.cmt { color: #4a5578; font-style: italic; } .num { color: #ff9e64; }
+.tabs { margin: 24px 0; }
+.tab-nav { display: flex; gap: 0; border-bottom: 2px solid var(--border); overflow-x: auto; }
+.tab-btn { padding: 10px 20px; background: none; border: none; cursor: pointer; color: var(--text-muted); font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all .2s; }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+.tab-content { display: none; padding: 24px 0; }
+.tab-content.active { display: block; animation: fadeInUp .3s ease; }
+.packet-flow { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin: 24px 0; overflow-x: auto; }
+.packet-anim { display: flex; flex-direction: column; gap: 8px; }
+.packet-row { display: flex; align-items: center; gap: 12px; }
+.packet-layer-label { width: 100px; font-size: 0.78rem; font-weight: 600; text-align: right; flex-shrink: 0; }
+.packet-track { flex: 1; height: 44px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; position: relative; overflow: hidden; }
+.packet-box { position: absolute; left: -100px; top: 50%; transform: translateY(-50%); height: 28px; border-radius: 6px; display: flex; align-items: center; padding: 0 12px; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500; white-space: nowrap; animation: slidePacket 3s linear infinite; }
+@keyframes slidePacket { 0%{left:-100px;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{left:calc(100% + 20px);opacity:0} }
+.flow-diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; overflow-x: auto; margin: 24px 0; }
+.flow-nodes { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; }
+.flow-node { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; text-align: center; min-width: 100px; flex-shrink: 0; }
+.flow-node-icon { font-size: 1.4rem; margin-bottom: 6px; }
+.flow-node-label { font-size: 0.75rem; font-weight: 600; }
+.flow-node-sub { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+.flow-arrow-wrap { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-width: 60px; }
+.flow-arrow-line { width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); position: relative; }
+.flow-arrow-line::after { content: '▶'; position: absolute; right: -8px; top: -9px; color: var(--accent2); font-size: 0.7rem; }
+.flow-arrow-label { position: absolute; top: -20px; font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; }
+.data-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.85rem; }
+.data-table th { background: rgba(79,123,255,0.1); color: var(--accent); padding: 12px 16px; text-align: left; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid rgba(79,123,255,0.2); }
+.data-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.02); color: var(--text); }
+.data-table .mono { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent3); }
+.data-table .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+.badge-green { background: rgba(16,185,129,0.2); color: var(--green); }
+.badge-red { background: rgba(244,63,94,0.2); color: var(--red); }
+.badge-blue { background: rgba(79,123,255,0.2); color: var(--accent); }
+.badge-orange { background: rgba(249,115,22,0.2); color: var(--orange); }
+.accordion { margin: 12px 0; }
+.acc-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.acc-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; background: var(--surface); transition: background .2s; }
+.acc-header:hover { background: var(--surface2); }
+.acc-header h4 { font-size: 0.9rem; font-weight: 600; }
+.acc-icon { font-size: 1.2rem; color: var(--accent); transition: transform .3s; }
+.acc-item.open .acc-icon { transform: rotate(45deg); }
+.acc-body { display: none; padding: 20px; background: var(--surface2); font-size: 0.87rem; color: var(--text-muted); }
+.acc-item.open .acc-body { display: block; }
+.quiz-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin: 32px 0; }
+.quiz-question { font-weight: 600; margin-bottom: 16px; font-size: 0.95rem; color: var(--text); }
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; cursor: pointer; font-size: 0.87rem; transition: all .2s; display: flex; align-items: center; gap: 10px; }
+.quiz-opt:hover { border-color: rgba(79,123,255,0.4); background: rgba(79,123,255,0.07); }
+.quiz-opt.correct { border-color: var(--green); background: rgba(16,185,129,0.1); color: var(--green); }
+.quiz-opt.wrong { border-color: var(--red); background: rgba(244,63,94,0.1); color: var(--red); }
+.quiz-opt .opt-letter { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+.quiz-result { margin-top: 16px; padding: 14px; border-radius: 8px; font-size: 0.87rem; display: none; }
+.quiz-result.show { display: block; }
+.quiz-result.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--green); }
+.quiz-result.fail { background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); color: var(--red); }
+.quiz-nav { display: flex; gap: 12px; margin-top: 20px; }
+.btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; transition: all .2s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #3d6ae0; transform: translateY(-1px); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.cheat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.cheat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.cheat-title { font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+.cheat-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.82rem; }
+.cheat-item:last-child { border-bottom: none; }
+.cheat-key { color: var(--text-muted); }
+.cheat-val { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent3); }
+.info-box { border-radius: 10px; padding: 16px 20px; margin: 16px 0; border-left: 4px solid; font-size: 0.87rem; }
+.info-box-title { font-weight: 700; margin-bottom: 6px; font-size: 0.85rem; }
+.info-note { background: rgba(34,211,238,0.08); border-color: var(--accent3); color: var(--text-muted); }
+.info-note .info-box-title { color: var(--accent3); }
+.info-warn { background: rgba(245,158,11,0.08); border-color: var(--accent4); color: var(--text-muted); }
+.info-warn .info-box-title { color: var(--accent4); }
+.info-danger { background: rgba(244,63,94,0.08); border-color: var(--red); color: var(--text-muted); }
+.info-danger .info-box-title { color: var(--red); }
+.info-success { background: rgba(16,185,129,0.08); border-color: var(--green); color: var(--text-muted); }
+.info-success .info-box-title { color: var(--green); }
+.header-breakdown { background: #080d1a; border: 1px solid var(--border); border-radius: 12px; padding: 20px; overflow-x: auto; margin: 16px 0; }
+.header-row { display: flex; gap: 2px; margin-bottom: 8px; }
+.header-field { flex: var(--w, 1); border-radius: 5px; padding: 6px 8px; text-align: center; font-size: 0.65rem; font-family: var(--font-mono); border: 1px solid; }
+.hf-blue { background: rgba(66,153,225,0.15); border-color: rgba(66,153,225,0.4); color: #63b3ed; }
+.hf-green { background: rgba(72,187,120,0.15); border-color: rgba(72,187,120,0.4); color: #68d391; }
+.hf-red { background: rgba(244,63,94,0.15); border-color: rgba(244,63,94,0.4); color: #fc8181; }
+.hf-purple { background: rgba(159,122,234,0.15); border-color: rgba(159,122,234,0.4); color: #b794f4; }
+.hf-orange { background: rgba(249,115,22,0.15); border-color: rgba(249,115,22,0.4); color: #fb923c; }
+.hf-yellow { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background: linear-gradient(to bottom, var(--accent), var(--accent2)); border-radius: 2px; }
+.tl-item { position: relative; margin-bottom: 24px; }
+.tl-item::before { content:''; position:absolute; left:-28px; top:6px; width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+.tl-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; color: var(--text); }
+.tl-text { font-size: 0.85rem; color: var(--text-muted); }
+.interview-q { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
+.iq-level { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.iq-q { font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; color: var(--text); }
+.iq-a { font-size: 0.85rem; color: var(--text-muted); display: none; padding-top: 12px; border-top: 1px solid var(--border); }
+.iq-a.open { display: block; }
+.iq-toggle { font-size: 0.75rem; color: var(--accent); cursor: pointer; text-decoration: none; }
+.tcp-states { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+.tcp-state { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; text-align: center; }
+.tcp-state-name { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; color: var(--accent3); margin-bottom: 4px; }
+.tcp-state-desc { font-size: 0.75rem; color: var(--text-muted); }
+.threat-card { background: var(--surface); border: 1px solid rgba(244,63,94,0.2); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
+.threat-title { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+.threat-tag { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+.threat-tag-l { background: rgba(244,63,94,0.2); color: var(--red); }
+.threat-desc { font-size: 0.85rem; color: var(--text-muted); }
+.ts-step { display: flex; gap: 16px; margin-bottom: 20px; }
+.ts-num { width: 32px; height: 32px; border-radius: 50%; background: rgba(79,123,255,0.2); border: 1px solid rgba(79,123,255,0.4); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--accent); flex-shrink: 0; }
+.ts-content .ts-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); }
+.ts-content .ts-text { font-size: 0.85rem; color: var(--text-muted); }
+.svg-container { margin: 28px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+.wireshark-pkt { background: #080d1a; border: 1px solid var(--border); border-radius: 10px; font-family: var(--font-mono); font-size: 0.75rem; padding: 16px 20px; overflow-x: auto; }
+.ws-row { display: flex; gap: 16px; padding: 3px 0; }
+.ws-row:hover { background: rgba(255,255,255,0.03); }
+.ws-num { color: var(--text-dim); width: 28px; }
+.ws-time { color: #9ece6a; width: 70px; }
+.ws-src { color: #7aa2f7; width: 120px; }
+.ws-dst { color: #f7768e; width: 120px; }
+.ws-proto { color: #e0af68; width: 60px; }
+.ws-info { color: #a9b1d6; }
+.reading-progress { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.rp-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
+.rp-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+ul.styled { list-style: none; padding: 0; }
+ul.styled li { padding: 6px 0 6px 20px; position: relative; font-size: 0.87rem; color: var(--text-muted); }
+ul.styled li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+strong { color: var(--text); font-weight: 600; }
+p { margin-bottom: 12px; color: var(--text-muted); font-size: 0.92rem; }
+h3 { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; margin: 24px 0 12px; color: var(--text); }
+h4 { font-weight: 700; font-size: 0.95rem; margin: 16px 0 8px; color: var(--text); }
+.mt-8{margin-top:8px} .mt-16{margin-top:16px} .mt-24{margin-top:24px} .mt-32{margin-top:32px}
+code { font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent3); }
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .hero { padding: 60px 24px 40px; }
+  .hero-osi-mini { display: none; }
+  .content { padding: 32px 20px; }
+  .osi-row { grid-template-columns: 44px 1fr; }
+  .osi-pdu, .osi-proto { display: none; }
+  .two-col { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .hero-stats { gap: 20px; }
+  .card-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h2>OSI MODEL</h2>
+    <p>Deep Dive Study Guide</p>
+    <div class="reading-progress mt-8">
+      <span id="rp-pct">0%</span>
+      <div class="rp-bar"><div class="rp-fill" id="rp-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-group-label">Getting Started</div>
+    <a class="nav-link" href="#hero">Overview</a>
+    <a class="nav-link" href="#intro">Introduction</a>
+    <a class="nav-link" href="#layers">7 Layers</a>
+    <div class="nav-group-label">Core Concepts</div>
+    <a class="nav-link" href="#encapsulation">Encapsulation</a>
+    <a class="nav-link" href="#packet-flow">Packet Flow</a>
+    <a class="nav-link" href="#protocols">Protocols</a>
+    <div class="nav-group-label">Deep Dive</div>
+    <a class="nav-link" href="#layer-deep">Layer Internals</a>
+    <a class="nav-link" href="#tcp-deep">TCP Deep Dive</a>
+    <a class="nav-link" href="#real-world">Real World</a>
+    <div class="nav-group-label">Commands</div>
+    <a class="nav-link" href="#commands">CLI Reference</a>
+    <a class="nav-link" href="#wireshark">Wireshark</a>
+    <div class="nav-group-label">Advanced</div>
+    <a class="nav-link" href="#security">Security</a>
+    <a class="nav-link" href="#performance">Performance</a>
+    <a class="nav-link" href="#troubleshoot">Troubleshooting</a>
+    <div class="nav-group-label">Exam Prep</div>
+    <a class="nav-link" href="#interview">Interview Q&amp;A</a>
+    <a class="nav-link" href="#quiz">Mini Quiz</a>
+    <a class="nav-link" href="#cheatsheet">Cheat Sheet</a>
+    <a class="nav-link" href="#summary">Summary</a>
+  </nav>
+</aside>
+<main class="main">
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">📡 Network Engineering Fundamentals</div>
+  <h1>OSI <span>Reference Model</span></h1>
+  <p class="hero-sub">The 7-layer framework that defines how computers communicate — from physical electrons to web applications.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num" data-count="7">0</div><div class="hero-stat-label">Layers</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" data-count="1984">0</div><div class="hero-stat-label">Year Introduced</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" data-count="100">0</div><div class="hero-stat-label">+ Protocols</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" data-count="5">0</div><div class="hero-stat-label">Billion Users</div></div>
+  </div>
+  <div class="hero-osi-mini">
+    <div class="hero-layer hl7">7 — Application <span>HTTP/DNS</span></div>
+    <div class="hero-layer hl6">6 — Presentation <span>TLS/JPEG</span></div>
+    <div class="hero-layer hl5">5 — Session <span>SIP/RPC</span></div>
+    <div class="hero-layer hl4">4 — Transport <span>TCP/UDP</span></div>
+    <div class="hero-layer hl3">3 — Network <span>IP/ICMP</span></div>
+    <div class="hero-layer hl2">2 — Data Link <span>Ethernet</span></div>
+    <div class="hero-layer hl1">1 — Physical <span>Bits/Signals</span></div>
+  </div>
+</section>
+<div class="content">
+
+<!-- INTRO -->
+<section id="intro">
+  <div class="section-header">
+    <div class="section-label">Section 01</div>
+    <h2 class="section-title">What is the OSI Model?</h2>
+    <p class="section-desc">Understanding the conceptual framework behind all modern networking.</p>
+  </div>
+  <p>The <strong>Open Systems Interconnection (OSI) model</strong> is a conceptual framework developed by the International Organization for Standardization (ISO) in 1984. It defines how different network protocols should interact to allow communication between devices, regardless of underlying architecture or vendor.</p>
+  <div class="info-box info-note">
+    <div class="info-box-title">💡 The Core Problem OSI Solves</div>
+    Before OSI, every vendor created proprietary networking systems. IBM's SNA couldn't talk to Digital's DECnet. The OSI model was created to standardize networking so any vendor's equipment could interoperate with any other — the foundation of the modern internet.
+  </div>
+  <h3>Real-World Analogy: International Postal Mail</h3>
+  <div class="card-grid mt-16">
+    <div class="card"><div class="card-title">📝 You write a letter (Layer 7)</div><div class="card-text">Your content — the actual message. Like HTTP request data or an email body.</div></div>
+    <div class="card"><div class="card-title">🌐 You translate it (Layer 6)</div><div class="card-text">Converting to a language the recipient understands — encoding, encryption.</div></div>
+    <div class="card"><div class="card-title">✉️ You address an envelope (Layer 4/5)</div><div class="card-text">Packaging and addressing, ensuring delivery tracking.</div></div>
+    <div class="card"><div class="card-title">🚗 Postal truck delivers it (Layer 3/2)</div><div class="card-text">The infrastructure that physically moves the packet from A to B.</div></div>
+    <div class="card"><div class="card-title">🛣️ Roads and bridges (Layer 1)</div><div class="card-text">The actual physical medium — copper, fiber, radio waves.</div></div>
+  </div>
+  <div class="info-box info-warn mt-24">
+    <div class="info-box-title">⚠️ OSI vs TCP/IP</div>
+    The OSI model is a <em>reference model</em> — the internet actually uses the TCP/IP model (4 layers). OSI layers 5, 6, and 7 collapse into TCP/IP's "Application" layer. However, engineers still use OSI terminology daily for precision — saying "Layer 4 firewall" vs "Layer 7 WAF" conveys exact meaning.
+  </div>
+</section>
+
+<!-- 7 LAYERS -->
+<section id="layers">
+  <div class="section-header">
+    <div class="section-label">Section 02</div>
+    <h2 class="section-title">The 7 Layers — Click to Expand</h2>
+    <p class="section-desc">Mnemonic bottom-up: <strong style="color:var(--accent)">"Please Do Not Throw Sausage Pizza Away"</strong></p>
+  </div>
+  <div class="osi-stack">
+
+    <!-- L7 -->
+    <div class="osi-row" data-layer="7" onclick="toggleLayer(this)">
+      <div class="osi-num" style="background:rgba(246,135,179,0.2);color:var(--l7)">7</div>
+      <div><div class="osi-name" style="color:var(--l7)">Application</div><div class="osi-desc">User-facing network services</div></div>
+      <div class="osi-pdu">PDU: <strong>Data/Message</strong></div>
+      <div class="osi-proto"><span class="proto-badge">HTTP</span><span class="proto-badge">FTP</span><span class="proto-badge">SMTP</span><span class="proto-badge">DNS</span></div>
+    </div>
+    <div class="layer-detail" id="detail-7">
+      <h4 style="color:var(--l7)">Layer 7: Application Layer</h4>
+      <p>The Application Layer is closest to the end user. It provides network services directly to applications — not to users. The user interacts with software; the software interacts with this layer.</p>
+      <div class="two-col mt-16">
+        <div><h4>What it does:</h4><ul class="styled"><li>Resource sharing and remote file access</li><li>Email, file transfer, web browsing</li><li>Directory services (LDAP, Active Directory)</li><li>Network management (SNMP)</li><li>Provides interface for apps to use network services</li></ul></div>
+        <div><h4>Key Protocols &amp; Ports:</h4><ul class="styled"><li><strong>HTTP/HTTPS</strong> — 80/443, web &amp; REST APIs</li><li><strong>FTP/SFTP</strong> — 21/22, file transfer</li><li><strong>SMTP</strong> — 25/587, email sending</li><li><strong>DNS</strong> — 53 UDP/TCP, name resolution</li><li><strong>DHCP</strong> — 67/68, IP assignment</li><li><strong>SSH</strong> — 22, secure remote shell</li><li><strong>SNMP</strong> — 161/162, device monitoring</li><li><strong>LDAP</strong> — 389/636, directory services</li></ul></div>
+      </div>
+      <div class="info-box info-note mt-16"><div class="info-box-title">Engineering Detail: L7 ≠ The Application</div>Layer 7 does NOT include the application itself (e.g., Chrome). It defines the <em>protocols</em> applications use. A WAF (Web Application Firewall) operates at L7 — it inspects HTTP headers, cookies, and body content that lower-layer firewalls cannot see.</div>
+    </div>
+
+    <!-- L6 -->
+    <div class="osi-row" data-layer="6" onclick="toggleLayer(this)">
+      <div class="osi-num" style="background:rgba(237,137,54,0.2);color:var(--l6)">6</div>
+      <div><div class="osi-name" style="color:var(--l6)">Presentation</div><div class="osi-desc">Translation, encryption, compression</div></div>
+      <div class="osi-pdu">PDU: <strong>Data</strong></div>
+      <div class="osi-proto"><span class="proto-badge">TLS/SSL</span><span class="proto-badge">JPEG</span><span class="proto-badge">ASCII</span></div>
+    </div>
+    <div class="layer-detail" id="detail-6">
+      <h4 style="color:var(--l6)">Layer 6: Presentation Layer</h4>
+      <p>Acts as a translator between application and transport layers. Ensures data sent by one system can be read by another regardless of encoding differences.</p>
+      <div class="two-col mt-16">
+        <div><h4>Three Core Functions:</h4><ul class="styled"><li><strong>Translation:</strong> ASCII↔EBCDIC, Unicode↔UTF-8</li><li><strong>Encryption/Decryption:</strong> TLS/SSL conceptually lives here</li><li><strong>Compression:</strong> gzip, deflate, JPEG, MP3</li></ul></div>
+        <div><h4>Real-world Examples:</h4><ul class="styled"><li>HTTPS — TLS encryption at this layer</li><li>JPEG encoding before image transmission</li><li>HTTP Content-Encoding: gzip</li><li>Base64 encoding for email attachments</li></ul></div>
+      </div>
+      <div class="info-box info-warn mt-16"><div class="info-box-title">Where Does TLS Really Belong?</div>TLS spans L4–L7: it runs on top of TCP (L4), encrypts Application data (L7), and handles encoding (L6). For OSI discussion, the encryption function = L6. In TCP/IP model, TLS sits "between" Transport and Application.</div>
+    </div>
+
+    <!-- L5 -->
+    <div class="osi-row" data-layer="5" onclick="toggleLayer(this)">
+      <div class="osi-num" style="background:rgba(159,122,234,0.2);color:var(--l5)">5</div>
+      <div><div class="osi-name" style="color:var(--l5)">Session</div><div class="osi-desc">Dialog control, session management</div></div>
+      <div class="osi-pdu">PDU: <strong>Data</strong></div>
+      <div class="osi-proto"><span class="proto-badge">NetBIOS</span><span class="proto-badge">RPC</span><span class="proto-badge">SIP</span></div>
+    </div>
+    <div class="layer-detail" id="detail-5">
+      <h4 style="color:var(--l5)">Layer 5: Session Layer</h4>
+      <p>Manages dialogues (sessions) between computers — establishes, maintains, synchronizes, and terminates sessions between applications.</p>
+      <div class="two-col mt-16">
+        <div><h4>Session Management:</h4><ul class="styled"><li><strong>Establishment:</strong> Setting up communication channel</li><li><strong>Maintenance:</strong> Keeping session alive via heartbeats</li><li><strong>Synchronization:</strong> Checkpoints for resumable transfers</li><li><strong>Termination:</strong> Orderly session shutdown</li></ul></div>
+        <div><h4>Dialog Modes:</h4><ul class="styled"><li><strong>Simplex:</strong> One-way only (broadcast TV)</li><li><strong>Half-duplex:</strong> Both ways, not simultaneously (walkie-talkie)</li><li><strong>Full-duplex:</strong> Both ways simultaneously (phone call)</li></ul></div>
+      </div>
+      <div class="info-box info-note mt-16"><div class="info-box-title">Real-World: SIP for VoIP</div>SIP (Session Initiation Protocol) sets up VoIP calls at L5 — it negotiates the session, codec, and endpoints. Once established, RTP carries the actual audio data. Without L5 session management, there's no concept of "who's calling whom."</div>
+    </div>
+
+    <!-- L4 -->
+    <div class="osi-row" data-layer="4" onclick="toggleLayer(this)">
+      <div class="osi-num" style="background:rgba(66,153,225,0.2);color:var(--l4)">4</div>
+      <div><div class="osi-name" style="color:var(--l4)">Transport</div><div class="osi-desc">End-to-end delivery, reliability, flow control</div></div>
+      <div class="osi-pdu">PDU: <strong>Segment (TCP) / Datagram (UDP)</strong></div>
+      <div class="osi-proto"><span class="proto-badge">TCP</span><span class="proto-badge">UDP</span><span class="proto-badge">QUIC</span></div>
+    </div>
+    <div class="layer-detail" id="detail-4">
+      <h4 style="color:var(--l4)">Layer 4: Transport Layer</h4>
+      <p>Responsible for end-to-end communication between processes. Segments data, handles error recovery, flow control, and reassembly at destination.</p>
+      <div class="tabs mt-16">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab(this,'tcp-tab')">TCP</button>
+          <button class="tab-btn" onclick="switchTab(this,'udp-tab')">UDP</button>
+          <button class="tab-btn" onclick="switchTab(this,'quic-tab')">QUIC</button>
+        </div>
+        <div class="tab-content active" id="tcp-tab">
+          <h4>TCP — Transmission Control Protocol</h4>
+          <ul class="styled"><li><strong>Connection-oriented:</strong> 3-way handshake before data</li><li><strong>Reliable delivery:</strong> Sequence numbers, ACKs, retransmission</li><li><strong>Flow control:</strong> Receive window prevents buffer overflow</li><li><strong>Congestion control:</strong> Slow start, AIMD, Cubic/BBR</li><li><strong>Ordered delivery:</strong> Reorders segments at receiver</li></ul>
+          <h4 class="mt-16">TCP Header (20 bytes min):</h4>
+          <div class="header-breakdown">
+            <div class="header-row"><div class="header-field hf-blue" style="--w:2">Source Port (16 bits)</div><div class="header-field hf-green" style="--w:2">Destination Port (16 bits)</div></div>
+            <div class="header-row"><div class="header-field hf-purple" style="--w:4">Sequence Number (32 bits)</div></div>
+            <div class="header-row"><div class="header-field hf-orange" style="--w:4">Acknowledgment Number (32 bits)</div></div>
+            <div class="header-row"><div class="header-field hf-blue" style="--w:0.5">Offset</div><div class="header-field hf-green" style="--w:0.5">Rsv</div><div class="header-field hf-red" style="--w:0.75">Flags (SYN/ACK/FIN/RST)</div><div class="header-field hf-yellow" style="--w:2.25">Window Size (16 bits)</div></div>
+            <div class="header-row"><div class="header-field hf-purple" style="--w:2">Checksum (16 bits)</div><div class="header-field hf-orange" style="--w:2">Urgent Pointer (16 bits)</div></div>
+          </div>
+          <h4>3-Way Handshake:</h4>
+          <div class="code-block"><div class="code-header"><span class="code-lang">TCP Handshake Flow</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+Client                         Server
+  |                               |
+  |  SYN (seq=100)               |
+  |──────────────────────────────▶|
+  |  SYN-ACK (seq=300, ack=101) |
+  |◀──────────────────────────────|
+  |  ACK (seq=101, ack=301)     |
+  |──────────────────────────────▶|
+  |  ══ CONNECTION ESTABLISHED ══ |
+  |  GET /index.html HTTP/1.1    |
+  |──────────────────────────────▶|</pre></div></div>
+          <h4>TCP States:</h4>
+          <div class="tcp-states">
+            <div class="tcp-state"><div class="tcp-state-name">CLOSED</div><div class="tcp-state-desc">No connection</div></div>
+            <div class="tcp-state"><div class="tcp-state-name">LISTEN</div><div class="tcp-state-desc">Server awaiting SYN</div></div>
+            <div class="tcp-state"><div class="tcp-state-name">SYN_SENT</div><div class="tcp-state-desc">Client sent SYN</div></div>
+            <div class="tcp-state"><div class="tcp-state-name">SYN_RECEIVED</div><div class="tcp-state-desc">Server got SYN</div></div>
+            <div class="tcp-state"><div class="tcp-state-name">ESTABLISHED</div><div class="tcp-state-desc">Data flowing</div></div>
+            <div class="tcp-state"><div class="tcp-state-name">FIN_WAIT_1</div><div class="tcp-state-desc">Sent FIN</div></div>
+            <div class="tcp-state"><div class="tcp-state-name">TIME_WAIT</div><div class="tcp-state-desc">Waiting 2×MSL</div></div>
+            <div class="tcp-state"><div class="tcp-state-name">CLOSE_WAIT</div><div class="tcp-state-desc">Got remote FIN</div></div>
+          </div>
+        </div>
+        <div class="tab-content" id="udp-tab">
+          <h4>UDP — User Datagram Protocol</h4>
+          <ul class="styled"><li><strong>Connectionless:</strong> No handshake, fire-and-forget</li><li><strong>No reliability:</strong> Packets may be lost/reordered</li><li><strong>Low latency:</strong> No handshake overhead</li><li><strong>Minimal header:</strong> 8 bytes vs TCP's 20+</li><li><strong>Best for:</strong> DNS, DHCP, VoIP, gaming, streaming, NTP</li></ul>
+          <h4 class="mt-16">UDP Header (8 bytes):</h4>
+          <div class="header-breakdown">
+            <div class="header-row"><div class="header-field hf-blue" style="--w:2">Source Port (16 bits)</div><div class="header-field hf-green" style="--w:2">Destination Port (16 bits)</div></div>
+            <div class="header-row"><div class="header-field hf-purple" style="--w:2">Length (16 bits)</div><div class="header-field hf-red" style="--w:2">Checksum (16 bits)</div></div>
+          </div>
+          <div class="info-box info-note mt-16"><div class="info-box-title">When to Choose UDP</div>Use UDP when: (1) Speed matters more than reliability — live video won't retransmit dropped frames; (2) Application handles reliability itself — DNS retries on its own; (3) Broadcast/multicast needed — UDP supports these, TCP doesn't; (4) Packet loss is acceptable — voice jitter is better than silence from TCP retransmit.</div>
+        </div>
+        <div class="tab-content" id="quic-tab">
+          <h4>QUIC — Quick UDP Internet Connections (HTTP/3)</h4>
+          <p>QUIC (RFC 9000) runs over UDP but provides TCP-like reliability with major improvements:</p>
+          <ul class="styled"><li><strong>0-RTT handshake:</strong> Resumes connections without round trips</li><li><strong>Built-in TLS 1.3:</strong> Encryption at the transport layer</li><li><strong>Stream multiplexing:</strong> No head-of-line blocking</li><li><strong>Connection migration:</strong> Survives IP changes (WiFi→4G)</li></ul>
+          <div class="info-box info-success mt-16"><div class="info-box-title">QUIC in Production</div>Google routes ~30% of internet traffic via QUIC/HTTP3. YouTube, Google Search, Gmail all use HTTP/3 by default. Connection establishment is ~2× faster than TLS 1.2 over TCP.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L3 -->
+    <div class="osi-row" data-layer="3" onclick="toggleLayer(this)">
+      <div class="osi-num" style="background:rgba(72,187,120,0.2);color:var(--l3)">3</div>
+      <div><div class="osi-name" style="color:var(--l3)">Network</div><div class="osi-desc">Logical addressing, routing between networks</div></div>
+      <div class="osi-pdu">PDU: <strong>Packet</strong></div>
+      <div class="osi-proto"><span class="proto-badge">IP</span><span class="proto-badge">ICMP</span><span class="proto-badge">OSPF</span><span class="proto-badge">BGP</span></div>
+    </div>
+    <div class="layer-detail" id="detail-3">
+      <h4 style="color:var(--l3)">Layer 3: Network Layer</h4>
+      <p>Provides logical addressing and routing. Unlike L2 which works within a single network, L3 routes packets across multiple networks using IP addresses.</p>
+      <h4>IPv4 Header (20 bytes min):</h4>
+      <div class="header-breakdown">
+        <div class="header-row"><div class="header-field hf-blue" style="--w:0.5">Ver</div><div class="header-field hf-green" style="--w:0.5">IHL</div><div class="header-field hf-purple" style="--w:1">DSCP/ECN</div><div class="header-field hf-orange" style="--w:2">Total Length (16 bits)</div></div>
+        <div class="header-row"><div class="header-field hf-red" style="--w:2">Identification (16)</div><div class="header-field hf-blue" style="--w:0.5">Flags</div><div class="header-field hf-yellow" style="--w:1.5">Fragment Offset (13)</div></div>
+        <div class="header-row"><div class="header-field hf-green" style="--w:1">TTL (8)</div><div class="header-field hf-purple" style="--w:1">Protocol (8)</div><div class="header-field hf-orange" style="--w:2">Header Checksum (16)</div></div>
+        <div class="header-row"><div class="header-field hf-blue" style="--w:4">Source IP Address (32 bits)</div></div>
+        <div class="header-row"><div class="header-field hf-red" style="--w:4">Destination IP Address (32 bits)</div></div>
+      </div>
+      <div class="two-col mt-16">
+        <div><h4>Routing Protocols:</h4><ul class="styled"><li><strong>OSPF</strong> — Link-state, Dijkstra, enterprise LANs</li><li><strong>BGP</strong> — Path-vector, internet backbone</li><li><strong>EIGRP</strong> — Cisco proprietary, DUAL algorithm</li><li><strong>RIP</strong> — Distance vector, max 15 hops (legacy)</li><li><strong>IS-IS</strong> — Link-state, ISP core networks</li></ul></div>
+        <div><h4>Key Concepts:</h4><ul class="styled"><li><strong>TTL:</strong> Prevents loops, decrements each hop. Default: 64 (Linux), 128 (Windows)</li><li><strong>Fragmentation:</strong> Large packets split at MTU boundary</li><li><strong>ICMP:</strong> ping, traceroute, unreachable messages</li><li><strong>NAT:</strong> Translates private↔public IPs at L3/L4</li><li><strong>Protocol field:</strong> 6=TCP, 17=UDP, 1=ICMP, 89=OSPF</li></ul></div>
+      </div>
+    </div>
+
+    <!-- L2 -->
+    <div class="osi-row" data-layer="2" onclick="toggleLayer(this)">
+      <div class="osi-num" style="background:rgba(255,166,0,0.2);color:var(--l2)">2</div>
+      <div><div class="osi-name" style="color:var(--l2)">Data Link</div><div class="osi-desc">MAC addressing, framing, error detection</div></div>
+      <div class="osi-pdu">PDU: <strong>Frame</strong></div>
+      <div class="osi-proto"><span class="proto-badge">Ethernet</span><span class="proto-badge">802.11</span><span class="proto-badge">VLAN</span></div>
+    </div>
+    <div class="layer-detail" id="detail-2">
+      <h4 style="color:var(--l2)">Layer 2: Data Link Layer</h4>
+      <p>Handles node-to-node data transfer on the same network segment. Wraps packets into frames, adds MAC addresses, and detects transmission errors.</p>
+      <div class="two-col mt-16">
+        <div><h4>Two Sublayers (IEEE 802):</h4><ul class="styled"><li><strong>LLC (Logical Link Control):</strong> Error control, identifies L3 protocol in use</li><li><strong>MAC (Media Access Control):</strong> Hardware addressing, medium access control (CSMA/CD for Ethernet, CSMA/CA for WiFi)</li></ul><h4>Ethernet Frame:</h4><ul class="styled"><li><strong>Preamble:</strong> 7 bytes, sync (10101010...)</li><li><strong>SFD:</strong> 1 byte, start frame delimiter</li><li><strong>Dst MAC:</strong> 6 bytes</li><li><strong>Src MAC:</strong> 6 bytes</li><li><strong>EtherType:</strong> 2 bytes (0x0800=IPv4)</li><li><strong>Payload:</strong> 46–1500 bytes</li><li><strong>FCS:</strong> 4 bytes, CRC-32</li></ul></div>
+        <div><h4>MAC Address Deep Dive:</h4><p>48 bits (6 bytes) in format XX:XX:XX:XX:XX:XX. First 3 bytes = OUI (vendor). Last 3 bytes = device-specific. Example: 00:1A:2B = Apple Inc.</p><h4>L2 Devices:</h4><ul class="styled"><li><strong>Switch:</strong> Builds CAM table (MAC→port), forwards frames only to correct port. Separate collision domain per port</li><li><strong>VLAN (802.1Q):</strong> Tags frames with 12-bit VLAN ID. Logically separates networks on same switch</li><li><strong>STP (802.1D):</strong> Blocks redundant links to prevent broadcast storms</li></ul></div>
+      </div>
+    </div>
+
+    <!-- L1 -->
+    <div class="osi-row" data-layer="1" onclick="toggleLayer(this)">
+      <div class="osi-num" style="background:rgba(255,107,107,0.2);color:var(--l1)">1</div>
+      <div><div class="osi-name" style="color:var(--l1)">Physical</div><div class="osi-desc">Bits, signals, electrical/optical transmission</div></div>
+      <div class="osi-pdu">PDU: <strong>Bit</strong></div>
+      <div class="osi-proto"><span class="proto-badge">Ethernet PHY</span><span class="proto-badge">Wi-Fi RF</span><span class="proto-badge">Fiber</span></div>
+    </div>
+    <div class="layer-detail" id="detail-1">
+      <h4 style="color:var(--l1)">Layer 1: Physical Layer</h4>
+      <p>Responsible for actual physical transmission of raw bits. Defines electrical voltages, pin layouts, cable specs, and signaling methods.</p>
+      <div class="two-col mt-16">
+        <div><h4>Transmission Media:</h4><ul class="styled"><li><strong>Copper UTP:</strong> Cat5e (1Gbps/100m), Cat6 (10Gbps/55m), Cat6A (10Gbps/100m), Cat8 (40Gbps/30m)</li><li><strong>Fiber Optic:</strong> SMF single-mode 100km+, MMF multi-mode 550m</li><li><strong>Wireless:</strong> 2.4GHz/5GHz WiFi, mmWave 60GHz</li></ul></div>
+        <div><h4>Physical Layer Devices:</h4><ul class="styled"><li><strong>Hubs:</strong> Legacy, broadcasts all signals to all ports (collision domain)</li><li><strong>Repeaters:</strong> Amplify/regenerate signals to extend range</li><li><strong>Modems:</strong> Digital↔analog conversion</li><li><strong>Transceivers:</strong> SFP, SFP+, QSFP28 — convert signals</li></ul></div>
+      </div>
+      <div class="info-box info-note mt-16"><div class="info-box-title">Binary Signaling: How a bit becomes voltage</div>1000BASE-T (Gigabit Ethernet) uses PAM-5 (5 voltage levels: -2,-1,0,+1,+2V) over 4 wire pairs. Each symbol encodes 2 bits, achieving 1Gbps. In fiber: photon = 1, no photon = 0. Modern 400G uses 64-QAM coherent modulation.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ENCAPSULATION -->
+<section id="encapsulation">
+  <div class="section-header">
+    <div class="section-label">Section 03</div>
+    <h2 class="section-title">Data Encapsulation</h2>
+    <p class="section-desc">Each layer wraps data with its own header as it travels down — and strips it going up.</p>
+  </div>
+  <p>When data travels down the OSI model (sending), each layer <strong>adds its own header</strong> — this is <em>encapsulation</em>. When received, each layer strips its header — this is <em>de-encapsulation</em>.</p>
+  <div class="svg-container">
+    <svg viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:680px;display:block;margin:auto">
+      <text x="60" y="40" fill="#7c8db5" font-size="10" font-family="JetBrains Mono,monospace">L7</text>
+      <text x="60" y="80" fill="#7c8db5" font-size="10" font-family="JetBrains Mono,monospace">L4</text>
+      <text x="60" y="125" fill="#7c8db5" font-size="10" font-family="JetBrains Mono,monospace">L3</text>
+      <text x="60" y="172" fill="#7c8db5" font-size="10" font-family="JetBrains Mono,monospace">L2</text>
+      <text x="60" y="218" fill="#7c8db5" font-size="10" font-family="JetBrains Mono,monospace">L1</text>
+      <!-- L7 -->
+      <rect x="80" y="22" width="570" height="28" rx="5" fill="rgba(246,135,179,0.15)" stroke="rgba(246,135,179,0.4)" stroke-width="1"/>
+      <text x="365" y="41" fill="#f687b3" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">APPLICATION DATA (HTTP/SMTP/DNS payload)</text>
+      <!-- L4 -->
+      <rect x="80" y="62" width="100" height="28" rx="5" fill="rgba(66,153,225,0.25)" stroke="rgba(66,153,225,0.5)" stroke-width="1"/>
+      <text x="130" y="81" fill="#63b3ed" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">TCP/UDP HDR</text>
+      <rect x="182" y="62" width="468" height="28" rx="5" fill="rgba(246,135,179,0.1)" stroke="rgba(246,135,179,0.2)" stroke-width="1"/>
+      <text x="415" y="81" fill="#7c8db5" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Data</text>
+      <text x="365" y="105" fill="#4a5578" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">━━━━ SEGMENT (TCP) or DATAGRAM (UDP) ━━━━</text>
+      <!-- L3 -->
+      <rect x="80" y="112" width="100" height="28" rx="5" fill="rgba(72,187,120,0.25)" stroke="rgba(72,187,120,0.5)" stroke-width="1"/>
+      <text x="130" y="131" fill="#68d391" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">IP HEADER</text>
+      <rect x="182" y="112" width="100" height="28" rx="5" fill="rgba(66,153,225,0.15)" stroke="rgba(66,153,225,0.3)" stroke-width="1"/>
+      <text x="232" y="131" fill="#63b3ed" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">TCP HDR</text>
+      <rect x="284" y="112" width="366" height="28" rx="5" fill="rgba(246,135,179,0.07)" stroke="rgba(246,135,179,0.12)" stroke-width="1"/>
+      <text x="465" y="131" fill="#7c8db5" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">Data</text>
+      <text x="365" y="155" fill="#4a5578" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">━━━━━━━━━━━━━━━━━━━━━━━ PACKET ━━━━━━━━━━━━━━━━━━━━━━━</text>
+      <!-- L2 -->
+      <rect x="80" y="162" width="80" height="28" rx="5" fill="rgba(255,166,0,0.25)" stroke="rgba(255,166,0,0.5)" stroke-width="1"/>
+      <text x="120" y="181" fill="#fcd34d" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">ETH HDR</text>
+      <rect x="162" y="162" width="80" height="28" rx="5" fill="rgba(72,187,120,0.12)" stroke="rgba(72,187,120,0.25)" stroke-width="1"/>
+      <text x="202" y="181" fill="#68d391" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">IP HDR</text>
+      <rect x="244" y="162" width="80" height="28" rx="5" fill="rgba(66,153,225,0.1)" stroke="rgba(66,153,225,0.2)" stroke-width="1"/>
+      <text x="284" y="181" fill="#63b3ed" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">TCP HDR</text>
+      <rect x="326" y="162" width="250" height="28" rx="5" fill="rgba(246,135,179,0.05)" stroke="rgba(246,135,179,0.1)" stroke-width="1"/>
+      <text x="450" y="181" fill="#7c8db5" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">Data</text>
+      <rect x="578" y="162" width="72" height="28" rx="5" fill="rgba(255,166,0,0.1)" stroke="rgba(255,166,0,0.3)" stroke-width="1"/>
+      <text x="614" y="181" fill="#fcd34d" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">FCS</text>
+      <text x="365" y="205" fill="#4a5578" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ FRAME ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</text>
+      <!-- L1 -->
+      <rect x="80" y="212" width="570" height="22" rx="4" fill="rgba(255,107,107,0.15)" stroke="rgba(255,107,107,0.4)" stroke-width="1"/>
+      <text x="365" y="227" fill="#fc8181" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">01101000 01110100 01110100 01110000 ... BITS ON WIRE / FIBER / RADIO</text>
+      <!-- Arrows -->
+      <line x1="30" y1="30" x2="30" y2="222" stroke="#4f7bff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+      <polygon points="27,220 33,220 30,228" fill="#4f7bff" opacity="0.8"/>
+      <text x="8" y="132" fill="#4f7bff" font-size="8" font-family="JetBrains Mono,monospace" transform="rotate(-90,8,132)">ENCAPSULATE</text>
+      <line x1="672" y1="222" x2="672" y2="30" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+      <polygon points="669,32 675,32 672,24" fill="#a855f7" opacity="0.8"/>
+      <text x="678" y="132" fill="#a855f7" font-size="8" font-family="JetBrains Mono,monospace" transform="rotate(90,678,132)">DE-ENCAPSULATE</text>
+    </svg>
+  </div>
+  <div class="info-box info-note"><div class="info-box-title">💡 PDU Names Matter in Interviews</div>Each layer has a specific PDU name: L7=Data, L4=Segment(TCP)/Datagram(UDP), L3=Packet, L2=Frame, L1=Bit. Saying "a TCP segment is encapsulated in an IP packet, which is encapsulated in an Ethernet frame" signals deep mastery.</div>
+</section>
+
+<!-- PACKET FLOW -->
+<section id="packet-flow">
+  <div class="section-header">
+    <div class="section-label">Section 04</div>
+    <h2 class="section-title">Packet Flow Visualization</h2>
+    <p class="section-desc">Tracing a packet's journey from browser to web server — every hop, every layer.</p>
+  </div>
+  <h3>Browser → Web Server: Full Journey</h3>
+  <div class="flow-diagram">
+    <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:20px;font-weight:600;">🌐 HTTP GET from laptop to remote nginx server</div>
+    <div class="flow-nodes">
+      <div class="flow-node"><div class="flow-node-icon">💻</div><div class="flow-node-label">Your Browser</div><div class="flow-node-sub">192.168.1.5</div></div>
+      <div class="flow-arrow-wrap"><div class="flow-arrow-line"></div><div class="flow-arrow-label">L2 Frame (ARP)</div></div>
+      <div class="flow-node"><div class="flow-node-icon">🔀</div><div class="flow-node-label">Home Router</div><div class="flow-node-sub">NAT + L3</div></div>
+      <div class="flow-arrow-wrap"><div class="flow-arrow-line"></div><div class="flow-arrow-label">IP Packet</div></div>
+      <div class="flow-node"><div class="flow-node-icon">🏢</div><div class="flow-node-label">ISP Core</div><div class="flow-node-sub">BGP Routing</div></div>
+      <div class="flow-arrow-wrap"><div class="flow-arrow-line"></div><div class="flow-arrow-label">Fiber backbone</div></div>
+      <div class="flow-node"><div class="flow-node-icon">☁️</div><div class="flow-node-label">CDN Edge</div><div class="flow-node-sub">AWS/CF</div></div>
+      <div class="flow-arrow-wrap"><div class="flow-arrow-line"></div><div class="flow-arrow-label">Internal LAN</div></div>
+      <div class="flow-node"><div class="flow-node-icon">🖥️</div><div class="flow-node-label">Web Server</div><div class="flow-node-sub">nginx:443</div></div>
+    </div>
+  </div>
+  <div class="packet-flow mt-24">
+    <div style="font-weight:700;font-size:0.9rem;margin-bottom:20px;">Animated Layer-by-Layer Data Flow</div>
+    <div class="packet-anim">
+      <div class="packet-row"><div class="packet-layer-label" style="color:var(--l7)">Application</div><div class="packet-track"><div class="packet-box" style="background:rgba(246,135,179,0.2);color:var(--l7);border:1px solid rgba(246,135,179,0.4);animation-delay:0s">GET /index.html HTTP/1.1</div></div></div>
+      <div class="packet-row"><div class="packet-layer-label" style="color:var(--l4)">Transport</div><div class="packet-track"><div class="packet-box" style="background:rgba(66,153,225,0.2);color:var(--l4);border:1px solid rgba(66,153,225,0.4);animation-delay:0.4s">TCP | seq=1001 | dst:443</div></div></div>
+      <div class="packet-row"><div class="packet-layer-label" style="color:var(--l3)">Network</div><div class="packet-track"><div class="packet-box" style="background:rgba(72,187,120,0.2);color:var(--l3);border:1px solid rgba(72,187,120,0.4);animation-delay:0.8s">IP | 192.168.1.5 → 93.184.216.34</div></div></div>
+      <div class="packet-row"><div class="packet-layer-label" style="color:var(--l2)">Data Link</div><div class="packet-track"><div class="packet-box" style="background:rgba(255,166,0,0.2);color:var(--l2);border:1px solid rgba(255,166,0,0.4);animation-delay:1.2s">Ethernet | src:AA:BB → dst:DD:EE | FCS</div></div></div>
+      <div class="packet-row"><div class="packet-layer-label" style="color:var(--l1)">Physical</div><div class="packet-track"><div class="packet-box" style="background:rgba(255,107,107,0.2);color:var(--l1);border:1px solid rgba(255,107,107,0.4);animation-delay:1.6s">01101000 01110100 01110100 ...</div></div></div>
+    </div>
+  </div>
+  <h3 class="mt-32">ARP Resolution Process</h3>
+  <div class="timeline mt-16">
+    <div class="tl-item"><div class="tl-title">Host wants to send to 192.168.1.1 (router)</div><div class="tl-text">Check ARP cache: <code>arp -a</code> — is 192.168.1.1 known? If yes, use cached MAC. Cache TTL: ~20 min (Linux), ~30s–4min (Cisco).</div></div>
+    <div class="tl-item"><div class="tl-title">ARP Broadcast: "Who has 192.168.1.1?"</div><div class="tl-text">Sends ARP Request: src MAC=own, dst MAC=FF:FF:FF:FF:FF:FF (broadcast). EtherType = 0x0806. All devices on segment receive this frame.</div></div>
+    <div class="tl-item"><div class="tl-title">Target responds: "I have it — my MAC is aa:bb:cc:dd:ee:ff"</div><div class="tl-text">ARP Reply sent unicast back. Contains router's MAC address. Now the sender can build a valid Ethernet frame.</div></div>
+    <div class="tl-item"><div class="tl-title">ARP Cache Updated</div><div class="tl-text">IP→MAC mapping cached. Subsequent packets skip ARP. Even though destination IP is on the internet, the Ethernet dst MAC is the router's MAC — it handles L3 forwarding.</div></div>
+  </div>
+</section>
+
+<!-- PROTOCOLS TABLE -->
+<section id="protocols">
+  <div class="section-header">
+    <div class="section-label">Section 05</div>
+    <h2 class="section-title">Protocols at Each Layer</h2>
+    <p class="section-desc">Complete protocol reference with ports and purpose.</p>
+  </div>
+  <table class="data-table">
+    <thead><tr><th>Protocol</th><th>Layer</th><th>Port(s)</th><th>Transport</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>HTTP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">80</td><td>TCP</td><td>Web, REST APIs</td></tr>
+      <tr><td>HTTPS</td><td><span class="badge badge-blue">L7</span></td><td class="mono">443</td><td>TCP</td><td>Encrypted web (TLS)</td></tr>
+      <tr><td>DNS</td><td><span class="badge badge-blue">L7</span></td><td class="mono">53</td><td>UDP/TCP</td><td>Name resolution</td></tr>
+      <tr><td>DHCP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">67/68</td><td>UDP</td><td>Auto IP assignment</td></tr>
+      <tr><td>FTP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">21/20</td><td>TCP</td><td>File transfer</td></tr>
+      <tr><td>SSH</td><td><span class="badge badge-blue">L7</span></td><td class="mono">22</td><td>TCP</td><td>Secure remote shell</td></tr>
+      <tr><td>SMTP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">25/587</td><td>TCP</td><td>Email sending</td></tr>
+      <tr><td>IMAP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">143/993</td><td>TCP</td><td>Email retrieval</td></tr>
+      <tr><td>SNMP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">161/162</td><td>UDP</td><td>Network monitoring</td></tr>
+      <tr><td>NTP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">123</td><td>UDP</td><td>Time synchronization</td></tr>
+      <tr><td>LDAP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">389/636</td><td>TCP</td><td>Directory services</td></tr>
+      <tr><td>RDP</td><td><span class="badge badge-blue">L7</span></td><td class="mono">3389</td><td>TCP</td><td>Remote desktop</td></tr>
+      <tr><td>TLS/SSL</td><td><span class="badge badge-orange">L6</span></td><td>—</td><td>TCP</td><td>Encryption, auth</td></tr>
+      <tr><td>SIP</td><td><span class="badge badge-green">L5</span></td><td class="mono">5060/5061</td><td>UDP/TCP</td><td>VoIP session setup</td></tr>
+      <tr><td>TCP</td><td><span class="badge badge-blue">L4</span></td><td>—</td><td>—</td><td>Reliable transport</td></tr>
+      <tr><td>UDP</td><td><span class="badge badge-blue">L4</span></td><td>—</td><td>—</td><td>Fast unreliable transport</td></tr>
+      <tr><td>QUIC</td><td><span class="badge badge-blue">L4</span></td><td class="mono">443</td><td>UDP</td><td>HTTP/3 transport</td></tr>
+      <tr><td>IPv4/IPv6</td><td><span class="badge badge-green">L3</span></td><td>—</td><td>—</td><td>Logical addressing</td></tr>
+      <tr><td>ICMP</td><td><span class="badge badge-green">L3</span></td><td>—</td><td>—</td><td>Error messages, ping</td></tr>
+      <tr><td>OSPF</td><td><span class="badge badge-green">L3</span></td><td>—</td><td>—</td><td>Link-state routing</td></tr>
+      <tr><td>BGP</td><td><span class="badge badge-green">L3</span></td><td class="mono">179</td><td>TCP</td><td>Internet routing</td></tr>
+      <tr><td>Ethernet</td><td><span class="badge badge-orange">L2</span></td><td>—</td><td>—</td><td>LAN framing</td></tr>
+      <tr><td>ARP</td><td><span class="badge badge-orange">L2</span></td><td>—</td><td>—</td><td>IP→MAC resolution</td></tr>
+      <tr><td>802.11 WiFi</td><td><span class="badge badge-orange">L2</span></td><td>—</td><td>—</td><td>Wireless LAN</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- LAYER DEEP -->
+<section id="layer-deep">
+  <div class="section-header">
+    <div class="section-label">Section 06</div>
+    <h2 class="section-title">Layer Internals Deep Dive</h2>
+    <p class="section-desc">DNS resolution, NAT translation, STP, and switching internals.</p>
+  </div>
+  <h3>DNS Full Recursive Resolution</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">DNS Resolution Flow</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+Browser: www.example.com → IP address?
+
+1. CHECK CACHE
+   Browser cache → OS resolver cache → /etc/hosts → Not found
+
+2. QUERY RECURSIVE RESOLVER (e.g. 8.8.8.8)
+   Client → 8.8.8.8: "What is www.example.com?"
+
+3. RESOLVER → ROOT NAME SERVER
+   Root: "I don't know, but .com is at 192.5.6.30"
+
+4. RESOLVER → TLD (.com) SERVER
+   TLD: "example.com is at ns1.example.com = 205.251.196.1"
+
+5. RESOLVER → AUTHORITATIVE SERVER
+   Auth: "www.example.com = 93.184.216.34, TTL=300"
+
+6. RESOLVER CACHES + RETURNS TO CLIENT
+   Client caches for 300s, connects to 93.184.216.34:443</pre></div></div>
+
+  <h3>NAT: Network Address Translation</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">PAT Translation Table</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+Private LAN                      Public Internet
+192.168.1.5:49152 ──┐
+192.168.1.5:49153 ──┤              ┌── 203.0.113.1:1024
+192.168.1.8:52000 ──┼── NAT ───── ┼── 203.0.113.1:1025
+192.168.1.10:8080 ──┘  Router     └── 203.0.113.1:1026
+
+NAT Table:
+┌──────────────────────┬──────────────────────┬──────────────────────┐
+│ Private IP:Port      │ Public IP:Port       │ Destination          │
+├──────────────────────┼──────────────────────┼──────────────────────┤
+│ 192.168.1.5:49152    │ 203.0.113.1:1024     │ 93.184.216.34:80     │
+│ 192.168.1.5:49153    │ 203.0.113.1:1025     │ 8.8.8.8:53           │
+└──────────────────────┴──────────────────────┴──────────────────────┘
+
+OUT: src 192.168.1.5:49152 → dst 93.184.216.34:80
+     → src 203.0.113.1:1024 → dst 93.184.216.34:80
+
+IN:  src 93.184.216.34:80 → dst 203.0.113.1:1024
+     → src 93.184.216.34:80 → dst 192.168.1.5:49152</pre></div></div>
+
+  <h3>Spanning Tree Protocol (L2 Loop Prevention)</h3>
+  <div class="info-box info-note"><div class="info-box-title">Why STP is Critical</div>Without STP, a loop in L2 switches causes broadcast storms — frames circulate forever consuming 100% bandwidth in milliseconds. STP blocks redundant links and creates a loop-free topology while maintaining redundancy for failover.</div>
+  <div class="code-block"><div class="code-header"><span class="code-lang">Cisco STP States</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+STP 802.1D Port States:
+  BLOCKING    → Receives BPDUs, no forwarding (loop prevention)
+  LISTENING   → 15s: selects root bridge, no forwarding
+  LEARNING    → 15s: builds MAC table, no forwarding
+  FORWARDING  → Normal, forwards frames
+  DISABLED    → Admin shutdown
+
+RSTP (802.1w) improvements:
+  DISCARDING  → Combines Blocking + Listening
+  LEARNING    → Same
+  FORWARDING  → Same
+
+Convergence: STP = 30-50s | RSTP = 1-2s</pre></div></div>
+</section>
+
+<!-- TCP DEEP -->
+<section id="tcp-deep">
+  <div class="section-header">
+    <div class="section-label">Section 07</div>
+    <h2 class="section-title">TCP Congestion Control</h2>
+    <p class="section-desc">The algorithms that prevent the internet from collapsing under load.</p>
+  </div>
+  <div class="accordion">
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><h4>Slow Start &amp; Congestion Avoidance (TCP Reno)</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body">
+        <p><strong>Slow Start:</strong> cwnd starts at 1 MSS (1460 bytes), doubles every RTT until reaching ssthresh. Exponential growth.</p>
+        <p><strong>Congestion Avoidance:</strong> After ssthresh, cwnd grows by 1 MSS per RTT (linear — AIMD).</p>
+        <p><strong>On packet loss (timeout):</strong> ssthresh = cwnd/2, cwnd = 1, restart slow start.</p>
+        <p><strong>On triple duplicate ACK (fast retransmit):</strong> ssthresh = cwnd/2, cwnd = ssthresh, skip slow start.</p>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><h4>TCP Cubic (Linux Default since kernel 2.6.19)</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body">
+        <p>Uses cubic function: <code>W(t) = C(t - K)³ + W_max</code> where K = time to grow back to W_max after congestion.</p>
+        <p>RTT-independent — unlike Reno, high-BDP (bandwidth-delay product) networks like trans-Pacific fiber get full throughput.</p>
+        <div class="code-block"><div class="code-header"><span class="code-lang">Check congestion control</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+sysctl net.ipv4.tcp_congestion_control
+# cubic (default Linux)
+cat /proc/sys/net/ipv4/tcp_available_congestion_control
+# cubic reno bbr</pre></div></div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><h4>BBR — Bottleneck Bandwidth &amp; RTT (Google, 2016)</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body">
+        <p>BBR models the network path by measuring BtlBw (max bottleneck bandwidth) and RTprop (min propagation delay). Sends at rate that fills the pipe without filling buffers.</p>
+        <p>Achieves ~95% link utilization vs ~60-70% for Cubic in lossy networks. Used by YouTube (2× throughput improvement reported).</p>
+        <div class="code-block"><div class="code-header"><span class="code-lang">Enable BBR on Linux</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+sysctl -p
+# Verify:
+sysctl net.ipv4.tcp_congestion_control</pre></div></div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><h4>TCP Flow Control: Sliding Window</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body">
+        <p>Prevents fast sender overwhelming slow receiver. Receiver advertises <strong>rwnd</strong> in every ACK.</p>
+        <div class="code-block"><div class="code-header"><span class="code-lang">Sliding Window Example</span></div><div class="code-body"><pre>
+Receiver buffer: 65535 bytes
+
+Client sends 8000 bytes
+Server ACK: window = 57535 (65535 - 8000)
+
+App reads 20000 bytes from buffer:
+Server ACK: window = 77535 (buffer freed, expands)
+
+Zero Window: window=0 → sender stops completely
+Window Update: rwnd > 0 → sender resumes</pre></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REAL WORLD -->
+<section id="real-world">
+  <div class="section-header">
+    <div class="section-label">Section 08</div>
+    <h2 class="section-title">Real-World Applications</h2>
+    <p class="section-desc">OSI layers in enterprise, cloud, data center, and home networks.</p>
+  </div>
+  <div class="tabs">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'ent-tab')">Enterprise</button>
+      <button class="tab-btn" onclick="switchTab(this,'cloud-tab')">Cloud (AWS)</button>
+      <button class="tab-btn" onclick="switchTab(this,'dc-tab')">Data Center</button>
+      <button class="tab-btn" onclick="switchTab(this,'home-tab')">Home Network</button>
+    </div>
+    <div class="tab-content active" id="ent-tab">
+      <table class="data-table">
+        <thead><tr><th>Device/Service</th><th>Layer</th><th>Function</th></tr></thead>
+        <tbody>
+          <tr><td>Access Switch (Catalyst 2960)</td><td><span class="badge badge-orange">L2</span></td><td>VLAN segmentation, STP, PoE for VoIP/APs</td></tr>
+          <tr><td>Core/Distribution Switch</td><td><span class="badge badge-green">L3</span></td><td>Inter-VLAN routing, OSPF, high-speed switching</td></tr>
+          <tr><td>Palo Alto / ASA Firewall</td><td><span class="badge badge-blue">L4-L7</span></td><td>Stateful inspection, DPI, URL filtering, App-ID</td></tr>
+          <tr><td>F5 BIG-IP Load Balancer</td><td><span class="badge badge-blue">L4/L7</span></td><td>SSL offload, session persistence, health checks</td></tr>
+          <tr><td>Cisco ISR Router</td><td><span class="badge badge-green">L3</span></td><td>WAN BGP peering, NAT, IPsec VPN, QoS</td></tr>
+          <tr><td>Wireless LAN Controller</td><td><span class="badge badge-orange">L2</span></td><td>CAPWAP tunneling, 802.11 mgmt, roaming</td></tr>
+          <tr><td>Active Directory</td><td><span class="badge badge-blue">L7</span></td><td>Kerberos/LDAP auth, DNS, DHCP, GPO</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-content" id="cloud-tab">
+      <table class="data-table">
+        <thead><tr><th>AWS Service</th><th>Layer</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>VPC</td><td><span class="badge badge-green">L3</span></td><td>Isolated virtual network with custom CIDR ranges</td></tr>
+          <tr><td>Transit Gateway</td><td><span class="badge badge-green">L3</span></td><td>Hub-and-spoke routing between VPCs and on-prem</td></tr>
+          <tr><td>Security Group</td><td><span class="badge badge-blue">L4</span></td><td>Stateful port/protocol rules per resource</td></tr>
+          <tr><td>Network ACL</td><td><span class="badge badge-green">L3/L4</span></td><td>Stateless subnet-level IP/port filtering</td></tr>
+          <tr><td>ALB (Application LB)</td><td><span class="badge badge-blue">L7</span></td><td>HTTP/HTTPS routing, path/host-based rules, WAF</td></tr>
+          <tr><td>NLB (Network LB)</td><td><span class="badge badge-blue">L4</span></td><td>TCP/UDP load balancing, ultra-low latency</td></tr>
+          <tr><td>CloudFront CDN</td><td><span class="badge badge-blue">L7</span></td><td>Edge caching, TLS termination, DDoS shield</td></tr>
+          <tr><td>Direct Connect</td><td><span class="badge badge-orange">L2</span></td><td>Dedicated fiber, 802.1Q VLANs to AWS</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-content" id="dc-tab">
+      <h4>Spine-Leaf Architecture</h4>
+      <p>Modern data centers use a two-tier spine-leaf topology. Every leaf connects to every spine — equal latency, no STP, full bisectional bandwidth.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Spine-Leaf Topology</span></div><div class="code-body"><pre>
+                      BGP ECMP
+         ┌──────────────────────────────┐
+    [Spine 1] ──────────────────── [Spine 2]
+       L3 BGP                       L3 BGP
+        │   │                       │   │
+        │   └─────────┐   ┌─────────┘   │
+     [Leaf 1]      [Leaf 2]          [Leaf 3]
+     VTEP/VXLAN    VTEP/VXLAN        VTEP/VXLAN
+       │               │                 │
+   [Servers]       [Servers]         [Servers]
+
+VXLAN: L2 frames tunneled in UDP/4789 over L3 fabric
+BGP EVPN: MAC/IP advertisement via BGP control plane</pre></div></div>
+    </div>
+    <div class="tab-content" id="home-tab">
+      <table class="data-table">
+        <thead><tr><th>Device</th><th>Layer</th><th>Function</th></tr></thead>
+        <tbody>
+          <tr><td>ISP Modem/ONT</td><td><span class="badge badge-red">L1/L2</span></td><td>DOCSIS/GPON signal → Ethernet frames</td></tr>
+          <tr><td>Home Router</td><td><span class="badge badge-green">L3</span></td><td>LAN 192.168.x.x ↔ Internet, NAT/PAT, DHCP server</td></tr>
+          <tr><td>WiFi Access Point</td><td><span class="badge badge-orange">L2</span></td><td>802.11ax radio, SSID management, WPA3</td></tr>
+          <tr><td>Unmanaged Switch</td><td><span class="badge badge-orange">L2</span></td><td>MAC-based frame forwarding, no VLAN</td></tr>
+          <tr><td>Pi-hole DNS</td><td><span class="badge badge-blue">L7</span></td><td>DNS sinkhole for ad blocking, DoH upstream</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- COMMANDS -->
+<section id="commands">
+  <div class="section-header">
+    <div class="section-label">Section 09</div>
+    <h2 class="section-title">CLI Command Reference</h2>
+    <p class="section-desc">Essential commands for diagnosing each OSI layer.</p>
+  </div>
+  <div class="tabs">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'linux-cmds')">Linux</button>
+      <button class="tab-btn" onclick="switchTab(this,'win-cmds')">Windows</button>
+      <button class="tab-btn" onclick="switchTab(this,'cisco-cmds')">Cisco IOS</button>
+    </div>
+    <div class="tab-content active" id="linux-cmds">
+      <div class="code-block"><div class="code-header"><span class="code-lang">Linux — OSI Layer Diagnostics</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+### LAYER 1 — Physical
+ethtool eth0              # Link speed, duplex, auto-negotiate
+ip link show eth0         # Interface state, MTU, MAC address
+dmesg | grep eth          # Kernel NIC messages
+
+### LAYER 2 — Data Link
+ip link show              # All interfaces, MACs, state
+ip neigh show             # ARP/neighbor table (replaces arp -a)
+arp -a                    # ARP cache (legacy)
+bridge fdb show           # MAC forwarding table
+arping -I eth0 192.168.1.1 # ARP ping to test L2
+
+### LAYER 3 — Network
+ip addr show              # IP addresses all interfaces
+ip route show             # Routing table
+ip route get 8.8.8.8      # Which route for specific IP
+ping -c 4 8.8.8.8         # ICMP reachability test
+traceroute 8.8.8.8        # L3 path with RTT per hop
+mtr 8.8.8.8               # Real-time traceroute + stats
+
+### LAYER 4 — Transport
+ss -tunapl                # All TCP/UDP sockets with PIDs
+ss -s                     # Socket statistics summary
+ss -t state established   # All established TCP connections
+netstat -tulpn            # Listening ports (older systems)
+nmap -sS -p 80,443 host   # TCP SYN scan
+
+### TCP TUNING
+sysctl net.ipv4.tcp_congestion_control
+sysctl net.ipv4.tcp_rmem
+sysctl net.core.rmem_max
+
+### LAYER 7 — Application
+dig @8.8.8.8 example.com A        # DNS query with resolver
+dig +trace example.com             # Full DNS recursion trace
+curl -v https://example.com        # HTTP with TLS details
+openssl s_client -connect host:443 # TLS cert inspection</pre></div></div>
+    </div>
+    <div class="tab-content" id="win-cmds">
+      <div class="code-block"><div class="code-header"><span class="code-lang">Windows — OSI Diagnostics</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+:: LAYER 1
+Get-NetAdapter | Select Name,Status,LinkSpeed   # PowerShell
+netsh interface show interface
+
+:: LAYER 2
+arp -a                                           # ARP cache
+Get-NetNeighbor                                  # PS ARP table
+getmac /v                                        # MAC addresses
+
+:: LAYER 3
+ipconfig /all                                    # All IP config
+route print                                      # Routing table
+ping 8.8.8.8
+tracert 8.8.8.8
+pathping 8.8.8.8                                 # Combo
+Test-NetConnection -ComputerName google.com -TraceRoute
+
+:: LAYER 4
+netstat -ano                                     # All + PIDs
+Get-NetTCPConnection
+Test-NetConnection -ComputerName host -Port 443
+
+:: LAYER 7
+nslookup example.com 8.8.8.8
+Resolve-DnsName example.com
+curl.exe -v https://example.com                  # Win10+</pre></div></div>
+    </div>
+    <div class="tab-content" id="cisco-cmds">
+      <div class="code-block"><div class="code-header"><span class="code-lang">Cisco IOS Commands</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+! LAYER 1
+show interfaces GigabitEthernet0/1          ! State, errors
+show interfaces Gi0/1 status                ! Speed, duplex, VLAN
+show controllers Gi0/1                      ! Hardware stats
+
+! LAYER 2
+show mac address-table                      ! CAM table MAC→port
+show arp                                    ! ARP cache
+show vlan brief                             ! VLAN database
+show spanning-tree                          ! STP topology
+show spanning-tree vlan 10 detail
+show etherchannel summary                   ! LACP/PAgP bonds
+
+! LAYER 3
+show ip route                               ! Routing table
+show ip route 8.8.8.8                       ! Route for specific IP
+show ip ospf neighbor                       ! OSPF adjacencies
+show ip bgp summary                         ! BGP peer status
+show ip nat translations                    ! NAT table
+ping 8.8.8.8 repeat 100 size 1500          ! Extended ping
+traceroute 8.8.8.8
+
+! TROUBLESHOOTING
+show version                                ! IOS ver, uptime
+show processes cpu sorted                   ! CPU by process
+show interfaces counters                    ! Error counters
+debug ip packet                             ! (CAUTION: high CPU)</pre></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WIRESHARK -->
+<section id="wireshark">
+  <div class="section-header">
+    <div class="section-label">Section 10</div>
+    <h2 class="section-title">Wireshark Analysis</h2>
+    <p class="section-desc">Packet capture examples and essential display filters.</p>
+  </div>
+  <h3>HTTP Request Capture (Annotated)</h3>
+  <div class="wireshark-pkt">
+    <div class="ws-row" style="border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;font-weight:700;color:var(--text-muted)"><span class="ws-num">#</span><span class="ws-time">Time</span><span class="ws-src">Source</span><span class="ws-dst">Destination</span><span class="ws-proto">Proto</span><span class="ws-info">Info</span></div>
+    <div class="ws-row"><span class="ws-num">1</span><span class="ws-time">0.000000</span><span class="ws-src">192.168.1.5</span><span class="ws-dst">192.168.1.1</span><span class="ws-proto">ARP</span><span class="ws-info">Who has 192.168.1.1? Tell 192.168.1.5</span></div>
+    <div class="ws-row"><span class="ws-num">2</span><span class="ws-time">0.000432</span><span class="ws-src">192.168.1.1</span><span class="ws-dst">192.168.1.5</span><span class="ws-proto">ARP</span><span class="ws-info">192.168.1.1 is at aa:bb:cc:dd:ee:ff</span></div>
+    <div class="ws-row"><span class="ws-num">3</span><span class="ws-time">0.001200</span><span class="ws-src">192.168.1.5</span><span class="ws-dst">93.184.216.34</span><span class="ws-proto">TCP</span><span class="ws-info">49152 → 80 [SYN] Seq=0 Win=65535</span></div>
+    <div class="ws-row"><span class="ws-num">4</span><span class="ws-time">0.032400</span><span class="ws-src">93.184.216.34</span><span class="ws-dst">192.168.1.5</span><span class="ws-proto">TCP</span><span class="ws-info">80 → 49152 [SYN, ACK] Seq=0 Ack=1</span></div>
+    <div class="ws-row"><span class="ws-num">5</span><span class="ws-time">0.032600</span><span class="ws-src">192.168.1.5</span><span class="ws-dst">93.184.216.34</span><span class="ws-proto">TCP</span><span class="ws-info">49152 → 80 [ACK] Seq=1 Ack=1</span></div>
+    <div class="ws-row" style="background:rgba(72,187,120,0.07)"><span class="ws-num">6</span><span class="ws-time">0.032800</span><span class="ws-src">192.168.1.5</span><span class="ws-dst">93.184.216.34</span><span class="ws-proto">HTTP</span><span class="ws-info">GET / HTTP/1.1  Host: example.com</span></div>
+    <div class="ws-row" style="background:rgba(66,153,225,0.07)"><span class="ws-num">7</span><span class="ws-time">0.065100</span><span class="ws-src">93.184.216.34</span><span class="ws-dst">192.168.1.5</span><span class="ws-proto">HTTP</span><span class="ws-info">HTTP/1.1 200 OK (text/html)</span></div>
+    <div class="ws-row"><span class="ws-num">8</span><span class="ws-time">0.066000</span><span class="ws-src">192.168.1.5</span><span class="ws-dst">93.184.216.34</span><span class="ws-proto">TCP</span><span class="ws-info">49152 → 80 [FIN, ACK]</span></div>
+  </div>
+  <h3 class="mt-24">Wireshark Filter Reference</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">Wireshark Display Filters</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+# Layer 2
+eth.addr == aa:bb:cc:dd:ee:ff    # Filter by MAC
+arp                               # ARP only
+vlan.id == 10                     # VLAN 10
+
+# Layer 3
+ip.addr == 192.168.1.5           # Any traffic to/from IP
+ip.src == 192.168.1.5            # Source IP only
+ip.ttl < 10                      # Low TTL (routing loop?)
+icmp                              # Ping/traceroute
+
+# Layer 4
+tcp.port == 443                   # HTTPS
+tcp.flags.syn == 1                # New connections
+tcp.flags.rst == 1                # Resets (connection refused)
+tcp.analysis.retransmission      # Retransmissions
+tcp.window_size < 1000           # Small window (bottleneck?)
+udp.port == 53                    # DNS
+
+# Layer 7
+http.request.method == "GET"     # HTTP GETs
+http.response.code == 404        # 404 errors
+dns.qry.name contains "google"  # DNS queries
+tls.handshake.type == 1          # TLS Client Hello
+
+# Compound
+ip.addr==10.0.0.1 and tcp.port==443 and tls
+tcp.flags.syn==1 and not tcp.flags.ack==1   # New connections only
+not arp and not broadcast</pre></div></div>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="section-header">
+    <div class="section-label">Section 11</div>
+    <h2 class="section-title">Security at Each Layer</h2>
+    <p class="section-desc">Attacks, vulnerabilities, and defenses organized by OSI layer.</p>
+  </div>
+  <div class="threat-card"><div class="threat-title"><span style="color:var(--l2)">L2</span><span class="threat-tag threat-tag-l">Data Link</span>ARP Spoofing / ARP Poisoning</div><div class="threat-desc">Attacker sends gratuitous ARP replies mapping their MAC to the gateway IP. All hosts on the segment poison their cache — traffic meant for the gateway flows to the attacker (MITM). Defense: Dynamic ARP Inspection (DAI) on Cisco switches, static ARP for critical hosts, 802.1X port authentication, arpwatch monitoring.</div></div>
+  <div class="threat-card"><div class="threat-title"><span style="color:var(--l2)">L2</span><span class="threat-tag threat-tag-l">Data Link</span>MAC Flooding / CAM Table Overflow</div><div class="threat-desc">Floods switch with thousands of fake-MAC frames, filling the CAM table. Switch falls back to hub behavior (broadcasts all frames to all ports) enabling passive sniffing. Defense: Port security (max MACs per port), 802.1X, storm control, private VLANs.</div></div>
+  <div class="threat-card"><div class="threat-title"><span style="color:var(--l3)">L3</span><span class="threat-tag threat-tag-l">Network</span>IP Spoofing &amp; DDoS Amplification</div><div class="threat-desc">Attacker forges source IP to amplify traffic to a victim. DNS amplification: 60B query → 3000B response (50× amplification). NTP monlist: 234B → 468×482B responses. Defense: BCP38/uRPF (drop packets with spoofed source IPs at network edge), rate limiting UDP amplifiers, disabling vulnerable services.</div></div>
+  <div class="threat-card"><div class="threat-title"><span style="color:var(--l4)">L4</span><span class="threat-tag threat-tag-l">Transport</span>SYN Flood Attack</div><div class="threat-desc">Millions of TCP SYN packets with spoofed IPs. Server allocates state per SYN, exhausting the backlog queue. Legitimate connections time out. Defense: SYN cookies (state in sequence number — no allocation until ACK), SYN rate limiting, TCP Intercept, connection limits per IP.</div></div>
+  <div class="threat-card"><div class="threat-title"><span style="color:var(--l7)">L7</span><span class="threat-tag threat-tag-l">Application</span>SQL Injection / XSS / SSRF</div><div class="threat-desc">HTTP-level attacks bypassing all lower-layer defenses since traffic is valid HTTPS. SQL injection exploits database queries. XSS injects scripts into responses. SSRF abuses server requests to reach internal services. Defense: WAF, parameterized queries, input validation, CSP headers, mTLS for internal services.</div></div>
+
+  <h3>Security Controls Summary</h3>
+  <table class="data-table">
+    <thead><tr><th>Layer</th><th>Attack</th><th>Defense</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-red">L1</span></td><td>Physical tap, jamming</td><td>Physical security, fiber encryption, conduit sealing</td></tr>
+      <tr><td><span class="badge badge-orange">L2</span></td><td>ARP spoof, MAC flood, VLAN hop</td><td>DAI, port security, DHCP snooping, 802.1X, BPDU guard</td></tr>
+      <tr><td><span class="badge badge-green">L3</span></td><td>IP spoof, routing attacks</td><td>uRPF, BCP38, ACLs, IPsec, RPKI for BGP</td></tr>
+      <tr><td><span class="badge badge-blue">L4</span></td><td>SYN flood, port scan, hijack</td><td>SYN cookies, stateful firewall, IPS, connection limits</td></tr>
+      <tr><td><span class="badge badge-orange">L6</span></td><td>SSL stripping, weak ciphers</td><td>HSTS, TLS 1.3 only, strong ciphers, cert pinning</td></tr>
+      <tr><td><span class="badge badge-blue">L7</span></td><td>SQLi, XSS, CSRF, SSRF, DDoS</td><td>WAF, input validation, rate limiting, SIEM</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PERFORMANCE -->
+<section id="performance">
+  <div class="section-header">
+    <div class="section-label">Section 12</div>
+    <h2 class="section-title">Performance Optimization</h2>
+    <p class="section-desc">Tuning each layer for maximum throughput and minimum latency.</p>
+  </div>
+  <div class="accordion">
+    <div class="acc-item"><div class="acc-header" onclick="toggleAcc(this)"><h4>L1/L2: Physical &amp; Link Tuning</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body"><ul class="styled"><li><strong>Full duplex:</strong> Hard-coding one side causes duplex mismatch → 30–50% performance loss via collisions</li><li><strong>Jumbo frames (MTU 9000):</strong> Reduces CPU overhead 30–40% for storage traffic (iSCSI, NFS)</li><li><strong>LACP bonding:</strong> Bond multiple 10G links for 20G/40G server uplinks</li><li><strong>Cable quality:</strong> Cat6A for 10G at full 100m. Fiber eliminates EMI concerns entirely</li></ul></div>
+    </div>
+    <div class="acc-item"><div class="acc-header" onclick="toggleAcc(this)"><h4>L3: Routing Optimization</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body"><ul class="styled"><li><strong>ECMP:</strong> Equal-cost multi-path load-balances across ISP links (BGP or OSPF)</li><li><strong>IP Fast Reroute (IPFRR):</strong> Pre-calculated backup routes activate in &lt;50ms vs OSPF convergence 200ms–2s</li><li><strong>Path MTU Discovery:</strong> Fix PMTUD black holes that cause TCP to never negotiate correct MSS</li><li><strong>Hardware ASICs:</strong> Cisco Silicon One, Juniper Q5 — 100Tbps forwarding in silicon, not CPU</li></ul></div>
+    </div>
+    <div class="acc-item"><div class="acc-header" onclick="toggleAcc(this)"><h4>L4: Linux TCP Kernel Tuning</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body"><div class="code-block"><div class="code-header"><span class="code-lang">/etc/sysctl.conf — High Performance TCP</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><div class="code-body"><pre>
+# Socket buffers (large for 10Gbps)
+net.core.rmem_max = 134217728
+net.core.wmem_max = 134217728
+net.ipv4.tcp_rmem = 4096 87380 134217728
+net.ipv4.tcp_wmem = 4096 65536 134217728
+
+# BBR congestion control
+net.ipv4.tcp_congestion_control = bbr
+net.core.default_qdisc = fq
+
+# Connection handling
+net.ipv4.tcp_max_syn_backlog = 65536
+net.core.somaxconn = 65536
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.ip_local_port_range = 1024 65535
+
+# Modern features
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_timestamps = 1
+net.ipv4.tcp_window_scaling = 1
+net.ipv4.tcp_mtu_probing = 1</pre></div></div></div>
+    </div>
+    <div class="acc-item"><div class="acc-header" onclick="toggleAcc(this)"><h4>L7: Application Performance</h4><span class="acc-icon">+</span></div>
+      <div class="acc-body"><ul class="styled"><li><strong>HTTP/2 multiplexing:</strong> Eliminates head-of-line blocking. 2–3× faster page loads vs HTTP/1.1</li><li><strong>HTTP/3 / QUIC:</strong> 0-RTT for returning users, no TCP handshake. Critical for high-latency mobile</li><li><strong>TLS 1.3:</strong> 1-RTT handshake (vs 2-RTT for TLS 1.2). Removes RC4, SHA1, CBC vulnerabilities</li><li><strong>CDN edge caching:</strong> Serve from POP within 20ms. Reduces origin traffic 90%+ for static assets</li><li><strong>Keep-Alive:</strong> Persistent TCP connections for multiple HTTP requests — eliminates per-request handshake</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- TROUBLESHOOT -->
+<section id="troubleshoot">
+  <div class="section-header">
+    <div class="section-label">Section 13</div>
+    <h2 class="section-title">Troubleshooting Guide</h2>
+    <p class="section-desc">Systematic bottom-up diagnosis of network problems.</p>
+  </div>
+  <div class="info-box info-success"><div class="info-box-title">The Golden Rule: Troubleshoot Bottom-Up</div>Start at Layer 1 (physical) and work upward. You cannot have L3 issues if L2 is broken. Never blame the application until all lower layers are verified healthy.</div>
+  <div class="ts-step"><div class="ts-num">1</div><div class="ts-content"><div class="ts-title">Layer 1 — Is the link up?</div><div class="ts-text">Check LEDs: green = link, amber = activity. Run <code>ip link show eth0</code> → should be "UP". If "DOWN": cable unplugged, faulty SFP, wrong cable type. Run <code>ethtool eth0</code> → verify "Link detected: yes" and speed/duplex match on both ends.</div></div></div>
+  <div class="ts-step"><div class="ts-num">2</div><div class="ts-content"><div class="ts-title">Layer 2 — Right VLAN? ARP working?</div><div class="ts-text">Run <code>ip neigh show</code> — can you see the gateway MAC? No entry = wrong VLAN, DHCP issue, or ARP being blocked. On Cisco: <code>show mac address-table</code> — is host MAC visible on correct port?</div></div></div>
+  <div class="ts-step"><div class="ts-num">3</div><div class="ts-content"><div class="ts-title">Layer 3 — Can you ping the gateway? The internet?</div><div class="ts-text"><code>ping 192.168.1.1</code> — if fails: wrong default gateway, gateway down, ICMP blocked. <code>ping 8.8.8.8</code> — if fails but gateway ok: routing issue, NAT broken, ISP problem. <code>traceroute 8.8.8.8</code> — where does path stop?</div></div></div>
+  <div class="ts-step"><div class="ts-num">4</div><div class="ts-content"><div class="ts-title">Layer 4 — Are ports reachable?</div><div class="ts-text"><code>nc -zv host 443</code> — TCP connectivity test. <code>ss -tunapl</code> — what's listening? Check firewall: <code>iptables -L -n -v</code> or <code>nft list ruleset</code>.</div></div></div>
+  <div class="ts-step"><div class="ts-num">5</div><div class="ts-content"><div class="ts-title">Layer 7 — Is the application responding?</div><div class="ts-text"><code>curl -v https://host/api</code> — full HTTP + TLS detail. <code>dig host A</code> — DNS resolving? Check application logs: nginx/apache error.log, systemd journal, app server logs.</div></div></div>
+
+  <h3>Symptom → Root Cause</h3>
+  <table class="data-table">
+    <thead><tr><th>Symptom</th><th>Likely Layer</th><th>First Command</th></tr></thead>
+    <tbody>
+      <tr><td>No link light, no traffic</td><td><span class="badge badge-red">L1</span></td><td class="mono">ip link show / ethtool eth0</td></tr>
+      <tr><td>Can ping self, not gateway</td><td><span class="badge badge-orange">L2</span></td><td class="mono">ip neigh show</td></tr>
+      <tr><td>Can ping gateway, not internet</td><td><span class="badge badge-green">L3</span></td><td class="mono">ip route / traceroute</td></tr>
+      <tr><td>Ping 8.8.8.8 works, DNS fails</td><td><span class="badge badge-blue">L7</span></td><td class="mono">dig @8.8.8.8 example.com</td></tr>
+      <tr><td>DNS works, HTTP fails</td><td><span class="badge badge-blue">L4</span></td><td class="mono">nc -zv host 80; curl -v</td></tr>
+      <tr><td>Intermittent packet loss</td><td><span class="badge badge-green">L1/L3</span></td><td class="mono">mtr host</td></tr>
+      <tr><td>Slow transfers, stalls</td><td><span class="badge badge-blue">L4</span></td><td class="mono">ss -ti (retransmits, window)</td></tr>
+      <tr><td>HTTP 502/503 errors</td><td><span class="badge badge-blue">L7</span></td><td class="mono">curl -v / nginx error.log</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- INTERVIEW -->
+<section id="interview">
+  <div class="section-header">
+    <div class="section-label">Section 14</div>
+    <h2 class="section-title">Interview Q&amp;A</h2>
+    <p class="section-desc">Click "Show Answer" to reveal. Organized by difficulty.</p>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--green)">Beginner</div>
+    <div class="iq-q">Q: What is the OSI model and why is it important?</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">The OSI (Open Systems Interconnection) model is a 7-layer conceptual framework standardizing how network systems communicate. It matters because: (1) Enables vendor interoperability; (2) Provides a common engineering language; (3) Isolates problems to specific layers; (4) Guides protocol design. Without OSI, Cisco switches couldn't talk to Juniper routers or Windows servers couldn't reach Linux web servers.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--green)">Beginner</div>
+    <div class="iq-q">Q: What's the difference between TCP and UDP?</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">TCP: connection-oriented (3-way handshake), reliable (ACKs + retransmission), ordered delivery, flow and congestion control, 20-byte header. Use for: HTTP, SSH, SMTP — anything requiring guaranteed delivery. UDP: connectionless, unreliable, no ordering, no flow control, 8-byte header. Use for: DNS (application retries), VoIP (jitter better than silence), gaming, streaming, NTP. Key insight: UDP's "unreliability" is a feature — it's faster and lets the application decide how to handle loss.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--accent4)">Intermediate</div>
+    <div class="iq-q">Q: What's the difference between a router, switch, and hub?</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">Hub (L1): Repeats electrical signals to ALL ports. No intelligence, one collision domain. Obsolete. Switch (L2): Builds CAM table of MAC addresses, forwards frames only to correct port. Separate collision domain per port. Supports VLANs and STP. Router (L3): Routes packets between different IP networks using routing table. Makes decisions based on destination IP. Performs NAT. Separates broadcast domains. L3 Switch: Has both switching and routing capability — faster than separate devices but same function. Key: switch sees MACs, router sees IPs.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--accent4)">Intermediate</div>
+    <div class="iq-q">Q: Explain the TCP 3-way handshake. What if the server isn't listening?</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">3-way handshake: (1) Client sends SYN(seq=X) — "I want to connect, my sequence starts at X". (2) Server responds SYN-ACK(seq=Y, ack=X+1) — "OK, my sequence is Y, I acknowledge X". (3) Client sends ACK(ack=Y+1) — "Connection established". If server is NOT listening: immediately responds with RST — you see "Connection refused" instantly. If server SYN backlog is full: packet is silently dropped, client retransmits with exponential backoff (1s, 2s, 4s, 8s...). SYN cookies eliminate the backlog allocation to defend against SYN floods.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--accent4)">Intermediate</div>
+    <div class="iq-q">Q: What is ARP and what security risks does it have?</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">ARP maps IP addresses to MAC addresses on local networks. Broadcasts "Who has IP X?" — owner replies with their MAC. ARP is stateless and unauthenticated, creating risks: (1) ARP spoofing: attacker sends unsolicited ARP replies poisoning caches — all traffic for gateway routes to attacker (MITM); (2) ARP flooding: fills switch CAM table forcing broadcast mode; (3) Gratuitous ARP abuse: devices announce their own IP/MAC, can be exploited. Mitigations: Dynamic ARP Inspection (DAI) validates ARP against DHCP snooping table, 802.1X ensures only authenticated ports can send ARP, static ARP for critical servers.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--red)">Advanced</div>
+    <div class="iq-q">Q: You see intermittent timeouts to a remote server. Walk through your diagnosis.</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">Bottom-up approach: L1: Check interface errors — ethtool eth0, Cisco "show interface" for CRC/input errors → physical/cable issue. L2: Check for duplex mismatch. L3: Run mtr to identify which hop has packet loss/high latency. Loss at hop 5 means problem between 4 and 5. Check ECMP flows — PMTUD issues can cause asymmetric routing. L4: Check TCP retransmit rate: ss -ti. Check if issue is consistent (routing) or intermittent (congestion/ECMP). L7: curl with timing: curl -w "time_total: %{time_total}" — is it connect time or response time? Tools: mtr (path+loss), tcpdump (capture the actual timeout), ss (socket buffer state). Distinguish: network RST (fast failure) vs application timeout (connection established but app slow).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--red)">Advanced</div>
+    <div class="iq-q">Q: Explain BGP and why it's called the "glue of the internet".</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">BGP (RFC 4271) is the exterior gateway protocol routing between Autonomous Systems (AS) — independent networks with their own IP prefixes. Path-vector protocol: each UPDATE carries the full AS path to prevent loops. BGP peers exchange OPEN, UPDATE, KEEPALIVE, NOTIFICATION messages over TCP port 179. Policy-driven: AS path length, local preference, MED, and communities allow fine-grained routing control. Called internet's "glue" because ~75,000 ASes exchanging ~900,000 IPv4 prefixes rely on it. BGP hijacking (Pakistan Telecom vs YouTube 2008, Rostelecom hijacking Google/AWS 2020) occurs when an AS announces someone else's prefix. RPKI provides cryptographic route origin validation as defense.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-level" style="color:var(--accent2)">Scenario</div>
+    <div class="iq-q">Q: Your HTTPS site returns 502 errors intermittently. How do you investigate?</div>
+    <a class="iq-toggle" href="javascript:void(0)" onclick="toggleAnswer(this)">▶ Show Answer</a>
+    <div class="iq-a">1) Check LB logs — 502 = LB received invalid response from upstream server. 2) Determine if all backends or just some — partial = specific server issue (OOM, crash). 3) On affected server: check process (systemctl status), app error logs, CPU/memory (top, free). 4) TCP connectivity: nc -zv backend:8080 — is backend accepting connections? 5) TLS: check certificate expiry (openssl s_client -connect host:443). 6) Time correlation: high load? Check LB connection pool exhaustion, backend concurrency limits. 7) Network: ping/mtr from LB to backend. 8) Resolution: app crash → restart; connection pool exhaustion → tune LB timeout/pool size; OOM → scale or fix memory leak; cert expiry → renew certificate.</div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="section-header">
+    <div class="section-label">Section 15</div>
+    <h2 class="section-title">Mini Quiz</h2>
+    <p class="section-desc">Test your understanding. 6 questions across difficulty levels.</p>
+  </div>
+  <div class="quiz-section" id="quiz-container">
+    <div id="quiz-progress" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:20px">Question <span id="q-num">1</span> of 6</div>
+    <div class="quiz-question" id="quiz-q"></div>
+    <div class="quiz-options" id="quiz-opts"></div>
+    <div class="quiz-result" id="quiz-result"></div>
+    <div class="quiz-nav">
+      <button class="btn btn-primary" onclick="quizSubmit()" id="quiz-submit">Check Answer</button>
+      <button class="btn btn-ghost" onclick="quizNext()" id="quiz-next" style="display:none">Next →</button>
+    </div>
+    <div id="quiz-final" style="display:none;text-align:center;padding:20px">
+      <div style="font-family:var(--font-display);font-size:2.5rem;font-weight:800;color:var(--accent)" id="quiz-score-display"></div>
+      <div style="color:var(--text-muted);margin-top:8px" id="quiz-verdict"></div>
+      <button class="btn btn-primary" style="margin-top:20px" onclick="quizRestart()">Restart Quiz</button>
+    </div>
+  </div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheatsheet">
+  <div class="section-header">
+    <div class="section-label">Section 16</div>
+    <h2 class="section-title">Quick Reference Cheat Sheet</h2>
+    <p class="section-desc">Everything important at a glance.</p>
+  </div>
+  <div class="cheat-grid">
+    <div class="cheat-card">
+      <div class="cheat-title">OSI Layers</div>
+      <div class="cheat-item"><span class="cheat-key">L7</span><span class="cheat-val">Application</span></div>
+      <div class="cheat-item"><span class="cheat-key">L6</span><span class="cheat-val">Presentation</span></div>
+      <div class="cheat-item"><span class="cheat-key">L5</span><span class="cheat-val">Session</span></div>
+      <div class="cheat-item"><span class="cheat-key">L4</span><span class="cheat-val">Transport</span></div>
+      <div class="cheat-item"><span class="cheat-key">L3</span><span class="cheat-val">Network</span></div>
+      <div class="cheat-item"><span class="cheat-key">L2</span><span class="cheat-val">Data Link</span></div>
+      <div class="cheat-item"><span class="cheat-key">L1</span><span class="cheat-val">Physical</span></div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-title">PDUs Per Layer</div>
+      <div class="cheat-item"><span class="cheat-key">L7–L5</span><span class="cheat-val">Data</span></div>
+      <div class="cheat-item"><span class="cheat-key">L4 TCP</span><span class="cheat-val">Segment</span></div>
+      <div class="cheat-item"><span class="cheat-key">L4 UDP</span><span class="cheat-val">Datagram</span></div>
+      <div class="cheat-item"><span class="cheat-key">L3</span><span class="cheat-val">Packet</span></div>
+      <div class="cheat-item"><span class="cheat-key">L2</span><span class="cheat-val">Frame</span></div>
+      <div class="cheat-item"><span class="cheat-key">L1</span><span class="cheat-val">Bit</span></div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-title">Critical Ports</div>
+      <div class="cheat-item"><span class="cheat-key">HTTP</span><span class="cheat-val">80/TCP</span></div>
+      <div class="cheat-item"><span class="cheat-key">HTTPS</span><span class="cheat-val">443/TCP</span></div>
+      <div class="cheat-item"><span class="cheat-key">SSH</span><span class="cheat-val">22/TCP</span></div>
+      <div class="cheat-item"><span class="cheat-key">DNS</span><span class="cheat-val">53/UDP+TCP</span></div>
+      <div class="cheat-item"><span class="cheat-key">DHCP</span><span class="cheat-val">67-68/UDP</span></div>
+      <div class="cheat-item"><span class="cheat-key">SMTP</span><span class="cheat-val">25,587/TCP</span></div>
+      <div class="cheat-item"><span class="cheat-key">RDP</span><span class="cheat-val">3389/TCP</span></div>
+      <div class="cheat-item"><span class="cheat-key">BGP</span><span class="cheat-val">179/TCP</span></div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-title">TCP vs UDP</div>
+      <div class="cheat-item"><span class="cheat-key">Connection</span><span class="cheat-val">TCP:Yes / UDP:No</span></div>
+      <div class="cheat-item"><span class="cheat-key">Reliable</span><span class="cheat-val">TCP:Yes / UDP:No</span></div>
+      <div class="cheat-item"><span class="cheat-key">Ordered</span><span class="cheat-val">TCP:Yes / UDP:No</span></div>
+      <div class="cheat-item"><span class="cheat-key">Header</span><span class="cheat-val">TCP:20B UDP:8B</span></div>
+      <div class="cheat-item"><span class="cheat-key">Uses</span><span class="cheat-val">HTTP vs DNS/VoIP</span></div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-title">Devices by Layer</div>
+      <div class="cheat-item"><span class="cheat-key">L7</span><span class="cheat-val">Proxy, WAF, ALB</span></div>
+      <div class="cheat-item"><span class="cheat-key">L4</span><span class="cheat-val">NLB, Firewall</span></div>
+      <div class="cheat-item"><span class="cheat-key">L3</span><span class="cheat-val">Router, L3-Switch</span></div>
+      <div class="cheat-item"><span class="cheat-key">L2</span><span class="cheat-val">Switch, Bridge</span></div>
+      <div class="cheat-item"><span class="cheat-key">L1</span><span class="cheat-val">Hub, Repeater</span></div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-title">Key Linux Commands</div>
+      <div class="cheat-item"><span class="cheat-key">L1</span><span class="cheat-val">ethtool eth0</span></div>
+      <div class="cheat-item"><span class="cheat-key">L2</span><span class="cheat-val">ip neigh show</span></div>
+      <div class="cheat-item"><span class="cheat-key">L3</span><span class="cheat-val">ip route / mtr</span></div>
+      <div class="cheat-item"><span class="cheat-key">L4</span><span class="cheat-val">ss -tunapl</span></div>
+      <div class="cheat-item"><span class="cheat-key">L7</span><span class="cheat-val">curl -v / dig</span></div>
+      <div class="cheat-item"><span class="cheat-key">Capture</span><span class="cheat-val">tcpdump -i eth0</span></div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-title">IP Header Fields</div>
+      <div class="cheat-item"><span class="cheat-key">TTL default</span><span class="cheat-val">64(Linux)/128(Win)</span></div>
+      <div class="cheat-item"><span class="cheat-key">Protocol</span><span class="cheat-val">6=TCP, 17=UDP</span></div>
+      <div class="cheat-item"><span class="cheat-key">MTU Ethernet</span><span class="cheat-val">1500 bytes</span></div>
+      <div class="cheat-item"><span class="cheat-key">Jumbo MTU</span><span class="cheat-val">9000 bytes</span></div>
+      <div class="cheat-item"><span class="cheat-key">IP hdr size</span><span class="cheat-val">min 20 bytes</span></div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-title">Cisco Show Commands</div>
+      <div class="cheat-item"><span class="cheat-key">Interfaces</span><span class="cheat-val">sh int gi0/1</span></div>
+      <div class="cheat-item"><span class="cheat-key">MACs</span><span class="cheat-val">sh mac addr-t</span></div>
+      <div class="cheat-item"><span class="cheat-key">ARP</span><span class="cheat-val">sh arp</span></div>
+      <div class="cheat-item"><span class="cheat-key">Routes</span><span class="cheat-val">sh ip route</span></div>
+      <div class="cheat-item"><span class="cheat-key">VLANs</span><span class="cheat-val">sh vlan brief</span></div>
+      <div class="cheat-item"><span class="cheat-key">STP</span><span class="cheat-val">sh span-tree</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- OSI vs TCP/IP -->
+<section>
+  <div class="section-header">
+    <div class="section-label">Section 17</div>
+    <h2 class="section-title">OSI vs TCP/IP Model</h2>
+    <p class="section-desc">How the theoretical OSI maps to the real-world TCP/IP model.</p>
+  </div>
+  <div class="svg-container">
+    <svg viewBox="0 0 680 290" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:680px;display:block;margin:auto">
+      <text x="115" y="22" fill="#7c8db5" font-size="13" font-family="Syne,sans-serif" font-weight="700" text-anchor="middle">OSI Model</text>
+      <text x="565" y="22" fill="#7c8db5" font-size="13" font-family="Syne,sans-serif" font-weight="700" text-anchor="middle">TCP/IP Model</text>
+      <!-- OSI boxes -->
+      <rect x="25" y="32" width="180" height="32" rx="6" fill="rgba(246,135,179,0.2)" stroke="rgba(246,135,179,0.4)" stroke-width="1"/><text x="115" y="52" fill="#f687b3" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">7 — Application</text>
+      <rect x="25" y="67" width="180" height="32" rx="6" fill="rgba(237,137,54,0.2)" stroke="rgba(237,137,54,0.4)" stroke-width="1"/><text x="115" y="87" fill="#fb923c" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">6 — Presentation</text>
+      <rect x="25" y="102" width="180" height="32" rx="6" fill="rgba(159,122,234,0.2)" stroke="rgba(159,122,234,0.4)" stroke-width="1"/><text x="115" y="122" fill="#b794f4" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">5 — Session</text>
+      <rect x="25" y="137" width="180" height="32" rx="6" fill="rgba(66,153,225,0.2)" stroke="rgba(66,153,225,0.4)" stroke-width="1"/><text x="115" y="157" fill="#63b3ed" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">4 — Transport</text>
+      <rect x="25" y="172" width="180" height="32" rx="6" fill="rgba(72,187,120,0.2)" stroke="rgba(72,187,120,0.4)" stroke-width="1"/><text x="115" y="192" fill="#68d391" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">3 — Network</text>
+      <rect x="25" y="207" width="180" height="32" rx="6" fill="rgba(255,166,0,0.2)" stroke="rgba(255,166,0,0.4)" stroke-width="1"/><text x="115" y="227" fill="#fcd34d" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">2 — Data Link</text>
+      <rect x="25" y="242" width="180" height="32" rx="6" fill="rgba(255,107,107,0.2)" stroke="rgba(255,107,107,0.4)" stroke-width="1"/><text x="115" y="262" fill="#fc8181" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">1 — Physical</text>
+      <!-- TCP/IP boxes -->
+      <rect x="475" y="32" width="180" height="102" rx="6" fill="rgba(246,135,179,0.15)" stroke="rgba(246,135,179,0.3)" stroke-width="1"/>
+      <text x="565" y="88" fill="#f687b3" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Application</text>
+      <text x="565" y="104" fill="#7c8db5" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">(L5 + L6 + L7)</text>
+      <rect x="475" y="137" width="180" height="32" rx="6" fill="rgba(66,153,225,0.2)" stroke="rgba(66,153,225,0.4)" stroke-width="1"/>
+      <text x="565" y="157" fill="#63b3ed" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Transport</text>
+      <rect x="475" y="172" width="180" height="32" rx="6" fill="rgba(72,187,120,0.2)" stroke="rgba(72,187,120,0.4)" stroke-width="1"/>
+      <text x="565" y="192" fill="#68d391" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Internet</text>
+      <rect x="475" y="207" width="180" height="67" rx="6" fill="rgba(255,166,0,0.15)" stroke="rgba(255,166,0,0.3)" stroke-width="1"/>
+      <text x="565" y="245" fill="#fcd34d" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Network Access</text>
+      <text x="565" y="261" fill="#7c8db5" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">(L1 + L2)</text>
+      <!-- Mapping lines -->
+      <line x1="210" y1="48" x2="470" y2="83" stroke="rgba(246,135,179,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="210" y1="83" x2="470" y2="83" stroke="rgba(237,137,54,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="210" y1="118" x2="470" y2="83" stroke="rgba(159,122,234,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="210" y1="153" x2="470" y2="153" stroke="rgba(66,153,225,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="210" y1="188" x2="470" y2="188" stroke="rgba(72,187,120,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="210" y1="223" x2="470" y2="241" stroke="rgba(255,166,0,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="210" y1="258" x2="470" y2="241" stroke="rgba(255,107,107,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+    </svg>
+  </div>
+</section>
+
+<!-- SUMMARY -->
+<section id="summary">
+  <div class="section-header">
+    <div class="section-label">Section 18</div>
+    <h2 class="section-title">Key Takeaways</h2>
+    <p class="section-desc">The most important OSI concepts to carry forward.</p>
+  </div>
+  <div class="card-grid">
+    <div class="card"><div class="card-title" style="color:var(--accent)">🏗️ Abstraction is the Point</div><div class="card-text">TCP doesn't know if it runs over Ethernet or WiFi. HTTP doesn't know if TCP or QUIC carries it. This layered abstraction makes the internet scalable to billions of devices.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--accent2)">📦 Overhead is Real</div><div class="card-text">Every packet carries at minimum: Ethernet (14B) + IP (20B) + TCP (20B) = 54 bytes overhead per 1460 bytes of payload. Jumbo frames reduce this ratio for bulk transfers.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--accent3)">🔍 Debug Bottom-Up Always</div><div class="card-text">A flapping network cable (L1) looks like an application outage (L7). Never blame the application until L1–L6 are verified clean.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">🛡️ Security is Per-Layer</div><div class="card-text">ARP spoofing = L2. SYN flood = L4. SQL injection = L7. Defenses must match attack layer — a stateful firewall can't stop ARP spoofing.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--orange)">⚡ OSI is Reference, TCP/IP is Reality</div><div class="card-text">The internet runs 4-layer TCP/IP, not 7-layer OSI. But OSI terminology is the universal language — "L7 WAF" vs "L4 NLB" is instantly understood by every network engineer worldwide.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--accent4)">🔄 The Model Evolves</div><div class="card-text">QUIC blurs L4/L7. VXLAN tunnels L2 over L3. eBPF operates at the kernel networking stack. SD-WAN virtualizes L1–L3. OSI is a framework — real protocols never fit perfectly into neat boxes.</div></div>
+  </div>
+  <div class="info-box info-success" style="margin-top:32px"><div class="info-box-title">🎓 OSI Model Deep Dive Complete!</div>You now understand 7 layers from physical bits to application data, encapsulation/de-encapsulation, TCP/UDP internals, DNS resolution, ARP, routing protocols, security attacks by layer, performance tuning, and systematic troubleshooting. This foundation unlocks every networking topic: Kubernetes networking, BGP optimization, zero-trust security, SD-WAN, and beyond.</div>
+</section>
+
+</div><!-- end content -->
+</main>
+</div><!-- end layout -->
+<script>
+// ─── PROGRESS BAR + BACK TO TOP ───
+window.addEventListener('scroll', () => {
+  const el = document.documentElement;
+  const pct = (window.scrollY / (el.scrollHeight - el.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('rp-pct').textContent = Math.round(pct) + '%';
+  document.getElementById('rp-fill').style.width = pct + '%';
+  document.getElementById('back-top').classList.toggle('show', window.scrollY > 400);
+});
+
+// ─── ANIMATED COUNTERS ───
+const counters = document.querySelectorAll('[data-count]');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target, target = +el.dataset.count;
+    let cur = 0; const step = target / 60;
+    const t = setInterval(() => { cur = Math.min(cur + step, target); el.textContent = Math.floor(cur); if (cur >= target) clearInterval(t); }, 16);
+    obs.unobserve(el);
+  });
+});
+counters.forEach(c => obs.observe(c));
+
+// ─── ACTIVE NAV ───
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const navObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => navObs.observe(s));
+
+// ─── LAYER TOGGLE ───
+function toggleLayer(row) {
+  const d = document.getElementById('detail-' + row.dataset.layer);
+  if (d) d.classList.toggle('open');
+}
+
+// ─── TABS ───
+function switchTab(btn, id) {
+  const p = btn.closest('.tabs');
+  p.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  p.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── ACCORDION ───
+function toggleAcc(header) { header.parentElement.classList.toggle('open'); }
+
+// ─── COPY BUTTON ───
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+// ─── INTERVIEW TOGGLE ───
+function toggleAnswer(link) {
+  const ans = link.nextElementSibling;
+  ans.classList.toggle('open');
+  link.textContent = ans.classList.contains('open') ? '▼ Hide Answer' : '▶ Show Answer';
+}
+
+// ─── QUIZ ───
+const questions = [
+  { q: "At which OSI layer does the IP protocol operate?", opts: ["Layer 2 — Data Link","Layer 3 — Network","Layer 4 — Transport","Layer 7 — Application"], ans: 1, exp: "IP operates at Layer 3 (Network). It provides logical addressing and routes packets between different networks using IP addresses." },
+  { q: "What is the PDU (Protocol Data Unit) at Layer 2 (Data Link)?", opts: ["Bit","Frame","Packet","Segment"], ans: 1, exp: "Layer 2's PDU is a Frame. It contains source/destination MAC addresses, EtherType, payload data, and FCS checksum." },
+  { q: "Which protocol provides guaranteed, ordered, error-checked delivery?", opts: ["UDP","ICMP","TCP","ARP"], ans: 2, exp: "TCP provides reliable, ordered delivery via sequence numbers, acknowledgments, and retransmission of lost segments." },
+  { q: "Which tool shows each L3 hop on the path to a destination with RTT?", opts: ["ping","arp -a","traceroute / mtr","netstat"], ans: 2, exp: "traceroute (Linux/Mac) / tracert (Windows) shows each router hop and RTT. mtr combines ping + traceroute in real-time and is more useful for diagnosing intermittent loss." },
+  { q: "ARP spoofing is an attack at which OSI layer?", opts: ["Layer 1 — Physical","Layer 2 — Data Link","Layer 3 — Network","Layer 7 — Application"], ans: 1, exp: "ARP operates at Layer 2 (Data Link). ARP spoofing sends fake MAC-to-IP mappings to poison ARP caches, enabling man-in-the-middle attacks at the link layer." },
+  { q: "What does the TTL field in an IP packet prevent?", opts: ["Packet fragmentation","Infinite routing loops","Unauthorized access","Duplicate transmissions"], ans: 1, exp: "TTL (Time To Live) decrements by 1 at each router. When it reaches 0, the router discards the packet and sends ICMP 'Time Exceeded' back. This prevents packets from circulating forever in routing loops." }
+];
+
+let qIdx = 0, score = 0, selected = null, answered = false;
+function renderQuestion() {
+  const q = questions[qIdx];
+  document.getElementById('quiz-q').textContent = q.q;
+  document.getElementById('quiz-opts').innerHTML = q.opts.map((o, i) =>
+    `<div class="quiz-opt" onclick="selectOpt(this,${i})"><span class="opt-letter">${'ABCD'[i]}</span>${o}</div>`
+  ).join('');
+  const res = document.getElementById('quiz-result');
+  res.className = 'quiz-result'; res.textContent = '';
+  document.getElementById('quiz-submit').style.display = '';
+  document.getElementById('quiz-next').style.display = 'none';
+  document.getElementById('q-num').textContent = qIdx + 1;
+  selected = null; answered = false;
+}
+
+function selectOpt(el, i) {
+  if (answered) return;
+  document.querySelectorAll('.quiz-opt').forEach(o => o.style.borderColor = '');
+  el.style.borderColor = 'var(--accent)';
+  selected = i;
+}
+
+function quizSubmit() {
+  if (selected === null) { alert('Please select an answer!'); return; }
+  answered = true;
+  const q = questions[qIdx];
+  document.querySelectorAll('.quiz-opt')[q.ans].classList.add('correct');
+  if (selected !== q.ans) document.querySelectorAll('.quiz-opt')[selected].classList.add('wrong');
+  else score++;
+  const res = document.getElementById('quiz-result');
+  res.className = 'quiz-result show ' + (selected === q.ans ? 'success' : 'fail');
+  res.textContent = (selected === q.ans ? '✓ Correct! ' : '✗ Incorrect. ') + q.exp;
+  document.getElementById('quiz-submit').style.display = 'none';
+  document.getElementById('quiz-next').style.display = '';
+}
+
+function quizNext() {
+  qIdx++;
+  if (qIdx >= questions.length) {
+    ['quiz-q','quiz-opts','quiz-result','quiz-submit','quiz-next','quiz-progress'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    document.getElementById('quiz-final').style.display = 'block';
+    document.getElementById('quiz-score-display').textContent = score + ' / ' + questions.length;
+    const verdicts = ['Keep studying!', 'Getting there!', 'Solid effort!', 'Good work!', 'Excellent!', 'Perfect score! 🎉'];
+    document.getElementById('quiz-verdict').textContent = verdicts[score] || 'Well done!';
+  } else { renderQuestion(); }
+}
+
+function quizRestart() {
+  qIdx = 0; score = 0;
+  ['quiz-q','quiz-opts','quiz-result','quiz-submit','quiz-progress'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = '';
+  });
+  document.getElementById('quiz-final').style.display = 'none';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>

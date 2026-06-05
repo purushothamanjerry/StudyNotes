@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microservices — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
+  --card:#0f1829;--border:#1e2d45;--border2:#243350;
+  --accent:#a78bfa;--accent2:#7c3aed;--accent3:#00ff88;
+  --accent4:#00d4ff;--accent5:#ff6b35;
+  --warn:#fbbf24;--danger:#f87171;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+.layout{display:grid;grid-template-columns:270px 1fr 220px;min-height:100vh;max-width:1600px;margin:0 auto}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sidebar-nav{padding:16px 12px}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .2s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(167,139,250,.1);color:var(--accent);border-left:2px solid var(--accent)}
+.nav-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:18px}
+.nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(167,139,250,.12);color:var(--accent)}
+.hero{background:linear-gradient(135deg,#080c14 0%,#110d1e 50%,#0a0c10 100%);padding:60px 60px 50px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,rgba(167,139,250,.07) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:160px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,255,136,.04) 0%,transparent 70%);pointer-events:none}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
+.breadcrumb span{color:var(--accent)}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent) 0%,var(--accent4) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{font-size:17px;color:var(--text2);max-width:640px;margin-bottom:28px;line-height:1.7}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.meta-dot{width:6px;height:6px;border-radius:50%}
+.main{padding:0;min-width:0}
+.content{padding:48px 60px;max-width:880px}
+.section{margin-bottom:64px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';display:block;width:16px;height:1px;background:var(--accent)}
+h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:16px;line-height:1.2}
+h3{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:28px}
+p{color:var(--text2);margin-bottom:14px;font-size:15px}
+strong{color:var(--text);font-weight:600}
+.analogy-box{background:linear-gradient(135deg,rgba(167,139,250,.08) 0%,rgba(0,212,255,.04) 100%);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:24px 28px;margin:24px 0;position:relative}
+.analogy-box::before{content:'💡';position:absolute;top:-12px;left:20px;font-size:20px;background:var(--bg);padding:0 6px}
+.analogy-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,var(--accent))}
+.info-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-icon{font-size:24px;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--text2);line-height:1.5}
+.diagram-container{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px 24px;margin:24px 0;overflow-x:auto}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:24px;text-align:center;text-transform:uppercase;letter-spacing:.1em}
+.diagram-svg{display:block;margin:0 auto;max-width:100%}
+.code-wrap{margin:20px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.code-header{background:var(--bg4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600}
+.code-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent);border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.copy-btn:hover{background:rgba(167,139,250,.15)}
+pre{background:#060a10;padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.kw{color:#ff79c6}.str{color:#f1fa8c}.cm{color:#6272a4;font-style:italic}.fn{color:#50fa7b}.num{color:#bd93f9}.key{color:#8be9fd}.val{color:#ffb86c}.op{color:#ff5555}
+.step-list{margin:20px 0}
+.step-item{display:flex;gap:16px;margin-bottom:20px;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:15px;top:36px;bottom:-20px;width:1px;background:linear-gradient(to bottom,var(--accent),transparent)}
+.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)}
+.step-title{font-weight:600;color:var(--text);font-size:15px;margin-bottom:4px}
+.step-desc{color:var(--text2);font-size:14px}
+.tabs{margin:24px 0}
+.tab-list{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:4px;border-radius:10px;width:fit-content;flex-wrap:wrap}
+.tab-btn{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:'Inter',sans-serif}
+.tab-btn.active{background:rgba(167,139,250,.12);color:var(--accent);border:1px solid rgba(167,139,250,.2)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:8px}
+.tab-panel.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.accordion{margin:16px 0}
+.accordion-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.accordion-trigger{width:100%;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:none;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:background .2s}
+.accordion-trigger:hover{background:var(--bg4)}
+.accordion-icon{width:20px;height:20px;border-radius:50%;background:rgba(167,139,250,.1);display:flex;align-items:center;justify-content:center;font-size:12px;transition:transform .3s;flex-shrink:0}
+.accordion-item.open .accordion-icon{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;background:var(--card);padding:0 18px;font-size:14px;color:var(--text2)}
+.accordion-item.open .accordion-body{max-height:1000px;padding:16px 18px}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.pros-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:10px;padding:20px}
+.cons-box{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:20px}
+.box-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px}
+.pros-box .box-title{color:var(--accent3)}.cons-box .box-title{color:var(--danger)}
+.check-list{list-style:none}
+.check-list li{font-size:13.5px;color:var(--text2);padding:4px 0;display:flex;gap:8px;align-items:flex-start}
+.pros-box .check-list li::before{content:'✓';color:var(--accent3);flex-shrink:0;margin-top:1px}
+.cons-box .check-list li::before{content:'✗';color:var(--danger);flex-shrink:0;margin-top:1px}
+.alert{border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.alert-icon{font-size:16px;flex-shrink:0}
+.alert-warn{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);color:var(--warn)}
+.alert-danger{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger)}
+.alert-info{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);color:var(--accent)}
+.alert-success{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);color:var(--accent3)}
+.alert p{color:inherit;margin:0}
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:20px 0}
+.company-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;transition:all .25s}
+.company-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.company-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.company-tech{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(167,139,250,.08);padding:2px 8px;border-radius:4px}
+.company-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.interview-list{margin:16px 0}
+.interview-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.interview-item:hover{border-color:var(--border2);background:var(--bg4)}
+.interview-q{font-size:14px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.interview-q::after{content:'›';color:var(--text3);font-size:18px;flex-shrink:0;transition:transform .2s}
+.interview-item.open .interview-q::after{transform:rotate(90deg)}
+.interview-a{max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;font-size:13.5px;color:var(--text2)}
+.interview-item.open .interview-a{max-height:500px;padding-top:10px}
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg4)}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+td{padding:11px 16px;font-size:13.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:var(--text);font-weight:500}
+.toc{position:sticky;top:24px;padding:24px 16px}
+.toc-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.toc-list{list-style:none}
+.toc-item{margin-bottom:2px}
+.toc-link{display:block;padding:5px 10px;border-radius:5px;color:var(--text3);text-decoration:none;font-size:12.5px;transition:all .2s;border-left:2px solid transparent}
+.toc-link:hover{color:var(--text);background:var(--bg3)}
+.toc-link.active{color:var(--accent);border-left-color:var(--accent);background:rgba(167,139,250,.05)}
+.progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent),var(--accent4));z-index:100;transition:width .1s}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid}
+.tag-purple{color:var(--accent);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+.tag-blue{color:var(--accent4);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.06)}
+.tag-green{color:var(--accent3);border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.06)}
+.tag-orange{color:var(--accent5);border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.06)}
+.sep{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:40px 0}
+.summary-box{background:linear-gradient(135deg,rgba(167,139,250,.06) 0%,rgba(0,212,255,.04) 100%);border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:28px 32px;margin:32px 0}
+.summary-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px}
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(167,139,250,.08);color:var(--accent);padding:1px 6px;border-radius:4px;border:1px solid rgba(167,139,250,.15)}
+pre code{background:transparent;color:inherit;padding:0;border:none;font-size:inherit}
+/* Monolith vs Micro visual */
+.arch-compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0}
+.arch-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.arch-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+/* Service card strip */
+.svc-strip{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.svc-item{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:13px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.svc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.next-topic{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .25s;text-decoration:none}
+.next-topic:hover{border-color:rgba(167,139,250,.3);box-shadow:0 0 30px rgba(167,139,250,.08)}
+.next-label{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.next-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.next-arrow{font-size:24px;color:var(--accent)}
+.menu-toggle{display:none;position:fixed;bottom:24px;right:24px;z-index:300;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(167,139,250,.4);font-size:20px;color:var(--bg)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190}
+.overlay.show{display:block}
+@media(max-width:1100px){.layout{grid-template-columns:240px 1fr}.toc{display:none}.content{padding:36px 40px}.hero{padding:48px 40px}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;left:-280px;z-index:200;transition:left .3s;height:100vh;width:270px}.sidebar.open{left:0;box-shadow:8px 0 32px rgba(0,0,0,.5)}.content{padding:24px 20px}.hero{padding:32px 20px}.pros-cons,.arch-compare{grid-template-columns:1fr}.card-grid{grid-template-columns:1fr}.menu-toggle{display:flex}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes nodeGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(167,139,250,0))}50%{filter:drop-shadow(0 0 10px rgba(167,139,250,.55))}}
+.node-animate{animation:nodeGlow 2.5s ease-in-out infinite}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><div class="logo-dot"></div>HLD Academy</div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item" href="load-balancer.html"><span class="nav-num">01</span> Load Balancer</a>
+      <a class="nav-item" href="api-gateway.html"><span class="nav-num">02</span> API Gateway</a>
+      <a class="nav-item" href="#"><span class="nav-num">08</span> CDN</a>
+      <a class="nav-item" href="#"><span class="nav-num">09</span> Reverse Proxy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item" href="redis-cache.html"><span class="nav-num">03</span> Redis Cache</a>
+      <a class="nav-item" href="rate-limiting.html"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item" href="message-queue.html"><span class="nav-num">05</span> Message Queue</a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item active" href="microservices.html"><span class="nav-num">06</span> Microservices <span class="nav-badge">Current</span></a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item" href="#"><span class="nav-num">07</span> Database Scaling</a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Architecture <span>›</span> Topic 06</div>
+    <div class="hero-tag">🧩 Topic 06 of 22</div>
+    <h1>Micro<em>services</em></h1>
+    <p class="hero-desc">The architectural style that powers Netflix, Uber, Amazon and every modern tech giant. Learn why monoliths break at scale, how to decompose them into services, how services communicate, and the real organisational and technical trade-offs that nobody tells you about.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>Beginner → Advanced</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>~45 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent4)"></div>Interview Critical</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--warn)"></div>Architecture Core</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>What are Microservices?</h2>
+      <p><strong>Microservices</strong> is an architectural style where a large application is built as a collection of small, independently deployable services. Each service owns a single business capability, runs in its own process, communicates over a network, and can be developed, deployed, and scaled independently.</p>
+      <p>It is the <em>opposite</em> of a monolith — instead of one big codebase that does everything, you have many focused services each doing one thing well.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">🏙️ Analogy — City vs Single Building</div>
+        <p style="color:var(--text2);margin:0">A <strong>monolith</strong> is like a single skyscraper that houses every business in the city — shops, hospitals, schools, offices, all in one building. Adding a new floor is risky and affects everyone. If the power goes out, everyone is affected. <strong>Microservices</strong> is like a city — each building is separate, has its own power, its own rules. A fire in one building doesn't burn the whole city. You can demolish and rebuild one building without touching others. Each can grow independently. The trade-off: now you need roads (APIs), traffic management (service mesh), and city planning (architecture governance).</p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg',this)">👶 Beginner</button>
+          <button class="tab-btn" onclick="switchTab('adv',this)">🧠 Advanced</button>
+        </div>
+        <div class="tab-panel active" id="tab-beg">
+          <p>Imagine Amazon.com as a monolith — one huge application handling search, checkout, payments, recommendations, user accounts, inventory, and shipping. When the shopping cart feature needs an update, you re-deploy the entire application. If the recommendation engine has a memory leak, the checkout page crashes too.</p>
+          <p>With microservices: each function is a separate service with its own team and codebase. The Checkout team deploys their service 20 times a day without touching Search or Recommendations. A bug in Recommendations doesn't take down the checkout page.</p>
+        </div>
+        <div class="tab-panel" id="tab-adv">
+          <p>Microservices implement <strong>Conway's Law</strong> deliberately — the architecture mirrors the team structure. Each service is owned by a two-pizza team (6-8 people) who have full autonomy over technology choices, deployment cadence, and internal implementation as long as they honour the published API contract.</p>
+          <p>The key principles: <strong>bounded context</strong> (from Domain-Driven Design) defines service boundaries around business capabilities; <strong>database-per-service</strong> ensures true isolation; <strong>smart endpoints, dumb pipes</strong> means business logic lives in services, not in the communication layer; and <strong>design for failure</strong> treats every remote call as potentially failing.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-purple">Independent Deployment</span>
+        <span class="tag tag-blue">Bounded Context</span>
+        <span class="tag tag-green">Polyglot Persistence</span>
+        <span class="tag tag-orange">Fault Isolation</span>
+        <span class="tag tag-purple">Domain-Driven Design</span>
+        <span class="tag tag-blue">Service Autonomy</span>
+      </div>
+    </section>
+
+    <!-- MONOLITH vs MICROSERVICES -->
+    <section class="section" id="vs">
+      <div class="section-label">Architecture Comparison</div>
+      <h2>Monolith vs Microservices — A Complete Picture</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Monolith vs Microservices — Structure & Communication</div>
+        <svg class="diagram-svg" viewBox="0 0 740 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrM" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#243350"/></marker>
+            <marker id="arrP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(167,139,250,.6)"/></marker>
+            <marker id="arrG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.5)"/></marker>
+          </defs>
+
+          <!-- MONOLITH SIDE -->
+          <text x="160" y="22" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:13px;font-weight:700">❌ Monolith</text>
+          <!-- Big block -->
+          <rect x="30" y="32" width="260" height="260" rx="12" style="fill:rgba(248,113,113,.04);stroke:rgba(248,113,113,.25);stroke-width:1.5"/>
+          <text x="160" y="56" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">ONE DEPLOYABLE UNIT</text>
+
+          <!-- Internal modules -->
+          <rect x="48" y="65" width="100" height="36" rx="5" style="fill:rgba(248,113,113,.1);stroke:rgba(248,113,113,.2)"/>
+          <text x="98" y="87" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px">User Module</text>
+          <rect x="160" y="65" width="112" height="36" rx="5" style="fill:rgba(248,113,113,.1);stroke:rgba(248,113,113,.2)"/>
+          <text x="216" y="87" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px">Order Module</text>
+          <rect x="48" y="112" width="100" height="36" rx="5" style="fill:rgba(248,113,113,.1);stroke:rgba(248,113,113,.2)"/>
+          <text x="98" y="134" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px">Payment Module</text>
+          <rect x="160" y="112" width="112" height="36" rx="5" style="fill:rgba(248,113,113,.1);stroke:rgba(248,113,113,.2)"/>
+          <text x="216" y="134" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px">Inventory Module</text>
+          <rect x="48" y="160" width="100" height="36" rx="5" style="fill:rgba(248,113,113,.1);stroke:rgba(248,113,113,.2)"/>
+          <text x="98" y="181" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px">Email Module</text>
+          <rect x="160" y="160" width="112" height="36" rx="5" style="fill:rgba(248,113,113,.1);stroke:rgba(248,113,113,.2)"/>
+          <text x="216" y="181" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px">Search Module</text>
+
+          <!-- Shared DB -->
+          <rect x="70" y="215" width="180" height="44" rx="8" style="fill:rgba(248,113,113,.08);stroke:rgba(248,113,113,.2)"/>
+          <text x="160" y="236" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:12px;font-weight:600">🗄️ One Shared Database</text>
+          <text x="160" y="251" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">All modules share same schema</text>
+
+          <!-- Pain points -->
+          <rect x="30" y="303" width="260" height="75" rx="8" style="fill:rgba(248,113,113,.04);stroke:rgba(248,113,113,.15)"/>
+          <text x="160" y="322" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:11px;font-weight:700">⚠ Pain Points</text>
+          <text x="45" y="340" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Deploy everything for any change</text>
+          <text x="45" y="355" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• One bug can crash all features</text>
+          <text x="45" y="370" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Can only scale everything together</text>
+
+          <!-- DIVIDER -->
+          <line x1="365" y1="10" x2="365" y2="390" style="stroke:#1e2d45;stroke-width:1;stroke-dasharray:6,4"/>
+
+          <!-- MICROSERVICES SIDE -->
+          <text x="555" y="22" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:13px;font-weight:700">✅ Microservices</text>
+
+          <!-- API Gateway -->
+          <rect x="462" y="32" width="184" height="36" rx="8" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.3);stroke-width:1.5"/>
+          <text x="554" y="55" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:600">🚪 API Gateway</text>
+
+          <!-- Service boxes + individual DBs -->
+          <!-- User Svc -->
+          <rect x="382" y="90" width="95" height="40" rx="7" style="fill:rgba(167,139,250,.08);stroke:rgba(167,139,250,.3);stroke-width:1.5" class="node-animate"/>
+          <text x="429" y="114" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#a78bfa;font-size:11px;font-weight:600">👤 Users</text>
+          <rect x="382" y="136" width="95" height="22" rx="4" style="fill:rgba(167,139,250,.05);stroke:rgba(167,139,250,.15)"/>
+          <text x="429" y="151" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">PostgreSQL</text>
+
+          <!-- Order Svc -->
+          <rect x="492" y="90" width="95" height="40" rx="7" style="fill:rgba(0,255,136,.06);stroke:rgba(0,255,136,.25);stroke-width:1.5"/>
+          <text x="539" y="114" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">📦 Orders</text>
+          <rect x="492" y="136" width="95" height="22" rx="4" style="fill:rgba(0,255,136,.04);stroke:rgba(0,255,136,.12)"/>
+          <text x="539" y="151" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">PostgreSQL</text>
+
+          <!-- Payment Svc -->
+          <rect x="602" y="90" width="108" height="40" rx="7" style="fill:rgba(255,107,53,.07);stroke:rgba(255,107,53,.25);stroke-width:1.5"/>
+          <text x="656" y="114" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#ff6b35;font-size:11px;font-weight:600">💳 Payments</text>
+          <rect x="602" y="136" width="108" height="22" rx="4" style="fill:rgba(255,107,53,.04);stroke:rgba(255,107,53,.12)"/>
+          <text x="656" y="151" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">Stripe + MySQL</text>
+
+          <!-- Inventory Svc -->
+          <rect x="382" y="185" width="95" height="40" rx="7" style="fill:rgba(251,191,36,.06);stroke:rgba(251,191,36,.25);stroke-width:1.5"/>
+          <text x="429" y="209" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#fbbf24;font-size:11px;font-weight:600">📋 Inventory</text>
+          <rect x="382" y="231" width="95" height="22" rx="4" style="fill:rgba(251,191,36,.04);stroke:rgba(251,191,36,.12)"/>
+          <text x="429" y="246" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">MongoDB</text>
+
+          <!-- Search Svc -->
+          <rect x="492" y="185" width="95" height="40" rx="7" style="fill:rgba(0,212,255,.06);stroke:rgba(0,212,255,.22);stroke-width:1.5"/>
+          <text x="539" y="209" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00d4ff;font-size:11px;font-weight:600">🔍 Search</text>
+          <rect x="492" y="231" width="95" height="22" rx="4" style="fill:rgba(0,212,255,.04);stroke:rgba(0,212,255,.12)"/>
+          <text x="539" y="246" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">Elasticsearch</text>
+
+          <!-- Notification Svc -->
+          <rect x="602" y="185" width="108" height="40" rx="7" style="fill:rgba(248,113,113,.06);stroke:rgba(248,113,113,.2);stroke-width:1.5"/>
+          <text x="656" y="209" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px;font-weight:600">🔔 Notify</text>
+          <rect x="602" y="231" width="108" height="22" rx="4" style="fill:rgba(248,113,113,.04);stroke:rgba(248,113,113,.12)"/>
+          <text x="656" y="246" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">Redis + SNS</text>
+
+          <!-- Arrows: GW to services -->
+          <line x1="490" y1="68" x2="429" y2="88" style="stroke:rgba(0,212,255,.3);stroke-width:1;fill:none;marker-end:url(#arrM)"/>
+          <line x1="530" y1="68" x2="530" y2="88" style="stroke:rgba(0,212,255,.3);stroke-width:1;fill:none;marker-end:url(#arrM)"/>
+          <line x1="580" y1="68" x2="630" y2="88" style="stroke:rgba(0,212,255,.3);stroke-width:1;fill:none;marker-end:url(#arrM)"/>
+
+          <!-- Benefits -->
+          <rect x="382" y="275" width="328" height="90" rx="8" style="fill:rgba(167,139,250,.04);stroke:rgba(167,139,250,.15)"/>
+          <text x="546" y="296" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:11px;font-weight:700">✅ Benefits</text>
+          <text x="397" y="315" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Deploy each service independently</text>
+          <text x="397" y="332" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Scale only the bottleneck (e.g. Search)</text>
+          <text x="397" y="349" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Each team owns their tech stack</text>
+          <text x="397" y="366" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Fault in Notify doesn't break Orders</text>
+        </svg>
+      </div>
+
+      <div class="arch-compare">
+        <div class="arch-box">
+          <div class="arch-title" style="color:var(--danger)">❌ Monolith Problems at Scale</div>
+          <div class="svc-strip">
+            <div class="svc-item"><div class="svc-dot" style="background:#f87171"></div>Deploy entire app for 1-line change</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#f87171"></div>Technology lock-in (one language/framework)</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#f87171"></div>Scale everything when only Search is slow</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#f87171"></div>Shared DB → schema changes break everything</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#f87171"></div>Growing codebase → merge conflicts, slow builds</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#f87171"></div>One bug in email module → checkout fails</div>
+          </div>
+        </div>
+        <div class="arch-box">
+          <div class="arch-title" style="color:var(--accent)">✅ Microservices Solutions</div>
+          <div class="svc-strip">
+            <div class="svc-item"><div class="svc-dot" style="background:#a78bfa"></div>Deploy each service independently, 50×/day</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#a78bfa"></div>Best tool per job (Go for Search, Python for ML)</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#a78bfa"></div>Scale only the Search service during peak</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#a78bfa"></div>Each service owns its database schema</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#a78bfa"></div>Small focused codebases, fast CI/CD per team</div>
+            <div class="svc-item"><div class="svc-dot" style="background:#a78bfa"></div>Email failure is isolated — checkout keeps running</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICE DECOMPOSITION -->
+    <section class="section" id="decomposition">
+      <div class="section-label">Design Principles</div>
+      <h2>How to Decompose a Monolith — Service Boundaries</h2>
+      <p>The hardest question in microservices: <strong>how do you decide where to draw the service boundary?</strong> Cut too fine and you have a distributed monolith. Cut too coarse and services are still tightly coupled.</p>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📐 By Business Capability (Domain-Driven Design)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>This is the most reliable decomposition strategy. Identify the business <strong>capabilities</strong> your system provides, then build one service per capability.</p>
+            <p>For an e-commerce platform: User Management, Product Catalog, Shopping Cart, Order Management, Payment Processing, Inventory Management, Shipping, Notifications, Search, Reviews. Each becomes a service.</p>
+            <p><strong>Bounded Context (DDD):</strong> Each service has its own model of "what an order is." The Order Service cares about order status and line items. The Shipping Service only cares about delivery address and weight. They have different internal models of the same concept — and that's correct.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            👥 By Team Ownership (Conway's Law)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>Conway's Law:</strong> "Organizations which design systems are constrained to produce designs which are copies of the communication structures of those organizations."</p>
+            <p>Amazon enforced this with the <strong>"two-pizza team" rule</strong> — if a team can't be fed by two pizzas (6-8 people), it's too large. Each team owns and is fully responsible for their service(s), including on-call, deployments, and architecture decisions.</p>
+            <p>The inverse Conway Maneuver: restructure your teams to match the microservice architecture you want to achieve. The architecture will follow.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔄 By Change Frequency (Volatility-Based)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Separate things that change often from things that change rarely. If the Recommendation Engine algorithm changes 10 times per day (A/B tests) but the User Profile rarely changes, keep them separate — you don't want 10 deployments per day to risk the User service.</p>
+            <p>Group services by their <strong>rate of change</strong> and <strong>risk profile</strong>. Payments changes rarely and is high-risk → isolated, heavily tested, slow deployment cadence. Search changes frequently, lower risk → fast deployment, experimentation-friendly.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📏 The "Right Size" — When Is a Service Too Small?
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>A service is too small when: it can't be independently deployed (it always deploys with another service), it has no meaningful business capability on its own, or managing it (CI/CD, monitoring, on-call) costs more than the value it provides.</p>
+            <p><strong>Nano-services anti-pattern:</strong> A service that just wraps a single function call. The network overhead, service mesh complexity, and operational burden dwarf any benefit.</p>
+            <p><strong>Good rule of thumb:</strong> A service should be something a team of 4-8 people can fully understand, develop, and own. It should have a clear business purpose. If you can't explain its responsibility in one sentence, consider merging it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMUNICATION -->
+    <section class="section" id="communication">
+      <div class="section-label">Inter-Service Communication</div>
+      <h2>How Microservices Talk to Each Other</h2>
+      <p>When you decompose a monolith, what used to be a function call <code>orderService.getOrder(id)</code> becomes a network call. Network calls can fail, time out, or be slow. This is the biggest source of complexity in microservices.</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Communication Patterns — Sync vs Async</div>
+        <svg class="diagram-svg" viewBox="0 0 740 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrS2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,212,255,.6)"/></marker>
+            <marker id="arrA2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.5)"/></marker>
+            <marker id="arrBack" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,212,255,.3)"/></marker>
+          </defs>
+
+          <!-- SYNC section -->
+          <text x="185" y="22" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:13px;font-weight:700">Synchronous (REST / gRPC)</text>
+
+          <rect x="20" y="40" width="100" height="44" rx="8" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="70" y="60" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:11px;font-weight:600">Order</text>
+          <text x="70" y="76" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Service</text>
+
+          <!-- Request arrow -->
+          <line x1="122" y1="58" x2="218" y2="58" style="stroke:rgba(0,212,255,.6);stroke-width:1.5;fill:none;marker-end:url(#arrS2)"/>
+          <text x="170" y="50" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,212,255,.6);font-size:9px">① POST /payments</text>
+
+          <rect x="220" y="40" width="100" height="44" rx="8" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="270" y="60" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:11px;font-weight:600">Payment</text>
+          <text x="270" y="76" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Service</text>
+
+          <!-- Response arrow -->
+          <line x1="218" y1="72" x2="122" y2="72" style="stroke:rgba(0,212,255,.3);stroke-width:1.5;stroke-dasharray:4,3;fill:none;marker-end:url(#arrBack)"/>
+          <text x="170" y="85" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,212,255,.4);font-size:9px">② { paymentId: "pay_123" }</text>
+
+          <!-- Blocking label -->
+          <rect x="20" y="105" width="300" height="38" rx="6" style="fill:rgba(0,212,255,.04);stroke:rgba(0,212,255,.15)"/>
+          <text x="170" y="121" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00d4ff;font-size:11px;font-weight:600">🔒 Caller BLOCKS until response arrives</text>
+          <text x="170" y="136" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">If Payment Service is slow, Order Service is slow</text>
+
+          <!-- gRPC note -->
+          <rect x="20" y="155" width="300" height="50" rx="6" style="fill:rgba(167,139,250,.04);stroke:rgba(167,139,250,.15)"/>
+          <text x="170" y="174" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:11px;font-weight:600">REST vs gRPC</text>
+          <text x="35" y="192" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">REST: JSON over HTTP/1.1 — simple, universal</text>
+          <text x="35" y="204" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">gRPC: Protobuf over HTTP/2 — 5-10× faster internally</text>
+
+          <!-- DIVIDER -->
+          <line x1="370" y1="10" x2="370" y2="330" style="stroke:#1e2d45;stroke-width:1;stroke-dasharray:5,4"/>
+
+          <!-- ASYNC section -->
+          <text x="555" y="22" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:13px;font-weight:700">Asynchronous (Events / Queue)</text>
+
+          <rect x="385" y="40" width="100" height="44" rx="8" style="fill:rgba(0,255,136,.06);stroke:rgba(0,255,136,.25);stroke-width:1.5"/>
+          <text x="435" y="60" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:11px;font-weight:600">Order</text>
+          <text x="435" y="76" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Service</text>
+
+          <!-- Publish arrow -->
+          <line x1="487" y1="62" x2="543" y2="62" style="stroke:rgba(0,255,136,.5);stroke-width:1.5;fill:none;marker-end:url(#arrA2)"/>
+          <text x="515" y="54" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,255,136,.6);font-size:9px">① publish</text>
+
+          <!-- Queue/Topic -->
+          <rect x="545" y="40" width="120" height="44" rx="8" style="fill:rgba(0,255,136,.07);stroke:rgba(0,255,136,.3);stroke-width:1.5" class="node-animate"/>
+          <text x="605" y="60" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">📨 Message</text>
+          <text x="605" y="76" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Queue / Topic</text>
+
+          <!-- Consume arrows to multiple services -->
+          <line x1="667" y1="55" x2="700" y2="48" style="stroke:rgba(0,255,136,.4);stroke-width:1;fill:none;marker-end:url(#arrA2)"/>
+          <line x1="667" y1="62" x2="700" y2="70" style="stroke:rgba(0,255,136,.4);stroke-width:1;fill:none;marker-end:url(#arrA2)"/>
+          <line x1="667" y1="69" x2="700" y2="88" style="stroke:rgba(0,255,136,.4);stroke-width:1;fill:none;marker-end:url(#arrA2)"/>
+
+          <rect x="702" y="30" width="32" height="24" rx="4" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2)"/>
+          <text x="718" y="46" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:8px">Pay</text>
+          <rect x="702" y="58" width="32" height="24" rx="4" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2)"/>
+          <text x="718" y="74" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:8px">Email</text>
+          <rect x="702" y="80" width="32" height="24" rx="4" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2)"/>
+          <text x="718" y="96" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:8px">Ship</text>
+
+          <text x="630" y="115" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,255,136,.5);font-size:9px">② each subscriber consumes independently</text>
+
+          <!-- Benefits -->
+          <rect x="385" y="130" width="345" height="70" rx="6" style="fill:rgba(0,255,136,.04);stroke:rgba(0,255,136,.15)"/>
+          <text x="557" y="150" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">🔓 Caller DOES NOT block — fire and move on</text>
+          <text x="400" y="170" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">✓ Payment Service down? Message waits in queue.</text>
+          <text x="400" y="185" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">✓ Fan-out: one event triggers many consumers.</text>
+
+          <!-- When to use each -->
+          <rect x="20" y="220" width="300" height="100" rx="8" style="fill:rgba(0,212,255,.04);stroke:rgba(0,212,255,.15)"/>
+          <text x="170" y="240" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:11px;font-weight:600">Use Sync (REST/gRPC) when:</text>
+          <text x="35" y="260" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• You need an immediate answer</text>
+          <text x="35" y="278" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Simple request-response model</text>
+          <text x="35" y="296" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Real-time user-facing operations</text>
+          <text x="35" y="314" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• e.g. GET /user/profile, POST /order</text>
+
+          <rect x="385" y="220" width="345" height="100" rx="8" style="fill:rgba(0,255,136,.03);stroke:rgba(0,255,136,.15)"/>
+          <text x="557" y="240" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">Use Async (Events) when:</text>
+          <text x="400" y="260" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Work can happen in background</text>
+          <text x="400" y="278" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Multiple services need to react</text>
+          <text x="400" y="296" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Eventual consistency is acceptable</text>
+          <text x="400" y="314" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• e.g. order.created → email + inventory + ship</text>
+        </svg>
+      </div>
+
+      <h3>Service-to-Service Communication Patterns</h3>
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🌐 REST API (HTTP/JSON) — The Default Choice
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The most common choice for external APIs and many internal service calls. Human-readable, universally supported, easy to debug with curl/Postman.</p>
+            <p><strong>Best practice:</strong> Use versioned URLs (<code>/v1/orders</code>), return consistent error shapes, include correlation IDs in every request. Use HTTP/2 for keep-alive connections between services to avoid TCP handshake overhead on every call.</p>
+            <p><strong>When to prefer REST:</strong> External APIs, heterogeneous services (different languages), when developer experience matters, when you need human-readable payloads for debugging.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⚡ gRPC (Protocol Buffers / HTTP2) — High-Performance Internal
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Google's RPC framework. Uses Protocol Buffers (binary serialization) and HTTP/2 for multiplexed streaming. <strong>5-10× faster and 3-5× smaller payloads</strong> than REST/JSON for internal calls.</p>
+            <p><strong>Key advantages:</strong> Strongly typed contracts (proto files), bidirectional streaming, client/server code generation in any language, built-in load balancing and retries.</p>
+            <p><strong>When to prefer gRPC:</strong> Internal service-to-service calls where performance matters, polyglot systems where you want type safety across languages, streaming use cases. Used by Netflix, Uber, Google internally.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🕸️ Service Mesh (Istio / Linkerd) — Sidecar Pattern
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>A service mesh injects a <strong>sidecar proxy</strong> (Envoy) alongside every service container. All inter-service traffic goes through this proxy. The mesh handles: mTLS encryption, load balancing, retries, circuit breaking, distributed tracing — without any code changes in the service itself.</p>
+            <p><strong>How it works:</strong> Order Service → Envoy sidecar → encrypted traffic → Envoy sidecar → Payment Service. The services just call each other normally; the sidecars handle all the reliability infrastructure.</p>
+            <p><strong>When to use:</strong> Large microservice deployments (50+ services) where you need consistent observability, security, and traffic management without instrumenting every service individually.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- DATA MANAGEMENT -->
+    <section class="section" id="data">
+      <div class="section-label">Data Architecture</div>
+      <h2>Database-per-Service — The Most Controversial Rule</h2>
+      <p>The most counter-intuitive microservices rule: <strong>each service must own its own database</strong>. No two services share a database. This is the rule most teams break first — and the one that causes the most pain when broken.</p>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--danger)">
+          <div class="card-icon">💥</div>
+          <div class="card-title">Why Shared DB Breaks Microservices</div>
+          <div class="card-text">If Services A and B share a DB, they share schema. A schema change by Team A breaks Team B. Now you need cross-team coordination for every DB change. You've rebuilt the monolith's coupling, just in a different place.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">🏛️</div>
+          <div class="card-title">Polyglot Persistence</div>
+          <div class="card-text">Each service picks the right DB for its data. User Service: PostgreSQL (relational). Search Service: Elasticsearch (full-text). Session Service: Redis (in-memory). Cart Service: DynamoDB (key-value). This freedom is a superpower.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--warn)">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">The Join Problem</div>
+          <div class="card-text">Without a shared DB, you can't do SQL JOINs across services. Solution: compose data in the API Gateway / BFF layer, or use event sourcing to maintain read-model denormalized views that join data for queries.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent3)">
+          <div class="card-icon">📋</div>
+          <div class="card-title">CQRS Pattern</div>
+          <div class="card-text">Command Query Responsibility Segregation: separate read and write models. Write to the authoritative service's DB; maintain denormalized read views in other services updated via events. Query the read view, not the source.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>The Saga Pattern for Distributed Transactions:</strong> Without a shared DB you can't use ACID transactions across services. Instead use Sagas — a sequence of local transactions, each publishing an event. If one step fails, compensating transactions undo the previous steps. Example: Order saga: reserve inventory → charge payment → confirm order. If payment fails: release inventory reservation. Covered in detail in Topic 19.</div>
+      </div>
+    </section>
+
+    <!-- DEPLOYMENT -->
+    <section class="section" id="deployment">
+      <div class="section-label">Deployment Patterns</div>
+      <h2>Deployment Strategies for Microservices</h2>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Containerisation with Docker</div>
+            <div class="step-desc">Each microservice packages its code, runtime, dependencies, and config into a Docker container. Containers are immutable — the same image runs identically in dev, staging, and production. Enables the "build once, run anywhere" promise.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Orchestration with Kubernetes</div>
+            <div class="step-desc">Kubernetes manages container deployment, scaling, health checking, and rolling updates across a cluster of machines. Declares desired state: "Run 5 instances of Order Service, restart if unhealthy, expose on port 3000." K8s makes it so.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Blue-Green Deployment</div>
+            <div class="step-desc">Run two identical environments (Blue = current, Green = new). Deploy new version to Green, run smoke tests, then switch the load balancer from Blue to Green in seconds. Instant rollback: flip the load balancer back to Blue. Zero downtime.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Canary Deployment</div>
+            <div class="step-desc">Route 5% of traffic to the new version, 95% to old. Monitor error rates and latency. If metrics look good, gradually increase to 10%, 25%, 50%, 100%. If metrics worsen, instantly route 100% back to old version. Used by Netflix, Google.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">CI/CD Pipeline per Service</div>
+            <div class="step-desc">Each service has its own pipeline: code commit → unit tests → integration tests → build Docker image → push to registry → deploy to staging → smoke tests → deploy to production. Teams deploy independently without coordinating with others.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CODE -->
+    <section class="section" id="code">
+      <div class="section-label">Implementation</div>
+      <h2>Building Microservices — Production Code</h2>
+
+      <h3>Docker Compose — Local Dev Environment</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <span class="code-file">docker-compose.yml — Full microservices local stack</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="key">version</span>: <span class="str">'3.9'</span>
+
+<span class="key">services</span>:
+
+  <span class="cm"># ─── API Gateway ──────────────────────────────────────</span>
+  <span class="key">api-gateway</span>:
+    <span class="key">image</span>: <span class="val">nginx:alpine</span>
+    <span class="key">ports</span>: [<span class="str">"80:80"</span>, <span class="str">"443:443"</span>]
+    <span class="key">volumes</span>: [<span class="str">"./nginx/gateway.conf:/etc/nginx/conf.d/default.conf"</span>]
+    <span class="key">depends_on</span>: [user-service, order-service, payment-service]
+
+  <span class="cm"># ─── User Service ─────────────────────────────────────</span>
+  <span class="key">user-service</span>:
+    <span class="key">build</span>: <span class="str">./services/user</span>
+    <span class="key">environment</span>:
+      <span class="key">DATABASE_URL</span>: <span class="str">postgres://user:pass@user-db:5432/users</span>
+      <span class="key">REDIS_URL</span>:    <span class="str">redis://redis:6379</span>
+      <span class="key">JWT_SECRET</span>:   <span class="str">${JWT_SECRET}</span>
+    <span class="key">depends_on</span>: [user-db, redis]
+    <span class="key">healthcheck</span>:
+      <span class="key">test</span>: [<span class="str">"CMD"</span>, <span class="str">"curl"</span>, <span class="str">"-f"</span>, <span class="str">"http://localhost:3000/health"</span>]
+      <span class="key">interval</span>: <span class="num">10s</span>
+      <span class="key">retries</span>: <span class="num">3</span>
+
+  <span class="key">user-db</span>:
+    <span class="key">image</span>: <span class="val">postgres:16-alpine</span>
+    <span class="key">environment</span>:
+      POSTGRES_DB: <span class="str">users</span>
+      POSTGRES_USER: <span class="str">user</span>
+      POSTGRES_PASSWORD: <span class="str">pass</span>
+    <span class="key">volumes</span>: [<span class="str">"user-data:/var/lib/postgresql/data"</span>]
+
+  <span class="cm"># ─── Order Service ────────────────────────────────────</span>
+  <span class="key">order-service</span>:
+    <span class="key">build</span>: <span class="str">./services/order</span>
+    <span class="key">environment</span>:
+      <span class="key">DATABASE_URL</span>:   <span class="str">postgres://order:pass@order-db:5432/orders</span>
+      <span class="key">KAFKA_BROKERS</span>:  <span class="str">kafka:9092</span>
+      <span class="key">USER_SVC_URL</span>:   <span class="str">http://user-service:3000</span>    <span class="cm"># Service discovery via DNS</span>
+    <span class="key">depends_on</span>: [order-db, kafka]
+
+  <span class="key">order-db</span>:
+    <span class="key">image</span>: <span class="val">postgres:16-alpine</span>
+    <span class="key">environment</span>: { POSTGRES_DB: orders, POSTGRES_USER: order, POSTGRES_PASSWORD: pass }
+    <span class="key">volumes</span>: [<span class="str">"order-data:/var/lib/postgresql/data"</span>]
+
+  <span class="cm"># ─── Payment Service ──────────────────────────────────</span>
+  <span class="key">payment-service</span>:
+    <span class="key">build</span>: <span class="str">./services/payment</span>
+    <span class="key">environment</span>:
+      <span class="key">DATABASE_URL</span>:   <span class="str">mysql://pay:pass@payment-db:3306/payments</span>
+      <span class="key">STRIPE_KEY</span>:     <span class="str">${STRIPE_SECRET_KEY}</span>
+      <span class="key">KAFKA_BROKERS</span>:  <span class="str">kafka:9092</span>
+
+  <span class="cm"># ─── Shared Infrastructure ────────────────────────────</span>
+  <span class="key">redis</span>:
+    <span class="key">image</span>: <span class="val">redis:7-alpine</span>
+    <span class="key">command</span>: <span class="val">redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru</span>
+
+  <span class="key">kafka</span>:
+    <span class="key">image</span>: <span class="val">confluentinc/cp-kafka:7.5.0</span>
+    <span class="key">environment</span>:
+      KAFKA_BROKER_ID: <span class="num">1</span>
+      KAFKA_ZOOKEEPER_CONNECT: <span class="str">zookeeper:2181</span>
+      KAFKA_ADVERTISED_LISTENERS: <span class="str">PLAINTEXT://kafka:9092</span>
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: <span class="str">"true"</span>
+
+<span class="key">volumes</span>:
+  <span class="key">user-data</span>:
+  <span class="key">order-data</span>:</code></pre>
+      </div>
+
+      <h3>Kubernetes Service Deployment</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <span class="code-file">k8s/order-service.yaml — Deployment + Service + HPA</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm"># ─── Deployment ──────────────────────────────────────</span>
+<span class="key">apiVersion</span>: apps/v1
+<span class="key">kind</span>: Deployment
+<span class="key">metadata</span>:
+  <span class="key">name</span>: order-service
+  <span class="key">labels</span>: { app: order-service }
+<span class="key">spec</span>:
+  <span class="key">replicas</span>: <span class="num">3</span>
+  <span class="key">selector</span>:
+    <span class="key">matchLabels</span>: { app: order-service }
+  <span class="key">strategy</span>:
+    <span class="key">type</span>: RollingUpdate
+    <span class="key">rollingUpdate</span>:
+      <span class="key">maxSurge</span>:       <span class="num">1</span>   <span class="cm"># Spin up 1 extra pod during update</span>
+      <span class="key">maxUnavailable</span>: <span class="num">0</span>   <span class="cm"># Zero downtime</span>
+  <span class="key">template</span>:
+    <span class="key">metadata</span>:
+      <span class="key">labels</span>: { app: order-service }
+    <span class="key">spec</span>:
+      <span class="key">containers</span>:
+      - <span class="key">name</span>: order-service
+        <span class="key">image</span>: myregistry/order-service:v2.3.1
+        <span class="key">ports</span>: [{ containerPort: <span class="num">3000</span> }]
+        <span class="key">env</span>:
+        - <span class="key">name</span>: DATABASE_URL
+          <span class="key">valueFrom</span>:
+            <span class="key">secretKeyRef</span>: { name: order-db-secret, key: url }
+        - <span class="key">name</span>: KAFKA_BROKERS
+          <span class="key">value</span>: <span class="str">"kafka-service:9092"</span>
+        <span class="key">resources</span>:
+          <span class="key">requests</span>: { cpu: <span class="str">"100m"</span>, memory: <span class="str">"128Mi"</span> }
+          <span class="key">limits</span>:   { cpu: <span class="str">"500m"</span>, memory: <span class="str">"512Mi"</span> }
+        <span class="key">readinessProbe</span>:
+          <span class="key">httpGet</span>: { path: /health, port: <span class="num">3000</span> }
+          <span class="key">initialDelaySeconds</span>: <span class="num">10</span>
+          <span class="key">periodSeconds</span>: <span class="num">5</span>
+        <span class="key">livenessProbe</span>:
+          <span class="key">httpGet</span>: { path: /health, port: <span class="num">3000</span> }
+          <span class="key">initialDelaySeconds</span>: <span class="num">30</span>
+          <span class="key">periodSeconds</span>: <span class="num">10</span>
+
+<span class="op">---</span>
+<span class="cm"># ─── Service (Internal Load Balancer) ─────────────────</span>
+<span class="key">apiVersion</span>: v1
+<span class="key">kind</span>: Service
+<span class="key">metadata</span>: { name: order-service }
+<span class="key">spec</span>:
+  <span class="key">selector</span>: { app: order-service }
+  <span class="key">ports</span>: [{ port: <span class="num">3000</span>, targetPort: <span class="num">3000</span> }]
+  <span class="cm"># Other services call: http://order-service:3000</span>
+  <span class="cm"># Kubernetes DNS resolves this automatically</span>
+
+<span class="op">---</span>
+<span class="cm"># ─── Horizontal Pod Autoscaler ────────────────────────</span>
+<span class="key">apiVersion</span>: autoscaling/v2
+<span class="key">kind</span>: HorizontalPodAutoscaler
+<span class="key">metadata</span>: { name: order-service-hpa }
+<span class="key">spec</span>:
+  <span class="key">scaleTargetRef</span>:
+    <span class="key">apiVersion</span>: apps/v1
+    <span class="key">kind</span>: Deployment
+    <span class="key">name</span>: order-service
+  <span class="key">minReplicas</span>: <span class="num">3</span>
+  <span class="key">maxReplicas</span>: <span class="num">20</span>
+  <span class="key">metrics</span>:
+  - <span class="key">type</span>: Resource
+    <span class="key">resource</span>:
+      <span class="key">name</span>: cpu
+      <span class="key">target</span>: { type: Utilization, averageUtilization: <span class="num">70</span> }</code></pre>
+      </div>
+
+      <h3>Inter-Service HTTP Call with Circuit Breaker</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">lib/service-client.js — Resilient inter-service call</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> axios      = <span class="fn">require</span>(<span class="str">'axios'</span>);
+<span class="kw">const</span> CircuitBreaker = <span class="fn">require</span>(<span class="str">'opossum'</span>);
+
+<span class="cm">/**
+ * Resilient HTTP client for inter-service calls
+ * Features: timeout, retry, circuit breaker, correlation ID
+ */</span>
+<span class="kw">function</span> <span class="fn">createServiceClient</span>(baseURL, options = {}) {
+  <span class="kw">const</span> http = axios.<span class="fn">create</span>({
+    baseURL,
+    timeout: options.timeout || <span class="num">5000</span>,   <span class="cm">// 5s timeout — ALWAYS SET THIS</span>
+    headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+  });
+
+  <span class="cm">// Add correlation ID to every outbound request</span>
+  http.interceptors.request.<span class="fn">use</span>((config) => {
+    config.headers[<span class="str">'X-Correlation-ID'</span>] =
+      <span class="val">global.currentCorrelationId</span> || <span class="fn">require</span>(<span class="str">'uuid'</span>).<span class="fn">v4</span>();
+    <span class="kw">return</span> config;
+  });
+
+  <span class="cm">// Circuit Breaker wraps the HTTP function</span>
+  <span class="kw">const</span> breaker = <span class="kw">new</span> <span class="fn">CircuitBreaker</span>(
+    <span class="kw">async</span> (method, path, data) => http[method](path, data),
+    {
+      timeout:           <span class="num">5000</span>,   <span class="cm">// Call timeout</span>
+      errorThresholdPercentage: <span class="num">50</span>,  <span class="cm">// Open after 50% failures</span>
+      resetTimeout:      <span class="num">10000</span>,  <span class="cm">// Try again after 10s</span>
+      volumeThreshold:   <span class="num">5</span>,      <span class="cm">// Min requests before tripping</span>
+    }
+  );
+
+  <span class="cm">// Fallback: return null when circuit is open</span>
+  breaker.<span class="fn">fallback</span>((method, path) => {
+    console.<span class="fn">warn</span>(<span class="str">`Circuit open for ${baseURL}${path}`</span>);
+    <span class="kw">return</span> <span class="kw">null</span>;
+  });
+
+  breaker.on(<span class="str">'open'</span>,     () => console.<span class="fn">error</span>(<span class="str">`⚡ Circuit OPEN: ${baseURL}`</span>));
+  breaker.on(<span class="str">'halfOpen'</span>, () => console.<span class="fn">info</span>(<span class="str">`🔁 Circuit HALF-OPEN: ${baseURL}`</span>));
+  breaker.on(<span class="str">'close'</span>,    () => console.<span class="fn">info</span>(<span class="str">`✅ Circuit CLOSED: ${baseURL}`</span>));
+
+  <span class="kw">return</span> {
+    <span class="fn">get</span>:    (path) => breaker.<span class="fn">fire</span>(<span class="str">'get'</span>, path),
+    <span class="fn">post</span>:   (path, data) => breaker.<span class="fn">fire</span>(<span class="str">'post'</span>, path, data),
+    <span class="fn">put</span>:    (path, data) => breaker.<span class="fn">fire</span>(<span class="str">'put'</span>, path, data),
+    <span class="fn">delete</span>: (path) => breaker.<span class="fn">fire</span>(<span class="str">'delete'</span>, path),
+  };
+}
+
+<span class="cm">// Usage in Order Service</span>
+<span class="kw">const</span> userSvc    = <span class="fn">createServiceClient</span>(process.env.<span class="val">USER_SVC_URL</span>);
+<span class="kw">const</span> paymentSvc = <span class="fn">createServiceClient</span>(process.env.<span class="val">PAYMENT_SVC_URL</span>);
+
+<span class="kw">async function</span> <span class="fn">createOrder</span>(userId, items) {
+  <span class="cm">// Get user info — returns null if User Service is down</span>
+  <span class="kw">const</span> user = <span class="kw">await</span> userSvc.<span class="fn">get</span>(<span class="str">`/users/${userId}`</span>);
+  <span class="kw">if</span> (!user) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'User service unavailable'</span>);
+
+  <span class="kw">const</span> order = <span class="kw">await</span> db.<span class="fn">createOrder</span>({ userId, items });
+  <span class="kw">await</span> kafka.<span class="fn">publish</span>(<span class="str">'order.created'</span>, { orderId: order.id, userId, items });
+  <span class="kw">return</span> order;
+}</code></pre>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- COMPANIES -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Use Microservices</h2>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">🎬 Netflix <span class="company-tech">1000+ services</span></div>
+          <div class="company-desc">Netflix pioneered microservices starting in 2008 after a major DB corruption incident. Today they run <strong>1,000+ microservices</strong> globally. Key innovations: Eureka (service discovery), Hystrix (circuit breaker), Zuul (API gateway), Chaos Monkey (deliberate failure injection). Their engineering blog is a masterclass in microservice patterns at scale.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛒 Amazon <span class="company-tech">Two-pizza teams</span></div>
+          <div class="company-desc">Jeff Bezos issued the <strong>"API mandate"</strong> around 2002: all teams must expose their data through service interfaces. No back-door DB sharing. This forced microservice decomposition across Amazon. The result: AWS was born — they productised their internal service infrastructure. Every AWS service started as an internal Amazon microservice.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🚗 Uber <span class="company-tech">DOMA Architecture</span></div>
+          <div class="company-desc">Uber went from 1 monolith to 2,200+ microservices. Then suffered from microservices chaos (too many services, complex dependencies). They introduced <strong>DOMA</strong> (Domain-Oriented Microservice Architecture) — grouping related services into domains with well-defined boundaries. Now ~40 domains each containing 10-50 services, with strict API contracts between domains.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛍️ Shopify <span class="company-tech">Modular Monolith First</span></div>
+          <div class="company-desc">Shopify famously stayed with a <strong>modular monolith</strong> for years while most companies rushed to microservices. They introduced strict module boundaries within the Rails monolith before extracting services. Lesson: first build the right modular boundaries, then extract to microservices when the pain is real and boundaries are proven.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🐦 Twitter <span class="company-tech">SOA Migration</span></div>
+          <div class="company-desc">Twitter migrated from monolith ("The Monorail") to microservices in 2012. The <strong>Timeline Service</strong> was the most complex — fan-out on write for 300M users required a dedicated caching service (FlockDB for social graph, Gizzard for distributed storage). Their approach: decompose by bottleneck, not by dogma.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🏦 Monzo <span class="company-tech">1500+ Go services</span></div>
+          <div class="company-desc">Monzo (UK neobank) started with microservices from day one — <strong>1,500+ Go microservices</strong> on Kubernetes running the entire bank. Each service handles one banking function (accounts, payments, notifications, cards). Their entire core banking platform is Kubernetes-native, deployed hundreds of times per day without downtime.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROS CONS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>The Full Truth — Advantages & Real Costs</h2>
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">✅ Real Advantages</div>
+          <ul class="check-list">
+            <li>Independent deployability — deploy any service any time</li>
+            <li>Independent scalability — scale only the bottleneck</li>
+            <li>Fault isolation — one service crash doesn't cascade</li>
+            <li>Technology freedom — best tool per job</li>
+            <li>Team autonomy — each team fully owns their service</li>
+            <li>Faster onboarding — small focused codebases</li>
+            <li>Easier to adopt new technologies incrementally</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">❌ Real Costs Nobody Mentions</div>
+          <ul class="check-list">
+            <li>Distributed systems complexity — network failures everywhere</li>
+            <li>No ACID transactions across services — eventual consistency</li>
+            <li>Much harder debugging — trace requests across 10 services</li>
+            <li>Operational overhead — run/monitor dozens of services</li>
+            <li>Data consistency between services is your problem</li>
+            <li>Testing is harder — need contract tests, integration tests</li>
+            <li>Latency added by every network hop between services</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>The "Microservices Premium" — Don't Pay It Early</h3>
+      <div class="alert alert-danger">
+        <span class="alert-icon">🚨</span>
+        <div><strong>Martin Fowler's Warning — "Microservice Premium":</strong> Microservices add significant overhead. For small teams or early-stage products, the overhead exceeds the benefits. Start with a <strong>well-structured monolith</strong> (or modular monolith) with clear module boundaries. Extract to microservices only when you have: (1) organisational scale (multiple teams), (2) deployment frequency conflicts, (3) scaling needs for specific components. Premature microservices is one of the most common startup mistakes.</div>
+      </div>
+
+      <h3>When to Use Microservices vs Monolith</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Signal</th><th>Start with Monolith</th><th>Consider Microservices</th></tr></thead>
+          <tbody>
+            <tr><td>Team Size</td><td>&lt; 15 engineers</td><td>15+ engineers, multiple teams</td></tr>
+            <tr><td>Deployment Cadence</td><td>Weekly or less</td><td>Multiple teams need independent deploys daily</td></tr>
+            <tr><td>Scale</td><td>&lt; 1M users</td><td>Specific components need independent scaling</td></tr>
+            <tr><td>Domain Knowledge</td><td>Still exploring the domain</td><td>Stable, well-understood domain boundaries</td></tr>
+            <tr><td>Stage</td><td>MVP / early product</td><td>Scaling a proven product</td></tr>
+            <tr><td>Ops Maturity</td><td>No dedicated DevOps/SRE</td><td>Strong DevOps, Kubernetes expertise in team</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- COMMON MISTAKES -->
+    <section class="section" id="mistakes">
+      <div class="section-label">Engineering Wisdom</div>
+      <h2>Common Mistakes & Best Practices</h2>
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Mistake: Sharing a Database between services
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The most common mistake — two services reading/writing the same tables. Looks convenient but couples services at the data layer. Any schema change requires coordinating both teams. A performance issue in one service's queries degrades the other.</p>
+            <p><strong>Fix:</strong> Database-per-service, strictly. If Service A needs data from Service B's domain, call Service B's API, subscribe to Service B's events, or maintain a denormalised read model updated via events.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Mistake: No timeout on inter-service calls
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Service A calls Service B with no timeout. Service B gets slow (DB issue). Service A's threads pile up waiting. Service A runs out of thread pool → Service A is now down. One slow downstream service has cascaded into a total outage.</p>
+            <p><strong>Fix:</strong> Always set timeouts on every HTTP call to other services. Add circuit breakers (Hystrix, Opossum, Resilience4j) that open when error rates exceed a threshold, preventing the cascade. This is covered in depth in Topic 18.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ❌ Mistake: Too many services too soon (Nano-services)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Teams go overboard and create services for every single function — a "GetUser" service, a "ValidateEmail" service, a "FormatCurrency" service. Now a single user request requires 15 network hops across 15 services. Latency is terrible, debugging is impossible.</p>
+            <p><strong>Fix:</strong> Services should map to business capabilities, not technical functions. If two functions always change together and are never deployed separately, they belong in the same service. The test: can this service be developed, deployed, and operated independently by its own team?</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ✅ Best Practice: Contract Testing with Pact
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>In a monolith, if you change a function signature, the compiler tells you immediately. In microservices, if Service A changes its API and Service B depends on it, you don't find out until runtime — possibly in production.</p>
+            <p><strong>Consumer-driven contract testing (Pact):</strong> Service B (consumer) defines what it expects from Service A's (provider) API. This contract is shared with Service A's team. Service A's CI/CD runs the contract tests on every build. If Service A breaks the contract, the build fails — before deployment. Catches breaking changes at build time, not at 3am production incident time.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ✅ Best Practice: Distributed Tracing (OpenTelemetry)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Without distributed tracing, debugging a slow request that touched 8 services is nearly impossible. "Which of the 8 services is slow? What database query is taking 2 seconds?"</p>
+            <p><strong>OpenTelemetry + Jaeger/Zipkin:</strong> Generate a trace ID at the edge (API Gateway). Pass it as a header through every service call. Every service logs its spans (start time, duration, service name) tagged with the trace ID. Visualise the entire request journey in Jaeger — see exactly which service and which operation added latency. Essential for microservices at any serious scale.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the difference between microservices and a monolith? When would you choose each?</div>
+          <div class="interview-a">A monolith is a single deployable unit where all components share the same process and database. Microservices decompose this into independently deployable services each owning their data. Choose monolith when: small team (&lt;15 engineers), early-stage product where domain boundaries aren't clear yet, no dedicated DevOps. Choose microservices when: multiple teams needing independent deployment, specific components needing independent scaling, stable well-understood domain boundaries. The mistake is treating microservices as inherently superior — they add massive operational overhead and distributed systems complexity. Martin Fowler calls this the "microservice premium." Start with a well-structured monolith and extract services when you feel real pain at module boundaries.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How do microservices handle distributed transactions? What is the Saga pattern?</div>
+          <div class="interview-a">Microservices can't use traditional ACID transactions across services because each has its own database. Instead, use Sagas — a sequence of local transactions coordinated through events or orchestration. Choreography-based Saga: each service publishes events when done, the next service reacts. Order Service publishes ORDER_CREATED → Payment Service charges card and publishes PAYMENT_SUCCESS → Shipping Service schedules delivery. If Payment fails: publishes PAYMENT_FAILED → Order Service cancels the order (compensating transaction). Orchestration-based Saga: a Saga orchestrator tells each service what to do step by step. If a step fails, the orchestrator calls compensating transactions on already-completed steps. Key trade-off: eventual consistency — the system is temporarily inconsistent but eventually reaches a consistent state. Covered in detail in Topic 19.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How do you handle service discovery in microservices?</div>
+          <div class="interview-a">Service discovery solves: "Where is the Payment Service running right now?" Services are dynamically scaled and deployed — IPs change constantly. Two patterns: Client-side discovery: each service queries a service registry (Consul, Eureka) to get healthy instances and load-balances itself. Server-side discovery: a load balancer (AWS ALB, Kubernetes Service) handles discovery — services just call a static DNS name and the LB routes to healthy instances. In Kubernetes, every Service gets a stable DNS name (payment-service.default.svc.cluster.local) that resolves to healthy pods — built-in server-side discovery. Covered in depth in Topic 10.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How do you prevent cascading failures in microservices?</div>
+          <div class="interview-a">Three main patterns: (1) Timeout — every inter-service call must have a timeout. If Payment Service doesn't respond in 5s, return an error. Don't wait forever. (2) Circuit Breaker — after N% failures within a time window, "open" the circuit: stop calling the failing service and return fallback immediately. After a reset timeout, send one probe request. If it succeeds, close the circuit. Library: Resilience4j, Hystrix, Opossum. (3) Bulkhead — isolate failures by using separate thread pools or connection limits per downstream service. If Payment Service is slow and exhausts its dedicated thread pool, it doesn't affect the thread pool serving Inventory Service calls. Also: implement fallbacks (return cached data, default values, or graceful degradation) when a service is unavailable rather than propagating errors up the chain. Detailed in Topic 18.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Design a microservices architecture for an e-commerce platform.</div>
+          <div class="interview-a">Services: User Service (auth, profiles — PostgreSQL), Product Catalog (search, listings — Elasticsearch + PostgreSQL), Shopping Cart (session-based — Redis), Order Service (order lifecycle — PostgreSQL), Payment Service (Stripe integration — MySQL), Inventory Service (stock management — PostgreSQL), Notification Service (email/SMS — Redis + SNS), Shipping Service (carrier APIs — PostgreSQL). Communication: API Gateway routes all client requests, validates JWT. Sync (REST/gRPC) for user-facing calls (get product, place order). Async (Kafka) for events (order.created → payment, inventory, notification, shipping all subscribe). Database-per-service: no shared databases. Consistency via Saga: Order saga coordinates payment + inventory reservation atomically using compensating transactions. Deployment: each service in Docker container, Kubernetes for orchestration with HPA for auto-scaling. Observability: OpenTelemetry for distributed tracing, Prometheus for metrics, ELK for logs.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Microservices = collection of small, independently deployable services each owning a business capability</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Decompose by bounded context (DDD), team ownership (Conway's Law), or change frequency</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Database-per-service: never share databases — it recreates monolith coupling at the data layer</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Communication: REST for simplicity, gRPC for performance, events (Kafka) for async fan-out</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Always: timeouts + circuit breakers on every inter-service call to prevent cascade failures</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Distributed transactions → Saga Pattern (choreography or orchestration)</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Deployment: Docker + Kubernetes + HPA + rolling updates + canary deployments</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Observability: distributed tracing (OpenTelemetry) is non-negotiable — correlation IDs through every hop</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Don't start with microservices — start with a modular monolith and extract when boundaries are proven</li>
+        </ul>
+      </div>
+    </section>
+
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 07</div>
+        <div class="next-name">Database Scaling</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<!-- TOC -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#vs" class="toc-link">Monolith vs Microservices</a></li>
+      <li class="toc-item"><a href="#decomposition" class="toc-link">Service Decomposition</a></li>
+      <li class="toc-item"><a href="#communication" class="toc-link">Communication</a></li>
+      <li class="toc-item"><a href="#data" class="toc-link">Data Architecture</a></li>
+      <li class="toc-item"><a href="#deployment" class="toc-link">Deployment</a></li>
+      <li class="toc-item"><a href="#code" class="toc-link">Implementation</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#mistakes" class="toc-link">Best Practices</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{const e=document.getElementById('progressBar');e.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%'});
+const sections=document.querySelectorAll('section[id]'),tocLinks=document.querySelectorAll('.toc-link');
+const obs=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.25});
+sections.forEach(s=>obs.observe(s));
+function switchTab(id,btn){const p=btn.closest('.tabs');p.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));p.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');p.querySelector('#tab-'+id).classList.add('active')}
+function toggleAccordion(btn){const item=btn.closest('.accordion-item'),isOpen=item.classList.contains('open');btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open')}
+function toggleInterview(item){item.classList.toggle('open')}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+const obs2=new IntersectionObserver(e=>{e.forEach(c=>{if(c.isIntersecting){c.target.style.opacity='0';c.target.style.transform='translateY(14px)';setTimeout(()=>{c.target.style.transition='opacity .4s ease,transform .4s ease';c.target.style.opacity='1';c.target.style.transform='none'},60);obs2.unobserve(c.target)}})},{threshold:.08});
+document.querySelectorAll('.info-card,.company-card').forEach(c=>obs2.observe(c));
+</script>
+</body>
+</html>

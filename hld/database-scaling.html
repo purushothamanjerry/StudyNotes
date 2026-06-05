@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Scaling — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
+  --card:#0f1829;--border:#1e2d45;--border2:#243350;
+  --accent:#fbbf24;--accent2:#d97706;--accent3:#00ff88;
+  --accent4:#00d4ff;--accent5:#a78bfa;
+  --warn:#fbbf24;--danger:#f87171;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+.layout{display:grid;grid-template-columns:270px 1fr 220px;min-height:100vh;max-width:1600px;margin:0 auto}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sidebar-nav{padding:16px 12px}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .2s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(251,191,36,.09);color:var(--accent);border-left:2px solid var(--accent)}
+.nav-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:18px}
+.nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(251,191,36,.12);color:var(--accent)}
+.hero{background:linear-gradient(135deg,#080c14 0%,#18130a 50%,#0a0c10 100%);padding:60px 60px 50px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,rgba(251,191,36,.07) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:160px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,212,255,.04) 0%,transparent 70%);pointer-events:none}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
+.breadcrumb span{color:var(--accent)}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent) 0%,var(--accent3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{font-size:17px;color:var(--text2);max-width:640px;margin-bottom:28px;line-height:1.7}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.meta-dot{width:6px;height:6px;border-radius:50%}
+.main{padding:0;min-width:0}
+.content{padding:48px 60px;max-width:880px}
+.section{margin-bottom:64px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';display:block;width:16px;height:1px;background:var(--accent)}
+h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:16px;line-height:1.2}
+h3{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:28px}
+p{color:var(--text2);margin-bottom:14px;font-size:15px}
+strong{color:var(--text);font-weight:600}
+.analogy-box{background:linear-gradient(135deg,rgba(251,191,36,.08) 0%,rgba(0,212,255,.04) 100%);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:24px 28px;margin:24px 0;position:relative}
+.analogy-box::before{content:'💡';position:absolute;top:-12px;left:20px;font-size:20px;background:var(--bg);padding:0 6px}
+.analogy-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,var(--accent))}
+.info-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-icon{font-size:24px;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--text2);line-height:1.5}
+.diagram-container{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px 24px;margin:24px 0;overflow-x:auto}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:24px;text-align:center;text-transform:uppercase;letter-spacing:.1em}
+.diagram-svg{display:block;margin:0 auto;max-width:100%}
+.code-wrap{margin:20px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.code-header{background:var(--bg4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600}
+.code-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--accent);border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.copy-btn:hover{background:rgba(251,191,36,.15)}
+pre{background:#060a10;padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.kw{color:#ff79c6}.str{color:#f1fa8c}.cm{color:#6272a4;font-style:italic}.fn{color:#50fa7b}.num{color:#bd93f9}.key{color:#8be9fd}.val{color:#ffb86c}.op{color:#ff5555}
+.step-list{margin:20px 0}
+.step-item{display:flex;gap:16px;margin-bottom:20px;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:15px;top:36px;bottom:-20px;width:1px;background:linear-gradient(to bottom,var(--accent),transparent)}
+.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)}
+.step-title{font-weight:600;color:var(--text);font-size:15px;margin-bottom:4px}
+.step-desc{color:var(--text2);font-size:14px}
+.tabs{margin:24px 0}
+.tab-list{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:4px;border-radius:10px;width:fit-content;flex-wrap:wrap}
+.tab-btn{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:'Inter',sans-serif}
+.tab-btn.active{background:rgba(251,191,36,.12);color:var(--accent);border:1px solid rgba(251,191,36,.2)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:8px}
+.tab-panel.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.accordion{margin:16px 0}
+.accordion-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.accordion-trigger{width:100%;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:none;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:background .2s}
+.accordion-trigger:hover{background:var(--bg4)}
+.accordion-icon{width:20px;height:20px;border-radius:50%;background:rgba(251,191,36,.1);display:flex;align-items:center;justify-content:center;font-size:12px;transition:transform .3s;flex-shrink:0}
+.accordion-item.open .accordion-icon{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;background:var(--card);padding:0 18px;font-size:14px;color:var(--text2)}
+.accordion-item.open .accordion-body{max-height:1000px;padding:16px 18px}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.pros-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:10px;padding:20px}
+.cons-box{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:20px}
+.box-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px}
+.pros-box .box-title{color:var(--accent3)}.cons-box .box-title{color:var(--danger)}
+.check-list{list-style:none}
+.check-list li{font-size:13.5px;color:var(--text2);padding:4px 0;display:flex;gap:8px;align-items:flex-start}
+.pros-box .check-list li::before{content:'✓';color:var(--accent3);flex-shrink:0;margin-top:1px}
+.cons-box .check-list li::before{content:'✗';color:var(--danger);flex-shrink:0;margin-top:1px}
+.alert{border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.alert-icon{font-size:16px;flex-shrink:0}
+.alert-warn{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);color:var(--warn)}
+.alert-danger{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger)}
+.alert-info{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);color:var(--accent)}
+.alert-success{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);color:var(--accent3)}
+.alert p{color:inherit;margin:0}
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:20px 0}
+.company-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;transition:all .25s}
+.company-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.company-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.company-tech{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(251,191,36,.08);padding:2px 8px;border-radius:4px}
+.company-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.interview-list{margin:16px 0}
+.interview-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.interview-item:hover{border-color:var(--border2);background:var(--bg4)}
+.interview-q{font-size:14px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.interview-q::after{content:'›';color:var(--text3);font-size:18px;flex-shrink:0;transition:transform .2s}
+.interview-item.open .interview-q::after{transform:rotate(90deg)}
+.interview-a{max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;font-size:13.5px;color:var(--text2)}
+.interview-item.open .interview-a{max-height:500px;padding-top:10px}
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg4)}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+td{padding:11px 16px;font-size:13.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:var(--text);font-weight:500}
+.toc{position:sticky;top:24px;padding:24px 16px}
+.toc-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.toc-list{list-style:none}
+.toc-item{margin-bottom:2px}
+.toc-link{display:block;padding:5px 10px;border-radius:5px;color:var(--text3);text-decoration:none;font-size:12.5px;transition:all .2s;border-left:2px solid transparent}
+.toc-link:hover{color:var(--text);background:var(--bg3)}
+.toc-link.active{color:var(--accent);border-left-color:var(--accent);background:rgba(251,191,36,.05)}
+.progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent),var(--accent3));z-index:100;transition:width .1s}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid}
+.tag-yellow{color:var(--accent);border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.06)}
+.tag-blue{color:var(--accent4);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.06)}
+.tag-green{color:var(--accent3);border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.06)}
+.tag-purple{color:var(--accent5);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+.sep{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:40px 0}
+.summary-box{background:linear-gradient(135deg,rgba(251,191,36,.06) 0%,rgba(0,212,255,.04) 100%);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:28px 32px;margin:32px 0}
+.summary-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px}
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(251,191,36,.08);color:var(--accent);padding:1px 6px;border-radius:4px;border:1px solid rgba(251,191,36,.15)}
+pre code{background:transparent;color:inherit;padding:0;border:none;font-size:inherit}
+.next-topic{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .25s;text-decoration:none}
+.next-topic:hover{border-color:rgba(251,191,36,.3);box-shadow:0 0 30px rgba(251,191,36,.08)}
+.next-label{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.next-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.next-arrow{font-size:24px;color:var(--accent)}
+.menu-toggle{display:none;position:fixed;bottom:24px;right:24px;z-index:300;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(251,191,36,.4);font-size:20px;color:var(--bg)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190}
+.overlay.show{display:block}
+@media(max-width:1100px){.layout{grid-template-columns:240px 1fr}.toc{display:none}.content{padding:36px 40px}.hero{padding:48px 40px}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;left:-280px;z-index:200;transition:left .3s;height:100vh;width:270px}.sidebar.open{left:0;box-shadow:8px 0 32px rgba(0,0,0,.5)}.content{padding:24px 20px}.hero{padding:32px 20px}.pros-cons{grid-template-columns:1fr}.card-grid{grid-template-columns:1fr}.menu-toggle{display:flex}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes nodeGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(251,191,36,0))}50%{filter:drop-shadow(0 0 10px rgba(251,191,36,.5))}}
+.node-animate{animation:nodeGlow 2.5s ease-in-out infinite}
+/* sharding viz */
+.shard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.shard-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.shard-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:6px;font-weight:600}
+.shard-range{font-size:12px;color:var(--text2);margin-bottom:8px}
+.shard-rows{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><div class="logo-dot"></div>HLD Academy</div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item" href="load-balancer.html"><span class="nav-num">01</span> Load Balancer</a>
+      <a class="nav-item" href="api-gateway.html"><span class="nav-num">02</span> API Gateway</a>
+      <a class="nav-item" href="#"><span class="nav-num">08</span> CDN</a>
+      <a class="nav-item" href="#"><span class="nav-num">09</span> Reverse Proxy</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item" href="redis-cache.html"><span class="nav-num">03</span> Redis Cache</a>
+      <a class="nav-item" href="rate-limiting.html"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item" href="message-queue.html"><span class="nav-num">05</span> Message Queue</a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item" href="microservices.html"><span class="nav-num">06</span> Microservices</a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item active" href="database-scaling.html"><span class="nav-num">07</span> Database Scaling <span class="nav-badge">Current</span></a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Data <span>›</span> Topic 07</div>
+    <div class="hero-tag">🗄️ Topic 07 of 22</div>
+    <h1>Database <em>Scaling</em></h1>
+    <p class="hero-desc">The hardest scaling challenge in any system. Learn every technique — vertical scaling, read replicas, sharding, connection pooling, indexing, partitioning, and NoSQL trade-offs — with real production configurations used by companies handling billions of rows.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>Beginner → Advanced</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>~50 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent4)"></div>Interview Critical</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--danger)"></div>Hardest Topic</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>Why Database Scaling is the Hardest Problem</h2>
+      <p>Databases are the most difficult component to scale in any distributed system. Compute and memory are stateless and horizontally scalable by nature. <strong>Databases are stateful</strong> — you can't just spin up 10 new database servers without carefully managing how data is distributed, kept consistent, and accessed.</p>
+      <p>Every scaling decision involves trade-offs between <strong>consistency, availability, and partition tolerance</strong> (CAP theorem). Understanding these trade-offs is what separates senior engineers from junior ones.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">📚 Analogy — The Library Problem</div>
+        <p style="color:var(--text2);margin:0">A small town has one library (your database). As the town grows, more people want books simultaneously. You can: <strong>Vertical scaling</strong> — build a bigger library with more shelves (faster hardware). <strong>Read replicas</strong> — photocopy popular books and put them in branch libraries (read replicas). <strong>Sharding</strong> — move fiction books to Library A and non-fiction to Library B (shard by category). <strong>Caching</strong> — keep the most popular books in a small shelf at the entrance (Redis). Each approach has costs, complexity, and limits.</p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg',this)">👶 Beginner</button>
+          <button class="tab-btn" onclick="switchTab('adv',this)">🧠 Advanced</button>
+        </div>
+        <div class="tab-panel active" id="tab-beg">
+          <p>When your app starts, one database server handles everything. As users grow, the database gets slower. Queries take longer. The CPU on the DB server runs at 90%. Users see timeouts and errors.</p>
+          <p>Database scaling is about figuring out: <em>how do I make the database handle more queries faster?</em> The solutions range from "buy a bigger server" to "split the data across 100 servers globally." Each step is more complex than the last.</p>
+        </div>
+        <div class="tab-panel" id="tab-adv">
+          <p>Database scaling involves multiple orthogonal dimensions: <strong>query throughput</strong> (reads/writes per second), <strong>storage capacity</strong> (total data size), <strong>connection concurrency</strong> (simultaneous connections), and <strong>latency</strong> (time per query). Each requires different techniques. A system might need read replicas for throughput but sharding for storage, and connection pooling for concurrency — all simultaneously.</p>
+          <p>The fundamental tension: strong consistency requires coordination between nodes, which adds latency and limits throughput. Relaxing consistency (eventual consistency) enables horizontal scaling but requires careful application-level handling of stale reads and conflict resolution.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-yellow">Replication</span>
+        <span class="tag tag-blue">Sharding</span>
+        <span class="tag tag-green">Indexing</span>
+        <span class="tag tag-purple">Partitioning</span>
+        <span class="tag tag-yellow">Connection Pooling</span>
+        <span class="tag tag-blue">CQRS</span>
+        <span class="tag tag-green">CAP Theorem</span>
+      </div>
+    </section>
+
+    <!-- SCALING LADDER -->
+    <section class="section" id="ladder">
+      <div class="section-label">Scaling Progression</div>
+      <h2>The Database Scaling Ladder — Step by Step</h2>
+      <p>Most systems follow this progression as they grow. Each step should only be taken when the previous one is insufficient — premature optimization is real.</p>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Optimise Queries & Add Indexes</div>
+            <div class="step-desc">Before adding hardware, fix the queries. A missing index on a WHERE column turns an O(log n) lookup into an O(n) table scan. Adding one index often makes a 50ms query run in 0.5ms — a 100× speedup with zero infrastructure cost. Run <code>EXPLAIN ANALYZE</code> on slow queries. Add composite indexes for common filter combinations. This alone handles most early scaling needs.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Vertical Scaling (Scale Up)</div>
+            <div class="step-desc">Upgrade to a larger server: more CPU cores, more RAM, faster NVMe SSDs. PostgreSQL scales very well vertically — a single server with 64 cores, 512GB RAM, and NVMe storage can handle hundreds of thousands of queries per second. Simple, no application changes required. Limit: a single server can only be so large, and it's still a single point of failure.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Connection Pooling (PgBouncer / ProxySQL)</div>
+            <div class="step-desc">PostgreSQL is expensive to connect to — each connection forks a process (~5–10MB RAM). 1,000 simultaneous connections = 5–10GB RAM just for connections. PgBouncer sits between your app and DB, multiplexing many app connections onto a small pool of real DB connections. With pooling, handle 10,000 app connections using only 50 real DB connections.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Caching Layer (Redis)</div>
+            <div class="step-desc">Cache frequently-read data in Redis. For most apps, 80% of DB reads are for 20% of data (Pareto principle). Cache user profiles, product pages, session data. Turn 50ms DB reads into 0.3ms Redis reads. Reduces DB load by 60–90% for read-heavy applications. This is often the highest-leverage single change you can make.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <div class="step-title">Read Replicas</div>
+            <div class="step-desc">Create replica copies of your database that receive all writes but can serve reads independently. Route read-heavy queries (reports, dashboards, analytics) to replicas. Primary handles only writes. Typical apps are 80% reads / 20% writes — replicas dramatically reduce primary load. Multiple replicas can be added for more read throughput.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <div class="step-title">Sharding (Horizontal Partitioning)</div>
+            <div class="step-desc">Split data across multiple database servers (shards) based on a shard key. Shard by user ID: users 1–1M on Shard 1, 1M–2M on Shard 2, etc. Each shard is independent — its own server, its own storage. This is how you scale to billions of rows and millions of writes/second. The most complex option — only when everything else is exhausted.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPLICATION -->
+    <section class="section" id="replication">
+      <div class="section-label">Read Replicas</div>
+      <h2>Read Replicas — How Replication Works</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Primary-Replica Replication Architecture</div>
+        <svg class="diagram-svg" viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrW" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(248,113,113,.6)"/></marker>
+            <marker id="arrR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.5)"/></marker>
+            <marker id="arrSync" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(251,191,36,.5)"/></marker>
+          </defs>
+
+          <!-- App servers -->
+          <rect x="10" y="60" width="100" height="40" rx="7" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="60" y="85" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">App Server 1</text>
+          <rect x="10" y="115" width="100" height="40" rx="7" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="60" y="140" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">App Server 2</text>
+          <rect x="10" y="170" width="100" height="40" rx="7" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="60" y="195" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">App Server 3</text>
+
+          <!-- Writes to primary -->
+          <line x1="112" y1="78" x2="190" y2="110" style="stroke:rgba(248,113,113,.5);stroke-width:1.5;fill:none;marker-end:url(#arrW)"/>
+          <line x1="112" y1="135" x2="190" y2="125" style="stroke:rgba(248,113,113,.5);stroke-width:1.5;fill:none;marker-end:url(#arrW)"/>
+          <text x="140" y="96" style="font-family:'JetBrains Mono',monospace;fill:rgba(248,113,113,.6);font-size:9px">WRITES</text>
+
+          <!-- Primary DB -->
+          <rect x="192" y="82" width="140" height="80" rx="10" style="fill:rgba(248,113,113,.07);stroke:rgba(248,113,113,.3);stroke-width:2" class="node-animate"/>
+          <text x="262" y="113" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:13px;font-weight:700">Primary DB</text>
+          <text x="262" y="130" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Writes Only</text>
+          <text x="262" y="146" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">WAL Log</text>
+
+          <!-- WAL replication to replicas -->
+          <line x1="334" y1="110" x2="400" y2="80" style="stroke:rgba(251,191,36,.5);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arrSync)"/>
+          <line x1="334" y1="122" x2="400" y2="150" style="stroke:rgba(251,191,36,.5);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arrSync)"/>
+          <line x1="334" y1="135" x2="400" y2="225" style="stroke:rgba(251,191,36,.5);stroke-width:1.5;stroke-dasharray:5,3;fill:none;marker-end:url(#arrSync)"/>
+          <text x="360" y="105" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(251,191,36,.5);font-size:9px">WAL stream</text>
+
+          <!-- Replicas -->
+          <rect x="402" y="48" width="130" height="65" rx="8" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.25);stroke-width:1.5"/>
+          <text x="467" y="74" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:12px;font-weight:700">Replica 1</text>
+          <text x="467" y="90" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Read Only</text>
+          <text x="467" y="105" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Same Region</text>
+
+          <rect x="402" y="125" width="130" height="65" rx="8" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.25);stroke-width:1.5"/>
+          <text x="467" y="151" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:12px;font-weight:700">Replica 2</text>
+          <text x="467" y="167" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Read Only</text>
+          <text x="467" y="182" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Same Region</text>
+
+          <rect x="402" y="200" width="130" height="65" rx="8" style="fill:rgba(167,139,250,.05);stroke:rgba(167,139,250,.25);stroke-width:1.5"/>
+          <text x="467" y="226" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:12px;font-weight:700">Replica 3</text>
+          <text x="467" y="242" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Read Only</text>
+          <text x="467" y="258" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">EU Region (geo)</text>
+
+          <!-- App reads from replicas -->
+          <line x1="112" y1="185" x2="400" y2="165" style="stroke:rgba(0,255,136,.4);stroke-width:1.5;fill:none;marker-end:url(#arrR)"/>
+          <text x="240" y="195" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(0,255,136,.5);font-size:9px">READS</text>
+
+          <!-- Replication lag note -->
+          <rect x="548" y="80" width="162" height="80" rx="8" style="fill:rgba(251,191,36,.04);stroke:rgba(251,191,36,.18);stroke-width:1"/>
+          <text x="629" y="102" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:11px;font-weight:700">⚠ Replication Lag</text>
+          <text x="558" y="120" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Replica is async →</text>
+          <text x="558" y="136" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">may be 100ms-1s</text>
+          <text x="558" y="152" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">behind primary</text>
+
+          <!-- Failover note -->
+          <rect x="548" y="175" width="162" height="80" rx="8" style="fill:rgba(0,255,136,.04);stroke:rgba(0,255,136,.15);stroke-width:1"/>
+          <text x="629" y="197" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:11px;font-weight:700">✅ Failover</text>
+          <text x="558" y="216" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">If primary dies →</text>
+          <text x="558" y="232" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">promote Replica 1</text>
+          <text x="558" y="248" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">to new primary</text>
+        </svg>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⚙️ How PostgreSQL WAL Replication Works Internally
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>PostgreSQL uses <strong>Write-Ahead Logging (WAL)</strong>. Every change (INSERT, UPDATE, DELETE) is first written to the WAL log as a binary record, then applied to the actual data files. This order guarantees durability — if the server crashes, the WAL can replay changes on restart.</p>
+            <p>For replication: the WAL stream is continuously sent to replica servers. Each replica applies WAL records in order, maintaining an exact copy of the primary's data. This is called <strong>streaming replication</strong>.</p>
+            <p><strong>Synchronous vs Asynchronous replication:</strong> Async (default) — primary doesn't wait for replica to confirm. Fastest but tiny data loss window on failover. Sync — primary waits for at least one replica to confirm before committing. Zero data loss but adds latency (~network RTT) to every write.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔄 Replication Lag — The Stale Read Problem
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Async replicas are slightly behind the primary (typically 10–200ms, can be seconds under heavy write load). If you write a record and immediately read from a replica, you might get the old value. This is called a <strong>stale read</strong>.</p>
+            <p><strong>Solutions:</strong></p>
+            <p><strong>1. Read-your-writes consistency:</strong> After a write, route the next read for that user to the primary (or sticky-route that user to primary for 1 second). Other users can still read from replicas.</p>
+            <p><strong>2. Application-level tracking:</strong> After a write, record the WAL LSN (Log Sequence Number). Before reading from a replica, check its LSN — only route to replicas that have caught up past your write's LSN.</p>
+            <p><strong>3. Session-level routing:</strong> Within a transaction or user session, always read from primary. Use replicas only for background tasks and analytics where stale data is acceptable.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SHARDING -->
+    <section class="section" id="sharding">
+      <div class="section-label">Horizontal Scaling</div>
+      <h2>Database Sharding — Splitting Data Across Servers</h2>
+      <p>Sharding splits your data across multiple independent database servers (shards). Each shard holds a subset of the data and operates completely independently. This is the ultimate horizontal scaling strategy for databases.</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Sharding by User ID — Hash-based Distribution</div>
+        <svg class="diagram-svg" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrSh" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(251,191,36,.6)"/></marker>
+          </defs>
+
+          <!-- App + Shard Router -->
+          <rect x="20" y="120" width="100" height="50" rx="8" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="70" y="143" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:11px;font-weight:600">Application</text>
+          <text x="70" y="159" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">userId=12345</text>
+
+          <line x1="122" y1="145" x2="165" y2="145" style="stroke:rgba(251,191,36,.5);stroke-width:1.5;fill:none;marker-end:url(#arrSh)"/>
+
+          <!-- Shard Router -->
+          <rect x="167" y="108" width="130" height="74" rx="10" style="fill:rgba(251,191,36,.07);stroke:rgba(251,191,36,.3);stroke-width:2" class="node-animate"/>
+          <text x="232" y="132" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:12px;font-weight:700">Shard Router</text>
+          <text x="232" y="150" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#94a3b8;font-size:10px">hash(userId)</text>
+          <text x="232" y="167" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#94a3b8;font-size:10px">% 3 = shard#</text>
+
+          <!-- Shard routing arrows -->
+          <line x1="299" y1="128" x2="360" y2="80" style="stroke:rgba(251,191,36,.4);stroke-width:1.5;fill:none;marker-end:url(#arrSh)"/>
+          <line x1="299" y1="145" x2="360" y2="155" style="stroke:rgba(251,191,36,.4);stroke-width:1.5;fill:none;marker-end:url(#arrSh)"/>
+          <line x1="299" y1="162" x2="360" y2="225" style="stroke:rgba(251,191,36,.4);stroke-width:1.5;fill:none;marker-end:url(#arrSh)"/>
+
+          <!-- Shard 0 -->
+          <rect x="362" y="40" width="160" height="80" rx="10" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.25);stroke-width:1.5"/>
+          <text x="442" y="65" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:12px;font-weight:700">Shard 0</text>
+          <text x="442" y="82" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">userId % 3 = 0</text>
+          <text x="442" y="98" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">IDs: 0,3,6,9,12...</text>
+          <text x="442" y="113" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">~33M rows</text>
+
+          <!-- Shard 1 -->
+          <rect x="362" y="128" width="160" height="80" rx="10" style="fill:rgba(0,212,255,.05);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="442" y="153" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00d4ff;font-size:12px;font-weight:700">Shard 1</text>
+          <text x="442" y="170" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">userId % 3 = 1</text>
+          <text x="442" y="186" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">IDs: 1,4,7,10,13...</text>
+          <text x="442" y="201" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">~33M rows</text>
+
+          <!-- Shard 2 -->
+          <rect x="362" y="216" width="160" height="80" rx="10" style="fill:rgba(167,139,250,.05);stroke:rgba(167,139,250,.25);stroke-width:1.5"/>
+          <text x="442" y="241" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:12px;font-weight:700">Shard 2</text>
+          <text x="442" y="258" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">userId % 3 = 2</text>
+          <text x="442" y="274" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">IDs: 2,5,8,11,14...</text>
+          <text x="442" y="289" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">~34M rows</text>
+
+          <!-- Total -->
+          <rect x="545" y="90" width="165" height="110" rx="8" style="fill:rgba(255,255,255,.02);stroke:#1e2d45;stroke-width:1"/>
+          <text x="627" y="113" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#e2e8f0;font-size:12px;font-weight:700">Scaling Result</text>
+          <text x="555" y="135" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:11px">3 shards × 33M =</text>
+          <text x="555" y="152" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:13px;font-weight:700">  100M rows total</text>
+          <text x="555" y="172" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Add Shard 3 when needed</text>
+          <text x="555" y="188" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">(resharding required)</text>
+        </svg>
+      </div>
+
+      <h3>Sharding Strategies</h3>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            #️⃣ Hash-Based Sharding
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><code>shard = hash(shardKey) % numberOfShards</code></p>
+            <p>Apply a hash function to the shard key (usually user ID or entity ID), then take modulo by number of shards. This gives uniform distribution — no hot spots.</p>
+            <p><strong>Problem:</strong> Adding a shard changes the modulo, so most keys map to different shards — you need to move ~(N-1)/N of all data when adding one shard. Solved with <strong>consistent hashing</strong> (only ~1/N data moves).</p>
+            <p><strong>Used by:</strong> Cassandra, DynamoDB, Vitess (MySQL sharding layer)</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📏 Range-Based Sharding
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Assign contiguous ranges of shard key values to shards. User IDs 1–1,000,000 → Shard 1; 1,000,001–2,000,000 → Shard 2; etc.</p>
+            <p><strong>Advantage:</strong> Range queries are efficient — "get all users created in Jan 2024" goes to one shard. Easy to add shards (just add a new range).</p>
+            <p><strong>Problem:</strong> Hot spots — if new users all land on the latest shard (because IDs are sequential), one shard gets all writes while others sit idle.</p>
+            <p><strong>Used by:</strong> MongoDB (range-based chunks), HBase, Google Bigtable</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📂 Directory-Based Sharding
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Maintain a lookup table (directory) that maps shard keys to shard locations. The router checks this table to find which shard has each key.</p>
+            <p><strong>Advantage:</strong> Maximum flexibility — move specific users to specific shards, gradually migrate data. Can implement custom logic (VIP customers on faster shard).</p>
+            <p><strong>Problem:</strong> The directory itself becomes a bottleneck and single point of failure. Must be highly available and fast.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>The Cross-Shard Query Problem</h3>
+      <div class="alert alert-danger">
+        <span class="alert-icon">🚨</span>
+        <div><strong>The Biggest Sharding Pain:</strong> Queries that span multiple shards require either: (1) the application to query all shards and merge results (scatter-gather), which is slow and complex, or (2) denormalization — store copies of data on each relevant shard. JOINs across shards are impossible in a traditional sense. Before sharding, carefully model your access patterns and ensure the majority of queries are single-shard operations. The shard key choice is the most important architectural decision when sharding.</div>
+      </div>
+    </section>
+
+    <!-- INDEXING -->
+    <section class="section" id="indexing">
+      <div class="section-label">Query Optimisation</div>
+      <h2>Indexing — The Highest Leverage Scaling Tool</h2>
+      <p>Before any infrastructure scaling, indexing almost always provides the biggest performance gain per unit of effort. A missing index can make a query 100–10,000× slower than necessary.</p>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🌲 B-Tree Index (Default) — How It Works
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The default PostgreSQL index type. A balanced tree where each node contains key values and pointers to children. Lookups, range queries, and sorts are O(log n). For a table with 100 million rows, a B-tree lookup requires at most ~27 node reads (log₂(100M) ≈ 27) vs 100M row reads for a table scan.</p>
+            <p><strong>Best for:</strong> Equality lookups (<code>WHERE user_id = 123</code>), range queries (<code>WHERE created_at &gt; '2024-01-01'</code>), sorting (<code>ORDER BY name</code>).</p>
+            <p><strong>Downside:</strong> Writes are slightly slower (must update the index). Each index adds ~10–30% overhead to INSERT/UPDATE operations on that table.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔀 Composite Indexes — The Multi-Column Trick
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>A single index on multiple columns. <code>CREATE INDEX ON orders (user_id, status, created_at)</code>. This index supports queries that filter on any left-prefix of the indexed columns.</p>
+            <p><strong>Supports:</strong> <code>WHERE user_id=123</code>, <code>WHERE user_id=123 AND status='pending'</code>, <code>WHERE user_id=123 AND status='pending' AND created_at &gt; '2024-01-01'</code>.</p>
+            <p><strong>Does NOT support:</strong> <code>WHERE status='pending'</code> alone (skips user_id — the leftmost column must be present).</p>
+            <p><strong>Key rule — Column Order Matters:</strong> Put highest cardinality, most-filtered columns first. Columns used in ORDER BY last (enables index sort). The selectivity of the leading column determines how many rows are eliminated first.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📝 Partial Indexes — Index Only What You Query
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Index only the rows matching a WHERE condition. <code>CREATE INDEX ON orders (created_at) WHERE status = 'pending'</code>. If 99% of orders are 'completed' and you only query pending orders, a partial index on pending orders is much smaller and faster than a full index.</p>
+            <p><strong>Real example:</strong> A table with 100M orders, only 10k currently pending. A partial index on pending orders contains only 10k entries vs 100M for a full index — 10,000× smaller, fits entirely in cache, ultra-fast.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔍 EXPLAIN ANALYZE — Finding Slow Queries
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The single most important PostgreSQL tool for performance. Prepend <code>EXPLAIN ANALYZE</code> to any query to see exactly how the query planner executes it, where time is spent, and whether indexes are used.</p>
+            <p>Key things to look for: <strong>Seq Scan</strong> (sequential table scan — usually means missing index), <strong>cost</strong> estimates vs actual, <strong>rows</strong> estimates vs actual (large discrepancies mean stale statistics — run <code>ANALYZE tablename</code>), <strong>Nested Loop</strong> vs <strong>Hash Join</strong> (hash joins are usually faster for large datasets).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- CONNECTION POOLING -->
+    <section class="section" id="pooling">
+      <div class="section-label">Connection Management</div>
+      <h2>Connection Pooling — PgBouncer & ProxySQL</h2>
+      <p>Each PostgreSQL connection spawns a backend process consuming ~5-10MB RAM. With 500 app server instances each holding 20 connections, you'd need 10,000 DB connections — 50–100GB RAM just for connection overhead. Connection pooling solves this.</p>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">Session Pooling</div>
+          <div class="card-text">One server connection per client session. Client holds the connection for its entire lifetime. Reduces connection spawning overhead but doesn't save connections overall. Best for long-lived connections.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent4)">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Transaction Pooling</div>
+          <div class="card-text">A server connection is held only during a transaction. After COMMIT, the connection returns to the pool. Allows 10,000 client connections to share 50 server connections if transactions are short. <strong>Default PgBouncer mode for web apps.</strong></div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent3)">
+          <div class="card-icon">🚀</div>
+          <div class="card-title">Statement Pooling</div>
+          <div class="card-text">Most aggressive — connection released after each statement. Maximum connection reuse but disables prepared statements and multi-statement transactions. Rarely used due to application compatibility issues.</div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">CONFIG</span>
+          <span class="code-file">pgbouncer.ini — Production PgBouncer configuration</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>[databases]
+<span class="cm"># app_db = logical DB name, maps to actual PostgreSQL DB</span>
+<span class="key">app_db</span> = <span class="val">host=postgres-primary port=5432 dbname=app_production</span>
+
+<span class="cm"># Separate pool for read-only replica</span>
+<span class="key">app_db_read</span> = <span class="val">host=postgres-replica port=5432 dbname=app_production</span>
+
+[pgbouncer]
+<span class="key">listen_addr</span>       = <span class="val">0.0.0.0</span>
+<span class="key">listen_port</span>       = <span class="num">6432</span>
+
+<span class="cm"># Transaction pooling — best for web applications</span>
+<span class="key">pool_mode</span>         = <span class="val">transaction</span>
+
+<span class="cm"># Max real DB connections PgBouncer will open</span>
+<span class="key">max_client_conn</span>   = <span class="num">10000</span>  <span class="cm"># App can have 10k "connections"</span>
+<span class="key">default_pool_size</span> = <span class="num">50</span>     <span class="cm"># Only 50 real PostgreSQL connections</span>
+<span class="key">reserve_pool_size</span> = <span class="num">10</span>     <span class="cm"># Extra 10 for bursts</span>
+<span class="key">reserve_pool_timeout</span> = <span class="num">5</span>  <span class="cm"># Use reserve after 5s waiting</span>
+
+<span class="cm"># Timeouts</span>
+<span class="key">server_idle_timeout</span>  = <span class="num">600</span>   <span class="cm"># Release idle server connections after 10min</span>
+<span class="key">client_idle_timeout</span>  = <span class="num">0</span>     <span class="cm"># Keep client connections indefinitely</span>
+<span class="key">server_connect_timeout</span> = <span class="num">15</span> <span class="cm"># Fail fast if DB is unreachable</span>
+
+<span class="cm"># Health check</span>
+<span class="key">server_check_query</span>  = <span class="val">SELECT 1</span>
+<span class="key">server_check_delay</span>  = <span class="num">30</span>
+
+<span class="cm"># Auth</span>
+<span class="key">auth_type</span>           = <span class="val">scram-sha-256</span>
+<span class="key">auth_file</span>           = <span class="str">/etc/pgbouncer/users.txt</span>
+
+<span class="cm"># Logging</span>
+<span class="key">log_connections</span>     = <span class="num">0</span>    <span class="cm"># Don't log every connect (high volume)</span>
+<span class="key">log_disconnections</span>  = <span class="num">0</span>
+<span class="key">stats_period</span>        = <span class="num">60</span>   <span class="cm"># Emit stats every 60s to logs</span></code></pre>
+      </div>
+    </section>
+
+    <!-- PARTITIONING -->
+    <section class="section" id="partitioning">
+      <div class="section-label">Table Management</div>
+      <h2>Table Partitioning — Managing Huge Tables</h2>
+      <p>Partitioning splits a single large table into smaller physical sub-tables (partitions) while keeping a single logical table visible to the application. Unlike sharding (across servers), partitioning happens on a single server.</p>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📅 Range Partitioning by Date (Most Common)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Split a table by time ranges — one partition per month, quarter, or year. Events from January 2024 go to the <code>events_2024_01</code> partition; February to <code>events_2024_02</code>, etc.</p>
+            <p><strong>Massive benefit:</strong> When you query <code>WHERE created_at &gt; '2024-01-01'</code>, PostgreSQL only scans the relevant monthly partitions — <strong>partition pruning</strong>. A query that once scanned 10 billion rows now only scans 100 million rows in the current month's partition.</p>
+            <p><strong>Another benefit:</strong> Drop old partitions instantly (<code>DROP TABLE events_2022_01</code>) — no slow DELETE of millions of rows, just drop the partition file. Perfect for time-series data with retention policies.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔢 List & Hash Partitioning
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>List partitioning:</strong> Split by discrete values. E.g., orders partitioned by country: <code>orders_us</code>, <code>orders_eu</code>, <code>orders_asia</code>. Queries filtering by country only scan the relevant partition.</p>
+            <p><strong>Hash partitioning:</strong> Distribute rows evenly across N partitions using a hash of the partition key. Good for even distribution without specific range/list semantics. PostgreSQL native hash partitioning since v11.</p>
+            <p><strong>Subpartitioning:</strong> Partition by date, then hash-subpartition within each month for additional parallelism. E.g., <code>events_2024_01</code> → 8 hash subpartitions processed in parallel.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-file">partitioning.sql — PostgreSQL date-range partitioning</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm">-- Create partitioned table (PostgreSQL 10+)</span>
+<span class="kw">CREATE TABLE</span> events (
+  id           BIGSERIAL,
+  user_id      BIGINT       <span class="kw">NOT NULL</span>,
+  event_type   VARCHAR(<span class="num">50</span>) <span class="kw">NOT NULL</span>,
+  payload      JSONB,
+  created_at   TIMESTAMPTZ  <span class="kw">NOT NULL</span> <span class="kw">DEFAULT NOW</span>()
+) <span class="kw">PARTITION BY RANGE</span> (created_at);
+
+<span class="cm">-- Create monthly partitions</span>
+<span class="kw">CREATE TABLE</span> events_2024_01 <span class="kw">PARTITION OF</span> events
+  <span class="kw">FOR VALUES FROM</span> (<span class="str">'2024-01-01'</span>) <span class="kw">TO</span> (<span class="str">'2024-02-01'</span>);
+
+<span class="kw">CREATE TABLE</span> events_2024_02 <span class="kw">PARTITION OF</span> events
+  <span class="kw">FOR VALUES FROM</span> (<span class="str">'2024-02-01'</span>) <span class="kw">TO</span> (<span class="str">'2024-03-01'</span>);
+
+<span class="cm">-- Each partition gets its own indexes</span>
+<span class="kw">CREATE INDEX ON</span> events_2024_01 (user_id, created_at);
+<span class="kw">CREATE INDEX ON</span> events_2024_02 (user_id, created_at);
+
+<span class="cm">-- Query looks the same — partition pruning is automatic</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> events
+<span class="kw">WHERE</span> user_id = <span class="num">12345</span>
+  <span class="kw">AND</span> created_at >= <span class="str">'2024-01-15'</span>
+  <span class="kw">AND</span> created_at &lt;  <span class="str">'2024-02-01'</span>;
+<span class="cm">-- ^ Only scans events_2024_01 partition, not the full table</span>
+
+<span class="cm">-- Automate partition creation with pg_partman extension</span>
+<span class="cm">-- Or use a cron job to create next month's partition:</span>
+<span class="kw">CREATE TABLE</span> events_2024_03 <span class="kw">PARTITION OF</span> events
+  <span class="kw">FOR VALUES FROM</span> (<span class="str">'2024-03-01'</span>) <span class="kw">TO</span> (<span class="str">'2024-04-01'</span>);
+
+<span class="cm">-- Drop old data instantly (no DELETE overhead)</span>
+<span class="kw">DROP TABLE</span> events_2022_01;  <span class="cm">-- Drops the partition file, instant</span></code></pre>
+      </div>
+    </section>
+
+    <!-- NOSQL -->
+    <section class="section" id="nosql">
+      <div class="section-label">NoSQL Trade-offs</div>
+      <h2>SQL vs NoSQL — When to Choose Each</h2>
+      <p>NoSQL databases trade SQL features (ACID, joins, schemas) for horizontal scalability, flexibility, and specialised performance profiles. Choosing NoSQL isn't about "it's faster" — it's about <strong>matching the data model to the use case</strong>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Database</th><th>Type</th><th>Best For</th><th>Tradeoff</th></tr></thead>
+          <tbody>
+            <tr><td>PostgreSQL</td><td>Relational (SQL)</td><td>Complex queries, ACID transactions, financial data</td><td>Harder to scale writes horizontally</td></tr>
+            <tr><td>MongoDB</td><td>Document</td><td>Flexible schemas, hierarchical data, rapid iteration</td><td>No joins, eventual consistency by default</td></tr>
+            <tr><td>Cassandra</td><td>Wide-Column</td><td>Time-series, write-heavy, global distribution</td><td>Query design must match access patterns upfront</td></tr>
+            <tr><td>DynamoDB</td><td>Key-Value/Document</td><td>Serverless, predictable latency, auto-scaling</td><td>Vendor lock-in, expensive for complex queries</td></tr>
+            <tr><td>Redis</td><td>In-Memory</td><td>Caching, sessions, leaderboards, pub/sub</td><td>Data limited by RAM, not a primary DB</td></tr>
+            <tr><td>Elasticsearch</td><td>Search Engine</td><td>Full-text search, log analytics, aggregations</td><td>Not for primary storage, eventual consistency</td></tr>
+            <tr><td>ClickHouse</td><td>Columnar OLAP</td><td>Analytics, aggregations on billions of rows</td><td>Not for OLTP (individual row reads/writes)</td></tr>
+            <tr><td>Neo4j</td><td>Graph</td><td>Social graphs, recommendation engines, fraud detection</td><td>Doesn't scale as well for non-graph queries</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            ⚖️ CAP Theorem — Why You Can't Have Everything
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>In a distributed system, you can only guarantee 2 of these 3 properties simultaneously:</p>
+            <p><strong>C — Consistency:</strong> Every read gets the most recent write (or an error). All nodes see the same data at the same time.</p>
+            <p><strong>A — Availability:</strong> Every request gets a response (not an error), even if it might be stale.</p>
+            <p><strong>P — Partition Tolerance:</strong> The system continues operating even when network splits occur between nodes. In real distributed systems, P is non-negotiable — networks fail. So the real choice is C vs A during a partition.</p>
+            <p><strong>CP systems</strong> (prefer consistency): HBase, Zookeeper, MongoDB with majority reads. If nodes can't communicate, some return errors rather than stale data.</p>
+            <p><strong>AP systems</strong> (prefer availability): Cassandra, CouchDB, DynamoDB with eventual consistency. Nodes always respond, even if data might be slightly stale.</p>
+            <p><strong>Real-world nuance:</strong> Most modern databases offer tunable consistency — you can choose per-query how consistent you need the result to be. "Strong consistency for payment queries, eventual consistency for view counts."</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📊 OLTP vs OLAP — Operational vs Analytical
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p><strong>OLTP (Online Transaction Processing):</strong> Many small, fast read/write operations. INSERT one order, UPDATE one user, GET one product. PostgreSQL, MySQL are optimised for this.</p>
+            <p><strong>OLAP (Online Analytical Processing):</strong> Few large queries scanning millions of rows. "What's the total revenue by country last quarter?" "How many users converted this week?" ClickHouse, Redshift, BigQuery are optimised for this — columnar storage reads only the columns needed, skipping irrelevant ones.</p>
+            <p><strong>Why separate them:</strong> OLAP queries (full table scans) would destroy OLTP performance if run on the same database. The solution: ETL (Extract, Transform, Load) data from OLTP DB → data warehouse nightly (or real-time via CDC). Run analytics on the warehouse; transactional queries on the OLTP DB.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CODE -->
+    <section class="section" id="code">
+      <div class="section-label">Implementation</div>
+      <h2>Production Patterns & Code</h2>
+
+      <h3>Read/Write Splitting in Node.js</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">JAVASCRIPT</span>
+          <span class="code-file">db/pool.js — Read/write splitting with Knex</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">const</span> knex = <span class="fn">require</span>(<span class="str">'knex'</span>);
+
+<span class="cm">// Write pool → primary DB (via PgBouncer)</span>
+<span class="kw">const</span> writePool = <span class="fn">knex</span>({
+  client: <span class="str">'pg'</span>,
+  connection: {
+    host:     process.env.<span class="val">DB_PRIMARY_HOST</span>,
+    port:     <span class="num">6432</span>,              <span class="cm">// PgBouncer port</span>
+    database: <span class="str">'app_db'</span>,
+    user:     process.env.<span class="val">DB_USER</span>,
+    password: process.env.<span class="val">DB_PASS</span>,
+    ssl:      { rejectUnauthorized: <span class="kw">true</span> },
+  },
+  pool: { min: <span class="num">2</span>, max: <span class="num">10</span> },   <span class="cm">// Small pool — PgBouncer multiplexes</span>
+});
+
+<span class="cm">// Read pool → replica DB (round-robin across replicas)</span>
+<span class="kw">const</span> readPool = <span class="fn">knex</span>({
+  client: <span class="str">'pg'</span>,
+  connection: {
+    host:     process.env.<span class="val">DB_REPLICA_HOST</span>,  <span class="cm">// HAProxy/RDS proxy in front of replicas</span>
+    port:     <span class="num">6432</span>,
+    database: <span class="str">'app_db_read'</span>,
+    user:     process.env.<span class="val">DB_USER_READONLY</span>,
+    password: process.env.<span class="val">DB_PASS_READONLY</span>,
+  },
+  pool: { min: <span class="num">2</span>, max: <span class="num">20</span> },   <span class="cm">// Larger pool for reads</span>
+});
+
+<span class="cm">// ─── DB abstraction layer ────────────────────────────</span>
+<span class="kw">const</span> db = {
+  <span class="cm">// Reads → replica (async, eventually consistent)</span>
+  <span class="fn">read</span>:  (tableName) => readPool(tableName),
+
+  <span class="cm">// Writes → primary</span>
+  <span class="fn">write</span>: (tableName) => writePool(tableName),
+
+  <span class="cm">// Critical reads (post-write) → primary to avoid stale reads</span>
+  <span class="fn">readStrong</span>: (tableName) => writePool(tableName),
+
+  <span class="cm">// Transactions always go to primary</span>
+  <span class="fn">transaction</span>: (callback) => writePool.<span class="fn">transaction</span>(callback),
+};
+
+<span class="cm">// ─── Usage examples ──────────────────────────────────</span>
+<span class="cm">// List users — can tolerate slight staleness → read replica</span>
+<span class="kw">async function</span> <span class="fn">listUsers</span>(page, limit) {
+  <span class="kw">return</span> db.<span class="fn">read</span>(<span class="str">'users'</span>)
+    .<span class="fn">select</span>(<span class="str">'id'</span>, <span class="str">'name'</span>, <span class="str">'email'</span>)
+    .<span class="fn">orderBy</span>(<span class="str">'created_at'</span>, <span class="str">'desc'</span>)
+    .<span class="fn">limit</span>(limit).<span class="fn">offset</span>(page * limit);
+}
+
+<span class="cm">// Create user — write to primary, then read from primary</span>
+<span class="kw">async function</span> <span class="fn">createUser</span>(data) {
+  <span class="kw">const</span> [user] = <span class="kw">await</span> db.<span class="fn">write</span>(<span class="str">'users'</span>).<span class="fn">insert</span>(data).<span class="fn">returning</span>(<span class="str">'*'</span>);
+  <span class="cm">// Use readStrong (primary) immediately after write — avoid stale read</span>
+  <span class="kw">return</span> db.<span class="fn">readStrong</span>(<span class="str">'users'</span>).<span class="fn">where</span>({ id: user.id }).<span class="fn">first</span>();
+}
+
+<span class="cm">// Transfer funds — ACID transaction → primary only</span>
+<span class="kw">async function</span> <span class="fn">transferFunds</span>(fromId, toId, amount) {
+  <span class="kw">return</span> db.<span class="fn">transaction</span>(<span class="kw">async</span> (trx) => {
+    <span class="kw">const</span> from = <span class="kw">await</span> trx(<span class="str">'accounts'</span>).<span class="fn">where</span>({ id: fromId }).<span class="fn">first</span>();
+    <span class="kw">if</span> (from.balance < amount) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Insufficient funds'</span>);
+    <span class="kw">await</span> trx(<span class="str">'accounts'</span>).<span class="fn">where</span>({ id: fromId }).<span class="fn">decrement</span>(<span class="str">'balance'</span>, amount);
+    <span class="kw">await</span> trx(<span class="str">'accounts'</span>).<span class="fn">where</span>({ id: toId }).<span class="fn">increment</span>(<span class="str">'balance'</span>, amount);
+    <span class="kw">await</span> trx(<span class="str">'transactions'</span>).<span class="fn">insert</span>({ fromId, toId, amount, timestamp: <span class="kw">new</span> <span class="fn">Date</span>() });
+  });
+}</code></pre>
+      </div>
+
+      <h3>PostgreSQL Indexing Cheatsheet</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-file">indexes.sql — Production indexing patterns</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm">-- ─── Basic Index ──────────────────────────────────────</span>
+<span class="cm">-- Missing index on foreign key (very common issue)</span>
+<span class="kw">CREATE INDEX CONCURRENTLY</span> idx_orders_user_id
+  <span class="kw">ON</span> orders (user_id);
+<span class="cm">-- CONCURRENTLY = no table lock, safe for production</span>
+
+<span class="cm">-- ─── Composite Index (order matters!) ─────────────────</span>
+<span class="cm">-- Supports: WHERE user_id=X, WHERE user_id=X AND status=Y</span>
+<span class="cm">-- Does NOT support: WHERE status=Y alone</span>
+<span class="kw">CREATE INDEX CONCURRENTLY</span> idx_orders_user_status
+  <span class="kw">ON</span> orders (user_id, status, created_at <span class="kw">DESC</span>);
+
+<span class="cm">-- ─── Partial Index ────────────────────────────────────</span>
+<span class="cm">-- Only index pending orders (tiny fraction of total)</span>
+<span class="kw">CREATE INDEX CONCURRENTLY</span> idx_orders_pending
+  <span class="kw">ON</span> orders (created_at, user_id)
+  <span class="kw">WHERE</span> status = <span class="str">'pending'</span>;
+
+<span class="cm">-- ─── Expression Index ─────────────────────────────────</span>
+<span class="cm">-- Case-insensitive email lookup</span>
+<span class="kw">CREATE UNIQUE INDEX</span> idx_users_email_lower
+  <span class="kw">ON</span> users (<span class="fn">LOWER</span>(email));
+<span class="cm">-- Query: WHERE LOWER(email) = LOWER($1)  ← uses index</span>
+
+<span class="cm">-- ─── JSONB Index ──────────────────────────────────────</span>
+<span class="cm">-- Index a specific key inside a JSONB column</span>
+<span class="kw">CREATE INDEX</span> idx_orders_payload_country
+  <span class="kw">ON</span> orders ((payload ->> <span class="str">'country'</span>));
+<span class="cm">-- Query: WHERE payload ->> 'country' = 'US'  ← uses index</span>
+
+<span class="cm">-- GIN index for any-key JSONB containment queries</span>
+<span class="kw">CREATE INDEX</span> idx_orders_payload_gin
+  <span class="kw">ON</span> orders <span class="kw">USING</span> GIN (payload);
+<span class="cm">-- Query: WHERE payload @> '{"status": "paid"}'  ← uses GIN</span>
+
+<span class="cm">-- ─── EXPLAIN ANALYZE ──────────────────────────────────</span>
+<span class="cm">-- Always run this before deploying a slow query fix</span>
+<span class="kw">EXPLAIN</span> (<span class="kw">ANALYZE</span>, BUFFERS, FORMAT TEXT)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> orders
+<span class="kw">WHERE</span> user_id = <span class="num">12345</span>
+  <span class="kw">AND</span> status = <span class="str">'pending'</span>
+<span class="kw">ORDER BY</span> created_at <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">20</span>;
+<span class="cm">-- Look for: "Index Scan" (good) vs "Seq Scan" (usually bad)</span>
+<span class="cm">-- BUFFERS shows cache hits vs disk reads</span></code></pre>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- COMPANIES -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Scale Their Databases</h2>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">📘 Facebook/Meta <span class="company-tech">MySQL + Vitess/TAO</span></div>
+          <div class="company-desc">Facebook built <strong>TAO</strong>, a custom distributed graph store optimised for social graph reads (who are your friends' friends). For MySQL: Vitess (originally from YouTube) provides automatic horizontal sharding of MySQL with a proxy layer. They also use RocksDB (LSM-tree) as the MySQL storage engine for write-heavy workloads — 10× better write throughput than InnoDB on SSDs.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🛒 Amazon <span class="company-tech">DynamoDB + Aurora</span></div>
+          <div class="company-desc">Amazon uses DynamoDB for the Shopping Cart service (predictable single-digit millisecond latency, auto-scaling). Aurora for relational data. The famous <strong>DynamoDB paper</strong> (2022) explains their partition-based, consistent hashing approach. Key: data modelled around access patterns, not relational normalisation. A DynamoDB table may have dozens of different entity types co-located.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🎬 Netflix <span class="company-tech">Cassandra + CockroachDB</span></div>
+          <div class="company-desc">Netflix uses Cassandra for viewing history (billions of rows, 99.999% uptime, multi-region). Key design: <code>user_id</code> as partition key ensures all of one user's data is on one node — fast reads. They also migrated parts of their billing to CockroachDB (globally distributed PostgreSQL-compatible) for ACID transactions with geo-distribution.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🐦 Twitter/X <span class="company-tech">Manhattan + MySQL</span></div>
+          <div class="company-desc">Twitter built <strong>Manhattan</strong>, their own distributed key-value store, for tweets and timelines (horizontal scale, multi-DC). MySQL with custom sharding handles user account data. The challenge: "whale" accounts (celebrities with 100M+ followers) create hot partitions in any hash-based scheme — special handling required for uneven key distribution.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🚗 Uber <span class="company-tech">Docstore + Schemaless</span></div>
+          <div class="company-desc">Uber built <strong>Docstore</strong> (MySQL-based document store with automatic sharding) and <strong>Schemaless</strong> (append-only data store for trip events). For geospatial indexing of driver locations, they use a custom H3 hexagonal grid system for efficient nearest-driver queries across shards.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">📊 Cloudflare <span class="company-tech">D1 + Workers KV</span></div>
+          <div class="company-desc">Cloudflare runs <strong>Workers KV</strong>, a globally distributed key-value store with eventual consistency (writes replicate to all 300 PoPs). For consistent data: <strong>D1</strong> (SQLite at the edge). Key insight: SQLite on NVMe at the edge is often faster than a remote PostgreSQL connection — they replicate small SQLite databases to edge nodes nearest each user.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRADEOFFS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>Scaling Technique Comparison</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Technique</th><th>Read Scale</th><th>Write Scale</th><th>Complexity</th><th>When to Use</th></tr></thead>
+          <tbody>
+            <tr><td>Query Optimisation + Indexes</td><td>🟢 High impact</td><td>🟢 High impact</td><td>Low</td><td>Always first</td></tr>
+            <tr><td>Vertical Scaling</td><td>🟢 Good</td><td>🟢 Good</td><td>Very Low</td><td>&lt; 10M rows, single team</td></tr>
+            <tr><td>Connection Pooling</td><td>🟡 Moderate</td><td>🟡 Moderate</td><td>Low</td><td>500+ concurrent connections</td></tr>
+            <tr><td>Read Replicas</td><td>🟢 Excellent</td><td>❌ Primary only</td><td>Medium</td><td>Read:Write ratio &gt; 3:1</td></tr>
+            <tr><td>Caching (Redis)</td><td>🟢 Excellent</td><td>❌ Doesn't help</td><td>Medium</td><td>Repetitive reads, hot data</td></tr>
+            <tr><td>Table Partitioning</td><td>🟢 Good (pruning)</td><td>🟡 Moderate</td><td>Medium</td><td>&gt; 100M rows, time-series</td></tr>
+            <tr><td>Sharding</td><td>🟢 Excellent</td><td>🟢 Excellent</td><td>Very High</td><td>&gt; 1B rows or write bottleneck</td></tr>
+            <tr><td>NoSQL (Cassandra)</td><td>🟢 Excellent</td><td>🟢 Excellent</td><td>High</td><td>Specific data models, multi-region</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>The Golden Rule:</strong> Always measure before scaling. Premature database optimisation is the root of much engineering waste. Use APM tools (Datadog, New Relic) to identify actual bottlenecks. Often the "database scaling problem" is actually a missing index on one table or an N+1 query in the ORM. Fix the actual problem, not the perceived one.</div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How would you scale a database that's getting 100,000 reads/second?</div>
+          <div class="interview-a">Step 1: Check if reads are hitting indexes — missing indexes often cause queries to scan millions of rows unnecessarily. Add appropriate indexes. Step 2: Add Redis caching for the most frequently-read data (user profiles, product pages). For most apps, 80% of reads are for 20% of data — cache the hot 20%. This typically reduces DB reads by 60-80%. Step 3: Add read replicas. Route all SELECT queries to replicas, writes to primary. With 3 replicas, you've quadrupled your read capacity. Step 4: If still insufficient, consider CDN caching for public data. Step 5: For analytics/reporting queries, route to a dedicated analytics replica or data warehouse. 100k reads/second is comfortably handled by read replicas + caching without sharding.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is database sharding and what are its downsides?</div>
+          <div class="interview-a">Sharding splits data across multiple independent database servers based on a shard key. Each shard holds a subset of data. Enables horizontal scaling of both reads and writes — just add more shards. Downsides: (1) Cross-shard queries — JOINs across shards are impossible in traditional SQL. Must use scatter-gather (query all shards, merge) or denormalize data. (2) Resharding complexity — adding shards means redistributing data, which is expensive and risky. Consistent hashing minimizes but doesn't eliminate data movement. (3) Hot spots — if shard key is poorly chosen (e.g., timestamp for events), all new data goes to one shard. (4) Distributed transactions — ACID transactions across shards require 2-phase commit or Saga patterns. (5) Operational complexity — many databases instead of one to monitor, backup, maintain. Use sharding only when replicas + caching are insufficient (typically &gt;1B rows or very high write throughput).</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Explain the CAP theorem and how it applies to database choice.</div>
+          <div class="interview-a">CAP: in a distributed system, you can only guarantee 2 of: Consistency (every read gets the latest write), Availability (every request gets a non-error response), Partition Tolerance (system works despite network failures). Network partitions happen in real systems, so P is non-negotiable. The real choice is C vs A during a partition. CP databases (HBase, MongoDB in strong mode): prefer consistency. During a partition, some requests fail rather than returning stale data. Use for: financial transactions, inventory (must be correct). AP databases (Cassandra, DynamoDB): prefer availability. During a partition, requests succeed but data may be stale (eventually consistent). Use for: social feeds, view counts, recommendations. Practical nuance: most modern databases offer tunable consistency per-query. The choice isn't binary — you can use Cassandra for most things but enforce strong consistency for specific critical operations using QUORUM read/write levels.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How do read replicas work and what are their limitations?</div>
+          <div class="interview-a">Read replicas receive a continuous stream of write operations from the primary (WAL in PostgreSQL, binlog in MySQL) and apply them asynchronously. They're identical copies of the primary that only accept reads. Limitations: (1) Replication lag — replicas are asynchronously updated, so reads may return data 10ms-1s behind the primary. This is "eventual consistency." (2) Write amplification — writes go to primary only, no write scaling. (3) Not for write-heavy workloads — if your bottleneck is writes, replicas don't help. (4) Failover complexity — promoting a replica to primary requires application configuration changes and may cause brief downtime. Solutions for lag: read-your-writes consistency (route reads after writes to primary), track replication LSN and only use replicas that have caught up, or use synchronous replication (adds latency to writes but zero lag on replicas).</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Design the database architecture for a social media platform with 500M users.</div>
+          <div class="interview-a">User data (profiles, auth): PostgreSQL with read replicas. User IDs are the natural shard key if sharding becomes necessary. Add Redis caching for profile reads (cache-aside, 5min TTL). Social graph (followers/following): Graph database (Neo4j) for traversal queries, or denormalised in Cassandra for simple "list followers" lookups. At 500M users each following 200 people = 100B relationship rows — needs horizontal scaling. Posts/Timeline: Cassandra with user_id as partition key, created_at as clustering key. Optimised for "get latest 20 posts by user X" — single partition read. Fan-out: write to followers' timeline caches (Redis Sorted Sets, scored by timestamp). For celebrities (10M+ followers): fan-out on read instead. Media (images/videos): Object storage (S3/GCS), not in the database. URLs stored in DB. Served via CDN. Analytics: Kafka → ClickHouse (real-time) or BigQuery (batch) for engagement metrics — never run analytics on production OLTP databases.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Always optimise queries and indexes first — often 100× improvement with zero infrastructure cost</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Vertical scaling is simple and effective until you hit hardware limits</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Connection pooling (PgBouncer) handles concurrency — 10k app connections on 50 real DB connections</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Read replicas scale read throughput; caching (Redis) handles hot data — together handle most read scaling</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Sharding is the nuclear option for write scaling — high complexity, use only when necessary</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Partitioning manages huge tables on one server — date-range partitioning enables partition pruning and instant old-data deletion</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> CAP theorem: choose between consistency and availability during network partitions — tune per query</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> OLTP vs OLAP: never run analytics on production databases — use a data warehouse (ClickHouse, BigQuery, Redshift)</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Replication lag is real — implement read-your-writes consistency for post-write reads</li>
+        </ul>
+      </div>
+    </section>
+
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 08</div>
+        <div class="next-name">CDN (Content Delivery Network)</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<!-- TOC -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#ladder" class="toc-link">Scaling Ladder</a></li>
+      <li class="toc-item"><a href="#replication" class="toc-link">Read Replicas</a></li>
+      <li class="toc-item"><a href="#sharding" class="toc-link">Sharding</a></li>
+      <li class="toc-item"><a href="#indexing" class="toc-link">Indexing</a></li>
+      <li class="toc-item"><a href="#pooling" class="toc-link">Connection Pooling</a></li>
+      <li class="toc-item"><a href="#partitioning" class="toc-link">Partitioning</a></li>
+      <li class="toc-item"><a href="#nosql" class="toc-link">NoSQL & CAP</a></li>
+      <li class="toc-item"><a href="#code" class="toc-link">Implementation</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{const e=document.getElementById('progressBar');e.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%'});
+const sections=document.querySelectorAll('section[id]'),tocLinks=document.querySelectorAll('.toc-link');
+const obs=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.25});
+sections.forEach(s=>obs.observe(s));
+function switchTab(id,btn){const p=btn.closest('.tabs');p.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));p.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');p.querySelector('#tab-'+id).classList.add('active')}
+function toggleAccordion(btn){const item=btn.closest('.accordion-item'),isOpen=item.classList.contains('open');btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open')}
+function toggleInterview(item){item.classList.toggle('open')}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+const obs2=new IntersectionObserver(e=>{e.forEach(c=>{if(c.isIntersecting){c.target.style.opacity='0';c.target.style.transform='translateY(14px)';setTimeout(()=>{c.target.style.transition='opacity .4s ease,transform .4s ease';c.target.style.opacity='1';c.target.style.transform='none'},60);obs2.unobserve(c.target)}})},{threshold:.08});
+document.querySelectorAll('.info-card,.company-card').forEach(c=>obs2.observe(c));
+</script>
+</body>
+</html>

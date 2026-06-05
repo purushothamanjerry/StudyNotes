@@ -40,7 +40,10 @@ const topics = {
       { title: "Arrays",                  file: "java/Topic19_Arrays" },
       { title: "Exception Handling",      file: "java/Topic20_Exception_Handling" },
       { title: "Generics",                file: "java/Topic21_Generics" },
-
+      { title: "Collections Framework",   file: "java/Topic22_Collections"},
+      { title: "Java 8 Features",          file: "java/Topic23_Java8_Features" },
+      { title: "Multithreading",            file: "java/Topic24_Multithreading" },
+      {title:"JDBc", file:"java/Topic25_JDBC"},
     ],
   },
 
@@ -52,32 +55,19 @@ const topics = {
       { title: "Load Balancer",    file: "hld/load-balancer" },
       { title: "Api GateWay",    file: "hld/api-gateway" },
       { title: "Redis Cache",    file: "hld/redis-cache" },
+      { title: "Rate Limiting",    file: "hld/rate-limiting"},
+      {title:"Message Queue", file:"hld/message-queue"},
+      {title:"Microservices", file:"hld/microservices"},
+      {title:"Database Scaling", file:"hld/database-scaling"},
+      {title:"CDN", file:"hld/cdn"},
     ],
   },
 
-  "Spring Boot": {
-    color: "#fbbf24",
-    icon: "🍃",
-    items: [
-      { title: "Introduction",            file: "springboot/introduction" },
-      { title: "Project Setup",           file: "springboot/project-setup" },
-      { title: "REST Controllers",        file: "springboot/rest-controllers" },
-      { title: "Dependency Injection",    file: "springboot/dependency-injection" },
-      { title: "JPA & Hibernate",         file: "springboot/jpa-hibernate" },
-      { title: "Spring Security",         file: "springboot/spring-security" },
-    ],
-  },
-  
   Networking: {
     color: "#4f8ef7",
     icon: "🌐",
     items: [
-      { title: "Introduction",            file: "networking/introduction" },
-      { title: "IP Address",              file: "networking/ip-address" },
-      { title: "TCP/IP",                  file: "networking/tcp-ip" },
-      { title: "OSI Model",               file: "networking/osi-model" },
-      { title: "DNS",                     file: "networking/dns" },
-      { title: "HTTP & HTTPS",            file: "networking/http-https" },
+      {title:"OSI Model", file:"networking/osi-model"},
     ],
   },
 

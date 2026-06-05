@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 25 — JDBC in Java</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 60%, #fb923c 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.2rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 24px; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .toc { background: #fff; margin: 28px auto; max-width: 900px; border-radius: 12px;
+    padding: 24px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .toc h2 { font-size: 1rem; color: #c2410c; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: #7c2d12; text-decoration: none; font-size: 0.95rem; }
+  .toc a:hover { text-decoration: underline; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #c2410c; padding-bottom: 12px; }
+  .section-num { background: #c2410c; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #7c2d12; }
+  h3 { font-size: 1.05rem; color: #c2410c; margin: 22px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 16px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 6px 0; font-size: 0.95rem; }
+  .highlight-box { background: #fff7ed; border-left: 4px solid #c2410c; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .info-box     { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 20px 24px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88rem; line-height: 1.7; margin: 14px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.9rem; }
+  th { background: #7c2d12; color: white; padding: 10px 14px; text-align: left; }
+  td { padding: 9px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #fff7ed; }
+  tr:hover { background: #ffedd5; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+  .col-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+  .col-box h4 { color: #7c2d12; margin-top: 0; }
+  .flow-step { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px; }
+  .step-num { background: #c2410c; color: white; border-radius: 50%; width: 30px; height: 30px; min-width: 30px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; margin-top: 4px; }
+  .step-content { flex: 1; background: #fff7ed; border-radius: 8px; padding: 10px 14px; border: 1px solid #fed7aa; }
+  .step-content strong { color: #7c2d12; display: block; }
+  .step-content span { font-size: 0.88rem; color: #4b5563; }
+  .step-arrow { text-align: center; padding: 2px 0 2px 12px; color: #c2410c; font-size: 1.1rem; }
+  .interview-q { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .interview-q .q { color: #dc2626; font-weight: 600; font-size: 0.93rem; }
+  .interview-q .a { color: #374151; font-size: 0.9rem; margin-top: 6px; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+  .progress-step.done { background: #c2410c; }
+  .footer { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 25 OF 26</div>
+  <h1>🗄️ JDBC in Java</h1>
+  <p>Connection · Statement · PreparedStatement · ResultSet · Transactions · Connection Pool</p>
+  <div class="meta">
+    <span>Phase 6 — Database</span>
+    <span>Intermediate Level</span>
+    <span>Core Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div><div class="progress-step done"></div>
+  <div class="progress-step done"></div>
+  <div class="progress-step"></div>
+</div>
+
+<div class="toc">
+  <h2>📋 Contents</h2>
+  <ol>
+    <li><a href="#what">What is JDBC?</a></li>
+    <li><a href="#flow">JDBC Steps — Full Flow</a></li>
+    <li><a href="#connection">Step 1 — Load Driver & Connect</a></li>
+    <li><a href="#statement">Step 2 — Statement</a></li>
+    <li><a href="#prepared">Step 3 — PreparedStatement (preferred)</a></li>
+    <li><a href="#resultset">Step 4 — ResultSet</a></li>
+    <li><a href="#crud">Full CRUD Example</a></li>
+    <li><a href="#transaction">Transactions</a></li>
+    <li><a href="#pool">Connection Pooling</a></li>
+    <li><a href="#interview">Top Interview Questions & Model Answers</a></li>
+  </ol>
+</div>
+
+
+<!-- SECTION 1: WHAT -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">What is JDBC?</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>JDBC (Java Database Connectivity)</strong> is a Java API that allows Java programs to connect to and interact with relational databases (MySQL, PostgreSQL, Oracle, SQLite, etc.). It is in the <code>java.sql</code> package and provides a standard interface regardless of the database vendor.
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>JDBC Architecture</h4>
+      <p><strong>Java App</strong> → JDBC API → JDBC Driver → Database</p>
+      <p>JDBC Driver is database-specific (MySQL driver, PostgreSQL driver)</p>
+      <p>Your code stays the same — just change the driver!</p>
+    </div>
+    <div class="col-box">
+      <h4>Key JDBC Interfaces (java.sql)</h4>
+      <ul>
+        <li><code>Connection</code> — database session</li>
+        <li><code>Statement</code> — execute SQL</li>
+        <li><code>PreparedStatement</code> — precompiled SQL</li>
+        <li><code>ResultSet</code> — query results</li>
+        <li><code>CallableStatement</code> — stored procedures</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>JDBC Driver Types</h3>
+  <table>
+    <tr><th>Type</th><th>Name</th><th>Description</th></tr>
+    <tr><td>Type 1</td><td>JDBC-ODBC Bridge</td><td>Uses ODBC driver (deprecated, removed Java 8)</td></tr>
+    <tr><td>Type 2</td><td>Native API</td><td>Uses native DB client library</td></tr>
+    <tr><td>Type 3</td><td>Network Protocol</td><td>Middleware server translates</td></tr>
+    <tr><td>Type 4 ⭐</td><td>Thin Driver</td><td>Pure Java, connects directly to DB — most used</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 2: FLOW -->
+<div class="section" id="flow">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">JDBC Steps — Full Flow</div>
+  </div>
+
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <strong>Load the JDBC Driver</strong>
+      <span><code>Class.forName("com.mysql.cj.jdbc.Driver")</code> — registers driver (auto in JDBC 4.0+)</span>
+    </div>
+  </div>
+  <div class="step-arrow">↓</div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <strong>Create Connection</strong>
+      <span><code>DriverManager.getConnection(url, user, password)</code></span>
+    </div>
+  </div>
+  <div class="step-arrow">↓</div>
+  <div class="flow-step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <strong>Create Statement</strong>
+      <span><code>conn.createStatement()</code> or <code>conn.prepareStatement(sql)</code></span>
+    </div>
+  </div>
+  <div class="step-arrow">↓</div>
+  <div class="flow-step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <strong>Execute SQL</strong>
+      <span><code>executeQuery()</code> for SELECT → ResultSet | <code>executeUpdate()</code> for INSERT/UPDATE/DELETE → int</span>
+    </div>
+  </div>
+  <div class="step-arrow">↓</div>
+  <div class="flow-step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <strong>Process ResultSet</strong>
+      <span><code>rs.next()</code> to iterate rows, <code>rs.getString("col")</code> to read values</span>
+    </div>
+  </div>
+  <div class="step-arrow">↓</div>
+  <div class="flow-step">
+    <div class="step-num">6</div>
+    <div class="step-content">
+      <strong>Close Resources</strong>
+      <span>Close ResultSet, Statement, Connection (use try-with-resources!)</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 3: CONNECTION -->
+<div class="section" id="connection">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Step 1 — Load Driver & Connect</div>
+  </div>
+
+<pre><span class="kw">import</span> java.sql.*;
+
+<span class="cm">// MySQL connection URL format:</span>
+<span class="cm">// jdbc:mysql://host:port/database?params</span>
+<span class="cl">String</span> url      = <span class="st">"jdbc:mysql://localhost:3306/mydb?useSSL=false"</span>;
+<span class="cl">String</span> username = <span class="st">"root"</span>;
+<span class="cl">String</span> password = <span class="st">"password"</span>;
+
+<span class="cm">// JDBC 4.0+ — driver auto-loaded from classpath (no Class.forName needed)</span>
+<span class="cm">// Older code: Class.forName("com.mysql.cj.jdbc.Driver");</span>
+
+<span class="kw">try</span> (<span class="cl">Connection</span> conn = <span class="cl">DriverManager</span>.getConnection(url, username, password)) {
+    System.out.println(<span class="st">"Connected! DB: "</span> + conn.getCatalog());
+    System.out.println(<span class="st">"AutoCommit: "</span> + conn.getAutoCommit());  <span class="cm">// true by default</span>
+} <span class="kw">catch</span> (<span class="cl">SQLException</span> e) {
+    System.out.println(<span class="st">"Connection failed: "</span> + e.getMessage());
+}
+
+<span class="cm">// Common JDBC URLs</span>
+<span class="cm">// MySQL:      jdbc:mysql://localhost:3306/dbname</span>
+<span class="cm">// PostgreSQL: jdbc:postgresql://localhost:5432/dbname</span>
+<span class="cm">// SQLite:     jdbc:sqlite:./mydb.db</span>
+<span class="cm">// H2:         jdbc:h2:mem:testdb  (in-memory, great for testing)</span>
+<span class="cm">// Oracle:     jdbc:oracle:thin:@localhost:1521:orcl</span></pre>
+</div>
+
+
+<!-- SECTION 4: STATEMENT -->
+<div class="section" id="statement">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Step 2 — Statement</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Statement</strong> — executes static SQL. Simple but vulnerable to SQL injection. Use for DDL (CREATE, DROP) or when no user input is involved.
+  </div>
+
+<pre><span class="kw">try</span> (<span class="cl">Connection</span>  conn = <span class="cl">DriverManager</span>.getConnection(url, user, pass);
+     <span class="cl">Statement</span>  stmt = conn.createStatement()) {
+
+    <span class="cm">// executeQuery — for SELECT, returns ResultSet</span>
+    <span class="cl">ResultSet</span> rs = stmt.executeQuery(<span class="st">"SELECT * FROM students"</span>);
+
+    <span class="cm">// executeUpdate — for INSERT, UPDATE, DELETE, DDL</span>
+    <span class="cm">// returns number of rows affected</span>
+    <span class="kw">int</span> rows = stmt.executeUpdate(<span class="st">"INSERT INTO students (name, age) VALUES ('Alice', 20)"</span>);
+    System.out.println(rows + <span class="st">" row(s) inserted"</span>);
+
+    <span class="cm">// execute — for any SQL, returns boolean</span>
+    <span class="cm">// true = ResultSet, false = update count</span>
+    <span class="kw">boolean</span> hasResult = stmt.execute(<span class="st">"CREATE TABLE test (id INT)"</span>);
+
+    <span class="cm">// Batch execution — multiple statements at once</span>
+    stmt.addBatch(<span class="st">"INSERT INTO students VALUES (1, 'Bob', 21)"</span>);
+    stmt.addBatch(<span class="st">"INSERT INTO students VALUES (2, 'Carol', 22)"</span>);
+    <span class="kw">int</span>[] results = stmt.executeBatch();
+}
+
+<span class="cm">// ⚠️ SQL Injection risk with Statement!</span>
+<span class="cl">String</span> name = <span class="st">"' OR '1'='1"</span>;  <span class="cm">// malicious input</span>
+stmt.executeQuery(<span class="st">"SELECT * FROM users WHERE name='"</span> + name + <span class="st">"'"</span>);
+<span class="cm">// Becomes: SELECT * FROM users WHERE name='' OR '1'='1'
+// Returns ALL users! Security breach!</span></pre>
+</div>
+
+
+<!-- SECTION 5: PREPAREDSTATEMENT -->
+<div class="section" id="prepared">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">PreparedStatement (Preferred)</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>PreparedStatement</strong> — precompiled SQL with placeholders (<code>?</code>). Safer (prevents SQL injection) and faster (compiled once, executed many times). Always use over Statement when user input is involved.
+  </div>
+
+<pre><span class="cl">String</span> sql = <span class="st">"INSERT INTO students (name, age, email) VALUES (?, ?, ?)"</span>;
+
+<span class="kw">try</span> (<span class="cl">Connection</span>        conn = <span class="cl">DriverManager</span>.getConnection(url, user, pass);
+     <span class="cl">PreparedStatement</span> ps   = conn.prepareStatement(sql)) {
+
+    <span class="cm">// Set parameters by index (1-based!)</span>
+    ps.setString(<span class="num">1</span>, <span class="st">"Alice"</span>);
+    ps.setInt(<span class="num">2</span>, <span class="num">20</span>);
+    ps.setString(<span class="num">3</span>, <span class="st">"alice@email.com"</span>);
+    <span class="kw">int</span> rows = ps.executeUpdate();
+
+    <span class="cm">// Reuse with different values</span>
+    ps.setString(<span class="num">1</span>, <span class="st">"Bob"</span>);
+    ps.setInt(<span class="num">2</span>, <span class="num">22</span>);
+    ps.setString(<span class="num">3</span>, <span class="st">"bob@email.com"</span>);
+    ps.executeUpdate();
+}
+
+<span class="cm">// SELECT with PreparedStatement</span>
+<span class="cl">String</span> query = <span class="st">"SELECT * FROM students WHERE age > ? AND name LIKE ?"</span>;
+<span class="kw">try</span> (<span class="cl">Connection</span>        conn = <span class="cl">DriverManager</span>.getConnection(url, user, pass);
+     <span class="cl">PreparedStatement</span> ps   = conn.prepareStatement(query)) {
+
+    ps.setInt(<span class="num">1</span>, <span class="num">18</span>);
+    ps.setString(<span class="num">2</span>, <span class="st">"%A%"</span>);   <span class="cm">// names containing 'A'</span>
+    <span class="cl">ResultSet</span> rs = ps.executeQuery();
+    <span class="kw">while</span> (rs.next()) {
+        System.out.println(rs.getString(<span class="st">"name"</span>) + <span class="st">" - "</span> + rs.getInt(<span class="st">"age"</span>));
+    }
+}
+
+<span class="cm">// setXxx methods</span>
+<span class="cm">// ps.setString(i, val)    — varchar/text</span>
+<span class="cm">// ps.setInt(i, val)       — integer</span>
+<span class="cm">// ps.setDouble(i, val)    — double</span>
+<span class="cm">// ps.setBoolean(i, val)   — boolean</span>
+<span class="cm">// ps.setDate(i, sqlDate)  — date</span>
+<span class="cm">// ps.setNull(i, Types.INTEGER) — null value</span>
+<span class="cm">// ps.setObject(i, val)    — any type</span></pre>
+
+  <div class="tip-box">
+    <strong>💡 Why PreparedStatement prevents SQL Injection:</strong><br>
+    The SQL structure is fixed at preparation time. User input is treated as a <em>literal value</em>, never as SQL code. <code>'OR '1'='1</code> is just a string, not executed as SQL.
+  </div>
+</div>
+
+
+<!-- SECTION 6: RESULTSET -->
+<div class="section" id="resultset">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">Step 4 — ResultSet</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>ResultSet</strong> is a table of data representing the result of a SELECT query. The cursor starts BEFORE the first row — call <code>next()</code> to move to each row.
+  </div>
+
+<pre><span class="cl">ResultSet</span> rs = stmt.executeQuery(<span class="st">"SELECT id, name, age, email FROM students"</span>);
+
+<span class="cm">// Iterate rows</span>
+<span class="kw">while</span> (rs.next()) {   <span class="cm">// moves cursor forward, returns false at end</span>
+
+    <span class="cm">// Read by column NAME (preferred — readable)</span>
+    <span class="kw">int</span>    id    = rs.getInt(<span class="st">"id"</span>);
+    <span class="cl">String</span> name  = rs.getString(<span class="st">"name"</span>);
+    <span class="kw">int</span>    age   = rs.getInt(<span class="st">"age"</span>);
+    <span class="cl">String</span> email = rs.getString(<span class="st">"email"</span>);
+
+    <span class="cm">// Read by column INDEX (1-based)</span>
+    <span class="kw">int</span>    id2   = rs.getInt(<span class="num">1</span>);
+    <span class="cl">String</span> name2 = rs.getString(<span class="num">2</span>);
+
+    System.out.printf(<span class="st">"ID: %d | Name: %s | Age: %d%n"</span>, id, name, age);
+}
+
+<span class="cm">// Metadata — info about columns</span>
+<span class="cl">ResultSetMetaData</span> meta = rs.getMetaData();
+<span class="kw">int</span> columnCount = meta.getColumnCount();  <span class="cm">// number of columns</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= columnCount; i++) {
+    System.out.println(meta.getColumnName(i) + <span class="st">" - "</span> + meta.getColumnTypeName(i));
+}
+
+<span class="cm">// Check null values</span>
+<span class="cl">String</span> phone = rs.getString(<span class="st">"phone"</span>);
+<span class="kw">if</span> (rs.wasNull()) {
+    System.out.println(<span class="st">"Phone is NULL"</span>);
+}</pre>
+
+  <table>
+    <tr><th>Method</th><th>Type</th><th>Use for</th></tr>
+    <tr><td><code>getString("col")</code></td><td>String</td><td>VARCHAR, CHAR, TEXT</td></tr>
+    <tr><td><code>getInt("col")</code></td><td>int</td><td>INT, INTEGER, TINYINT</td></tr>
+    <tr><td><code>getLong("col")</code></td><td>long</td><td>BIGINT</td></tr>
+    <tr><td><code>getDouble("col")</code></td><td>double</td><td>DOUBLE, FLOAT, DECIMAL</td></tr>
+    <tr><td><code>getBoolean("col")</code></td><td>boolean</td><td>BOOLEAN, TINYINT(1)</td></tr>
+    <tr><td><code>getDate("col")</code></td><td>java.sql.Date</td><td>DATE</td></tr>
+    <tr><td><code>getTimestamp("col")</code></td><td>Timestamp</td><td>DATETIME, TIMESTAMP</td></tr>
+    <tr><td><code>getObject("col")</code></td><td>Object</td><td>Any type</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 7: CRUD -->
+<div class="section" id="crud">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">Full CRUD Example</div>
+  </div>
+
+<pre><span class="kw">import</span> java.sql.*;
+
+<span class="kw">public class</span> <span class="cl">StudentDAO</span> {
+
+    <span class="kw">private static final</span> <span class="cl">String</span> URL  = <span class="st">"jdbc:mysql://localhost:3306/school"</span>;
+    <span class="kw">private static final</span> <span class="cl">String</span> USER = <span class="st">"root"</span>;
+    <span class="kw">private static final</span> <span class="cl">String</span> PASS = <span class="st">"password"</span>;
+
+    <span class="cm">// CREATE</span>
+    <span class="kw">public void</span> insertStudent(<span class="cl">String</span> name, <span class="kw">int</span> age) {
+        <span class="cl">String</span> sql = <span class="st">"INSERT INTO students (name, age) VALUES (?, ?)"</span>;
+        <span class="kw">try</span> (<span class="cl">Connection</span> conn = <span class="cl">DriverManager</span>.getConnection(URL, USER, PASS);
+             <span class="cl">PreparedStatement</span> ps = conn.prepareStatement(sql)) {
+            ps.setString(<span class="num">1</span>, name);
+            ps.setInt(<span class="num">2</span>, age);
+            <span class="kw">int</span> rows = ps.executeUpdate();
+            System.out.println(rows + <span class="st">" student inserted"</span>);
+        } <span class="kw">catch</span> (<span class="cl">SQLException</span> e) { e.printStackTrace(); }
+    }
+
+    <span class="cm">// READ ALL</span>
+    <span class="kw">public void</span> getAllStudents() {
+        <span class="cl">String</span> sql = <span class="st">"SELECT * FROM students"</span>;
+        <span class="kw">try</span> (<span class="cl">Connection</span> conn = <span class="cl">DriverManager</span>.getConnection(URL, USER, PASS);
+             <span class="cl">Statement</span>  stmt = conn.createStatement();
+             <span class="cl">ResultSet</span>  rs   = stmt.executeQuery(sql)) {
+            <span class="kw">while</span> (rs.next()) {
+                System.out.printf(<span class="st">"ID: %d | Name: %-15s | Age: %d%n"</span>,
+                    rs.getInt(<span class="st">"id"</span>), rs.getString(<span class="st">"name"</span>), rs.getInt(<span class="st">"age"</span>));
+            }
+        } <span class="kw">catch</span> (<span class="cl">SQLException</span> e) { e.printStackTrace(); }
+    }
+
+    <span class="cm">// UPDATE</span>
+    <span class="kw">public void</span> updateAge(<span class="kw">int</span> id, <span class="kw">int</span> newAge) {
+        <span class="cl">String</span> sql = <span class="st">"UPDATE students SET age = ? WHERE id = ?"</span>;
+        <span class="kw">try</span> (<span class="cl">Connection</span> conn = <span class="cl">DriverManager</span>.getConnection(URL, USER, PASS);
+             <span class="cl">PreparedStatement</span> ps = conn.prepareStatement(sql)) {
+            ps.setInt(<span class="num">1</span>, newAge);
+            ps.setInt(<span class="num">2</span>, id);
+            System.out.println(ps.executeUpdate() + <span class="st">" row(s) updated"</span>);
+        } <span class="kw">catch</span> (<span class="cl">SQLException</span> e) { e.printStackTrace(); }
+    }
+
+    <span class="cm">// DELETE</span>
+    <span class="kw">public void</span> deleteStudent(<span class="kw">int</span> id) {
+        <span class="cl">String</span> sql = <span class="st">"DELETE FROM students WHERE id = ?"</span>;
+        <span class="kw">try</span> (<span class="cl">Connection</span> conn = <span class="cl">DriverManager</span>.getConnection(URL, USER, PASS);
+             <span class="cl">PreparedStatement</span> ps = conn.prepareStatement(sql)) {
+            ps.setInt(<span class="num">1</span>, id);
+            System.out.println(ps.executeUpdate() + <span class="st">" row(s) deleted"</span>);
+        } <span class="kw">catch</span> (<span class="cl">SQLException</span> e) { e.printStackTrace(); }
+    }
+}</pre>
+</div>
+
+
+<!-- SECTION 8: TRANSACTIONS -->
+<div class="section" id="transaction">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">Transactions</div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Transaction</strong> = a group of SQL operations that must ALL succeed or ALL fail together. Uses ACID properties: <strong>A</strong>tomicity, <strong>C</strong>onsistency, <strong>I</strong>solation, <strong>D</strong>urability.
+  </div>
+
+<pre><span class="cm">// By default, autoCommit = true (each statement commits immediately)</span>
+<span class="cm">// For transactions, disable autoCommit</span>
+
+<span class="kw">try</span> (<span class="cl">Connection</span> conn = <span class="cl">DriverManager</span>.getConnection(url, user, pass)) {
+
+    conn.setAutoCommit(<span class="kw">false</span>);  <span class="cm">// START TRANSACTION</span>
+
+    <span class="kw">try</span> {
+        <span class="cm">// Multiple operations in one transaction</span>
+        <span class="kw">try</span> (<span class="cl">PreparedStatement</span> ps1 = conn.prepareStatement(
+                <span class="st">"UPDATE accounts SET balance = balance - ? WHERE id = ?"</span>)) {
+            ps1.setDouble(<span class="num">1</span>, <span class="num">500.0</span>);
+            ps1.setInt(<span class="num">2</span>, <span class="num">1</span>);         <span class="cm">// debit from account 1</span>
+            ps1.executeUpdate();
+        }
+
+        <span class="kw">try</span> (<span class="cl">PreparedStatement</span> ps2 = conn.prepareStatement(
+                <span class="st">"UPDATE accounts SET balance = balance + ? WHERE id = ?"</span>)) {
+            ps2.setDouble(<span class="num">1</span>, <span class="num">500.0</span>);
+            ps2.setInt(<span class="num">2</span>, <span class="num">2</span>);         <span class="cm">// credit to account 2</span>
+            ps2.executeUpdate();
+        }
+
+        conn.commit();   <span class="cm">// ✅ BOTH succeed — commit</span>
+        System.out.println(<span class="st">"Transfer successful!"</span>);
+
+    } <span class="kw">catch</span> (<span class="cl">SQLException</span> e) {
+        conn.rollback(); <span class="cm">// ❌ ANY failure — rollback both</span>
+        System.out.println(<span class="st">"Transfer failed, rolled back: "</span> + e.getMessage());
+    }
+
+} <span class="kw">catch</span> (<span class="cl">SQLException</span> e) {
+    e.printStackTrace();
+}</pre>
+
+  <h3>Savepoints</h3>
+<pre><span class="cm">// Savepoints — partial rollback</span>
+conn.setAutoCommit(<span class="kw">false</span>);
+<span class="cl">Savepoint</span> sp1 = conn.setSavepoint(<span class="st">"afterInsert"</span>);
+<span class="kw">try</span> {
+    <span class="cm">// more operations...</span>
+    conn.commit();
+} <span class="kw">catch</span> (<span class="cl">SQLException</span> e) {
+    conn.rollback(sp1);  <span class="cm">// rollback only to savepoint, not all</span>
+    conn.commit();       <span class="cm">// commit everything up to savepoint</span>
+}</pre>
+</div>
+
+
+<!-- SECTION 9: CONNECTION POOLING -->
+<div class="section" id="pool">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">Connection Pooling</div>
+  </div>
+
+  <div class="highlight-box">
+    Creating a new database connection for every request is expensive (time + resources). <strong>Connection pooling</strong> maintains a pool of pre-created connections that are reused. Essential for production applications.
+  </div>
+
+  <h3>HikariCP — Most Popular Connection Pool</h3>
+<pre><span class="cm">// Add HikariCP dependency (Maven)</span>
+<span class="cm">// &lt;dependency&gt;&lt;groupId&gt;com.zaxxer&lt;/groupId&gt;</span>
+<span class="cm">//   &lt;artifactId&gt;HikariCP&lt;/artifactId&gt;&lt;version&gt;5.0.1&lt;/version&gt;&lt;/dependency&gt;</span>
+
+<span class="kw">import</span> com.zaxxer.hikari.*;
+
+<span class="cl">HikariConfig</span> config = <span class="kw">new</span> <span class="cl">HikariConfig</span>();
+config.setJdbcUrl(<span class="st">"jdbc:mysql://localhost:3306/school"</span>);
+config.setUsername(<span class="st">"root"</span>);
+config.setPassword(<span class="st">"password"</span>);
+config.setMaximumPoolSize(<span class="num">10</span>);     <span class="cm">// max 10 connections</span>
+config.setMinimumIdle(<span class="num">2</span>);          <span class="cm">// keep 2 idle connections</span>
+config.setConnectionTimeout(<span class="num">30000</span>); <span class="cm">// 30 second timeout</span>
+
+<span class="cl">HikariDataSource</span> dataSource = <span class="kw">new</span> <span class="cl">HikariDataSource</span>(config);
+
+<span class="cm">// Use just like DriverManager</span>
+<span class="kw">try</span> (<span class="cl">Connection</span> conn = dataSource.getConnection()) {
+    <span class="cm">// use connection — automatically returned to pool when closed!</span>
+}
+
+<span class="cm">// Shutdown pool when app exits</span>
+dataSource.close();</pre>
+
+  <table>
+    <tr><th>Popular Pool Libraries</th><th>Notes</th></tr>
+    <tr><td><strong>HikariCP</strong></td><td>Fastest, lightest, default in Spring Boot</td></tr>
+    <tr><td><strong>Apache DBCP2</strong></td><td>Apache project, widely used</td></tr>
+    <tr><td><strong>C3P0</strong></td><td>Older, still used in Hibernate</td></tr>
+    <tr><td><strong>Tomcat JDBC Pool</strong></td><td>Built into Tomcat server</td></tr>
+  </table>
+</div>
+
+
+<!-- SECTION 10: INTERVIEW Q&A -->
+<div class="section" id="interview">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Top Interview Questions & Model Answers</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q1. What is JDBC? What are its key components?</div>
+    <div class="a">JDBC (Java Database Connectivity) is a Java API in java.sql that allows Java programs to connect to relational databases. Key components: Connection (represents a database session), Statement (executes static SQL), PreparedStatement (precompiled SQL with parameters — prevents SQL injection), ResultSet (holds query results), and DriverManager (manages database drivers and creates connections).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q2. What is the difference between Statement and PreparedStatement?</div>
+    <div class="a">Statement executes static SQL strings — simple but vulnerable to SQL injection and recompiled every time. PreparedStatement precompiles the SQL once with placeholders (?), then accepts parameters at runtime — prevents SQL injection (parameters are treated as literals, not SQL), faster for repeated execution (compiled once), and cleaner code. Always prefer PreparedStatement when user input is involved.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q3. What is SQL Injection? How does PreparedStatement prevent it?</div>
+    <div class="a">SQL Injection is a security attack where malicious SQL code is inserted into an input field to manipulate database queries. Example: entering <code>' OR '1'='1</code> as a username can bypass authentication. PreparedStatement prevents this by separating SQL structure from data — the query structure is fixed at preparation time, and user input is always treated as a literal string value, never as SQL code to execute.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q4. What is a JDBC Transaction? Why is it important?</div>
+    <div class="a">A transaction is a group of SQL operations that must all succeed or all fail together (atomicity). Example: a bank transfer needs to debit one account AND credit another — if one fails, both must be rolled back. Without transactions, partial updates leave data inconsistent. By default, JDBC auto-commits each statement. For transactions: <code>setAutoCommit(false)</code>, execute operations, then <code>commit()</code> on success or <code>rollback()</code> on failure.</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q5. What is Connection Pooling? Why is it needed?</div>
+    <div class="a">Creating a database connection is expensive — it involves network handshake, authentication, and resource allocation. In web applications handling many requests, creating a new connection per request would be too slow. Connection pooling maintains a pre-created pool of connections that are borrowed and returned. This dramatically improves performance. HikariCP is the most popular pool in Java (default in Spring Boot).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q6. What is ResultSet? How do you iterate it?</div>
+    <div class="a">ResultSet is an object that holds the results of a SELECT query as a table. The cursor starts before the first row. Call <code>next()</code> to advance row by row — returns true if a row exists, false when exhausted. Use getXxx() methods like <code>getString("columnName")</code>, <code>getInt("id")</code> to retrieve values by column name (preferred) or column index (1-based). Always close ResultSet, Statement, and Connection in reverse order (or use try-with-resources).</div>
+  </div>
+
+  <div class="interview-q">
+    <div class="q">Q7. What is the difference between executeQuery(), executeUpdate(), and execute()?</div>
+    <div class="a"><code>executeQuery()</code> is for SELECT statements — returns a ResultSet. <code>executeUpdate()</code> is for INSERT, UPDATE, DELETE, and DDL (CREATE, DROP) — returns int (number of rows affected). <code>execute()</code> can run any SQL — returns boolean (true if result is a ResultSet, false if update count). Use the specific method when you know the statement type; use execute() for dynamic SQL where you don't know the type ahead of time.</div>
+  </div>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 25: JDBC · 25 of 26 complete
+</div>
+
+</body>
+</html>
