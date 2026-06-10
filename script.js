@@ -44,6 +44,9 @@ const topics = {
       { title: "Java 8 Features",          file: "java/Topic23_Java8_Features" },
       { title: "Multithreading",            file: "java/Topic24_Multithreading" },
       {title:"JDBc", file:"java/Topic25_JDBC"},
+      { title: "JDBC", file: "java/Topic25_JDBC" },
+{ title: "Complexity Mastery", file: "java/complexity-mastery" },
+{ title: "Weekend Review", file: "java/Topic26_Weekend_Review" },
     ],
   },
 
@@ -60,6 +63,8 @@ const topics = {
       {title:"Microservices", file:"hld/microservices"},
       {title:"Database Scaling", file:"hld/database-scaling"},
       {title:"CDN", file:"hld/cdn"},
+      { title:"Docker", file:"hld/docker-study-page" },
+{ title:"Reverse Proxy", file:"hld/reverse-proxy" },
     ],
   },
 
@@ -68,6 +73,8 @@ const topics = {
     icon: "🌐",
     items: [
       {title:"OSI Model", file:"networking/osi-model"},
+      { title:"IP Addressing", file:"networking/ip-addressing-study" },
+{ title:"TCP/IP", file:"networking/tcpip_study_page" },
     ],
   },
 

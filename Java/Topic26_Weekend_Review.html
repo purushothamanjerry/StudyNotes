@@ -1,0 +1,671 @@
+gi<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic 26 — Weekend Review</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+  .cover { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%);
+    color: white; padding: 48px 40px; text-align: center; }
+  .cover .topic-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+    padding: 4px 18px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .cover h1 { font-size: 2.4rem; font-weight: 800; }
+  .cover p { margin-top: 8px; opacity: 0.9; font-size: 1rem; }
+  .cover .meta { margin-top: 16px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 0.85rem; opacity: 0.85; }
+  .cover .meta span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; }
+  .section { background: #fff; margin: 20px auto; max-width: 900px; border-radius: 12px;
+    padding: 32px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+    border-bottom: 3px solid #0f3460; padding-bottom: 12px; }
+  .section-num { background: #0f3460; color: white; border-radius: 50%; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .section-title { font-size: 1.35rem; font-weight: 700; color: #0f3460; }
+  h3 { font-size: 1.05rem; color: #0f3460; margin: 20px 0 8px; }
+  h4 { font-size: 0.95rem; color: #374151; margin: 14px 0 6px; font-weight: 600; }
+  p { margin: 8px 0; font-size: 0.96rem; }
+  ul { padding-left: 22px; margin: 8px 0; }
+  li { margin: 5px 0; font-size: 0.92rem; }
+  .highlight-box { background: #e8f4fd; border-left: 4px solid #0f3460; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .tip-box      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  .warning-box  { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+  code { background: #1e293b; color: #7dd3fc; padding: 2px 7px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 0.88rem; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 16px 20px; border-radius: 10px;
+    overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7; margin: 12px 0; }
+  .kw  { color: #93c5fd; }
+  .cm  { color: #6ee7b7; }
+  .st  { color: #fcd34d; }
+  .cl  { color: #c4b5fd; }
+  .num { color: #fb923c; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.88rem; }
+  th { background: #0f3460; color: white; padding: 9px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) { background: #f0f4f8; }
+  tr:hover { background: #dbeafe; }
+  .phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+  .phase-card { border-radius: 10px; padding: 14px; border: 2px solid; }
+  .ph1 { background: #eff6ff; border-color: #93c5fd; }
+  .ph2 { background: #f0fdf4; border-color: #86efac; }
+  .ph3 { background: #fdf4ff; border-color: #d8b4fe; }
+  .ph4 { background: #fffbeb; border-color: #fcd34d; }
+  .ph5 { background: #fff7ed; border-color: #fed7aa; }
+  .ph6 { background: #fef2f2; border-color: #fca5a5; }
+  .phase-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; }
+  .ph1 .phase-title { color: #1d4ed8; }
+  .ph2 .phase-title { color: #166534; }
+  .ph3 .phase-title { color: #6b21a8; }
+  .ph4 .phase-title { color: #92400e; }
+  .ph5 .phase-title { color: #9a3412; }
+  .ph6 .phase-title { color: #991b1b; }
+  .phase-card li { font-size: 0.82rem; color: #4b5563; }
+  .q-card { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; margin: 8px 0; }
+  .q-card .q { color: #dc2626; font-weight: 600; font-size: 0.9rem; }
+  .q-card .a { color: #374151; font-size: 0.88rem; margin-top: 5px; }
+  .score-table { width: 100%; }
+  .score-table td:first-child { font-weight: 600; }
+  .score-table td:last-child { font-family: 'Courier New'; color: #059669; }
+  .progress-bar { display: flex; gap: 4px; margin: 20px auto; max-width: 900px; padding: 0 20px; }
+  .progress-step { flex: 1; height: 6px; border-radius: 3px; background: #0f3460; }
+  .footer { text-align: center; padding: 32px; color: #94a3b8; font-size: 0.9rem; }
+  .congrats { background: linear-gradient(135deg, #059669, #0369a1); color: white; border-radius: 12px;
+    padding: 24px; text-align: center; margin: 20px auto; max-width: 900px; }
+  .congrats h2 { font-size: 1.8rem; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="topic-badge">TOPIC 26 OF 26 — FINAL</div>
+  <h1>🏆 Weekend Review</h1>
+  <p>Complete Java Interview Preparation — All 25 Topics Summarized</p>
+  <div class="meta">
+    <span>All Phases Complete</span>
+    <span>26 Topics Covered</span>
+    <span>Interview Ready</span>
+    <span>Full Stack Java</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+  <div class="progress-step"></div><div class="progress-step"></div>
+</div>
+
+
+<!-- ALL TOPICS MAP -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">📋</div>
+    <div class="section-title">Complete Topic Map — 26 Topics, 6 Phases</div>
+  </div>
+
+  <div class="phase-grid">
+    <div class="phase-card ph1">
+      <div class="phase-title">🔵 Phase 1 — Foundation</div>
+      <ul>
+        <li>T1. What is Java?</li>
+        <li>T2. How Java Runs</li>
+      </ul>
+    </div>
+    <div class="phase-card ph2">
+      <div class="phase-title">🟢 Phase 2 — Basics</div>
+      <ul>
+        <li>T3. How Data is Stored</li>
+        <li>T4. Variables & Data Types</li>
+        <li>T5. Operators</li>
+        <li>T6. Conditional Statements</li>
+        <li>T7. Loops</li>
+        <li>T8. Methods</li>
+      </ul>
+    </div>
+    <div class="phase-card ph3">
+      <div class="phase-title">🟣 Phase 3 — OOP</div>
+      <ul>
+        <li>T9. Class & Object</li>
+        <li>T10. Access Modifiers</li>
+        <li>T11. Constructor</li>
+        <li>T12. Encapsulation</li>
+        <li>T13. Inheritance</li>
+        <li>T14. Polymorphism</li>
+        <li>T15. Abstract Class</li>
+        <li>T16. Interface</li>
+      </ul>
+    </div>
+    <div class="phase-card ph4">
+      <div class="phase-title">🟡 Phase 4 — Core Java</div>
+      <ul>
+        <li>T17. Non-Access Modifiers</li>
+        <li>T18. String</li>
+        <li>T19. Arrays</li>
+        <li>T20. Exception Handling</li>
+        <li>T21. Generics</li>
+      </ul>
+    </div>
+    <div class="phase-card ph5">
+      <div class="phase-title">🟠 Phase 5 — Advanced</div>
+      <ul>
+        <li>T22. Collections</li>
+        <li>T23. Java 8+ Features</li>
+        <li>T24. Multithreading</li>
+      </ul>
+    </div>
+    <div class="phase-card ph6">
+      <div class="phase-title">🔴 Phase 6 — Database</div>
+      <ul>
+        <li>T25. JDBC</li>
+        <li>T26. Weekend Review ← YOU ARE HERE</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- QUICK REVISION — PHASE 1 & 2 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Quick Revision — Foundation & Basics (T1–T8)</div>
+  </div>
+
+  <h3>🔵 T1 — What is Java?</h3>
+  <ul>
+    <li>High-level, Object-Oriented, Platform-Independent language</li>
+    <li>Created by <strong>James Gosling</strong> at Sun Microsystems, <strong>1995</strong></li>
+    <li>WORA — Write Once, Run Anywhere via bytecode + JVM</li>
+    <li><strong>JDK ⊃ JRE ⊃ JVM</strong> — JDK for development, JRE to run, JVM executes bytecode</li>
+  </ul>
+
+  <h3>🔵 T2 — How Java Runs</h3>
+  <ul>
+    <li>.java → <code>javac</code> → .class (bytecode) → JVM → machine code</li>
+    <li>JVM: ClassLoader → Bytecode Verifier → Interpreter + JIT Compiler</li>
+    <li>Heap: objects | Stack: local vars, references (per thread)</li>
+    <li>GC automatically frees unreferenced heap objects</li>
+  </ul>
+
+  <h3>🟢 T3 — How Data is Stored</h3>
+  <ul>
+    <li>Primitives (int, double, boolean) → stored on <strong>Stack</strong> directly</li>
+    <li>Objects → <strong>Heap</strong>; reference variable → Stack</li>
+    <li>String Pool: literals reused; <code>new String()</code> → new heap object</li>
+    <li>Java is always <strong>pass by value</strong> (for objects: copy of reference)</li>
+    <li>Integer cache: -128 to 127 cached → <code>==</code> true; above → false</li>
+  </ul>
+
+  <h3>🟢 T4 — Variables & Data Types</h3>
+  <ul>
+    <li>Local (stack, no default), Instance (heap, has default), Static (method area, shared)</li>
+    <li>Widening (auto, safe): byte→short→int→long→float→double</li>
+    <li>Narrowing (manual cast, may lose data): <code>(int) 9.99 → 9</code> (truncates!)</li>
+    <li><code>var</code> (Java 10) — local type inference only</li>
+  </ul>
+
+  <h3>🟢 T5 — Operators</h3>
+  <ul>
+    <li><code>1 + 2 + "3"</code> → "33" | <code>"1" + 2 + 3</code> → "123" (left to right)</li>
+    <li><code>&&</code> short-circuits (skips right if left false) | <code>&</code> evaluates both</li>
+    <li>Post: <code>x++</code> uses then increments | Pre: <code>++x</code> increments then uses</li>
+    <li>Ternary: <code>condition ? valueIfTrue : valueIfFalse</code></li>
+  </ul>
+
+  <h3>🟢 T6 — Conditional Statements</h3>
+  <ul>
+    <li>else-if: first match runs, rest skipped even if true</li>
+    <li>switch: missing <code>break</code> → fall-through to next cases</li>
+    <li>switch does NOT support: long, float, double, boolean</li>
+    <li>Java 14+ switch expression: uses <code>-></code>, no fall-through, no break needed</li>
+  </ul>
+
+  <h3>🟢 T7 — Loops</h3>
+  <ul>
+    <li>while: condition checked first → may run 0 times</li>
+    <li>do-while: body runs first → always at least 1 time</li>
+    <li>for-each: no index, no modification, no reverse</li>
+    <li><code>break</code> exits loop | <code>continue</code> skips current iteration</li>
+    <li>Labeled <code>break outer</code> → exits outer loop from inner</li>
+  </ul>
+
+  <h3>🟢 T8 — Methods</h3>
+  <ul>
+    <li>Overloading: same name, different params, same class, compile-time</li>
+    <li>Cannot overload by return type alone</li>
+    <li>Varargs: <code>int... nums</code> — must be last param, only one per method</li>
+    <li>Recursion: needs base case or → StackOverflowError</li>
+    <li>Static method cannot access instance variables</li>
+  </ul>
+</div>
+
+
+<!-- QUICK REVISION — PHASE 3 (OOP) -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Quick Revision — OOP (T9–T16)</div>
+  </div>
+
+  <h3>🟣 T9 — Class & Object</h3>
+  <ul>
+    <li>Class = blueprint | Object = instance (each has own state)</li>
+    <li><code>new</code>: allocates heap + calls constructor + returns reference</li>
+    <li><code>Dog d2 = d1</code> → copies reference (both point to same object!)</li>
+    <li>Override <code>toString()</code> — called by println automatically</li>
+    <li>Override <code>equals()</code> + <code>hashCode()</code> together always!</li>
+  </ul>
+
+  <h3>🟣 T10 — Access Modifiers</h3>
+  <table>
+    <tr><th>Modifier</th><th>Same Class</th><th>Same Package</th><th>Subclass (diff pkg)</th><th>Other Package</th></tr>
+    <tr><td>private</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td></tr>
+    <tr><td>default</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+    <tr><td>protected</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td></tr>
+    <tr><td>public</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  </table>
+  <ul>
+    <li>Top-level class: only public or default (NOT private/protected)</li>
+    <li>Cannot REDUCE access when overriding</li>
+  </ul>
+
+  <h3>🟣 T11 — Constructor</h3>
+  <ul>
+    <li>No return type (not even void) | same name as class</li>
+    <li>Java provides default constructor only if you write NO constructor</li>
+    <li><code>this()</code> — same class constructor | <code>super()</code> — parent constructor</li>
+    <li>Both must be FIRST statement | Cannot use both in same constructor</li>
+    <li>Private constructor → Singleton pattern</li>
+  </ul>
+
+  <h3>🟣 T12 — Encapsulation</h3>
+  <ul>
+    <li>Private fields + public getters/setters = encapsulation</li>
+    <li>Boolean getter uses <code>is</code> prefix: <code>isActive()</code></li>
+    <li>Read-only: getter only | Write-only: setter only</li>
+    <li>JavaBean: private fields + getters/setters + no-arg constructor + Serializable</li>
+  </ul>
+
+  <h3>🟣 T13 — Inheritance</h3>
+  <ul>
+    <li>Java supports: Single, Multilevel, Hierarchical — NOT multiple class inheritance</li>
+    <li>Diamond Problem → why no multiple class inheritance</li>
+    <li>Constructor order: parent first, then child (always!)</li>
+    <li>Private fields NOT directly inherited | Constructors NOT inherited</li>
+    <li>Cannot override: private, static (hidden), final methods</li>
+  </ul>
+
+  <h3>🟣 T14 — Polymorphism</h3>
+  <ul>
+    <li>Compile-time: method overloading, resolved by compiler</li>
+    <li>Runtime: method overriding, resolved by JVM via dynamic dispatch</li>
+    <li>Upcasting: automatic, safe | Downcasting: explicit, can throw ClassCastException</li>
+    <li>Always use instanceof before downcasting!</li>
+    <li>Parent reference → only parent class methods accessible</li>
+  </ul>
+
+  <h3>🟣 T15 — Abstract Class</h3>
+  <ul>
+    <li>Cannot instantiate | Can have constructor (called via super())</li>
+    <li>Abstract method: no body, must override in concrete subclass</li>
+    <li>Cannot: abstract + final, abstract + static, abstract + private</li>
+    <li>Zero abstract methods still valid (to prevent instantiation)</li>
+  </ul>
+
+  <h3>🟣 T16 — Interface</h3>
+  <ul>
+    <li>Variables: implicitly <code>public static final</code> — constants only</li>
+    <li>Java 8: default methods + static methods (NOT inherited!)</li>
+    <li>Java 9: private methods (helpers for default methods)</li>
+    <li>Functional interface: exactly ONE abstract method → can use lambda</li>
+    <li>Marker interface: no methods (Serializable, Cloneable)</li>
+    <li>Diamond conflict: implementing class MUST override conflicting default method</li>
+  </ul>
+</div>
+
+
+<!-- QUICK REVISION — PHASE 4 (CORE JAVA) -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Quick Revision — Core Java (T17–T21)</div>
+  </div>
+
+  <h3>🟡 T17 — Non-Access Modifiers</h3>
+  <ul>
+    <li><code>static</code>: belongs to class, shared, no <code>this</code></li>
+    <li><code>final</code>: variable=constant, method=no override, class=no extend</li>
+    <li><code>final</code> reference: reference fixed, but object CAN be modified</li>
+    <li><code>synchronized</code>: one thread at a time (methods/blocks only)</li>
+    <li><code>volatile</code>: visibility only, NOT atomicity (<code>count++</code> still unsafe!)</li>
+    <li><code>transient</code>: skip during serialization → default value after deserialization</li>
+  </ul>
+
+  <h3>🟡 T18 — String</h3>
+  <ul>
+    <li>Immutable, final class, stored in String Pool</li>
+    <li><code>==</code>: references | <code>.equals()</code>: content — always use equals()!</li>
+    <li>Compile-time concat in pool | Runtime concat → new heap object</li>
+    <li><code>new String("Hello")</code> → up to 2 objects created</li>
+    <li>StringBuilder: mutable, fast, NOT thread-safe (single thread)</li>
+    <li>StringBuffer: mutable, synchronized, thread-safe (slower)</li>
+  </ul>
+
+  <h3>🟡 T19 — Arrays</h3>
+  <ul>
+    <li><code>arr.length</code> — field, NOT method (no parentheses!)</li>
+    <li>Valid indices: 0 to length-1 → else ArrayIndexOutOfBoundsException</li>
+    <li><code>Arrays.sort()</code> modifies original | <code>Arrays.binarySearch()</code> needs sorted array</li>
+    <li><code>arr2 = arr1</code> copies reference, not array | Use <code>Arrays.copyOf()</code></li>
+    <li>Array passed to method → changes affect original!</li>
+  </ul>
+
+  <h3>🟡 T20 — Exception Handling</h3>
+  <ul>
+    <li>Checked: compiler forces handle/declare (IOException, SQLException)</li>
+    <li>Unchecked: RuntimeException subclasses (NPE, AIOOBE, CCE)</li>
+    <li>Error: JVM-level (OutOfMemoryError, StackOverflowError) — don't catch</li>
+    <li><code>finally</code>: ALWAYS runs except on System.exit()</li>
+    <li><code>throw</code>: inside method body | <code>throws</code>: method signature</li>
+    <li>try-with-resources: auto-closes AutoCloseable resources</li>
+    <li>Specific catch before general (child before parent)!</li>
+  </ul>
+
+  <h3>🟡 T21 — Generics</h3>
+  <ul>
+    <li>Type safety at compile time, eliminates casting</li>
+    <li>Cannot use primitives (<code>List&lt;int&gt;</code> ❌ → use <code>List&lt;Integer&gt;</code>)</li>
+    <li><code>&lt;T extends Number&gt;</code>: T must be Number or subclass</li>
+    <li><code>? extends T</code>: read (producer) | <code>? super T</code>: write (consumer) — PECS rule</li>
+    <li>Type erasure: generics removed at runtime — <code>List&lt;String&gt;</code> = <code>List</code> at runtime</li>
+    <li>Cannot create generic arrays: <code>new T[10]</code> ❌</li>
+  </ul>
+</div>
+
+
+<!-- QUICK REVISION — PHASE 5 & 6 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">Quick Revision — Advanced & Database (T22–T25)</div>
+  </div>
+
+  <h3>🟠 T22 — Collections</h3>
+  <table>
+    <tr><th>Interface</th><th>Class</th><th>Order</th><th>Duplicates</th><th>Null</th><th>Thread-safe</th></tr>
+    <tr><td>List</td><td>ArrayList</td><td>Insertion</td><td>✅</td><td>✅</td><td>❌</td></tr>
+    <tr><td>List</td><td>LinkedList</td><td>Insertion</td><td>✅</td><td>✅</td><td>❌</td></tr>
+    <tr><td>Set</td><td>HashSet</td><td>No order</td><td>❌</td><td>One null</td><td>❌</td></tr>
+    <tr><td>Set</td><td>LinkedHashSet</td><td>Insertion</td><td>❌</td><td>One null</td><td>❌</td></tr>
+    <tr><td>Set</td><td>TreeSet</td><td>Sorted</td><td>❌</td><td>❌</td><td>❌</td></tr>
+    <tr><td>Map</td><td>HashMap</td><td>No order</td><td>Values ✅</td><td>One null key</td><td>❌</td></tr>
+    <tr><td>Map</td><td>LinkedHashMap</td><td>Insertion</td><td>Values ✅</td><td>One null key</td><td>❌</td></tr>
+    <tr><td>Map</td><td>TreeMap</td><td>Sorted key</td><td>Values ✅</td><td>❌</td><td>❌</td></tr>
+  </table>
+  <ul>
+    <li>ConcurrentModificationException: don't modify collection during for-each → use Iterator.remove() or removeIf()</li>
+    <li>Comparable: natural order (compareTo) | Comparator: custom order (compare)</li>
+  </ul>
+
+  <h3>🟠 T23 — Java 8+ Features</h3>
+  <ul>
+    <li>Lambda: <code>(a, b) -> a + b</code> — implements functional interface</li>
+    <li>Stream: Source → filter/map/sorted → collect/forEach/count (lazy pipeline)</li>
+    <li>Optional: avoids null — orElse(), orElseThrow(), map(), ifPresent()</li>
+    <li>Method ref: <code>String::toUpperCase</code>, <code>System.out::println</code>, <code>ArrayList::new</code></li>
+    <li>LocalDate, LocalTime, LocalDateTime — immutable, thread-safe date/time</li>
+    <li>Records (Java 16): auto-generates constructor, getters, equals, hashCode, toString</li>
+  </ul>
+
+  <h3>🟠 T24 — Multithreading</h3>
+  <ul>
+    <li><code>start()</code> → new thread | <code>run()</code> → same thread (no new thread!)</li>
+    <li>Thread states: NEW → RUNNABLE → RUNNING → BLOCKED/WAITING → TERMINATED</li>
+    <li>Race condition: use synchronized or AtomicInteger</li>
+    <li>Deadlock: threads waiting for each other's locks → fix with lock ordering</li>
+    <li>volatile: visibility | synchronized: visibility + atomicity</li>
+    <li>ExecutorService: thread pool, reuse threads, submit Callable → Future</li>
+    <li>wait() releases lock | sleep() does NOT release lock</li>
+  </ul>
+
+  <h3>🔴 T25 — JDBC</h3>
+  <ul>
+    <li>Steps: Load driver → Connection → Statement → Execute → ResultSet → Close</li>
+    <li>Statement: static SQL, SQL injection risk | PreparedStatement: parameterized (?) → safe + fast</li>
+    <li><code>executeQuery()</code> → ResultSet | <code>executeUpdate()</code> → int (rows affected)</li>
+    <li>Transaction: setAutoCommit(false) → commit() or rollback()</li>
+    <li>Connection Pool (HikariCP): reuse connections, much faster than creating new each time</li>
+    <li>Always close in try-with-resources to avoid resource leaks!</li>
+  </ul>
+</div>
+
+
+<!-- TOP TRICKY QUESTIONS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div class="section-title">🧠 Top Tricky Interview Questions — Must Know!</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is the output? System.out.println(1 + 2 + "3"); and System.out.println("1" + 2 + 3);</div>
+    <div class="a">"33" and "123" — evaluated left to right; once a String is encountered, + becomes concatenation.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: Is Java pass by value or pass by reference?</div>
+    <div class="a">Always pass by value. For objects, the value passed is the copy of the reference — so field changes in method are visible, but reassigning the reference is not.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is the output? Integer a = 127; Integer b = 127; System.out.println(a == b);</div>
+    <div class="a">true — Java caches Integer objects from -128 to 127. Same cached object. For 128+, new objects are created → false.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: Can abstract class have constructor? Can you have abstract class with no abstract methods?</div>
+    <div class="a">Yes to both. Constructor called via super(). Zero abstract methods is valid — just prevents instantiation.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: Can you override a static method?</div>
+    <div class="a">No — static methods can be hidden (method hiding), not overridden. Resolved at compile time by reference type, not runtime object type.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is the difference between == and equals() for String?</div>
+    <div class="a">== compares references. .equals() compares content. Always use .equals() for String comparison. Use "literal".equals(variable) to avoid NPE.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is the difference between final variable, finally block, and finalize() method?</div>
+    <div class="a">final variable: constant, cannot reassign. finally block: always executes after try-catch (except System.exit). finalize(): deprecated method called before GC (avoid using).</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: Why must you override hashCode() when you override equals()?</div>
+    <div class="a">Contract: if a.equals(b) → a.hashCode() == b.hashCode(). HashMap/HashSet use hashCode first to find bucket, then equals to find exact entry. Breaking this causes collections to malfunction.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is the difference between Comparable and Comparator?</div>
+    <div class="a">Comparable (compareTo): natural order built into the class itself — one default sort. Comparator (compare): external, multiple sort orders without modifying the class.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is the difference between ArrayList and LinkedList?</div>
+    <div class="a">ArrayList: O(1) random access, O(n) insert/delete at middle. LinkedList: O(n) random access, O(1) insert/delete at middle. Use ArrayList for reads, LinkedList for frequent middle modifications.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is the difference between wait() and sleep()?</div>
+    <div class="a">wait() is an Object method: releases the lock and waits for notify(). Must be inside synchronized block. sleep() is a Thread method: pauses but does NOT release locks. wait() for thread communication; sleep() for pausing.</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q">Q: What is type erasure in Generics?</div>
+    <div class="a">Java removes all generic type info from bytecode at compile time. List&lt;String&gt; and List&lt;Integer&gt; are both just List at runtime. Can't create generic arrays or use instanceof with generic types.</div>
+  </div>
+</div>
+
+
+<!-- OOP 4 PILLARS CHEATSHEET -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div class="section-title">🏛️ 4 OOP Pillars — Cheatsheet</div>
+  </div>
+
+  <table>
+    <tr><th>Pillar</th><th>Definition</th><th>Achieved by</th><th>Key class/keyword</th></tr>
+    <tr><td><strong>Encapsulation</strong></td><td>Hide data, expose via methods</td><td>private fields + getters/setters</td><td>private, public</td></tr>
+    <tr><td><strong>Inheritance</strong></td><td>Child acquires parent properties</td><td>extends keyword</td><td>extends, super</td></tr>
+    <tr><td><strong>Polymorphism</strong></td><td>One interface, many behaviors</td><td>Overloading (compile) + Overriding (runtime)</td><td>@Override</td></tr>
+    <tr><td><strong>Abstraction</strong></td><td>Hide complexity, show essentials</td><td>Abstract class + Interface</td><td>abstract, interface</td></tr>
+  </table>
+</div>
+
+
+<!-- KEY COMPARISONS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">7</div>
+    <div class="section-title">📊 Key Comparisons — Frequently Asked</div>
+  </div>
+
+  <h3>Abstract Class vs Interface</h3>
+  <table>
+    <tr><th>Feature</th><th>Abstract Class</th><th>Interface</th></tr>
+    <tr><td>Constructor</td><td>✅ Yes</td><td>❌ No</td></tr>
+    <tr><td>Instance variables</td><td>✅ Any modifier</td><td>❌ public static final only</td></tr>
+    <tr><td>Multiple inheritance</td><td>❌ One only</td><td>✅ Multiple</td></tr>
+    <tr><td>Use when</td><td>Shared state + partial impl</td><td>Contract, multiple inheritance</td></tr>
+  </table>
+
+  <h3>throw vs throws</h3>
+  <table>
+    <tr><th></th><th>throw</th><th>throws</th></tr>
+    <tr><td>Location</td><td>Inside method body</td><td>Method signature</td></tr>
+    <tr><td>Purpose</td><td>Actually throws exception</td><td>Declares possible exception</td></tr>
+    <tr><td>Example</td><td><code>throw new IOException()</code></td><td><code>void m() throws IOException</code></td></tr>
+  </table>
+
+  <h3>String vs StringBuilder vs StringBuffer</h3>
+  <table>
+    <tr><th></th><th>String</th><th>StringBuilder</th><th>StringBuffer</th></tr>
+    <tr><td>Mutable?</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Thread-safe?</td><td>Yes (immutable)</td><td>No</td><td>Yes</td></tr>
+    <tr><td>Use when</td><td>Fixed text</td><td>Single thread loops</td><td>Multi-thread</td></tr>
+  </table>
+
+  <h3>Checked vs Unchecked Exception</h3>
+  <table>
+    <tr><th></th><th>Checked</th><th>Unchecked</th></tr>
+    <tr><td>Extends</td><td>Exception</td><td>RuntimeException</td></tr>
+    <tr><td>Compiler forces?</td><td>✅ Yes</td><td>❌ No</td></tr>
+    <tr><td>Examples</td><td>IOException, SQLException</td><td>NPE, AIOOBE, CCE</td></tr>
+  </table>
+</div>
+
+
+<!-- JAVA KEYWORDS CHEATSHEET -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">8</div>
+    <div class="section-title">🔑 Java Keywords Quick Reference</div>
+  </div>
+
+  <table>
+    <tr><th>Keyword</th><th>Meaning</th></tr>
+    <tr><td><code>this</code></td><td>Current object reference — resolve ambiguity, constructor chaining, method chaining</td></tr>
+    <tr><td><code>super</code></td><td>Parent class reference — call parent constructor/method/field</td></tr>
+    <tr><td><code>final</code></td><td>Variable=constant, method=no override, class=no extend</td></tr>
+    <tr><td><code>static</code></td><td>Belongs to class, not object. One copy shared. No this/instance access</td></tr>
+    <tr><td><code>abstract</code></td><td>Cannot instantiate (class) or no body (method) — must override</td></tr>
+    <tr><td><code>synchronized</code></td><td>One thread at a time — ensures thread safety</td></tr>
+    <tr><td><code>volatile</code></td><td>Always read from main memory — visibility across threads</td></tr>
+    <tr><td><code>transient</code></td><td>Skip this field during serialization</td></tr>
+    <tr><td><code>instanceof</code></td><td>Check if object is instance of class/interface — safe before cast</td></tr>
+    <tr><td><code>extends</code></td><td>Class inherits class | Interface extends interface(s)</td></tr>
+    <tr><td><code>implements</code></td><td>Class implements interface(s)</td></tr>
+    <tr><td><code>throw</code></td><td>Explicitly throw exception object</td></tr>
+    <tr><td><code>throws</code></td><td>Declare exceptions method might throw (checked)</td></tr>
+    <tr><td><code>new</code></td><td>Allocate heap + call constructor + return reference</td></tr>
+    <tr><td><code>var</code></td><td>Local type inference (Java 10) — compiler infers type</td></tr>
+  </table>
+</div>
+
+
+<!-- INTERVIEW TIPS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">9</div>
+    <div class="section-title">💡 Interview Tips & Strategy</div>
+  </div>
+
+  <h3>How to Answer Technical Questions</h3>
+  <ul>
+    <li><strong>Definition first</strong> — give a clear one-line definition</li>
+    <li><strong>Then explain how</strong> — implementation or mechanism</li>
+    <li><strong>Give an example</strong> — concrete code or real-world analogy</li>
+    <li><strong>Mention when to use</strong> — use cases and limitations</li>
+    <li><strong>Common mistakes</strong> — shows depth of knowledge</li>
+  </ul>
+
+  <h3>Most Frequently Asked Topics (prepare deeply)</h3>
+  <ul>
+    <li>✅ OOP Pillars with examples</li>
+    <li>✅ Abstract class vs Interface (with Java 8+ changes)</li>
+    <li>✅ HashMap internal working (hashCode, equals, collision)</li>
+    <li>✅ String immutability + String Pool</li>
+    <li>✅ Checked vs Unchecked exceptions</li>
+    <li>✅ synchronized vs volatile</li>
+    <li>✅ Java 8 features: Lambda, Stream, Optional</li>
+    <li>✅ ArrayList vs LinkedList</li>
+    <li>✅ this vs super</li>
+    <li>✅ Method overloading vs overriding</li>
+  </ul>
+
+  <h3>Common Mistakes to Avoid</h3>
+  <div class="warning-box">
+    <ul>
+      <li>Never say "Java is pass by reference" — it's always pass by value</li>
+      <li>Don't confuse method overloading (same class) with overriding (parent-child)</li>
+      <li>Don't forget: interface static methods are NOT inherited</li>
+      <li>Don't forget: if you override equals(), you MUST override hashCode()</li>
+      <li>Don't say "interface is 100% abstract" — Java 8+ has default/static methods</li>
+      <li>Don't call t.run() thinking it creates a new thread — always t.start()</li>
+    </ul>
+  </div>
+
+  <div class="tip-box">
+    <strong>💡 Before the interview:</strong><br>
+    Review this file every weekend. Practice explaining each concept out loud. Write code by hand (no IDE). Mock interviews matter — practice with a friend or record yourself answering questions.
+  </div>
+</div>
+
+
+<!-- CONGRATULATIONS -->
+<div class="congrats">
+  <h2>🎉 Congratulations!</h2>
+  <p style="font-size:1.1rem; margin-top:8px;">You have completed all 26 Java topics!</p>
+  <p style="margin-top:12px; opacity:0.9;">Foundation → Basics → OOP → Core Java → Advanced → Database</p>
+  <p style="margin-top:12px; font-size:1rem; opacity:0.85;">You are now well-prepared for Java technical interviews. Keep practicing, stay consistent, and you will succeed! 🚀</p>
+</div>
+
+<div class="footer">
+  ☕ Java Interview Notes · Topic 26: Weekend Review · All 26 Topics Complete! 🏆<br><br>
+  <strong>Topics Covered:</strong> Java Basics · OOP · Core Java · Collections · Java 8+ · Multithreading · JDBC
+</div>
+
+</body>
+</html>

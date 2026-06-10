@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reverse Proxy — HLD Engineering Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;--bg4:#1a2235;
+  --card:#0f1829;--border:#1e2d45;--border2:#243350;
+  --accent:#f87171;--accent2:#dc2626;--accent3:#00ff88;
+  --accent4:#00d4ff;--accent5:#a78bfa;
+  --warn:#fbbf24;--danger:#f87171;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+.layout{display:grid;grid-template-columns:270px 1fr 220px;min-height:100vh;max-width:1600px;margin:0 auto}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sidebar-nav{padding:16px 12px}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .2s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(248,113,113,.1);color:var(--accent);border-left:2px solid var(--accent)}
+.nav-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:18px}
+.nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(248,113,113,.1);color:var(--accent)}
+.hero{background:linear-gradient(135deg,#080c14 0%,#1a0a0a 50%,#0a0c10 100%);padding:60px 60px 50px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,rgba(248,113,113,.07) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:160px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,212,255,.04) 0%,transparent 70%);pointer-events:none}
+.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
+.breadcrumb span{color:var(--accent)}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent) 0%,var(--warn) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{font-size:17px;color:var(--text2);max-width:640px;margin-bottom:28px;line-height:1.7}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.meta-dot{width:6px;height:6px;border-radius:50%}
+.main{padding:0;min-width:0}
+.content{padding:48px 60px;max-width:880px}
+.section{margin-bottom:64px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';display:block;width:16px;height:1px;background:var(--accent)}
+h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:16px;line-height:1.2}
+h3{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:28px}
+p{color:var(--text2);margin-bottom:14px;font-size:15px}
+strong{color:var(--text);font-weight:600}
+.analogy-box{background:linear-gradient(135deg,rgba(248,113,113,.08) 0%,rgba(251,191,36,.04) 100%);border:1px solid rgba(248,113,113,.2);border-radius:12px;padding:24px 28px;margin:24px 0;position:relative}
+.analogy-box::before{content:'💡';position:absolute;top:-12px;left:20px;font-size:20px;background:var(--bg);padding:0 6px}
+.analogy-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,var(--accent))}
+.info-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-icon{font-size:24px;margin-bottom:12px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--text2);line-height:1.5}
+.diagram-container{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px 24px;margin:24px 0;overflow-x:auto}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:24px;text-align:center;text-transform:uppercase;letter-spacing:.1em}
+.diagram-svg{display:block;margin:0 auto;max-width:100%}
+.code-wrap{margin:20px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.code-header{background:var(--bg4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:600}
+.code-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--accent);border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.copy-btn:hover{background:rgba(248,113,113,.15)}
+pre{background:#060a10;padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.kw{color:#ff79c6}.str{color:#f1fa8c}.cm{color:#6272a4;font-style:italic}.fn{color:#50fa7b}.num{color:#bd93f9}.key{color:#8be9fd}.val{color:#ffb86c}.op{color:#ff5555}
+.step-list{margin:20px 0}
+.step-item{display:flex;gap:16px;margin-bottom:20px;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:15px;top:36px;bottom:-20px;width:1px;background:linear-gradient(to bottom,var(--accent),transparent)}
+.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)}
+.step-title{font-weight:600;color:var(--text);font-size:15px;margin-bottom:4px}
+.step-desc{color:var(--text2);font-size:14px}
+.tabs{margin:24px 0}
+.tab-list{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:4px;border-radius:10px;width:fit-content;flex-wrap:wrap}
+.tab-btn{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:'Inter',sans-serif}
+.tab-btn.active{background:rgba(248,113,113,.12);color:var(--accent);border:1px solid rgba(248,113,113,.2)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:8px}
+.tab-panel.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.accordion{margin:16px 0}
+.accordion-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.accordion-trigger{width:100%;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:none;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:background .2s}
+.accordion-trigger:hover{background:var(--bg4)}
+.accordion-icon{width:20px;height:20px;border-radius:50%;background:rgba(248,113,113,.1);display:flex;align-items:center;justify-content:center;font-size:12px;transition:transform .3s;flex-shrink:0}
+.accordion-item.open .accordion-icon{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;background:var(--card);padding:0 18px;font-size:14px;color:var(--text2)}
+.accordion-item.open .accordion-body{max-height:900px;padding:16px 18px}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.pros-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:10px;padding:20px}
+.cons-box{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:20px}
+.box-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px}
+.pros-box .box-title{color:var(--accent3)}.cons-box .box-title{color:var(--danger)}
+.check-list{list-style:none}
+.check-list li{font-size:13.5px;color:var(--text2);padding:4px 0;display:flex;gap:8px;align-items:flex-start}
+.pros-box .check-list li::before{content:'✓';color:var(--accent3);flex-shrink:0;margin-top:1px}
+.cons-box .check-list li::before{content:'✗';color:var(--danger);flex-shrink:0;margin-top:1px}
+.alert{border-radius:8px;padding:14px 18px;margin:16px 0;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.alert-icon{font-size:16px;flex-shrink:0}
+.alert-warn{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);color:var(--warn)}
+.alert-danger{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--danger)}
+.alert-info{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--accent)}
+.alert-success{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);color:var(--accent3)}
+.alert p{color:inherit;margin:0}
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:20px 0}
+.company-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;transition:all .25s}
+.company-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.company-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.company-tech{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(248,113,113,.08);padding:2px 8px;border-radius:4px}
+.company-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.interview-list{margin:16px 0}
+.interview-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.interview-item:hover{border-color:var(--border2);background:var(--bg4)}
+.interview-q{font-size:14px;font-weight:600;color:var(--text);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.interview-q::after{content:'›';color:var(--text3);font-size:18px;flex-shrink:0;transition:transform .2s}
+.interview-item.open .interview-q::after{transform:rotate(90deg)}
+.interview-a{max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;font-size:13.5px;color:var(--text2)}
+.interview-item.open .interview-a{max-height:500px;padding-top:10px}
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg4)}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+td{padding:11px 16px;font-size:13.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+td:first-child{color:var(--text);font-weight:500}
+.toc{position:sticky;top:24px;padding:24px 16px}
+.toc-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.toc-list{list-style:none}
+.toc-item{margin-bottom:2px}
+.toc-link{display:block;padding:5px 10px;border-radius:5px;color:var(--text3);text-decoration:none;font-size:12.5px;transition:all .2s;border-left:2px solid transparent}
+.toc-link:hover{color:var(--text);background:var(--bg3)}
+.toc-link.active{color:var(--accent);border-left-color:var(--accent);background:rgba(248,113,113,.05)}
+.progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent),var(--warn));z-index:100;transition:width .1s}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid}
+.tag-red{color:var(--accent);border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.06)}
+.tag-blue{color:var(--accent4);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.06)}
+.tag-green{color:var(--accent3);border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.06)}
+.tag-purple{color:var(--accent5);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+.sep{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:40px 0}
+.summary-box{background:linear-gradient(135deg,rgba(248,113,113,.06) 0%,rgba(251,191,36,.04) 100%);border:1px solid rgba(248,113,113,.2);border-radius:14px;padding:28px 32px;margin:32px 0}
+.summary-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px}
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(248,113,113,.08);color:var(--accent);padding:1px 6px;border-radius:4px;border:1px solid rgba(248,113,113,.15)}
+pre code{background:transparent;color:inherit;padding:0;border:none;font-size:inherit}
+.next-topic{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:48px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .25s;text-decoration:none}
+.next-topic:hover{border-color:rgba(248,113,113,.3);box-shadow:0 0 30px rgba(248,113,113,.08)}
+.next-label{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.next-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text)}
+.next-arrow{font-size:24px;color:var(--accent)}
+.menu-toggle{display:none;position:fixed;bottom:24px;right:24px;z-index:300;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(248,113,113,.4);font-size:20px;color:var(--bg)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190}
+.overlay.show{display:block}
+@media(max-width:1100px){.layout{grid-template-columns:240px 1fr}.toc{display:none}.content{padding:36px 40px}.hero{padding:48px 40px}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;left:-280px;z-index:200;transition:left .3s;height:100vh;width:270px}.sidebar.open{left:0;box-shadow:8px 0 32px rgba(0,0,0,.5)}.content{padding:24px 20px}.hero{padding:32px 20px}.pros-cons{grid-template-columns:1fr}.card-grid{grid-template-columns:1fr}.menu-toggle{display:flex}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes nodeGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(248,113,113,0))}50%{filter:drop-shadow(0 0 10px rgba(248,113,113,.5))}}
+.node-animate{animation:nodeGlow 2.5s ease-in-out infinite}
+/* Comparison visual */
+.proxy-compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0}
+.proxy-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.proxy-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px}
+.proxy-row{font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px}
+.proxy-row:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><div class="logo-dot"></div>HLD Academy</div>
+    <div class="logo-sub">// Backend Engineering Series</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Infrastructure</div>
+      <a class="nav-item" href="load-balancer.html"><span class="nav-num">01</span> Load Balancer</a>
+      <a class="nav-item" href="api-gateway.html"><span class="nav-num">02</span> API Gateway</a>
+      <a class="nav-item" href="cdn.html"><span class="nav-num">08</span> CDN</a>
+      <a class="nav-item active" href="reverse-proxy.html"><span class="nav-num">09</span> Reverse Proxy <span class="nav-badge">Current</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Caching & Queuing</div>
+      <a class="nav-item" href="redis-cache.html"><span class="nav-num">03</span> Redis Cache</a>
+      <a class="nav-item" href="rate-limiting.html"><span class="nav-num">04</span> Rate Limiting</a>
+      <a class="nav-item" href="message-queue.html"><span class="nav-num">05</span> Message Queue</a>
+      <a class="nav-item" href="#"><span class="nav-num">22</span> Pub/Sub Architecture</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a class="nav-item" href="microservices.html"><span class="nav-num">06</span> Microservices</a>
+      <a class="nav-item" href="#"><span class="nav-num">10</span> Service Discovery</a>
+      <a class="nav-item" href="#"><span class="nav-num">11</span> Distributed Systems</a>
+      <a class="nav-item" href="#"><span class="nav-num">14</span> Event-Driven Arch.</a>
+      <a class="nav-item" href="#"><span class="nav-num">18</span> Circuit Breaker</a>
+      <a class="nav-item" href="#"><span class="nav-num">19</span> Saga Pattern</a>
+      <a class="nav-item" href="#"><span class="nav-num">20</span> CQRS</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <a class="nav-item" href="database-scaling.html"><span class="nav-num">07</span> Database Scaling</a>
+      <a class="nav-item" href="#"><span class="nav-num">21</span> API Design</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Security & Auth</div>
+      <a class="nav-item" href="#"><span class="nav-num">12</span> Auth & Authorization</a>
+      <a class="nav-item" href="#"><span class="nav-num">13</span> WebSockets</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">DevOps & Observability</div>
+      <a class="nav-item" href="#"><span class="nav-num">15</span> Monitoring & Logging</a>
+      <a class="nav-item" href="#"><span class="nav-num">16</span> Docker</a>
+      <a class="nav-item" href="#"><span class="nav-num">17</span> Kubernetes</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">HLD Academy <span>›</span> Infrastructure <span>›</span> Topic 09</div>
+    <div class="hero-tag">🔄 Topic 09 of 22</div>
+    <h1>Reverse <em>Proxy</em></h1>
+    <p class="hero-desc">The silent guardian between your clients and backend services. Learn what a reverse proxy is, how it differs from a load balancer and forward proxy, what it actually does at each layer, and how Nginx and Traefik are configured in real production systems — with every line of config explained.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent3)"></div>Beginner → Intermediate</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>~35 min read</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--accent4)"></div>Interview Important</div>
+      <div class="meta-item"><div class="meta-dot" style="background:var(--warn)"></div>Infra Fundamental</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+      <div class="section-label">Introduction</div>
+      <h2>What is a Reverse Proxy?</h2>
+      <p>A <strong>reverse proxy</strong> is a server that sits between clients and one or more backend servers. It receives all incoming requests, forwards them to the appropriate backend, then returns the backend's response to the client. From the client's perspective, they are always talking to the proxy — they never know the backend servers exist.</p>
+      <p>The word "reverse" distinguishes it from a <strong>forward proxy</strong> (which sits on the client side, forwarding outgoing requests on behalf of clients). A reverse proxy acts on behalf of the <em>server</em>, not the client.</p>
+
+      <div class="analogy-box">
+        <div class="analogy-label">🏢 Analogy — Corporate Receptionist</div>
+        <p style="color:var(--text2);margin:0">When you visit a large company, you don't walk directly to any employee's desk. You speak to the <strong>receptionist</strong> (reverse proxy) at the entrance. The receptionist verifies your identity, notes your purpose, and directs you to the right person or department. You never know whether the person is on Floor 3 or Floor 12 — and if they're away, the receptionist handles it. The employees' actual desks (backend servers) are hidden and protected behind the receptionist's desk.</p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" onclick="switchTab('beg',this)">👶 Beginner</button>
+          <button class="tab-btn" onclick="switchTab('adv',this)">🧠 Advanced</button>
+        </div>
+        <div class="tab-panel active" id="tab-beg">
+          <p>Your website runs on a Node.js app on port 3000. You want users to access it on port 80 (HTTP) and 443 (HTTPS). You don't expose the Node.js server directly — instead, you put Nginx in front.</p>
+          <p>Nginx listens on port 80/443, handles SSL, and forwards requests to your Node.js app on port 3000. Users only ever see Nginx. Your app's internal port is hidden. This is a reverse proxy in its simplest form.</p>
+        </div>
+        <div class="tab-panel" id="tab-adv">
+          <p>A reverse proxy operates at Layer 7 (HTTP) or Layer 4 (TCP). It decouples the client-facing network interface from the backend implementation. This separation enables: independent scaling of the proxy tier vs application tier, transparent backend replacement (deploy new app version without client-side changes), centralised cross-cutting concerns (auth, rate limiting, logging), and protocol translation (HTTP → gRPC, HTTP/1.1 → HTTP/2).</p>
+          <p>Modern reverse proxies like Envoy and Traefik support <strong>service mesh integration</strong> via the sidecar pattern — every service pod runs a proxy sidecar that handles all inbound/outbound traffic, enabling mTLS, traffic shaping, and observability without any code changes.</p>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag tag-red">Request Forwarding</span>
+        <span class="tag tag-blue">SSL Termination</span>
+        <span class="tag tag-green">Load Balancing</span>
+        <span class="tag tag-purple">Caching</span>
+        <span class="tag tag-red">Header Manipulation</span>
+        <span class="tag tag-blue">Compression</span>
+        <span class="tag tag-green">Backend Hiding</span>
+      </div>
+    </section>
+
+    <!-- FORWARD vs REVERSE -->
+    <section class="section" id="comparison">
+      <div class="section-label">Core Concepts</div>
+      <h2>Forward Proxy vs Reverse Proxy — Critical Distinction</h2>
+      <p>These two are constantly confused. The key difference is <strong>whose side the proxy acts on</strong>.</p>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Forward Proxy vs Reverse Proxy — Who Does It Serve?</div>
+        <svg class="diagram-svg" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrFwd" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(251,191,36,.6)"/></marker>
+            <marker id="arrRev" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(248,113,113,.6)"/></marker>
+          </defs>
+
+          <!-- FORWARD PROXY side -->
+          <text x="175" y="22" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:13px;font-weight:700">Forward Proxy</text>
+          <text x="175" y="38" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Acts on behalf of clients</text>
+
+          <!-- Client -->
+          <rect x="10" y="100" width="80" height="44" rx="7" style="fill:rgba(251,191,36,.07);stroke:rgba(251,191,36,.25);stroke-width:1.5"/>
+          <text x="50" y="120" text-anchor="middle" style="font-size:16px">👤</text>
+          <text x="50" y="136" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:10px">Client</text>
+
+          <!-- Arrow to forward proxy -->
+          <line x1="92" y1="122" x2="128" y2="122" style="stroke:rgba(251,191,36,.5);stroke-width:1.5;fill:none;marker-end:url(#arrFwd)"/>
+
+          <!-- Forward Proxy -->
+          <rect x="130" y="86" width="90" height="72" rx="8" style="fill:rgba(251,191,36,.07);stroke:rgba(251,191,36,.3);stroke-width:2" class="node-animate"/>
+          <text x="175" y="116" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:11px;font-weight:700">Forward</text>
+          <text x="175" y="130" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:11px;font-weight:700">Proxy</text>
+          <text x="175" y="148" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">Hides client</text>
+
+          <!-- Arrow to internet -->
+          <line x1="222" y1="122" x2="268" y2="122" style="stroke:rgba(251,191,36,.5);stroke-width:1.5;fill:none;marker-end:url(#arrFwd)"/>
+
+          <!-- Internet -->
+          <rect x="270" y="100" width="80" height="44" rx="7" style="fill:rgba(100,116,139,.06);stroke:#1e2d45;stroke-width:1.5"/>
+          <text x="310" y="120" text-anchor="middle" style="font-size:16px">🌐</text>
+          <text x="310" y="136" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:10px">Internet</text>
+
+          <!-- Use cases -->
+          <rect x="10" y="175" width="340" height="90" rx="8" style="fill:rgba(251,191,36,.04);stroke:rgba(251,191,36,.15)"/>
+          <text x="180" y="196" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#fbbf24;font-size:11px;font-weight:600">Use cases</text>
+          <text x="25" y="216" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Corporate internet filtering (Squid proxy)</text>
+          <text x="25" y="234" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• VPNs and anonymising traffic</text>
+          <text x="25" y="252" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Bypassing geo-restrictions</text>
+
+          <!-- DIVIDER -->
+          <line x1="372" y1="10" x2="372" y2="290" style="stroke:#1e2d45;stroke-width:1;stroke-dasharray:6,4"/>
+
+          <!-- REVERSE PROXY side -->
+          <text x="546" y="22" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:13px;font-weight:700">Reverse Proxy</text>
+          <text x="546" y="38" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Acts on behalf of servers</text>
+
+          <!-- Client -->
+          <rect x="385" y="100" width="80" height="44" rx="7" style="fill:rgba(248,113,113,.07);stroke:rgba(248,113,113,.2);stroke-width:1.5"/>
+          <text x="425" y="120" text-anchor="middle" style="font-size:16px">👤</text>
+          <text x="425" y="136" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:10px">Client</text>
+
+          <!-- Arrow to reverse proxy -->
+          <line x1="467" y1="122" x2="503" y2="122" style="stroke:rgba(248,113,113,.5);stroke-width:1.5;fill:none;marker-end:url(#arrRev)"/>
+
+          <!-- Reverse Proxy -->
+          <rect x="505" y="86" width="90" height="72" rx="8" style="fill:rgba(248,113,113,.07);stroke:rgba(248,113,113,.3);stroke-width:2" class="node-animate"/>
+          <text x="550" y="116" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:11px;font-weight:700">Reverse</text>
+          <text x="550" y="130" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:11px;font-weight:700">Proxy</text>
+          <text x="550" y="148" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:9px">Hides servers</text>
+
+          <!-- Arrow to backend servers -->
+          <line x1="597" y1="110" x2="625" y2="95" style="stroke:rgba(248,113,113,.4);stroke-width:1;fill:none;marker-end:url(#arrRev)"/>
+          <line x1="597" y1="122" x2="625" y2="122" style="stroke:rgba(248,113,113,.4);stroke-width:1;fill:none;marker-end:url(#arrRev)"/>
+          <line x1="597" y1="134" x2="625" y2="149" style="stroke:rgba(248,113,113,.4);stroke-width:1;fill:none;marker-end:url(#arrRev)"/>
+
+          <!-- Backend servers -->
+          <rect x="627" y="76" width="78" height="28" rx="5" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2)"/>
+          <text x="666" y="95" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:10px">Server 1</text>
+          <rect x="627" y="110" width="78" height="28" rx="5" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2)"/>
+          <text x="666" y="129" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:10px">Server 2</text>
+          <rect x="627" y="144" width="78" height="28" rx="5" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2)"/>
+          <text x="666" y="163" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:10px">Server 3</text>
+
+          <!-- Use cases -->
+          <rect x="385" y="175" width="325" height="90" rx="8" style="fill:rgba(248,113,113,.04);stroke:rgba(248,113,113,.15)"/>
+          <text x="547" y="196" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:11px;font-weight:600">Use cases</text>
+          <text x="400" y="216" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Nginx in front of Node.js / Django</text>
+          <text x="400" y="234" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• Load balancing across app servers</text>
+          <text x="400" y="252" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">• SSL termination + serving static files</text>
+        </svg>
+      </div>
+
+      <div class="proxy-compare">
+        <div class="proxy-box">
+          <div class="proxy-title" style="color:var(--warn)">🔀 Forward Proxy</div>
+          <div class="proxy-row"><strong>Serves:</strong>&nbsp;Clients (hides client identity)</div>
+          <div class="proxy-row"><strong>Who uses it:</strong>&nbsp;Client configures it in browser/OS</div>
+          <div class="proxy-row"><strong>Server knows:</strong>&nbsp;Only the proxy's IP, not client's IP</div>
+          <div class="proxy-row"><strong>Examples:</strong>&nbsp;Squid, corporate web filter, VPN</div>
+          <div class="proxy-row"><strong>Use case:</strong>&nbsp;Caching outbound traffic, filtering, anonymity</div>
+        </div>
+        <div class="proxy-box">
+          <div class="proxy-title" style="color:var(--accent)">🔄 Reverse Proxy</div>
+          <div class="proxy-row"><strong>Serves:</strong>&nbsp;Servers (hides backend infrastructure)</div>
+          <div class="proxy-row"><strong>Who uses it:</strong>&nbsp;Server operator deploys it</div>
+          <div class="proxy-row"><strong>Client knows:</strong>&nbsp;Only the proxy's IP, not backend IPs</div>
+          <div class="proxy-row"><strong>Examples:</strong>&nbsp;Nginx, HAProxy, Traefik, Envoy</div>
+          <div class="proxy-row"><strong>Use case:</strong>&nbsp;SSL termination, load balancing, auth, caching</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT IT DOES -->
+    <section class="section" id="capabilities">
+      <div class="section-label">Capabilities</div>
+      <h2>What a Reverse Proxy Actually Does</h2>
+      <p>People say "just put Nginx in front of it" — but what does Nginx actually <em>do</em> as a reverse proxy? Here's every responsibility, explained clearly.</p>
+
+      <div class="card-grid">
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">🔒</div>
+          <div class="card-title">SSL/TLS Termination</div>
+          <div class="card-text">Handles HTTPS on behalf of backend servers. Decrypts incoming TLS traffic, forwards plain HTTP internally. Backend servers never deal with certificates — Nginx manages renewal via certbot/Let's Encrypt.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent4)">
+          <div class="card-icon">⚖️</div>
+          <div class="card-title">Load Balancing</div>
+          <div class="card-text">Distributes requests across multiple backend instances using round-robin, least connections, or IP hash. One Nginx handles traffic for 10 app server instances behind it.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent3)">
+          <div class="card-icon">📂</div>
+          <div class="card-title">Static File Serving</div>
+          <div class="card-text">Serves static assets (CSS, JS, images) directly from disk — never hitting your app server. Nginx can serve static files at 100k+ req/sec with microsecond latency. App server only handles dynamic requests.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent5)">
+          <div class="card-icon">🗜️</div>
+          <div class="card-title">Compression</div>
+          <div class="card-text">Gzip/Brotli compress responses before sending to clients. API responses may shrink 60–90%. Backend servers return uncompressed data; Nginx handles all compression transparently.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--warn)">
+          <div class="card-icon">📋</div>
+          <div class="card-title">Header Manipulation</div>
+          <div class="card-text">Add, remove, or modify request/response headers. Add <code>X-Real-IP</code> so apps know client IP. Remove <code>X-Powered-By</code> to hide tech stack. Add security headers (HSTS, CSP) to all responses.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--danger)">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Security Buffer</div>
+          <div class="card-text">Absorbs slow-client attacks (Slowloris). Validates request size limits. Rate limits IPs. Backend servers only see completed, valid requests — protected from many L7 attacks by the proxy layer.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent)">
+          <div class="card-icon">💾</div>
+          <div class="card-title">Response Caching</div>
+          <div class="card-text">Cache backend responses for a configurable TTL. Identical requests get the cached response without hitting the backend. Nginx proxy cache can hold GB of cached responses on SSD.</div>
+        </div>
+        <div class="info-card" style="--card-accent:var(--accent3)">
+          <div class="card-icon">🔀</div>
+          <div class="card-title">URL Rewriting & Routing</div>
+          <div class="card-text">Route <code>/api/v1/*</code> to service A, <code>/api/v2/*</code> to service B, <code>/static/*</code> to S3. Rewrite URLs before forwarding. Redirect HTTP to HTTPS. Handle versioning transparently.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="internals">
+      <div class="section-label">Internal Architecture</div>
+      <h2>How Nginx Works Internally as a Reverse Proxy</h2>
+
+      <div class="diagram-container">
+        <div class="diagram-title">// Nginx Reverse Proxy — Full Request Pipeline</div>
+        <svg class="diagram-svg" viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <defs>
+            <marker id="arrN" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(248,113,113,.6)"/></marker>
+            <marker id="arrNB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="rgba(0,255,136,.5)"/></marker>
+          </defs>
+
+          <!-- Client -->
+          <rect x="10" y="170" width="80" height="50" rx="8" style="fill:rgba(0,212,255,.07);stroke:rgba(0,212,255,.25);stroke-width:1.5"/>
+          <text x="50" y="193" text-anchor="middle" style="font-size:16px">🌐</text>
+          <text x="50" y="209" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#94a3b8;font-size:10px">Client</text>
+
+          <!-- HTTPS request arrow -->
+          <line x1="92" y1="195" x2="140" y2="195" style="stroke:rgba(248,113,113,.5);stroke-width:1.5;fill:none;marker-end:url(#arrN)"/>
+          <text x="116" y="187" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:rgba(248,113,113,.5);font-size:9px">HTTPS:443</text>
+
+          <!-- Nginx box -->
+          <rect x="142" y="30" width="320" height="330" rx="12" style="fill:rgba(248,113,113,.04);stroke:rgba(248,113,113,.3);stroke-width:2" class="node-animate"/>
+          <text x="302" y="55" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:13px;font-weight:800">NGINX — Reverse Proxy</text>
+
+          <!-- Pipeline inside Nginx -->
+          <rect x="160" y="65" width="284" height="30" rx="6" style="fill:rgba(248,113,113,.08);stroke:rgba(248,113,113,.2)"/>
+          <text x="302" y="85" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#f87171;font-size:11px;font-weight:600">① TLS Termination (decrypt HTTPS)</text>
+
+          <rect x="160" y="103" width="284" height="30" rx="6" style="fill:rgba(251,191,36,.06);stroke:rgba(251,191,36,.2)"/>
+          <text x="302" y="123" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#fbbf24;font-size:11px;font-weight:600">② server_name matching → virtual host</text>
+
+          <rect x="160" y="141" width="284" height="30" rx="6" style="fill:rgba(0,212,255,.06);stroke:rgba(0,212,255,.2)"/>
+          <text x="302" y="161" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00d4ff;font-size:11px;font-weight:600">③ location {} routing (URL matching)</text>
+
+          <rect x="160" y="179" width="130" height="30" rx="6" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.18)"/>
+          <text x="225" y="199" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00ff88;font-size:10px;font-weight:600">④a Static File</text>
+
+          <rect x="298" y="179" width="146" height="30" rx="6" style="fill:rgba(167,139,250,.05);stroke:rgba(167,139,250,.18)"/>
+          <text x="371" y="199" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#a78bfa;font-size:10px;font-weight:600">④b proxy_pass → backend</text>
+
+          <rect x="160" y="217" width="284" height="30" rx="6" style="fill:rgba(255,107,53,.05);stroke:rgba(255,107,53,.18)"/>
+          <text x="302" y="237" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#ff6b35;font-size:11px;font-weight:600">⑤ Add headers (X-Real-IP, HSTS...)</text>
+
+          <rect x="160" y="255" width="284" height="30" rx="6" style="fill:rgba(0,212,255,.05);stroke:rgba(0,212,255,.15)"/>
+          <text x="302" y="275" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#00d4ff;font-size:11px;font-weight:600">⑥ Gzip/Brotli compression</text>
+
+          <rect x="160" y="293" width="284" height="30" rx="6" style="fill:rgba(251,191,36,.05);stroke:rgba(251,191,36,.15)"/>
+          <text x="302" y="313" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#fbbf24;font-size:11px;font-weight:600">⑦ Access log + error log</text>
+
+          <rect x="160" y="331" width="284" height="22" rx="5" style="fill:rgba(248,113,113,.06);stroke:rgba(248,113,113,.15)"/>
+          <text x="302" y="346" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#f87171;font-size:10px">⑧ Send response back to client</text>
+
+          <!-- Response arrow back -->
+          <line x1="140" y1="210" x2="92" y2="210" style="stroke:rgba(0,255,136,.4);stroke-width:1.5;stroke-dasharray:4,3;fill:none;marker-end:url(#arrNB)"/>
+
+          <!-- Backend apps -->
+          <rect x="480" y="120" width="130" height="44" rx="8" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2);stroke-width:1.5"/>
+          <text x="545" y="140" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">🖥️ App :3000</text>
+          <text x="545" y="156" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Node.js / Python</text>
+
+          <rect x="480" y="175" width="130" height="44" rx="8" style="fill:rgba(0,255,136,.05);stroke:rgba(0,255,136,.2);stroke-width:1.5"/>
+          <text x="545" y="195" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#00ff88;font-size:11px;font-weight:600">🖥️ App :3001</text>
+          <text x="545" y="211" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Node.js / Python</text>
+
+          <rect x="480" y="230" width="130" height="44" rx="8" style="fill:rgba(167,139,250,.05);stroke:rgba(167,139,250,.2);stroke-width:1.5"/>
+          <text x="545" y="250" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#a78bfa;font-size:11px;font-weight:600">💾 Static Files</text>
+          <text x="545" y="266" text-anchor="middle" style="font-family:'JetBrains Mono',monospace;fill:#64748b;font-size:10px">Disk / S3</text>
+
+          <!-- Proxy arrows -->
+          <line x1="464" y1="199" x2="478" y2="145" style="stroke:rgba(167,139,250,.3);stroke-width:1;fill:none;marker-end:url(#arrN)"/>
+          <line x1="464" y1="205" x2="478" y2="199" style="stroke:rgba(167,139,250,.3);stroke-width:1;fill:none;marker-end:url(#arrN)"/>
+          <line x1="464" y1="211" x2="478" y2="252" style="stroke:rgba(167,139,250,.3);stroke-width:1;fill:none;marker-end:url(#arrN)"/>
+
+          <!-- Worker model note -->
+          <rect x="480" y="300" width="230" height="60" rx="8" style="fill:rgba(248,113,113,.04);stroke:rgba(248,113,113,.15)"/>
+          <text x="595" y="320" text-anchor="middle" style="font-family:'Syne',sans-serif;fill:#f87171;font-size:11px;font-weight:600">⚡ Event-Driven Workers</text>
+          <text x="595" y="338" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">1 worker = 1 CPU core</text>
+          <text x="595" y="354" text-anchor="middle" style="font-family:'Inter',sans-serif;fill:#64748b;font-size:11px">Each handles 1000s of conns async</text>
+        </svg>
+      </div>
+
+      <h3>Nginx's Event-Driven Architecture</h3>
+      <p>Nginx uses a <strong>non-blocking event-driven</strong> model. Each worker process (one per CPU core) handles thousands of simultaneous connections using epoll/kqueue — no thread-per-connection overhead. This is why Nginx can handle <strong>10,000+ concurrent connections</strong> per worker with minimal memory (~2MB per worker idle).</p>
+      <p>Compare to Apache's process-per-request model: 1,000 connections = 1,000 processes = ~1GB RAM just for Apache. Nginx handles 1,000 connections in one worker using ~2MB. This "C10K problem" solution is why Nginx replaced Apache as the dominant web server.</p>
+    </section>
+
+    <!-- NGINX vs TRAEFIK -->
+    <section class="section" id="tools">
+      <div class="section-label">Tool Comparison</div>
+      <h2>Nginx vs Traefik vs Envoy — When to Use Each</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tool</th><th>Config Style</th><th>Dynamic Config</th><th>Best For</th><th>Complexity</th></tr></thead>
+          <tbody>
+            <tr><td>Nginx</td><td>Static files</td><td>❌ Requires reload</td><td>Bare metal, VMs, static sites</td><td>Low</td></tr>
+            <tr><td>Traefik</td><td>Labels / YAML</td><td>✅ Hot reload</td><td>Docker, Kubernetes, microservices</td><td>Medium</td></tr>
+            <tr><td>HAProxy</td><td>Static files</td><td>⚡ Runtime API</td><td>High-performance TCP/HTTP LB</td><td>Medium</td></tr>
+            <tr><td>Envoy</td><td>xDS API (dynamic)</td><td>✅ Full dynamic</td><td>Service mesh sidecar, Kubernetes</td><td>High</td></tr>
+            <tr><td>Caddy</td><td>Caddyfile / JSON</td><td>✅ API-driven</td><td>Auto-HTTPS, developer-friendly</td><td>Low</td></tr>
+            <tr><td>Kong</td><td>Admin API / YAML</td><td>✅ Hot reload</td><td>API Gateway with plugins</td><td>High</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🆚 Reverse Proxy vs Load Balancer vs API Gateway — The Confused Trio
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>These three are often confused because modern tools (Nginx, Traefik) do all three simultaneously. Here's the precise distinction:</p>
+            <p><strong>Reverse Proxy:</strong> Any server that receives requests and forwards them to backends. The broadest category. Every load balancer and API gateway is also a reverse proxy. Primary job: request forwarding + termination.</p>
+            <p><strong>Load Balancer:</strong> A reverse proxy whose primary job is distributing traffic across multiple identical backend instances. Focuses on traffic distribution, health checking, and backend pool management.</p>
+            <p><strong>API Gateway:</strong> A reverse proxy with application-layer intelligence: authentication, authorisation, rate limiting, request transformation, and API-level routing. Understands the business logic of APIs.</p>
+            <p><strong>In practice:</strong> Nginx configured with upstream blocks IS a load balancer. Nginx configured with JWT validation IS an API gateway. Kong IS a reverse proxy AND an API gateway. The labels describe the primary role, not the underlying technology.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep"></div>
+
+    <!-- CODE -->
+    <section class="section" id="config">
+      <div class="section-label">Configuration</div>
+      <h2>Production Nginx Reverse Proxy Configurations</h2>
+
+      <h3>Complete Production Nginx Config</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">NGINX</span>
+          <span class="code-file">nginx.conf — Full production reverse proxy</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="cm"># ─── Global Settings ─────────────────────────────────</span>
+<span class="kw">user</span>       <span class="val">nginx</span>;
+<span class="kw">worker_processes</span> <span class="val">auto</span>;          <span class="cm"># one per CPU core</span>
+<span class="kw">worker_rlimit_nofile</span> <span class="num">65535</span>;     <span class="cm"># max open file descriptors</span>
+<span class="kw">error_log</span>  <span class="str">/var/log/nginx/error.log</span> <span class="val">warn</span>;
+<span class="kw">pid</span>        <span class="str">/run/nginx.pid</span>;
+
+<span class="kw">events</span> {
+  <span class="key">worker_connections</span>  <span class="num">4096</span>;  <span class="cm"># per worker, so 4 workers × 4096 = 16384 conns</span>
+  <span class="key">use</span>                 <span class="val">epoll</span>; <span class="cm"># Linux kernel event model</span>
+  <span class="key">multi_accept</span>        <span class="val">on</span>;    <span class="cm"># accept multiple connections at once</span>
+}
+
+<span class="kw">http</span> {
+  <span class="cm"># ─── Upstream (backend server pool) ─────────────────</span>
+  <span class="kw">upstream</span> <span class="fn">app_servers</span> {
+    <span class="key">least_conn</span>;                             <span class="cm"># route to least busy server</span>
+    <span class="key">keepalive</span>     <span class="num">32</span>;                       <span class="cm"># persistent connections to backend</span>
+    <span class="key">server</span> <span class="val">127.0.0.1:3000</span> <span class="key">weight=</span><span class="num">3</span>;       <span class="cm"># higher weight = more traffic</span>
+    <span class="key">server</span> <span class="val">127.0.0.1:3001</span> <span class="key">weight=</span><span class="num">2</span>;
+    <span class="key">server</span> <span class="val">127.0.0.1:3002</span> <span class="key">backup</span>;          <span class="cm"># only used if others fail</span>
+  }
+
+  <span class="cm"># ─── Security Headers ────────────────────────────────</span>
+  <span class="key">add_header</span> <span class="val">X-Frame-Options</span>       <span class="str">"SAMEORIGIN"</span>  <span class="val">always</span>;
+  <span class="key">add_header</span> <span class="val">X-Content-Type-Options</span> <span class="str">"nosniff"</span>     <span class="val">always</span>;
+  <span class="key">add_header</span> <span class="val">X-XSS-Protection</span>      <span class="str">"1; mode=block"</span> <span class="val">always</span>;
+  <span class="key">add_header</span> <span class="val">Referrer-Policy</span>       <span class="str">"strict-origin-when-cross-origin"</span> <span class="val">always</span>;
+  <span class="key">server_tokens</span> <span class="val">off</span>;               <span class="cm"># hide nginx version in headers</span>
+
+  <span class="cm"># ─── Compression ─────────────────────────────────────</span>
+  <span class="key">gzip</span>              <span class="val">on</span>;
+  <span class="key">gzip_vary</span>         <span class="val">on</span>;
+  <span class="key">gzip_proxied</span>      <span class="val">any</span>;
+  <span class="key">gzip_comp_level</span>   <span class="num">6</span>;   <span class="cm"># 1-9, higher = smaller but more CPU</span>
+  <span class="key">gzip_types</span>        <span class="val">text/plain text/css application/json application/javascript</span>
+                    <span class="val">text/xml application/xml image/svg+xml</span>;
+  <span class="key">gzip_min_length</span>   <span class="num">1024</span>; <span class="cm"># don't compress tiny responses</span>
+
+  <span class="cm"># ─── Proxy Cache ─────────────────────────────────────</span>
+  <span class="key">proxy_cache_path</span> <span class="str">/var/cache/nginx</span>
+    <span class="key">levels=</span><span class="num">1:2</span>
+    <span class="key">keys_zone=</span><span class="val">app_cache:10m</span>  <span class="cm"># 10MB metadata zone</span>
+    <span class="key">max_size=</span><span class="num">1g</span>               <span class="cm"># max 1GB cached responses</span>
+    <span class="key">inactive=</span><span class="num">60m</span>              <span class="cm"># evict if not accessed in 60 min</span>
+    <span class="key">use_temp_path=</span><span class="val">off</span>;
+
+  <span class="cm"># ─── Rate Limiting ───────────────────────────────────</span>
+  <span class="key">limit_req_zone</span> <span class="val">$binary_remote_addr</span> <span class="key">zone=</span><span class="val">api:10m</span> <span class="key">rate=</span><span class="num">100r</span><span class="val">/m</span>;
+  <span class="key">limit_req_zone</span> <span class="val">$binary_remote_addr</span> <span class="key">zone=</span><span class="val">login:1m</span> <span class="key">rate=</span><span class="num">5r</span><span class="val">/m</span>;
+
+  <span class="cm"># ─── HTTP → HTTPS redirect ───────────────────────────</span>
+  <span class="kw">server</span> {
+    <span class="key">listen</span> <span class="num">80</span>;
+    <span class="key">server_name</span> <span class="val">yourapp.com www.yourapp.com</span>;
+    <span class="key">return</span> <span class="num">301</span> <span class="val">https://$host$request_uri</span>;
+  }
+
+  <span class="cm"># ─── Main HTTPS virtual host ─────────────────────────</span>
+  <span class="kw">server</span> {
+    <span class="key">listen</span> <span class="num">443</span> <span class="val">ssl http2</span>;
+    <span class="key">server_name</span> <span class="val">yourapp.com www.yourapp.com</span>;
+
+    <span class="cm"># SSL — managed by certbot/Let's Encrypt</span>
+    <span class="key">ssl_certificate</span>      <span class="str">/etc/letsencrypt/live/yourapp.com/fullchain.pem</span>;
+    <span class="key">ssl_certificate_key</span>  <span class="str">/etc/letsencrypt/live/yourapp.com/privkey.pem</span>;
+    <span class="key">ssl_protocols</span>        <span class="val">TLSv1.2 TLSv1.3</span>;
+    <span class="key">ssl_ciphers</span>          <span class="val">ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256</span>;
+    <span class="key">ssl_session_cache</span>    <span class="val">shared:SSL:10m</span>;   <span class="cm"># session resumption cache</span>
+    <span class="key">ssl_session_timeout</span>  <span class="num">1d</span>;
+    <span class="key">ssl_session_tickets</span>  <span class="val">off</span>;
+    <span class="key">add_header</span> <span class="val">Strict-Transport-Security</span> <span class="str">"max-age=63072000"</span> <span class="val">always</span>;
+
+    <span class="cm"># Max upload size (important for file upload APIs)</span>
+    <span class="key">client_max_body_size</span> <span class="num">50m</span>;
+
+    <span class="cm"># ─── Static files — serve directly from disk ─────────</span>
+    <span class="kw">location</span> <span class="str">/static/</span> {
+      <span class="key">alias</span>     <span class="str">/var/www/static/</span>;
+      <span class="key">expires</span>   <span class="num">1y</span>;
+      <span class="key">add_header</span> <span class="val">Cache-Control</span> <span class="str">"public, max-age=31536000, immutable"</span>;
+      <span class="key">access_log</span> <span class="val">off</span>;  <span class="cm"># don't log static asset hits (high volume)</span>
+    }
+
+    <span class="cm"># ─── Login — strict rate limit ─────────────────────</span>
+    <span class="kw">location</span> <span class="str">/auth/login</span> {
+      <span class="key">limit_req</span> <span class="key">zone=</span><span class="val">login</span> <span class="key">burst=</span><span class="num">3</span>;
+      <span class="key">proxy_pass</span> <span class="val">http://app_servers</span>;
+      include <span class="str">/etc/nginx/proxy_params</span>;
+    }
+
+    <span class="cm"># ─── API — proxy to backend pool ────────────────────</span>
+    <span class="kw">location</span> <span class="str">/api/</span> {
+      <span class="key">limit_req</span> <span class="key">zone=</span><span class="val">api</span> <span class="key">burst=</span><span class="num">20</span> <span class="key">nodelay</span>;
+
+      <span class="key">proxy_pass</span>          <span class="val">http://app_servers</span>;
+      <span class="key">proxy_http_version</span>  <span class="num">1.1</span>;
+
+      <span class="cm"># Tell backend who the real client is</span>
+      <span class="key">proxy_set_header</span> <span class="val">X-Real-IP</span>        <span class="val">$remote_addr</span>;
+      <span class="key">proxy_set_header</span> <span class="val">X-Forwarded-For</span>   <span class="val">$proxy_add_x_forwarded_for</span>;
+      <span class="key">proxy_set_header</span> <span class="val">X-Forwarded-Proto</span> <span class="val">$scheme</span>;
+      <span class="key">proxy_set_header</span> <span class="val">Host</span>              <span class="val">$host</span>;
+      <span class="key">proxy_set_header</span> <span class="val">Connection</span>        <span class="str">""</span>;  <span class="cm"># enables keepalive</span>
+
+      <span class="cm"># Timeouts — prevent slow backends from blocking everything</span>
+      <span class="key">proxy_connect_timeout</span>  <span class="num">5s</span>;
+      <span class="key">proxy_send_timeout</span>     <span class="num">30s</span>;
+      <span class="key">proxy_read_timeout</span>     <span class="num">30s</span>;
+
+      <span class="cm"># Buffering — absorb slow clients (anti-Slowloris)</span>
+      <span class="key">proxy_buffering</span>         <span class="val">on</span>;
+      <span class="key">proxy_buffer_size</span>       <span class="num">4k</span>;
+      <span class="key">proxy_buffers</span>           <span class="num">8 16k</span>;
+
+      <span class="cm"># Caching for public API endpoints</span>
+      <span class="key">proxy_cache</span>         <span class="val">app_cache</span>;
+      <span class="key">proxy_cache_valid</span>   <span class="num">200</span> <span class="num">5m</span>;    <span class="cm"># cache 200 responses for 5 minutes</span>
+      <span class="key">proxy_cache_methods</span> <span class="val">GET HEAD</span>;
+      <span class="key">proxy_cache_bypass</span>  <span class="val">$http_authorization</span>;  <span class="cm"># never cache authenticated reqs</span>
+      <span class="key">add_header</span>          <span class="val">X-Cache-Status</span> <span class="val">$upstream_cache_status</span>;
+    }
+
+    <span class="cm"># ─── WebSocket support ──────────────────────────────</span>
+    <span class="kw">location</span> <span class="str">/ws/</span> {
+      <span class="key">proxy_pass</span>          <span class="val">http://app_servers</span>;
+      <span class="key">proxy_http_version</span>  <span class="num">1.1</span>;
+      <span class="key">proxy_set_header</span>    <span class="val">Upgrade</span>    <span class="val">$http_upgrade</span>;   <span class="cm"># WebSocket upgrade headers</span>
+      <span class="key">proxy_set_header</span>    <span class="val">Connection</span> <span class="str">"upgrade"</span>;
+      <span class="key">proxy_read_timeout</span>  <span class="num">3600s</span>;  <span class="cm"># long timeout for persistent WS connections</span>
+    }
+
+    <span class="cm"># ─── Catch-all — serve SPA index.html ───────────────</span>
+    <span class="kw">location</span> <span class="str">/</span> {
+      <span class="key">try_files</span> <span class="val">$uri $uri/ /index.html</span>;
+      <span class="key">root</span>      <span class="str">/var/www/html</span>;
+    }
+  }
+}</code></pre>
+      </div>
+
+      <h3>Traefik — Cloud-Native Reverse Proxy (Docker)</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <span class="code-file">docker-compose.yml — Traefik as reverse proxy</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="key">version</span>: <span class="str">'3.9'</span>
+<span class="key">services</span>:
+
+  <span class="cm"># ─── Traefik Reverse Proxy ────────────────────────────</span>
+  <span class="key">traefik</span>:
+    <span class="key">image</span>: <span class="val">traefik:v3.0</span>
+    <span class="key">command</span>:
+      - <span class="str">"--api.insecure=false"</span>
+      - <span class="str">"--providers.docker=true"</span>               <span class="cm"># auto-discover services</span>
+      - <span class="str">"--providers.docker.exposedbydefault=false"</span>
+      - <span class="str">"--entrypoints.web.address=:80"</span>
+      - <span class="str">"--entrypoints.websecure.address=:443"</span>
+      <span class="cm"># Auto TLS via Let's Encrypt</span>
+      - <span class="str">"--certificatesresolvers.myresolver.acme.tlschallenge=true"</span>
+      - <span class="str">"--certificatesresolvers.myresolver.acme.email=admin@yourapp.com"</span>
+      - <span class="str">"--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"</span>
+      <span class="cm"># Access logs</span>
+      - <span class="str">"--accesslog=true"</span>
+      - <span class="str">"--metrics.prometheus=true"</span>
+    <span class="key">ports</span>: [<span class="str">"80:80"</span>, <span class="str">"443:443"</span>]
+    <span class="key">volumes</span>:
+      - <span class="str">"/var/run/docker.sock:/var/run/docker.sock:ro"</span>
+      - <span class="str">"letsencrypt:/letsencrypt"</span>
+
+  <span class="cm"># ─── Your App Service ────────────────────────────────</span>
+  <span class="key">api</span>:
+    <span class="key">image</span>: <span class="val">yourapp/api:latest</span>
+    <span class="key">labels</span>:
+      <span class="cm"># Tell Traefik to route to this service</span>
+      - <span class="str">"traefik.enable=true"</span>
+      <span class="cm"># Route: api.yourapp.com → this service</span>
+      - <span class="str">"traefik.http.routers.api.rule=Host(`api.yourapp.com`)"</span>
+      - <span class="str">"traefik.http.routers.api.entrypoints=websecure"</span>
+      - <span class="str">"traefik.http.routers.api.tls.certresolver=myresolver"</span>
+      <span class="cm"># Redirect HTTP → HTTPS</span>
+      - <span class="str">"traefik.http.routers.api-http.rule=Host(`api.yourapp.com`)"</span>
+      - <span class="str">"traefik.http.routers.api-http.entrypoints=web"</span>
+      - <span class="str">"traefik.http.routers.api-http.middlewares=redirect-https"</span>
+      <span class="cm"># Middlewares: rate limit + auth</span>
+      - <span class="str">"traefik.http.routers.api.middlewares=ratelimit,compress"</span>
+      - <span class="str">"traefik.http.middlewares.ratelimit.ratelimit.average=100"</span>
+      - <span class="str">"traefik.http.middlewares.ratelimit.ratelimit.burst=50"</span>
+      - <span class="str">"traefik.http.middlewares.compress.compress=true"</span>
+      <span class="cm"># Health check</span>
+      - <span class="str">"traefik.http.services.api.loadbalancer.healthcheck.path=/health"</span>
+      - <span class="str">"traefik.http.services.api.loadbalancer.healthcheck.interval=10s"</span>
+
+  <span class="cm"># Redirect middleware (global)</span>
+  <span class="key">middlewares</span>:
+    <span class="key">redirect-https</span>:
+      <span class="key">redirectScheme</span>:
+        <span class="key">scheme</span>: <span class="str">https</span>
+        <span class="key">permanent</span>: <span class="kw">true</span>
+
+<span class="key">volumes</span>:
+  <span class="key">letsencrypt</span>:</code></pre>
+      </div>
+
+      <h3>Nginx as Multi-Service Reverse Proxy (Microservices)</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">NGINX</span>
+          <span class="code-file">nginx-microservices.conf — Route different paths to different services</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="kw">http</span> {
+  <span class="cm"># Each microservice has its own upstream pool</span>
+  <span class="kw">upstream</span> <span class="fn">user_service</span>    { <span class="key">server</span> <span class="val">user-svc:3001</span>; }
+  <span class="kw">upstream</span> <span class="fn">order_service</span>   { <span class="key">server</span> <span class="val">order-svc:3002</span>; }
+  <span class="kw">upstream</span> <span class="fn">payment_service</span> { <span class="key">server</span> <span class="val">payment-svc:3003</span>; }
+  <span class="kw">upstream</span> <span class="fn">search_service</span>  { <span class="key">server</span> <span class="val">search-svc:3004</span>; }
+
+  <span class="kw">server</span> {
+    <span class="key">listen</span> <span class="num">443</span> <span class="val">ssl http2</span>;
+    <span class="key">server_name</span> <span class="val">api.yourapp.com</span>;
+
+    <span class="cm"># Route by URL path to appropriate microservice</span>
+    <span class="kw">location</span> <span class="str">/api/users/</span>    { <span class="key">proxy_pass</span> <span class="val">http://user_service</span>;    }
+    <span class="kw">location</span> <span class="str">/api/orders/</span>   { <span class="key">proxy_pass</span> <span class="val">http://order_service</span>;   }
+    <span class="kw">location</span> <span class="str">/api/payments/</span> { <span class="key">proxy_pass</span> <span class="val">http://payment_service</span>; }
+    <span class="kw">location</span> <span class="str">/api/search/</span>   { <span class="key">proxy_pass</span> <span class="val">http://search_service</span>;  }
+
+    <span class="cm"># Route by subdomain pattern</span>
+    <span class="kw">if</span> (<span class="val">$host</span> ~* <span class="str">^admin\.</span>) {
+      <span class="key">proxy_pass</span> <span class="val">http://admin_service</span>;
+    }
+
+    <span class="cm"># URL rewrite example: /api/v1/users → /users (strip prefix)</span>
+    <span class="kw">location</span> <span class="str">/api/v1/</span> {
+      <span class="key">rewrite</span> <span class="str">^/api/v1/(.*)$</span> <span class="str">/$1</span> <span class="val">break</span>;
+      <span class="key">proxy_pass</span> <span class="val">http://user_service</span>;
+    }
+
+    <span class="cm"># Canary deployment: 10% traffic to new version</span>
+    <span class="key">split_clients</span> <span class="str">"${remote_addr}${request_uri}"</span> $<span class="fn">upstream_variant</span> {
+      <span class="num">10</span>%    <span class="val">new_version</span>;
+      <span class="val">*</span>      <span class="val">stable_version</span>;
+    }
+    <span class="kw">upstream</span> <span class="fn">new_version</span>    { <span class="key">server</span> <span class="val">app-new:3000</span>; }
+    <span class="kw">upstream</span> <span class="fn">stable_version</span> { <span class="key">server</span> <span class="val">app-stable:3000</span>; }
+    <span class="kw">location</span> <span class="str">/api/feature/</span> {
+      <span class="key">proxy_pass</span> <span class="val">http://$upstream_variant</span>;
+    }
+  }
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- ADVANCED PATTERNS -->
+    <section class="section" id="patterns">
+      <div class="section-label">Advanced Patterns</div>
+      <h2>Advanced Reverse Proxy Patterns</h2>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔒 mTLS — Mutual TLS Between Proxy and Backend
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Standard TLS authenticates only the server. mTLS requires <em>both</em> the client (proxy) and server (backend) to present valid certificates. This means even if an attacker gets inside your network, they can't directly hit backend services without the proxy's certificate.</p>
+            <p><strong>Configuration:</strong> The reverse proxy presents its client certificate when connecting to backends. Backends verify the proxy certificate. Any connection without the correct certificate is rejected — even from inside the datacenter.</p>
+            <p>Service meshes like Istio enforce mTLS automatically for all service-to-service communication by injecting Envoy sidecars that handle certificate management via SPIFFE/SPIRE.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🐢 Slow Client Protection (Buffering)
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>A Slowloris attack sends requests extremely slowly — partial HTTP headers trickled byte-by-byte. Without a reverse proxy, this consumes a backend thread for minutes per connection. With thousands of such connections, the backend is exhausted.</p>
+            <p>Nginx's <strong>proxy buffering</strong> solves this: Nginx buffers the complete request before forwarding to the backend. The backend only sees the complete, valid request and immediately finishes. Nginx handles the slow client connection independently. Your backend never sees slow clients.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            🔁 Blue-Green via Reverse Proxy
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>Run two identical environments (blue = current, green = new). Deploy new version to green. Point the reverse proxy upstream from blue to green — zero-downtime switch. If green has issues, point back to blue in seconds.</p>
+            <p><strong>Implementation:</strong> Two upstream blocks in Nginx. Switch between them using a variable set by your deployment script (or Nginx's runtime API for HAProxy). No application restarts, no DNS changes, instantaneous cutover.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">
+            📊 Observability from the Proxy Layer
+            <div class="accordion-icon">▼</div>
+          </button>
+          <div class="accordion-body">
+            <p>The reverse proxy sees 100% of traffic — making it the ideal place to collect metrics and logs. Configure structured access logs with: latency, upstream response time, cache status, upstream address (which backend handled it), and status codes.</p>
+            <p>Nginx access log format for structured logging: <code>log_format json_combined escape=json '{"timestamp":"$time_iso8601","method":"$request_method","uri":"$uri","status":$status,"upstream":"$upstream_addr","upstream_time":"$upstream_response_time","request_time":"$request_time"}'</code></p>
+            <p>Ship these logs to your ELK stack or Datadog. You get complete API observability across all backend services without modifying any application code.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPANIES -->
+    <section class="section" id="companies">
+      <div class="section-label">Industry Usage</div>
+      <h2>How Top Companies Use Reverse Proxies</h2>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-name">🎬 Netflix <span class="company-tech">Zuul 2 + Envoy</span></div>
+          <div class="company-desc">Netflix's <strong>Zuul 2</strong> is their edge reverse proxy — rewritten from blocking to async Netty I/O to handle 100B+ requests/day. Every request entering their system goes through Zuul, which handles dynamic routing, auth, A/B testing, and DDoS mitigation. Internally, each microservice uses Envoy as a sidecar for service-mesh traffic management.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🔍 Google <span class="company-tech">Envoy / GFE</span></div>
+          <div class="company-desc">Google's <strong>Google Frontend (GFE)</strong> is their global reverse proxy — every request to Google services (Search, Gmail, YouTube) goes through GFE before reaching backend servers. It handles SSL termination, routing, load balancing, and DDoS at massive scale. Envoy (open-sourced by Lyft, co-developed with Google) powers their internal service mesh.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">☁️ Cloudflare <span class="company-tech">Nginx + Custom</span></div>
+          <div class="company-desc">Cloudflare's edge runs heavily modified Nginx as a reverse proxy for millions of websites. They've contributed major patches upstream (lua-nginx-module, ngx_http_substitutions_filter_module). Their <strong>Workers</strong> product runs V8 workers inside Nginx workers via a custom C extension — executing customer JavaScript in the proxy request pipeline.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🐦 Twitter <span class="company-tech">Nginx + TFE</span></div>
+          <div class="company-desc">Twitter Frontend (TFE) is their reverse proxy layer handling ~500k requests/sec. Built on Nginx with heavy custom Lua scripting for request routing, authentication, rate limiting, and feature flags. The Lua scripting allowed engineering teams to modify routing logic without restarting Nginx — critical for a platform where downtime is very visible.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">📦 GitHub <span class="company-tech">HAProxy + Nginx</span></div>
+          <div class="company-desc">GitHub uses HAProxy for L4 load balancing and Nginx as reverse proxy for application traffic. When GitHub migrated from monolith to services, Nginx path-based routing was the key enabler — gradually moving routes like <code>/api/*</code> to new microservices while keeping legacy routes on the monolith. Zero-risk incremental migration using the proxy layer.</div>
+        </div>
+        <div class="company-card">
+          <div class="company-name">🏦 Stripe <span class="company-tech">Nginx + Envoy</span></div>
+          <div class="company-desc">Stripe's API handling is built around Nginx as the edge reverse proxy with comprehensive request logging. Their internal service mesh uses Envoy with tight circuit-breaker configuration — a single slow service cannot cascade failures because Envoy enforces request timeouts and circuit breaks at every hop. Critical for a payment platform where partial failures are worse than clean failures.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROS/CONS -->
+    <section class="section" id="tradeoffs">
+      <div class="section-label">Tradeoffs</div>
+      <h2>Advantages, Disadvantages & Best Practices</h2>
+      <div class="pros-cons">
+        <div class="pros-box">
+          <div class="box-title">✅ Advantages</div>
+          <ul class="check-list">
+            <li>Hides backend topology — clients never know server IPs</li>
+            <li>Centralised SSL management — one cert for all services</li>
+            <li>Decouples client interface from backend implementation</li>
+            <li>Handles slow clients before they affect backends</li>
+            <li>Enables zero-downtime deployments (blue-green)</li>
+            <li>Single point for logging, metrics, rate limiting</li>
+            <li>Serves static files without hitting app servers</li>
+          </ul>
+        </div>
+        <div class="cons-box">
+          <div class="box-title">❌ Disadvantages</div>
+          <ul class="check-list">
+            <li>Additional network hop (adds ~1-5ms)</li>
+            <li>Single point of failure if not deployed in HA</li>
+            <li>Configuration complexity (Nginx config is notoriously tricky)</li>
+            <li>Must handle WebSocket upgrades explicitly</li>
+            <li>Debugging requires checking proxy logs as well as app logs</li>
+            <li>Buffer limits can cause 413 errors for large uploads</li>
+            <li>Proxy cache invalidation adds operational complexity</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Critical Mistake:</strong> Forgetting to set <code>proxy_set_header X-Real-IP $remote_addr</code>. Without this, your application sees only the proxy's IP (127.0.0.1 or internal IP) as the client address. Rate limiting by IP, geo-location features, and audit logs all break silently. Always set real-IP headers and always enable <code>trust proxy</code> in your application framework.</div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW -->
+    <section class="section" id="interviews">
+      <div class="section-label">Interview Preparation</div>
+      <h2>Common Interview Questions</h2>
+      <div class="interview-list">
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What is the difference between a reverse proxy and a load balancer?</div>
+          <div class="interview-a">A reverse proxy is any server that receives client requests and forwards them to backends — the broadest category. A load balancer is a specific type of reverse proxy whose primary role is distributing traffic across multiple identical backend instances. All load balancers are reverse proxies, but not all reverse proxies are load balancers. Nginx configured with one upstream server is a reverse proxy but not a load balancer. Nginx configured with multiple upstream servers and a balancing algorithm is both. The distinction is about primary purpose, not the underlying technology. In production systems, a reverse proxy typically handles: SSL termination, request routing, static file serving, compression, caching, header manipulation, and load balancing — all simultaneously. The term "reverse proxy" covers the full concept; "load balancer" describes one specific function it performs.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Why do we need a reverse proxy in front of a Node.js application?</div>
+          <div class="interview-a">Several reasons: (1) Node.js runs on port 3000 (non-privileged). Nginx listens on port 80/443 (privileged ports requiring root), proxies to Node.js. Node.js doesn't need to run as root. (2) SSL termination — Nginx handles HTTPS, Node.js receives plain HTTP. Simpler cert management. (3) Static file serving — Nginx serves CSS/JS/images from disk at 100k+ req/sec without hitting Node.js. (4) Compression — Nginx compresses responses; Node.js doesn't waste CPU on gzip. (5) Slow client protection — Nginx buffers slow HTTP requests; Node.js only sees complete requests. (6) Multiple apps on one server — Nginx routes api.domain.com to port 3000, admin.domain.com to port 3001. (7) Load balancing — distribute across multiple Node.js processes (cluster mode). (8) Zero-downtime deploys — swap the upstream in Nginx without DNS changes.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">How does Nginx handle 10,000 concurrent connections with a single worker?</div>
+          <div class="interview-a">Nginx uses an event-driven, non-blocking I/O architecture. Each worker process runs a single-threaded event loop using epoll (Linux) or kqueue (macOS). When a connection arrives, Nginx registers it with the kernel's event notification mechanism. Instead of blocking a thread waiting for data, the event loop handles thousands of connections concurrently: register connection → handle when data arrives → process → register again. This is the same model as Node.js (libuv). One worker can handle thousands of connections because it never blocks — it just switches between connections as data becomes available. Memory per connection is very small (~a few KB for buffers) vs thread-per-connection models (~8MB stack per thread). Apache's prefork model needs 1000 processes for 1000 connections = 1GB+ RAM. Nginx needs 1 worker for 1000 connections = ~10MB RAM.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">What happens when a reverse proxy receives a WebSocket connection request?</div>
+          <div class="interview-a">WebSockets start as an HTTP request with special Upgrade headers: "Upgrade: websocket" and "Connection: Upgrade". Without specific configuration, most reverse proxies strip these headers and the WebSocket handshake fails — the client gets a 400 Bad Request. To support WebSockets, Nginx must: (1) Pass through the Upgrade header: proxy_set_header Upgrade $http_upgrade. (2) Pass through the Connection header with value "upgrade": proxy_set_header Connection "upgrade". (3) Set proxy_http_version 1.1 (WebSockets require HTTP/1.1). (4) Set a long proxy_read_timeout (e.g., 3600s) because WebSocket connections are persistent — default timeout would close them prematurely. Once the handshake completes (101 Switching Protocols), Nginx acts as a transparent TCP tunnel between client and backend, forwarding WebSocket frames bidirectionally.</div>
+        </div>
+        <div class="interview-item" onclick="toggleInterview(this)">
+          <div class="interview-q">Design a reverse proxy architecture for a system with 5 different microservices.</div>
+          <div class="interview-a">Architecture: Single Nginx instance (or pair for HA via Keepalived) as the edge reverse proxy. Five upstream blocks, one per service. Path-based routing: /api/users/ → user-service, /api/orders/ → order-service, /api/payments/ → payment-service (with stricter rate limiting, 10 req/min), /api/search/ → search-service, /api/notifications/ → notification-service. All services behind the proxy — none have public IPs. SSL terminates at Nginx (one cert for api.yourapp.com, issued by Let's Encrypt, auto-renewed by certbot). Each upstream has health checks (proxy_next_upstream error timeout), keepalive connections (reduce TCP handshake overhead), and timeout settings. Nginx adds X-Real-IP, X-Forwarded-For, X-Request-ID headers for all requests. Access logs in structured JSON shipped to Elasticsearch. For high availability: Active-passive Nginx pair with VRRP/Keepalived floating VIP. In Kubernetes: replace Nginx with an Ingress Controller (Nginx Ingress or Traefik) that reads routing rules from Kubernetes Ingress resources — same concept, cloud-native implementation.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" id="summary">
+      <div class="section-label">Summary</div>
+      <div class="summary-box">
+        <div class="summary-title">🎯 What You Now Know</div>
+        <ul class="check-list" style="list-style:none">
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Reverse proxy acts on behalf of servers; forward proxy acts on behalf of clients — completely different roles</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Every load balancer is a reverse proxy; not every reverse proxy is a load balancer</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Reverse proxy capabilities: SSL termination, load balancing, static serving, compression, caching, header manipulation, DDoS buffering, URL routing</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Nginx event-driven model: one worker handles 1000s of connections via epoll — no thread-per-connection overhead</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Always set X-Real-IP header and enable trust proxy in apps — otherwise rate limiting and geo features break</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> WebSocket requires explicit Upgrade/Connection header pass-through and long proxy_read_timeout</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Nginx: static config, battle-tested, high performance. Traefik: Docker/K8s native, auto-discovers services, dynamic config</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Proxy buffering protects backends from slow-client attacks (Slowloris)</li>
+          <li style="display:flex;gap:8px;margin-bottom:8px;color:var(--text2);font-size:14px"><span style="color:var(--accent)">✦</span> Blue-green and canary deployments are cleanly implemented via upstream switching in reverse proxy config</li>
+        </ul>
+      </div>
+    </section>
+
+    <a class="next-topic" href="#">
+      <div>
+        <div class="next-label">// Next Topic → 10</div>
+        <div class="next-name">Service Discovery</div>
+      </div>
+      <div class="next-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<!-- TOC -->
+<aside style="padding:32px 0">
+  <div class="toc">
+    <div class="toc-title">On This Page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#intro" class="toc-link active">Introduction</a></li>
+      <li class="toc-item"><a href="#comparison" class="toc-link">Forward vs Reverse</a></li>
+      <li class="toc-item"><a href="#capabilities" class="toc-link">Capabilities</a></li>
+      <li class="toc-item"><a href="#internals" class="toc-link">Nginx Internals</a></li>
+      <li class="toc-item"><a href="#tools" class="toc-link">Tool Comparison</a></li>
+      <li class="toc-item"><a href="#config" class="toc-link">Configuration</a></li>
+      <li class="toc-item"><a href="#patterns" class="toc-link">Advanced Patterns</a></li>
+      <li class="toc-item"><a href="#companies" class="toc-link">Company Usage</a></li>
+      <li class="toc-item"><a href="#tradeoffs" class="toc-link">Tradeoffs</a></li>
+      <li class="toc-item"><a href="#interviews" class="toc-link">Interview Questions</a></li>
+      <li class="toc-item"><a href="#summary" class="toc-link">Summary</a></li>
+    </ul>
+  </div>
+</aside>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{const e=document.getElementById('progressBar');e.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%'});
+const sections=document.querySelectorAll('section[id]'),tocLinks=document.querySelectorAll('.toc-link');
+const obs=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(l=>l.classList.remove('active'));const a=document.querySelector(`.toc-link[href="#${e.target.id}"]`);if(a)a.classList.add('active')}})},{threshold:.25});
+sections.forEach(s=>obs.observe(s));
+function switchTab(id,btn){const p=btn.closest('.tabs');p.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));p.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');p.querySelector('#tab-'+id).classList.add('active')}
+function toggleAccordion(btn){const item=btn.closest('.accordion-item'),isOpen=item.classList.contains('open');btn.closest('.accordion').querySelectorAll('.accordion-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open')}
+function toggleInterview(item){item.classList.toggle('open')}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+const obs2=new IntersectionObserver(e=>{e.forEach(c=>{if(c.isIntersecting){c.target.style.opacity='0';c.target.style.transform='translateY(14px)';setTimeout(()=>{c.target.style.transition='opacity .4s ease,transform .4s ease';c.target.style.opacity='1';c.target.style.transform='none'},60);obs2.unobserve(c.target)}})},{threshold:.08});
+document.querySelectorAll('.info-card,.company-card').forEach(c=>obs2.observe(c));
+</script>
+</body>
+</html>

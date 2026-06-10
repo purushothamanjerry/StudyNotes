@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time & Space Complexity — Complete Mastery</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#040610;--bg2:#070d1a;--bg3:#0b1222;
+  --panel:rgba(10,20,45,0.7);--panel2:rgba(15,30,60,0.5);
+  --border:rgba(80,140,255,0.15);--border2:rgba(80,140,255,0.08);
+  --blue:#4d8fff;--blue2:#7eb0ff;--cyan:#00e5ff;--green:#00ff9d;
+  --yellow:#ffd600;--orange:#ff7043;--red:#ff3d71;--purple:#b44fff;
+  --text:#c8d8f8;--text2:#7a92c4;--text3:#3d5280;
+  --mono:'JetBrains Mono',monospace;--sans:'Space Grotesk',sans-serif;--display:'Syne',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;overflow-x:hidden}
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--green));z-index:9999;transition:width .1s linear;width:0%}
+#sidebar{position:fixed;left:0;top:0;height:100vh;width:230px;background:rgba(4,6,16,.97);border-right:1px solid var(--border2);z-index:100;overflow-y:auto;padding:70px 0 20px;backdrop-filter:blur(20px)}
+#sidebar::-webkit-scrollbar{width:3px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border)}
+.sidebar-title{font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);padding:0 18px 8px;margin-top:10px}
+.nav-item{display:block;padding:5px 18px;font-size:.76rem;color:var(--text2);text-decoration:none;transition:all .2s;border-left:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-item:hover{color:var(--blue2);border-left-color:var(--blue);background:rgba(77,143,255,.05)}
+.nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,229,255,.05)}
+main{margin-left:230px}
+@media(max-width:900px){#sidebar{transform:translateX(-100%)}main{margin-left:0}}
+section{padding:72px 56px;border-bottom:1px solid var(--border2);position:relative}
+section:nth-child(even){background:var(--bg2)}
+@media(max-width:700px){section{padding:48px 22px}}
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:100px 56px;background:var(--bg);overflow:hidden;position:relative}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(77,143,255,.07) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 80% 80%,rgba(0,229,255,.05) 0%,transparent 60%);pointer-events:none}
+.hero-tag{display:inline-block;font-family:var(--mono);font-size:.68rem;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;border:1px solid rgba(0,229,255,.3);padding:4px 14px;border-radius:20px;margin-bottom:28px;background:rgba(0,229,255,.05)}
+.hero-title{font-family:var(--display);font-size:clamp(2.2rem,5.5vw,4.8rem);font-weight:800;line-height:1.08;margin-bottom:18px;background:linear-gradient(135deg,#fff 0%,var(--blue2) 45%,var(--cyan) 85%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1rem;color:var(--text2);max-width:540px;margin-bottom:40px}
+#hero-canvas{width:100%;max-width:680px;height:230px;margin:28px 0;border-radius:12px;background:rgba(10,20,45,.5);border:1px solid var(--border)}
+.quick-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;max-width:780px;margin-top:36px}
+.qcard{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;transition:all .25s;cursor:default}
+.qcard:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 28px rgba(77,143,255,.12)}
+.qcard .complexity{font-family:var(--mono);font-size:1.15rem;font-weight:600;margin-bottom:3px}
+.qcard .label{font-size:.7rem;color:var(--text2)}
+.c-o1{color:var(--green)}.c-logn{color:var(--cyan)}.c-n{color:var(--blue2)}.c-nlogn{color:var(--yellow)}.c-n2{color:var(--orange)}.c-2n{color:var(--red)}.c-nf{color:var(--purple)}
+h1,h2,h3,h4{font-family:var(--display)}
+.section-label{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin-bottom:10px}
+h2.section-title{font-size:clamp(1.5rem,2.8vw,2.2rem);font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,#fff,var(--blue2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.section-desc{color:var(--text2);max-width:660px;margin-bottom:36px;font-size:.95rem}
+h3{font-size:1.15rem;color:var(--blue2);margin:28px 0 10px;font-weight:600}
+h4{font-size:.95rem;color:var(--cyan);margin:18px 0 7px;font-weight:500}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(77,143,255,.03),transparent);pointer-events:none}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:20px 0}
+.code-block{position:relative;background:#020814;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;font-family:var(--mono)}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:rgba(77,143,255,.06);border-bottom:1px solid var(--border2)}
+.code-lang{font-size:.68rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+.copy-btn{background:none;border:1px solid var(--border);color:var(--text2);font-size:.66rem;font-family:var(--mono);padding:3px 9px;border-radius:5px;cursor:pointer;transition:all .2s}
+.copy-btn:hover{border-color:var(--blue);color:var(--blue)}
+pre{padding:18px;overflow-x:auto;font-size:.8rem;line-height:1.7;color:#c8d8f8}
+pre::-webkit-scrollbar{height:4px}
+pre::-webkit-scrollbar-thumb{background:var(--border)}
+.kw{color:#7eb0ff}.cm{color:#3d5280;font-style:italic}.str{color:#00e5cc}.num{color:#ffd600}.fn{color:#b44fff}.ann{color:#ff7043}
+.badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.75rem;padding:2px 10px;border-radius:20px;font-weight:500;margin:3px}
+.badge-green{background:rgba(0,255,157,.1);color:var(--green);border:1px solid rgba(0,255,157,.25)}
+.badge-cyan{background:rgba(0,229,255,.1);color:var(--cyan);border:1px solid rgba(0,229,255,.25)}
+.badge-blue{background:rgba(77,143,255,.1);color:var(--blue2);border:1px solid rgba(77,143,255,.25)}
+.badge-yellow{background:rgba(255,214,0,.1);color:var(--yellow);border:1px solid rgba(255,214,0,.25)}
+.badge-orange{background:rgba(255,112,67,.1);color:var(--orange);border:1px solid rgba(255,112,67,.25)}
+.badge-red{background:rgba(255,61,113,.1);color:var(--red);border:1px solid rgba(255,61,113,.25)}
+.badge-purple{background:rgba(180,79,255,.1);color:var(--purple);border:1px solid rgba(180,79,255,.25)}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.85rem}
+th{background:rgba(77,143,255,.08);color:var(--blue2);font-family:var(--mono);font-weight:500;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border2);color:var(--text)}
+tr:hover td{background:rgba(77,143,255,.03)}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;margin:18px 0}
+canvas{border-radius:8px;display:block}
+.callout{border-left:3px solid var(--blue);background:rgba(77,143,255,.06);border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.9rem}
+.callout.green{border-color:var(--green);background:rgba(0,255,157,.05)}
+.callout.yellow{border-color:var(--yellow);background:rgba(255,214,0,.05)}
+.callout.red{border-color:var(--red);background:rgba(255,61,113,.05)}
+.callout.purple{border-color:var(--purple);background:rgba(180,79,255,.05)}
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:14px;margin:22px 0}
+.step{counter-increment:step;display:flex;gap:14px;align-items:flex-start}
+.step::before{content:counter(step);min-width:30px;height:30px;background:rgba(77,143,255,.1);border:1px solid rgba(77,143,255,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.75rem;color:var(--blue2);flex-shrink:0;margin-top:2px}
+.step-content{flex:1}
+.step-title{font-weight:600;color:var(--text);margin-bottom:3px}
+.step-desc{color:var(--text2);font-size:.88rem}
+.quiz-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:26px;margin:22px 0}
+.quiz-q{font-weight:600;margin-bottom:14px;font-size:.97rem}
+.quiz-options{display:flex;flex-direction:column;gap:7px}
+.quiz-opt{background:rgba(77,143,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer;transition:all .2s;font-size:.88rem;font-family:var(--mono)}
+.quiz-opt:hover{border-color:var(--blue);background:rgba(77,143,255,.1)}
+.quiz-opt.correct{border-color:var(--green);background:rgba(0,255,157,.1);color:var(--green)}
+.quiz-opt.wrong{border-color:var(--red);background:rgba(255,61,113,.1);color:var(--red)}
+.quiz-feedback{margin-top:10px;font-size:.86rem;min-height:18px}
+.complexity-block{border-radius:12px;padding:22px;margin:18px 0;border:1px solid}
+.complexity-block.o1{border-color:rgba(0,255,157,.2);background:rgba(0,255,157,.04)}
+.complexity-block.ologn{border-color:rgba(0,229,255,.2);background:rgba(0,229,255,.04)}
+.complexity-block.on{border-color:rgba(77,143,255,.2);background:rgba(77,143,255,.04)}
+.complexity-block.onlogn{border-color:rgba(255,214,0,.2);background:rgba(255,214,0,.04)}
+.complexity-block.on2{border-color:rgba(255,112,67,.2);background:rgba(255,112,67,.04)}
+.complexity-block.o2n{border-color:rgba(255,61,113,.2);background:rgba(255,61,113,.04)}
+.complexity-block.onf{border-color:rgba(180,79,255,.2);background:rgba(180,79,255,.04)}
+.cb-title{font-family:var(--display);font-size:1.35rem;font-weight:700;margin-bottom:5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.analogy{display:flex;gap:12px;background:rgba(180,79,255,.05);border:1px solid rgba(180,79,255,.15);border-radius:10px;padding:14px;margin:14px 0}
+.analogy-icon{font-size:1.5rem;flex-shrink:0}
+.analogy-text{font-size:.88rem;color:var(--text2)}
+.analogy-text strong{color:var(--text)}
+#back-top{position:fixed;bottom:28px;right:28px;width:40px;height:40px;background:var(--blue);border:none;border-radius:50%;color:#fff;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .3s;z-index:200;box-shadow:0 4px 18px rgba(77,143,255,.4)}
+#back-top.visible{opacity:1}
+#back-top:hover{background:var(--cyan);transform:translateY(-2px)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+.tag{font-family:var(--mono);font-size:.68rem;padding:2px 9px;border-radius:20px;background:rgba(77,143,255,.08);border:1px solid var(--border);color:var(--text2)}
+.cheat-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid var(--border2);margin-bottom:7px;background:var(--panel)}
+.cheat-formula{font-family:var(--mono);font-size:.82rem;min-width:130px;font-weight:500}
+.cheat-rule{font-size:.82rem;color:var(--text2);flex:1}
+.sep{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:36px 0}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:rgba(77,143,255,.2);border-radius:3px}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-family:var(--mono);font-size:.8rem}
+button.action{background:var(--blue);border:none;color:#fff;padding:7px 18px;border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:.85rem;transition:all .2s}
+button.action:hover{background:var(--cyan);color:#000}
+button.ghost{background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 18px;border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:.85rem;transition:all .2s}
+button.ghost:hover{border-color:var(--blue);color:var(--blue)}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav id="sidebar">
+  <div class="sidebar-title">Overview</div>
+  <a class="nav-item" href="#hero">⚡ Start Here</a>
+  <div class="sidebar-title">Foundations</div>
+  <a class="nav-item" href="#intro">Why It Matters</a>
+  <a class="nav-item" href="#cpu">CPU Fundamentals</a>
+  <a class="nav-item" href="#what-is">What Is Complexity</a>
+  <div class="sidebar-title">Big-O Classes</div>
+  <a class="nav-item" href="#bigo">All Big-O Notations</a>
+  <a class="nav-item" href="#calculate">How To Calculate</a>
+  <a class="nav-item" href="#loops">Loop Analysis</a>
+  <a class="nav-item" href="#recursion">Recursion Analysis</a>
+  <a class="nav-item" href="#space">Space Complexity</a>
+  <div class="sidebar-title">Identification</div>
+  <a class="nav-item" href="#identify">Identify Any Program</a>
+  <a class="nav-item" href="#cheat">Cheat Rules</a>
+  <a class="nav-item" href="#ds">Data Structures</a>
+  <div class="sidebar-title">Algorithms</div>
+  <a class="nav-item" href="#sorting">Sorting</a>
+  <a class="nav-item" href="#searching">Searching</a>
+  <div class="sidebar-title">Interview / CP</div>
+  <a class="nav-item" href="#interview">FAANG Interview</a>
+  <a class="nav-item" href="#constraints">Input Constraints</a>
+  <a class="nav-item" href="#cp-rules">CP Rules</a>
+  <div class="sidebar-title">Advanced</div>
+  <a class="nav-item" href="#java-analysis">Java Programs</a>
+  <a class="nav-item" href="#advanced">Advanced Topics</a>
+  <a class="nav-item" href="#mistakes">Common Mistakes</a>
+  <a class="nav-item" href="#optimize">Optimization</a>
+  <div class="sidebar-title">Reference</div>
+  <a class="nav-item" href="#quiz-section">Quizzes</a>
+  <a class="nav-item" href="#cheatsheet">Cheat Sheet</a>
+  <a class="nav-item" href="#summary">Summary</a>
+</nav>
+<main>
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-tag">Complete Mastery — Beginner to FAANG</div>
+  <h1 class="hero-title">Time &amp; Space<br>Complexity</h1>
+  <p class="hero-sub">Master algorithm analysis, Big-O notation, and optimization patterns used at Google, Amazon, and Meta. From zero to interview-ready.</p>
+  <canvas id="hero-canvas"></canvas>
+  <div class="quick-cards">
+    <div class="qcard"><div class="complexity c-o1">O(1)</div><div class="label">Constant</div></div>
+    <div class="qcard"><div class="complexity c-logn">O(log n)</div><div class="label">Logarithmic</div></div>
+    <div class="qcard"><div class="complexity c-n">O(n)</div><div class="label">Linear</div></div>
+    <div class="qcard"><div class="complexity c-nlogn">O(n log n)</div><div class="label">Linearithmic</div></div>
+    <div class="qcard"><div class="complexity c-n2">O(n²)</div><div class="label">Quadratic</div></div>
+    <div class="qcard"><div class="complexity c-2n">O(2ⁿ)</div><div class="label">Exponential</div></div>
+    <div class="qcard"><div class="complexity c-nf">O(n!)</div><div class="label">Factorial</div></div>
+  </div>
+</section>
+<!-- INTRO -->
+<section id="intro">
+  <div class="section-label">Section 01</div>
+  <h2 class="section-title">Why Algorithms &amp; Performance Matter</h2>
+  <p class="section-desc">Before we dive into complexity, understand <em>why</em> every FAANG interviewer asks about it and why it costs companies millions.</p>
+  <div class="card-grid">
+    <div class="card"><h4>🌐 Google Search</h4><p style="color:var(--text2);font-size:.88rem">Google processes <strong style="color:var(--text)">8.5 billion searches/day</strong>. If their search was O(n²) instead of O(n log n), the servers would melt. The difference between algorithms is worth billions in hardware savings.</p></div>
+    <div class="card"><h4>🛍️ Amazon</h4><p style="color:var(--text2);font-size:.88rem">Amazon has <strong style="color:var(--text)">300 million products</strong>. O(n) search = 300M checks. O(log n) = just 28 comparisons. Same result — astronomically different speed.</p></div>
+    <div class="card"><h4>🎬 Netflix</h4><p style="color:var(--text2);font-size:.88rem">Netflix recommends movies to <strong style="color:var(--text)">238 million users</strong>. A naive O(n²) recommendation is impossible at scale. Efficient algorithms make real-time personalization feasible.</p></div>
+    <div class="card"><h4>💳 Visa Payments</h4><p style="color:var(--text2);font-size:.88rem">Visa processes <strong style="color:var(--text)">65,000 transactions/second</strong>. Fraud detection must complete in &lt;100ms. Only highly optimized algorithms survive these constraints.</p></div>
+  </div>
+  <h3>The Phone Book Analogy</h3>
+  <div class="analogy"><div class="analogy-icon">📞</div><div class="analogy-text"><strong>Finding a name in 1,000,000 entries.</strong><br><br><strong>Linear Search O(n):</strong> Start from page 1, check every page. Worst case: 1,000,000 checks.<br><strong>Binary Search O(log n):</strong> Open to middle. Is the name earlier? Discard second half. Repeat. Worst case: just 20 checks.<br><br>Same problem. 50,000× faster. <em>This is why complexity matters.</em></div></div>
+  <h3>What Happens When Algorithms Are Too Slow?</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Algorithm</th><th>n=1,000</th><th>n=10⁵</th><th>n=10⁶</th></tr>
+    <tr><td class="c-o1">O(1)</td><td>instant</td><td>instant</td><td>instant</td></tr>
+    <tr><td class="c-logn">O(log n)</td><td>10 ops</td><td>17 ops</td><td>20 ops</td></tr>
+    <tr><td class="c-n">O(n)</td><td>1,000</td><td>100,000</td><td>1,000,000</td></tr>
+    <tr><td class="c-nlogn">O(n log n)</td><td>10,000</td><td>1.7M</td><td>20M</td></tr>
+    <tr><td class="c-n2">O(n²)</td><td>1,000,000</td><td>10¹⁰</td><td>10¹²</td></tr>
+    <tr><td class="c-2n">O(2ⁿ)</td><td>10³⁰⁰</td><td>💀</td><td>💀</td></tr>
+  </table></div>
+</section>
+
+<!-- CPU -->
+<section id="cpu">
+  <div class="section-label">Section 02</div>
+  <h2 class="section-title">Computer Execution Fundamentals</h2>
+  <p class="section-desc">To truly understand complexity, you must understand how computers actually execute your code at the hardware level.</p>
+  <h3>How the CPU Executes Your Java Program</h3>
+  <div class="card">
+    <p style="color:var(--text2);font-size:.91rem;margin-bottom:14px">Every Java line → <strong style="color:var(--text)">bytecode</strong> → JIT compiled to <strong style="color:var(--text)">machine instructions</strong>. Each instruction costs nanoseconds. Total instruction count = "cost" of the algorithm.</p>
+    <div class="steps">
+      <div class="step"><div class="step-content"><div class="step-title">Fetch</div><div class="step-desc">CPU reads next instruction from memory. L1 cache hit ≈ 1ns. RAM access ≈ 100ns. Cache miss = massive penalty.</div></div></div>
+      <div class="step"><div class="step-content"><div class="step-title">Decode</div><div class="step-desc">CPU decodes the binary instruction — what operation to perform: add, compare, load, store, jump...</div></div></div>
+      <div class="step"><div class="step-content"><div class="step-title">Execute</div><div class="step-desc">ALU performs the operation. Integer add ≈ 1 cycle. Memory read ≈ 100–300 cycles. Division ≈ 20–90 cycles.</div></div></div>
+      <div class="step"><div class="step-content"><div class="step-title">Write Back</div><div class="step-desc">Result stored in register or memory. Loop back — fetch next instruction. This cycle repeats billions of times per second.</div></div></div>
+    </div>
+  </div>
+  <h3>Memory Hierarchy &amp; Access Cost</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Memory Level</th><th>Size</th><th>Latency</th><th>Impact on Complexity</th></tr>
+    <tr><td>CPU Register</td><td>~1 KB</td><td>&lt;1 ns</td><td>Loop counters, arithmetic — O(1)</td></tr>
+    <tr><td>L1 Cache</td><td>32–64 KB</td><td>~1 ns</td><td>Sequential array access — very fast</td></tr>
+    <tr><td>L2 Cache</td><td>256 KB–1 MB</td><td>~5 ns</td><td>Moderate working sets</td></tr>
+    <tr><td>L3 Cache</td><td>4–32 MB</td><td>~20 ns</td><td>Large arrays fit here</td></tr>
+    <tr><td>RAM (Heap)</td><td>GBs</td><td>~100 ns</td><td>Random access, LinkedList traversal</td></tr>
+    <tr><td>SSD / Disk</td><td>TBs</td><td>~100 µs</td><td>Database I/O — avoid in tight loops</td></tr>
+  </table></div>
+  <div class="callout"><strong>💡 Key Insight:</strong> Arrays are faster than LinkedLists for sequential access because arrays are contiguous in memory — the CPU prefetches the next elements into cache automatically. LinkedList nodes are scattered in heap, causing constant cache misses (100× slower).</div>
+  <h3>What "One Operation" Actually Means</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+    <pre><span class="cm">// These are all O(1) — single CPU operations:</span>
+<span class="kw">int</span> x = <span class="num">5</span>;               <span class="cm">// 1 store</span>
+<span class="kw">int</span> y = x + <span class="num">3</span>;           <span class="cm">// 1 load + 1 add + 1 store</span>
+<span class="kw">int</span> z = arr[i];          <span class="cm">// 1 index calc + 1 load</span>
+<span class="kw">boolean</span> b = x &gt; y;       <span class="cm">// 1 compare</span>
+
+<span class="cm">// These LOOK like one line but are NOT O(1):</span>
+Arrays.sort(arr);         <span class="cm">// O(n log n) — do not be fooled!</span>
+str1.equals(str2);        <span class="cm">// O(n) — compares char by char</span>
+<span class="kw">new</span> ArrayList&lt;&gt;(list);   <span class="cm">// O(n) — copies all elements</span>
+str.substring(<span class="num">0</span>, n);     <span class="cm">// O(n) in Java — creates new String</span>
+Collections.sort(list);   <span class="cm">// O(n log n) — TimSort</span></pre>
+  </div>
+</section>
+
+<!-- WHAT IS -->
+<section id="what-is">
+  <div class="section-label">Section 03</div>
+  <h2 class="section-title">What Is Time Complexity?</h2>
+  <p class="section-desc">Time complexity is NOT how long your code takes in seconds. It's a mathematical description of how runtime <strong>grows</strong> as input size grows.</p>
+  <div class="card">
+    <h4>The Core Question</h4>
+    <p style="color:var(--text2);font-size:.91rem;margin-bottom:14px"><strong style="color:var(--text)">If I double my input size, how much more time do I need?</strong></p>
+    <div class="grid2">
+      <div>
+        <div style="margin-bottom:12px"><span class="badge badge-green">O(1)</span><span style="font-size:.82rem;color:var(--text2);margin-left:8px">Input doubles → time same. Array[5] takes same time on 10 or 10M element array.</span></div>
+        <div style="margin-bottom:12px"><span class="badge badge-blue">O(n)</span><span style="font-size:.82rem;color:var(--text2);margin-left:8px">Input doubles → time doubles. Must inspect every element once.</span></div>
+        <div><span class="badge badge-orange">O(n²)</span><span style="font-size:.82rem;color:var(--text2);margin-left:8px">Input doubles → time quadruples. n=100: 10K ops. n=200: 40K ops.</span></div>
+      </div>
+      <div>
+        <canvas id="growth-canvas" width="280" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+  <h3>Why Not Measure in Seconds?</h3>
+  <div class="card-grid">
+    <div class="card"><h4>⚡ Hardware varies</h4><p style="color:var(--text2);font-size:.86rem">Your laptop runs the same code 5× faster than a budget server. Seconds are meaningless without knowing hardware.</p></div>
+    <div class="card"><h4>🔀 Other processes interfere</h4><p style="color:var(--text2);font-size:.86rem">OS scheduling, GC pauses, network I/O — all affect wall-clock time unpredictably.</p></div>
+    <div class="card"><h4>📐 Math is universal</h4><p style="color:var(--text2);font-size:.86rem">O(n log n) is always better than O(n²) regardless of language, hardware, or decade.</p></div>
+  </div>
+  <h3>Big-O, Big-Ω, Big-Θ</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Notation</th><th>Meaning</th><th>Common Use</th></tr>
+    <tr><td style="font-family:var(--mono);color:var(--blue2)">O (Big-O)</td><td>Upper bound — worst case</td><td>Interviews, everyday analysis. Default choice.</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--green)">Ω (Big-Omega)</td><td>Lower bound — best case</td><td>Theoretical minimum guarantees.</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">Θ (Theta)</td><td>Tight bound — exact rate</td><td>When best and worst case match. Precise analysis.</td></tr>
+  </table></div>
+  <div class="callout"><strong>Interview Reality:</strong> When asked "what's the time complexity?", always answer with Big-O worst case unless explicitly told otherwise.</div>
+</section>
+<!-- BIG-O SECTION -->
+<section id="bigo">
+  <div class="section-label">Section 04</div>
+  <h2 class="section-title">Every Big-O Complexity — Deep Dive</h2>
+  <p class="section-desc">Mathematical intuition, real-world analogies, Java examples, and CPU-level understanding for every complexity class.</p>
+
+  <div class="complexity-block o1">
+    <div class="cb-title c-o1">O(1) — Constant Time</div>
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">Regardless of input size, always the same number of steps. The holy grail of algorithm design.</p>
+    <div class="analogy"><div class="analogy-icon">📖</div><div class="analogy-text"><strong>Analogy:</strong> Looking up a word when you know the exact page number. Jump to page 247 — doesn't matter if the book has 100 or 1,000,000 pages.</div></div>
+    <div class="grid2">
+      <div class="code-block"><div class="code-header"><span class="code-lang">java — O(1) examples</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+      <pre><span class="cm">// All O(1):</span>
+<span class="kw">int</span> val = arr[<span class="num">5</span>];          <span class="cm">// array index</span>
+map.get(<span class="str">"key"</span>);            <span class="cm">// HashMap lookup</span>
+map.put(<span class="str">"key"</span>, val);       <span class="cm">// HashMap insert</span>
+stack.push(item);           <span class="cm">// Stack push</span>
+stack.pop();                <span class="cm">// Stack pop</span>
+list.get(<span class="num">0</span>);               <span class="cm">// ArrayList by index</span>
+list.size();                <span class="cm">// size field</span>
+<span class="kw">int</span> mid = (l + r) / <span class="num">2</span>;    <span class="cm">// arithmetic</span></pre></div>
+      <div>
+        <h4>Why it's O(1)</h4>
+        <p style="color:var(--text2);font-size:.85rem">Array index: CPU computes <code style="color:var(--cyan)">base + index × size</code> — always exactly 2 ops. HashMap: hash(key) → bucket index → direct memory jump. Stack push/pop: pointer increment + write.</p>
+        <div class="tags"><span class="tag">Array index</span><span class="tag">HashMap</span><span class="tag">Stack/Queue ops</span><span class="tag">Arithmetic</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="complexity-block ologn">
+    <div class="cb-title c-logn">O(log n) — Logarithmic Time</div>
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">Each step <strong style="color:var(--text)">eliminates half</strong> the remaining input. Even for n = 1 billion, only ~30 steps needed.</p>
+    <div class="analogy"><div class="analogy-icon">📚</div><div class="analogy-text"><strong>Analogy:</strong> Binary search in a sorted phone book. Open to middle — name in first half? Discard second half. 1,000,000 names → ~20 comparisons.</div></div>
+    <div class="grid2">
+      <div class="code-block"><div class="code-header"><span class="code-lang">java — O(log n)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+      <pre><span class="kw">int</span> <span class="fn">binarySearch</span>(<span class="kw">int</span>[] arr, <span class="kw">int</span> target) {
+    <span class="kw">int</span> lo=<span class="num">0</span>, hi=arr.length-<span class="num">1</span>;
+    <span class="kw">while</span>(lo&lt;=hi) {
+        <span class="kw">int</span> mid = lo+(hi-lo)/<span class="num">2</span>;
+        <span class="kw">if</span>(arr[mid]==target) <span class="kw">return</span> mid;
+        <span class="kw">if</span>(arr[mid]&lt;target) lo=mid+<span class="num">1</span>;
+        <span class="kw">else</span> hi=mid-<span class="num">1</span>;
+    }
+    <span class="kw">return</span> -<span class="num">1</span>;
+}
+<span class="cm">// Also O(log n):</span>
+treeMap.get(key);   <span class="cm">// BST traversal</span>
+treeSet.add(x);     <span class="cm">// balanced tree insert</span></pre></div>
+      <div>
+        <h4>The Math</h4>
+        <p style="color:var(--text2);font-size:.85rem">Halving n until n/2^k = 1 gives k = log₂(n) steps.</p>
+        <div class="table-wrap"><table style="font-size:.78rem"><tr><th>n</th><th>log₂(n)</th></tr><tr><td>1,024</td><td>10</td></tr><tr><td>1,000,000</td><td>20</td></tr><tr><td>1,000,000,000</td><td>30</td></tr></table></div>
+        <div class="callout green" style="font-size:.82rem;margin-top:8px"><strong>Mind-blowing:</strong> Binary search on 1 billion items = 30 comparisons!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="complexity-block on">
+    <div class="cb-title c-n">O(n) — Linear Time</div>
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">Visits each element once. Double the input → double the time. Often the best possible when you must inspect all data.</p>
+    <div class="analogy"><div class="analogy-icon">🔍</div><div class="analogy-text"><strong>Analogy:</strong> Reading a book — you must read every page. A 200-page book takes twice as long as a 100-page book.</div></div>
+    <div class="code-block"><div class="code-header"><span class="code-lang">java — O(n)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+    <pre><span class="kw">int</span> <span class="fn">findMax</span>(<span class="kw">int</span>[] arr) {
+    <span class="kw">int</span> max = arr[<span class="num">0</span>];
+    <span class="kw">for</span>(<span class="kw">int</span> num : arr)       <span class="cm">// n iterations</span>
+        <span class="kw">if</span>(num &gt; max) max=num; <span class="cm">// O(1) work each</span>
+    <span class="kw">return</span> max;
+}
+<span class="cm">// Also O(n): str.contains(), Arrays.fill(), LinkedList traversal</span>
+<span class="cm">// Collections.frequency(), new ArrayList(list)</span></pre></div>
+  </div>
+
+  <div class="complexity-block onlogn">
+    <div class="cb-title c-nlogn">O(n log n) — Linearithmic Time</div>
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">The "price" of comparison-based sorting. The sweet spot for most interview solutions.</p>
+    <div class="analogy"><div class="analogy-icon">🗂️</div><div class="analogy-text"><strong>Analogy:</strong> Sorting a deck of cards by repeatedly splitting into halves, sorting each, then merging. Each card passes through O(log n) merge rounds.</div></div>
+    <div class="code-block"><div class="code-header"><span class="code-lang">java — O(n log n)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+    <pre>Arrays.sort(arr);          <span class="cm">// Java's TimSort — O(n log n)</span>
+Collections.sort(list);    <span class="cm">// O(n log n)</span>
+
+<span class="cm">// Merge sort recurrence: T(n) = 2T(n/2) + O(n)</span>
+<span class="cm">// log n levels × O(n) merge each = O(n log n)</span>
+
+<span class="cm">// Adding n elements to TreeSet:</span>
+<span class="kw">for</span>(<span class="kw">int</span> x : arr) treeSet.add(x); <span class="cm">// n × O(log n) = O(n log n)</span></pre></div>
+  </div>
+
+  <div class="complexity-block on2">
+    <div class="cb-title c-n2">O(n²) — Quadratic Time</div>
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">Two nested loops of n. Acceptable for n ≤ 10,000 but dangerously slow beyond that. Classic brute force signature.</p>
+    <div class="analogy"><div class="analogy-icon">🤝</div><div class="analogy-text"><strong>Analogy:</strong> Everyone at a party shaking hands with everyone else. 10 people = 45 handshakes. 1,000 people = 499,500 handshakes.</div></div>
+    <div class="code-block"><div class="code-header"><span class="code-lang">java — O(n²)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+    <pre><span class="cm">// Bubble sort — classic O(n²)</span>
+<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n; i++)          <span class="cm">// n</span>
+    <span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">0</span>; j&lt;n-i-<span class="num">1</span>; j++)  <span class="cm">// ~n</span>
+        <span class="kw">if</span>(arr[j]&gt;arr[j+<span class="num">1</span>]) swap(j,j+<span class="num">1</span>);
+
+<span class="cm">// All pairs — O(n²)</span>
+<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n; i++)
+    <span class="kw">for</span>(<span class="kw">int</span> j=i+<span class="num">1</span>; j&lt;n; j++)
+        process(arr[i], arr[j]);</pre></div>
+  </div>
+
+  <div class="complexity-block o2n">
+    <div class="cb-title c-2n">O(2ⁿ) — Exponential Time</div>
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">Each extra element doubles the work. Only feasible for n ≤ 20–25.</p>
+    <div class="analogy"><div class="analogy-icon">🌳</div><div class="analogy-text"><strong>Analogy:</strong> All subsets of a set. 3 items → 8 subsets. 20 items → 1,048,576 subsets. 30 items → 1 billion subsets.</div></div>
+    <div class="code-block"><div class="code-header"><span class="code-lang">java — O(2ⁿ)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+    <pre><span class="cm">// Fibonacci WITHOUT memo — O(2^n)</span>
+<span class="kw">int</span> <span class="fn">fib</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span>(n&lt;=<span class="num">1</span>) <span class="kw">return</span> n;
+    <span class="kw">return</span> <span class="fn">fib</span>(n-<span class="num">1</span>) + <span class="fn">fib</span>(n-<span class="num">2</span>); <span class="cm">// 2 calls each time</span>
+}
+<span class="cm">// fib(40) = ~1 trillion calls!</span></pre></div>
+  </div>
+
+  <div class="complexity-block onf">
+    <div class="cb-title c-nf">O(n!) — Factorial Time</div>
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">The worst practical complexity. 10! = 3.6 million. 15! = 1.3 trillion. Only feasible for n ≤ 10–12.</p>
+    <div class="analogy"><div class="analogy-icon">🎲</div><div class="analogy-text"><strong>Analogy:</strong> Arrange n people in every possible order. 3 people = 6 orders. 10 people = 3,628,800 orders.</div></div>
+    <div class="code-block"><div class="code-header"><span class="code-lang">java — O(n!)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+    <pre><span class="cm">// Generate all permutations — O(n!)</span>
+<span class="kw">void</span> <span class="fn">permute</span>(<span class="kw">int</span>[] arr, <span class="kw">int</span> start) {
+    <span class="kw">if</span>(start==arr.length){ results.add(arr.clone()); <span class="kw">return</span>; }
+    <span class="kw">for</span>(<span class="kw">int</span> i=start; i&lt;arr.length; i++) {
+        swap(arr, start, i);
+        <span class="fn">permute</span>(arr, start+<span class="num">1</span>); <span class="cm">// n × (n-1) × (n-2)... = n!</span>
+        swap(arr, start, i);
+    }
+}</pre></div>
+  </div>
+  <canvas id="bigo-compare" width="660" height="280" style="margin:28px auto;display:block;border:1px solid var(--border);border-radius:10px;max-width:100%"></canvas>
+</section>
+<!-- CALCULATE -->
+<section id="calculate">
+  <div class="section-label">Section 05</div>
+  <h2 class="section-title">How To Calculate Time Complexity</h2>
+  <p class="section-desc">A systematic method you can apply to any code. Master these five rules and complexity analysis becomes mechanical.</p>
+  <h3>The 5 Golden Rules</h3>
+  <div class="card"><div class="steps">
+    <div class="step"><div class="step-content"><div class="step-title">Drop Constants</div><div class="step-desc">O(3n) = O(n). O(100) = O(1). Constants reflect hardware speed, not algorithmic growth rate.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Drop Lower-Order Terms</div><div class="step-desc">O(n² + n) = O(n²). At large n, lower terms become negligible. Keep only the dominant term.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Sequential Code — Add</div><div class="step-desc">O(n) then O(n) = O(n) + O(n) = O(2n) = O(n). Sequential blocks do NOT multiply.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Nested Code — Multiply</div><div class="step-desc">O(n) INSIDE O(n) = O(n) × O(n) = O(n²). Nesting always multiplies.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Take Dominant Term</div><div class="step-desc">After combining, keep the fastest-growing term. O(n² + n log n + n + 1) = O(n²).</div></div></div>
+  </div></div>
+  <h3>Worked Examples</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Two Sequential Loops</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">void</span> <span class="fn">twoLoops</span>(<span class="kw">int</span>[] arr) {
+    <span class="kw">for</span>(<span class="kw">int</span> x : arr) print(x);      <span class="cm">// O(n)</span>
+    <span class="kw">for</span>(<span class="kw">int</span> x : arr) print(x*<span class="num">2</span>);   <span class="cm">// O(n)</span>
+}
+<span class="cm">// Total: O(n) + O(n) = O(2n) = O(n)   ← NOT O(n²)!</span></pre></div>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Nested Loops</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">void</span> <span class="fn">nested</span>(<span class="kw">int</span>[] arr) {
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;arr.length; i++)      <span class="cm">// n</span>
+        <span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">0</span>; j&lt;arr.length; j++)   <span class="cm">// n</span>
+            print(arr[i]+arr[j]);           <span class="cm">// O(1)</span>
+}
+<span class="cm">// Total: n × n × O(1) = O(n²)</span></pre></div>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Mixed: Find the Dominant</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">void</span> <span class="fn">mixed</span>(<span class="kw">int</span>[] arr) {
+    <span class="kw">int</span> n = arr.length;
+    <span class="kw">int</span> x = arr[<span class="num">0</span>];                      <span class="cm">// O(1)</span>
+    <span class="kw">for</span>(<span class="kw">int</span> v : arr) print(v);            <span class="cm">// O(n)</span>
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n; i++)
+        <span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">0</span>; j&lt;n; j++) print(i+j); <span class="cm">// O(n²)</span>
+    Arrays.sort(arr);                      <span class="cm">// O(n log n)</span>
+}
+<span class="cm">// Sum: O(1) + O(n) + O(n²) + O(n log n) = O(n²)  ← dominant</span></pre></div>
+
+  <!-- Interactive Calculator -->
+  <h3>Interactive Complexity Calculator</h3>
+  <div class="card">
+    <p style="color:var(--text2);font-size:.88rem;margin-bottom:14px">Describe your code structure and see complexity calculated:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center">
+      <label style="font-size:.83rem;color:var(--text2)">Outer:</label>
+      <select id="calc-outer">
+        <option value="1">None (O(1))</option>
+        <option value="n" selected>n iterations</option>
+        <option value="logn">log n iterations (×2 each step)</option>
+        <option value="sqrt">√n iterations</option>
+      </select>
+      <label style="font-size:.83rem;color:var(--text2)">Inner:</label>
+      <select id="calc-inner">
+        <option value="1" selected>None</option>
+        <option value="n">n iterations</option>
+        <option value="logn">log n iterations</option>
+        <option value="tri">Triangular (j=i to n)</option>
+      </select>
+      <label style="font-size:.83rem;color:var(--text2)">Plus:</label>
+      <select id="calc-after">
+        <option value="1" selected>Nothing extra</option>
+        <option value="n">O(n) operation</option>
+        <option value="nlogn">O(n log n) sort</option>
+        <option value="n2">O(n²) nested loop</option>
+      </select>
+      <button class="action" onclick="calcComplexity()">Calculate</button>
+    </div>
+    <div id="calc-result" class="callout" style="font-family:var(--mono);display:none"></div>
+  </div>
+</section>
+
+<!-- LOOPS -->
+<section id="loops">
+  <div class="section-label">Section 06</div>
+  <h2 class="section-title">Loop Analysis Deep Dive</h2>
+  <p class="section-desc">Loops are the primary source of complexity. Master every pattern here.</p>
+  <h3>Pattern 1: Simple Loop — O(n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n; i++) work(); <span class="cm">// exactly n iterations → O(n)</span></pre></div>
+  <h3>Pattern 2: Halved Loop — Still O(n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n/<span class="num">2</span>; i++) work(); <span class="cm">// n/2 iterations → O(n/2) = O(n)</span></pre></div>
+  <h3>Pattern 3: Logarithmic Loop — O(log n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>; i&lt;n; i*=<span class="num">2</span>) work(); <span class="cm">// i = 1,2,4,8... → log₂(n) iters → O(log n)</span>
+<span class="kw">for</span>(<span class="kw">int</span> i=n; i&gt;<span class="num">1</span>; i/=<span class="num">2</span>) work(); <span class="cm">// i = n,n/2,n/4... → O(log n)</span></pre></div>
+  <h3>Pattern 4: Standard Nested — O(n²)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n; i++)
+    <span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">0</span>; j&lt;n; j++) work(); <span class="cm">// n × n = O(n²)</span></pre></div>
+  <h3>Pattern 5: Triangular Loop — O(n²)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n; i++)
+    <span class="kw">for</span>(<span class="kw">int</span> j=i; j&lt;n; j++) work(); <span class="cm">// j starts at i!</span>
+<span class="cm">// Iterations: n + (n-1) + ... + 1 = n(n+1)/2 ≈ n²/2 → O(n²)</span>
+<span class="cm">// Still O(n²) — the 1/2 constant is dropped</span></pre></div>
+  <h3>Pattern 6: Nested Logarithmic — O(n log n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;n; i++)          <span class="cm">// n</span>
+    <span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">1</span>; j&lt;n; j*=<span class="num">2</span>) work(); <span class="cm">// log n</span>
+<span class="cm">// n × log n = O(n log n)</span></pre></div>
+  <h3>Pattern 7: Two Different Variables — O(m×n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;m; i++)    <span class="cm">// m iterations</span>
+    <span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">0</span>; j&lt;n; j++) work(); <span class="cm">// n iterations</span>
+<span class="cm">// Total: O(m×n) — NOT O(n²) unless m==n!</span></pre></div>
+  <h3>Live Loop Counter</h3>
+  <div class="card">
+    <p style="color:var(--text2);font-size:.86rem;margin-bottom:12px">Adjust n and watch operations grow:</p>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <label style="color:var(--text2);font-size:.85rem">n = <span id="loop-n-val">10</span></label>
+      <input type="range" id="loop-n" min="1" max="50" value="10" style="accent-color:var(--blue);flex:1;min-width:160px" oninput="updateLoopViz(this.value)">
+    </div>
+    <div id="loop-viz" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px"></div>
+  </div>
+</section>
+<!-- RECURSION -->
+<section id="recursion">
+  <div class="section-label">Section 07</div>
+  <h2 class="section-title">Recursion Analysis</h2>
+  <p class="section-desc">Recursion is where most students stumble. We'll demystify it with tree visualizations and the Master Theorem.</p>
+  <div class="callout"><strong>Key Formula:</strong> Total work = (branching factor)^(depth) × (work per node). For divide-and-conquer, use the <strong>Master Theorem</strong>: T(n) = aT(n/b) + f(n)</div>
+  <h3>Example 1: Linear Recursion — O(n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">int</span> <span class="fn">sum</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span>(n==<span class="num">0</span>) <span class="kw">return</span> <span class="num">0</span>;
+    <span class="kw">return</span> n + <span class="fn">sum</span>(n-<span class="num">1</span>);
+}
+<span class="cm">// Call chain: sum(5)→sum(4)→...→sum(0)
+// Depth: n. Branching: 1. Total calls: n+1 → O(n)</span></pre></div>
+  <h3>Example 2: Binary Recursion — O(2ⁿ)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">int</span> <span class="fn">fib</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span>(n&lt;=<span class="num">1</span>) <span class="kw">return</span> n;
+    <span class="kw">return</span> <span class="fn">fib</span>(n-<span class="num">1</span>) + <span class="fn">fib</span>(n-<span class="num">2</span>);
+}
+<span class="cm">/* fib(4) tree:
+           fib(4)
+          /      \
+       fib(3)   fib(2)
+       /    \   /    \
+   fib(2) fib(1) fib(1) fib(0)
+   /   \
+fib(1) fib(0)
+Branching=2, Depth≈n → O(2^n). fib(40)= ~trillion calls! */</span></pre></div>
+  <h3>Example 3: Merge Sort — O(n log n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="cm">// T(n) = 2T(n/2) + O(n)</span>
+<span class="kw">void</span> <span class="fn">mergeSort</span>(<span class="kw">int</span>[] arr, <span class="kw">int</span> l, <span class="kw">int</span> r) {
+    <span class="kw">if</span>(l&gt;=r) <span class="kw">return</span>;
+    <span class="kw">int</span> mid=(l+r)/<span class="num">2</span>;
+    <span class="fn">mergeSort</span>(arr,l,mid);    <span class="cm">// T(n/2)</span>
+    <span class="fn">mergeSort</span>(arr,mid+<span class="num">1</span>,r); <span class="cm">// T(n/2)</span>
+    <span class="fn">merge</span>(arr,l,mid,r);      <span class="cm">// O(n) merge work</span>
+}
+<span class="cm">/* log n levels × O(n) merge each = O(n log n) */</span></pre></div>
+  <h3>The Master Theorem</h3>
+  <div class="card"><div class="table-wrap"><table>
+    <tr><th>T(n) = aT(n/b) + f(n)</th><th>Condition</th><th>Result</th></tr>
+    <tr><td>Case 1</td><td>f(n) grows slower than n^log_b(a)</td><td>T(n) = Θ(n^log_b(a))</td></tr>
+    <tr><td>Case 2</td><td>f(n) grows at same rate as n^log_b(a)</td><td>T(n) = Θ(n^log_b(a) · log n)</td></tr>
+    <tr><td>Case 3</td><td>f(n) grows faster than n^log_b(a)</td><td>T(n) = Θ(f(n))</td></tr>
+  </table></div>
+  <p style="color:var(--text2);font-size:.85rem;margin-top:10px"><strong>Example:</strong> Merge sort: a=2, b=2, f(n)=n. n^log₂2 = n¹ = n. f(n)=n matches → Case 2 → T(n) = Θ(n log n). ✓</p></div>
+  <canvas id="rec-tree" width="660" height="280" style="margin:22px auto;display:block;background:var(--panel);border:1px solid var(--border);border-radius:10px;max-width:100%"></canvas>
+</section>
+
+<!-- SPACE -->
+<section id="space">
+  <div class="section-label">Section 08</div>
+  <h2 class="section-title">Space Complexity</h2>
+  <p class="section-desc">Space complexity measures the <strong>extra memory</strong> your algorithm uses. Often a trade-off against time.</p>
+  <div class="card-grid">
+    <div class="card"><h4>📚 Stack Memory</h4><ul style="color:var(--text2);font-size:.86rem;line-height:2;padding-left:16px"><li>Stores local variables &amp; function call frames</li><li>Each recursive call adds a stack frame</li><li>Limited (~1–8 MB typical per thread)</li><li>StackOverflowError = recursion too deep</li><li>Recursion depth n → O(n) stack space</li></ul></div>
+    <div class="card"><h4>🗄️ Heap Memory</h4><ul style="color:var(--text2);font-size:.86rem;line-height:2;padding-left:16px"><li>Stores all objects and arrays</li><li>Managed by JVM Garbage Collector</li><li>Much larger (configured via -Xmx)</li><li><code>new int[n]</code> = O(n) heap space</li><li>HashMap with n entries = O(n)</li></ul></div>
+  </div>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Space Complexity Examples</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="cm">// O(1) Space — only constant extra memory</span>
+<span class="kw">int</span> <span class="fn">sum</span>(<span class="kw">int</span>[] arr) {
+    <span class="kw">int</span> total=<span class="num">0</span>;           <span class="cm">// one integer, always</span>
+    <span class="kw">for</span>(<span class="kw">int</span> x:arr) total+=x;
+    <span class="kw">return</span> total;
+}
+
+<span class="cm">// O(n) Space — heap allocation proportional to input</span>
+<span class="kw">int</span>[] <span class="fn">doubled</span>(<span class="kw">int</span>[] arr) {
+    <span class="kw">int</span>[] res = <span class="kw">new int</span>[arr.length]; <span class="cm">// n extra slots</span>
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>;i&lt;arr.length;i++) res[i]=arr[i]*<span class="num">2</span>;
+    <span class="kw">return</span> res;
+}
+
+<span class="cm">// O(n) Stack Space — n recursive call frames</span>
+<span class="kw">int</span> <span class="fn">factorial</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span>(n==<span class="num">0</span>) <span class="kw">return</span> <span class="num">1</span>;
+    <span class="kw">return</span> n * <span class="fn">factorial</span>(n-<span class="num">1</span>); <span class="cm">// n stack frames!</span>
+}
+
+<span class="cm">// O(log n) Stack — binary search recursion depth</span>
+<span class="cm">// O(n²) Heap — 2D DP table: new int[n][n]</span></pre></div>
+  <div class="callout green"><strong>In-place vs Auxiliary:</strong> In-place algorithms (quicksort, two-pointer) use O(1) extra space. Auxiliary-space algorithms (merge sort) use O(n) extra. FAANG interviews often ask for in-place solutions when possible.</div>
+  <div class="table-wrap"><table>
+    <tr><th>Algorithm</th><th>Time</th><th>Space</th><th>In-place?</th></tr>
+    <tr><td>Bubble Sort</td><td>O(n²)</td><td>O(1)</td><td>✅</td></tr>
+    <tr><td>Merge Sort</td><td>O(n log n)</td><td>O(n)</td><td>❌</td></tr>
+    <tr><td>Quick Sort</td><td>O(n log n) avg</td><td>O(log n)</td><td>✅</td></tr>
+    <tr><td>HashMap Freq Count</td><td>O(n)</td><td>O(n)</td><td>❌</td></tr>
+    <tr><td>Two Pointer</td><td>O(n)</td><td>O(1)</td><td>✅</td></tr>
+    <tr><td>DP (2D table)</td><td>O(n²)</td><td>O(n²)</td><td>❌</td></tr>
+  </table></div>
+</section>
+<!-- IDENTIFY -->
+<section id="identify">
+  <div class="section-label">Section 09</div>
+  <h2 class="section-title">How To Identify Complexity In ANY Program</h2>
+  <p class="section-desc">A complete, systematic methodology. Apply this to every piece of code.</p>
+  <div class="card"><div class="steps">
+    <div class="step"><div class="step-content"><div class="step-title">Find all loops — note their iteration count</div><div class="step-desc">For every for/while: how many times does it run in terms of n? Simple: n. Halving: log n. Doubling increment: log n.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Check for nesting</div><div class="step-desc">Inner loop inside outer loop? Multiply. Is inner loop dependent on the outer variable? (triangular — still O(n²))</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Identify recursive calls</div><div class="step-desc">How many calls per invocation (branching factor)? How deep (depth)? Apply branching^depth or Master Theorem.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Audit library/built-in calls</div><div class="step-desc">Arrays.sort()=O(n log n). str.equals()=O(n). map.get()=O(1). str.substring()=O(n). Never assume library calls are O(1)!</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Add sequential, multiply nested</div><div class="step-desc">Combine all parts. Drop constants and lower-order terms. State the dominant term.</div></div></div>
+  </div></div>
+  <h3>Common Pattern Recognition Table</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Code Pattern</th><th>Complexity</th><th>Reason</th></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">for i in 0..n</td><td><span class="badge badge-blue">O(n)</span></td><td>n iterations</td></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">nested for i,j in 0..n</td><td><span class="badge badge-orange">O(n²)</span></td><td>n × n</td></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">while i&lt;n: i*=2</td><td><span class="badge badge-cyan">O(log n)</span></td><td>doubles each step</td></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">Arrays.sort(arr)</td><td><span class="badge badge-yellow">O(n log n)</span></td><td>TimSort</td></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">f(n) = f(n-1)+f(n-2)</td><td><span class="badge badge-red">O(2ⁿ)</span></td><td>binary recursion tree</td></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">DFS on graph (V,E)</td><td><span class="badge badge-blue">O(V+E)</span></td><td>each node + edge visited once</td></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">map.get(key)</td><td><span class="badge badge-green">O(1) avg</span></td><td>hash function + bucket access</td></tr>
+    <tr><td style="font-family:var(--mono);font-size:.8rem">treeMap.get(key)</td><td><span class="badge badge-cyan">O(log n)</span></td><td>BST traversal</td></tr>
+  </table></div>
+</section>
+
+<!-- CHEAT -->
+<section id="cheat">
+  <div class="section-label">Section 10</div>
+  <h2 class="section-title">Quick Recognition Rules</h2>
+  <p class="section-desc">Memorize these patterns and you'll identify most complexities at a glance.</p>
+  <div class="grid2">
+    <div>
+      <div class="cheat-row"><span class="cheat-formula c-o1">O(1)</span><span class="cheat-rule">Array index, HashMap get/put, math op, stack push/pop</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-logn">O(log n)</span><span class="cheat-rule">Binary search, i*=2 loop, TreeMap/TreeSet ops</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-n">O(n)</span><span class="cheat-rule">Single loop, linear scan, DFS/BFS traversal</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-nlogn">O(n log n)</span><span class="cheat-rule">Sort, merge sort, n × binary search, TimSort</span></div>
+    </div>
+    <div>
+      <div class="cheat-row"><span class="cheat-formula c-n2">O(n²)</span><span class="cheat-rule">Two nested loops, bubble/selection/insertion sort</span></div>
+      <div class="cheat-row"><span class="cheat-formula" style="color:#ff8a65;min-width:130px;font-family:var(--mono);font-size:.82rem">O(n³)</span><span class="cheat-rule">Three nested loops, Floyd-Warshall</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-2n">O(2ⁿ)</span><span class="cheat-rule">All subsets, branching=2 recursion to depth n</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-nf">O(n!)</span><span class="cheat-rule">All permutations, TSP brute force</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DS -->
+<section id="ds">
+  <div class="section-label">Section 11</div>
+  <h2 class="section-title">Data Structure Complexities</h2>
+  <p class="section-desc">Know every operation complexity cold. This is critical interview knowledge.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th><th>Space</th></tr>
+    <tr><td style="font-weight:600">Array</td><td class="c-o1">O(1)</td><td class="c-n">O(n)</td><td class="c-n">O(n)</td><td class="c-n">O(n)</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">ArrayList</td><td class="c-o1">O(1)</td><td class="c-n">O(n)</td><td class="c-o1">O(1)*</td><td class="c-n">O(n)</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">LinkedList</td><td class="c-n">O(n)</td><td class="c-n">O(n)</td><td class="c-o1">O(1)</td><td class="c-o1">O(1)</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">Stack (ArrayDeque)</td><td class="c-o1">O(1) top</td><td class="c-n">O(n)</td><td class="c-o1">O(1)</td><td class="c-o1">O(1)</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">Queue (ArrayDeque)</td><td class="c-o1">O(1) front</td><td class="c-n">O(n)</td><td class="c-o1">O(1)</td><td class="c-o1">O(1)</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">HashMap</td><td class="c-o1">O(1)*</td><td class="c-o1">O(1)*</td><td class="c-o1">O(1)*</td><td class="c-o1">O(1)*</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">TreeMap</td><td class="c-logn">O(log n)</td><td class="c-logn">O(log n)</td><td class="c-logn">O(log n)</td><td class="c-logn">O(log n)</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">HashSet</td><td>N/A</td><td class="c-o1">O(1)*</td><td class="c-o1">O(1)*</td><td class="c-o1">O(1)*</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">TreeSet</td><td>N/A</td><td class="c-logn">O(log n)</td><td class="c-logn">O(log n)</td><td class="c-logn">O(log n)</td><td class="c-n">O(n)</td></tr>
+    <tr><td style="font-weight:600">PriorityQueue</td><td class="c-o1">O(1) peek</td><td class="c-n">O(n)</td><td class="c-logn">O(log n)</td><td class="c-logn">O(log n)</td><td class="c-n">O(n)</td></tr>
+  </table></div>
+  <p style="color:var(--text3);font-size:.78rem">* = amortized/average. ArrayList add* = amortized O(1). HashMap* = assumes good hash distribution.</p>
+  <div class="callout"><strong>Why HashMap is O(1) average:</strong> hash(key) → bucket index (O(1)) → access array slot (O(1)). Occasional bucket chains exist, but Java 8+ converts long chains to Red-Black Trees, giving O(log n) worst-case instead of O(n).</div>
+</section>
+<!-- SORTING -->
+<section id="sorting">
+  <div class="section-label">Section 12</div>
+  <h2 class="section-title">Sorting Algorithm Analysis</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable?</th></tr>
+    <tr><td>Bubble Sort</td><td class="c-n">O(n)</td><td class="c-n2">O(n²)</td><td class="c-n2">O(n²)</td><td class="c-o1">O(1)</td><td>✅</td></tr>
+    <tr><td>Selection Sort</td><td class="c-n2">O(n²)</td><td class="c-n2">O(n²)</td><td class="c-n2">O(n²)</td><td class="c-o1">O(1)</td><td>❌</td></tr>
+    <tr><td>Insertion Sort</td><td class="c-n">O(n)</td><td class="c-n2">O(n²)</td><td class="c-n2">O(n²)</td><td class="c-o1">O(1)</td><td>✅</td></tr>
+    <tr><td>Merge Sort</td><td class="c-nlogn">O(n log n)</td><td class="c-nlogn">O(n log n)</td><td class="c-nlogn">O(n log n)</td><td class="c-n">O(n)</td><td>✅</td></tr>
+    <tr><td>Quick Sort</td><td class="c-nlogn">O(n log n)</td><td class="c-nlogn">O(n log n)</td><td class="c-n2">O(n²)</td><td class="c-logn">O(log n)</td><td>❌</td></tr>
+    <tr><td>Heap Sort</td><td class="c-nlogn">O(n log n)</td><td class="c-nlogn">O(n log n)</td><td class="c-nlogn">O(n log n)</td><td class="c-o1">O(1)</td><td>❌</td></tr>
+    <tr><td>Counting Sort</td><td class="c-n">O(n+k)</td><td class="c-n">O(n+k)</td><td class="c-n">O(n+k)</td><td class="c-n">O(k)</td><td>✅</td></tr>
+    <tr><td>Java TimSort</td><td class="c-n">O(n)</td><td class="c-nlogn">O(n log n)</td><td class="c-nlogn">O(n log n)</td><td class="c-n">O(n)</td><td>✅</td></tr>
+  </table></div>
+  <div class="callout yellow"><strong>Quick Sort O(n²) worst case:</strong> Occurs when the pivot always picks the smallest/largest element — happens on already-sorted arrays with naive pivot selection. Java's Arrays.sort() uses dual-pivot quicksort with fallback to heapsort (introsort), guaranteeing O(n log n) worst case.</div>
+  <h3>Animated Sorting Visualizer</h3>
+  <div class="card">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <select id="sort-algo"><option value="bubble">Bubble Sort</option><option value="selection">Selection Sort</option><option value="insertion">Insertion Sort</option></select>
+      <button class="action" onclick="startSort()">▶ Sort</button>
+      <button class="ghost" onclick="resetSort()">↺ Reset</button>
+      <span id="sort-ops" style="font-family:var(--mono);font-size:.8rem;color:var(--cyan)">ops: 0</span>
+    </div>
+    <canvas id="sort-canvas" width="600" height="150" style="width:100%;background:var(--bg);border-radius:8px"></canvas>
+  </div>
+</section>
+
+<!-- SEARCHING -->
+<section id="searching">
+  <div class="section-label">Section 13</div>
+  <h2 class="section-title">Searching Algorithms</h2>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Linear Search O(n)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">int</span> <span class="fn">linearSearch</span>(<span class="kw">int</span>[] arr, <span class="kw">int</span> target) {
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>; i&lt;arr.length; i++) {
+        <span class="kw">if</span>(arr[i]==target) <span class="kw">return</span> i; <span class="cm">// Best: O(1)</span>
+    }
+    <span class="kw">return</span> -<span class="num">1</span>; <span class="cm">// Worst: O(n). Works on UNSORTED arrays.</span>
+}</pre></div>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Binary Search O(log n)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">int</span> <span class="fn">binarySearch</span>(<span class="kw">int</span>[] arr, <span class="kw">int</span> target) {
+    <span class="kw">int</span> lo=<span class="num">0</span>, hi=arr.length-<span class="num">1</span>;
+    <span class="kw">while</span>(lo&lt;=hi) {
+        <span class="kw">int</span> mid = lo+(hi-lo)/<span class="num">2</span>; <span class="cm">// avoids integer overflow</span>
+        <span class="kw">if</span>(arr[mid]==target) <span class="kw">return</span> mid;
+        <span class="kw">else if</span>(arr[mid]&lt;target) lo=mid+<span class="num">1</span>;
+        <span class="kw">else</span> hi=mid-<span class="num">1</span>;
+    }
+    <span class="kw">return</span> -<span class="num">1</span>;
+}
+<span class="cm">// REQUIRES sorted array. n=1,000,000 → max 20 iterations</span></pre></div>
+  <div class="callout green"><strong>Pro Tip — Binary Search on the Answer:</strong> Binary search applies to ANY monotonic condition, not just sorted arrays. In competitive programming: if you can check whether answer ≥ X in O(f(n)), you can find the optimal answer in O(f(n) × log(answer_range)).</div>
+</section>
+
+<!-- INTERVIEW -->
+<section id="interview">
+  <div class="section-label">Section 14</div>
+  <h2 class="section-title">FAANG Interview Analysis</h2>
+  <div class="card-grid">
+    <div class="card"><h4>✅ What interviewers want</h4><ul style="color:var(--text2);font-size:.86rem;line-height:2;padding-left:16px"><li>Proactively state time AND space complexity</li><li>Identify the bottleneck in your solution</li><li>Compare to brute force unprompted</li><li>Recognize when O(n²) is too slow</li><li>Know all DS complexities without pausing</li><li>Suggest optimizations before being asked</li></ul></div>
+    <div class="card"><h4>❌ Red flags they notice</h4><ul style="color:var(--text2);font-size:.86rem;line-height:2;padding-left:16px"><li>Not mentioning complexity at all</li><li>Confusing O(n+m) with O(n×m)</li><li>Forgetting recursion stack space</li><li>Thinking Arrays.sort() is O(n)</li><li>Not knowing HashMap is O(1) amortized</li><li>Unable to explain why code is slow</li></ul></div>
+  </div>
+  <h3>The FAANG Script — Say This After Writing Code</h3>
+  <div class="callout purple">"The time complexity is O(n log n) because I sort the array — O(n log n) — then do a single linear scan — O(n). Together: O(n log n) + O(n) = O(n log n). Space is O(1) auxiliary since I sort in-place and use only a few integers. This handles n up to 10⁶ comfortably."</div>
+  <h3>Brute Force → Optimized: Two Sum</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — O(n²) → O(n)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="cm">// BRUTE FORCE: O(n²) — check every pair</span>
+<span class="kw">int</span>[] <span class="fn">twoSumBrute</span>(<span class="kw">int</span>[] nums, <span class="kw">int</span> target) {
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>;i&lt;nums.length;i++)
+        <span class="kw">for</span>(<span class="kw">int</span> j=i+<span class="num">1</span>;j&lt;nums.length;j++)
+            <span class="kw">if</span>(nums[i]+nums[j]==target)
+                <span class="kw">return new int</span>[]{i,j};
+    <span class="kw">return null</span>;
+}  <span class="cm">// O(n²) time, O(1) space</span>
+
+<span class="cm">// OPTIMAL: O(n) — HashMap stores complements</span>
+<span class="kw">int</span>[] <span class="fn">twoSumOptimal</span>(<span class="kw">int</span>[] nums, <span class="kw">int</span> target) {
+    Map&lt;Integer,Integer&gt; map = <span class="kw">new</span> HashMap&lt;&gt;();
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>;i&lt;nums.length;i++) {
+        <span class="kw">int</span> comp = target-nums[i];
+        <span class="kw">if</span>(map.containsKey(comp))
+            <span class="kw">return new int</span>[]{map.get(comp), i}; <span class="cm">// O(1)</span>
+        map.put(nums[i], i);                       <span class="cm">// O(1)</span>
+    }
+    <span class="kw">return null</span>;
+}  <span class="cm">// O(n) time, O(n) space — classic time-space tradeoff</span></pre></div>
+</section>
+<!-- CONSTRAINTS -->
+<section id="constraints">
+  <div class="section-label">Section 15</div>
+  <h2 class="section-title">Input Constraint Analysis</h2>
+  <p class="section-desc">One of the most valuable skills in CP and interviews. Given n, immediately know which algorithms are feasible.</p>
+  <div class="callout yellow"><strong>🏆 The Golden Rule:</strong> A computer executes ~10⁸ simple operations/second. Most CP problems allow 1–2 seconds → budget is ~10⁸ to 2×10⁸ operations per test case.</div>
+  <div class="table-wrap"><table>
+    <tr><th>Constraint (n ≤)</th><th>Max Acceptable</th><th>Approach</th><th>Why</th></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">10</td><td><span class="badge badge-purple">O(n!)</span></td><td>All permutations, backtracking</td><td>10! = 3.6M — fine</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">20</td><td><span class="badge badge-red">O(2ⁿ)</span></td><td>All subsets, bitmask DP</td><td>2²⁰ ≈ 1M — fine</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">500</td><td><span class="badge badge-orange">O(n³)</span></td><td>Floyd-Warshall, matrix chain</td><td>500³ = 125M — borderline</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">5,000</td><td><span class="badge badge-orange">O(n²)</span></td><td>Standard DP, brute force</td><td>5K² = 25M — safe</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">10⁵</td><td><span class="badge badge-yellow">O(n log n)</span></td><td>Sort, segment tree, BIT</td><td>10⁵ × 17 ≈ 1.7M — safe</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">10⁶</td><td><span class="badge badge-blue">O(n)</span></td><td>Hashing, prefix sums, two pointer</td><td>10⁶ = 1M — fine</td></tr>
+    <tr><td style="font-family:var(--mono);color:var(--yellow)">10⁹</td><td><span class="badge badge-cyan">O(log n)</span> or <span class="badge badge-green">O(1)</span></td><td>Binary search, math formula</td><td>log(10⁹) ≈ 30</td></tr>
+  </table></div>
+  <h3>Decision Process</h3>
+  <div class="card"><div class="steps">
+    <div class="step"><div class="step-content"><div class="step-title">Read constraints first</div><div class="step-desc">Before the problem statement — find n. This immediately tells you your target complexity class.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Calculate operation budget</div><div class="step-desc">Time limit 2s → ~2×10⁸ ops. If n = 10⁵, budget = 2×10⁸. Can afford O(n log n) = 1.7M. Cannot afford O(n²) = 10¹⁰.</div></div></div>
+    <div class="step"><div class="step-content"><div class="step-title">Rule out approaches immediately</div><div class="step-desc">n=10⁵ + O(n²) → eliminated. Work backwards from acceptable complexity to choose algorithm paradigm.</div></div></div>
+  </div></div>
+  <h3>Interactive Constraint Checker</h3>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <span style="color:var(--text2);font-size:.88rem">n = </span>
+      <input type="number" id="constraint-n" value="100000" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;font-family:var(--mono);width:140px">
+      <button class="action" onclick="checkConstraint()">Check Feasibility</button>
+    </div>
+    <div id="constraint-result"></div>
+  </div>
+</section>
+
+<!-- CP RULES -->
+<section id="cp-rules">
+  <div class="section-label">Section 16</div>
+  <h2 class="section-title">Competitive Programming Rules</h2>
+  <div class="card-grid">
+    <div class="card"><h4>⚡ The 10⁸ Rule</h4><p style="color:var(--text2);font-size:.86rem">CPUs execute ~10⁸–10⁹ simple ops/second. Most CP problems: 1–2 second limits. Budget: ~2×10⁸ ops. Simple ops = array access, compare, arithmetic. Division and modulo count ~3–5×. Float slower than int.</p></div>
+    <div class="card"><h4>📏 Constant Factor Matters</h4><p style="color:var(--text2);font-size:.86rem">O(n) with constant 100 vs O(n) with constant 1 — theoretically same, practically different in CP. Prefer arrays over collections, int over long where possible, avoid unnecessary object creation.</p></div>
+    <div class="card"><h4>🚀 Fast I/O in Java</h4>
+      <div class="code-block" style="margin:8px 0"><pre style="font-size:.75rem">BufferedReader br = <span class="kw">new</span> <span class="fn">BufferedReader</span>(
+    <span class="kw">new</span> <span class="fn">InputStreamReader</span>(System.in));
+<span class="kw">int</span> n = <span class="fn">Integer</span>.parseInt(br.readLine());
+<span class="cm">// Scanner is ~10× slower — never use in CP</span></pre></div>
+    </div>
+    <div class="card"><h4>🧠 CP Optimization Mindset</h4><p style="color:var(--text2);font-size:.86rem">Start with brute force. Analyze why it's too slow. Identify the bottleneck loop. Find the pattern that eliminates it: HashMap replaces O(n) search → O(1). Prefix sum replaces O(n) range query → O(1). Sorting enables binary search.</p></div>
+  </div>
+</section>
+
+<!-- JAVA ANALYSIS -->
+<section id="java-analysis">
+  <div class="section-label">Section 17</div>
+  <h2 class="section-title">Real Java Program Analysis</h2>
+  <p class="section-desc">Complete worked examples with step-by-step reasoning — exactly how you should analyze in an interview.</p>
+  <h3>Program 1: Find Duplicates</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre>List&lt;Integer&gt; <span class="fn">findDuplicates</span>(<span class="kw">int</span>[] nums) {
+    Set&lt;Integer&gt; seen = <span class="kw">new</span> HashSet&lt;&gt;();     <span class="cm">// O(1)</span>
+    Set&lt;Integer&gt; dups = <span class="kw">new</span> HashSet&lt;&gt;();     <span class="cm">// O(1)</span>
+    <span class="kw">for</span>(<span class="kw">int</span> num : nums)                         <span class="cm">// n iterations</span>
+        <span class="kw">if</span>(!seen.add(num)) dups.add(num);       <span class="cm">// O(1) avg each</span>
+    <span class="kw">return new</span> ArrayList&lt;&gt;(dups);             <span class="cm">// O(d) ≤ O(n)</span>
+}
+<span class="cm">// TIME: O(n) — one pass, O(1) per step
+// SPACE: O(n) — HashSets can hold up to n elements</span></pre></div>
+  <h3>Program 2: Group Anagrams</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre>List&lt;List&lt;String&gt;&gt; <span class="fn">groupAnagrams</span>(String[] strs) {
+    Map&lt;String,List&lt;String&gt;&gt; map = <span class="kw">new</span> HashMap&lt;&gt;();
+    <span class="kw">for</span>(String s : strs) {                     <span class="cm">// n strings</span>
+        <span class="kw">char</span>[] c = s.toCharArray();             <span class="cm">// O(k)</span>
+        Arrays.sort(c);                         <span class="cm">// O(k log k)</span>
+        String key = <span class="kw">new</span> String(c);           <span class="cm">// O(k)</span>
+        map.computeIfAbsent(key, x -&gt; <span class="kw">new</span> ArrayList&lt;&gt;()).add(s);
+    }
+    <span class="kw">return new</span> ArrayList&lt;&gt;(map.values());
+}
+<span class="cm">// TIME: O(n × k log k) — n strings, each sorted in O(k log k)
+// SPACE: O(n × k) — storing all characters in the map</span></pre></div>
+  <h3>Program 3: DFS Graph</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">void</span> <span class="fn">dfs</span>(<span class="kw">int</span> node, boolean[] vis, List&lt;List&lt;Integer&gt;&gt; adj) {
+    vis[node] = <span class="kw">true</span>;
+    <span class="kw">for</span>(<span class="kw">int</span> nb : adj.get(node))
+        <span class="kw">if</span>(!vis[nb]) <span class="fn">dfs</span>(nb, vis, adj);
+}
+<span class="cm">// Each node visited once (V calls), each edge processed once (E total)
+// TIME: O(V + E).  SPACE: O(V) for visited array + O(V) call stack</span></pre></div>
+  <h3>Program 4: LCS Dynamic Programming</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">int</span> <span class="fn">lcs</span>(String s1, String s2) {
+    <span class="kw">int</span> m=s1.length(), n=s2.length();
+    <span class="kw">int</span>[][] dp = <span class="kw">new int</span>[m+<span class="num">1</span>][n+<span class="num">1</span>];            <span class="cm">// O(m×n) space</span>
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i&lt;=m;i++)                      <span class="cm">// m iterations</span>
+        <span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">1</span>;j&lt;=n;j++) {               <span class="cm">// n iterations</span>
+            <span class="kw">if</span>(s1.charAt(i-<span class="num">1</span>)==s2.charAt(j-<span class="num">1</span>))
+                dp[i][j]=dp[i-<span class="num">1</span>][j-<span class="num">1</span>]+<span class="num">1</span>;
+            <span class="kw">else</span>
+                dp[i][j]=Math.max(dp[i-<span class="num">1</span>][j],dp[i][j-<span class="num">1</span>]);
+        }
+    <span class="kw">return</span> dp[m][n];
+}
+<span class="cm">// TIME: O(m×n).  SPACE: O(m×n) — can optimize to O(min(m,n)) with rolling array</span></pre></div>
+</section>
+
+<!-- ADVANCED -->
+<section id="advanced">
+  <div class="section-label">Section 18</div>
+  <h2 class="section-title">Advanced Topics</h2>
+  <h3>Amortized Complexity</h3>
+  <div class="card"><p style="color:var(--text2);font-size:.9rem;margin-bottom:10px">When occasional expensive operations are "amortized" across many cheap ones, the average cost can be lower than worst case.</p>
+  <h4>ArrayList.add() — Amortized O(1)</h4>
+  <p style="color:var(--text2);font-size:.87rem">When full, ArrayList copies all elements (O(n)), but doubles its capacity. Copy costs: 1+2+4+...+n/2+n ≈ 2n. Across n add() calls: 2n total copies / n calls = O(2) per call = <strong style="color:var(--text)">amortized O(1)</strong>.</p></div>
+  <h3>Average vs Worst Case</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Algorithm</th><th>Average</th><th>Worst</th><th>When worst occurs</th></tr>
+    <tr><td>QuickSort</td><td class="c-nlogn">O(n log n)</td><td class="c-n2">O(n²)</td><td>Pivot always min/max (sorted input)</td></tr>
+    <tr><td>HashMap get</td><td class="c-o1">O(1)</td><td class="c-n">O(n)</td><td>All keys hash to same bucket</td></tr>
+  </table></div>
+  <h3>Cache Locality</h3>
+  <div class="callout"><strong>Why arrays beat LinkedLists in practice:</strong> Array elements are contiguous — CPU loads 64-byte cache lines. Accessing arr[0] loads arr[0..15] into L1 cache for free. LinkedList nodes are scattered — every next-pointer is a cache miss (~100× slower than L1 hit). This is why ArrayList almost always outperforms LinkedList despite the same Big-O.</div>
+  <h3>JVM JIT Optimization</h3>
+  <div class="card"><p style="color:var(--text2);font-size:.87rem">After ~10,000 executions, Java's JIT kicks in and can: eliminate array bounds checks in hot loops, inline small methods (removes call overhead), perform loop unrolling. This means O(n) Java code can approach C speed in production. In benchmarks: always warm up the JVM first.</p></div>
+</section>
+
+<!-- MISTAKES -->
+<section id="mistakes">
+  <div class="section-label">Section 19</div>
+  <h2 class="section-title">Common Mistakes</h2>
+  <div class="card-grid">
+    <div class="card"><h4>❌ Forgetting Library Cost</h4><div class="code-block"><pre style="font-size:.78rem"><span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>;i&lt;n;i++) {
+    Collections.sort(list); <span class="cm">// "just one line"!</span>
+}
+<span class="cm">// ACTUAL: O(n) × O(n log n) = O(n² log n)</span></pre></div></div>
+    <div class="card"><h4>❌ Missing Recursion Space</h4><div class="code-block"><pre style="font-size:.78rem"><span class="kw">int</span> <span class="fn">factorial</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span>(n==<span class="num">0</span>) <span class="kw">return</span> <span class="num">1</span>;
+    <span class="kw">return</span> n * <span class="fn">factorial</span>(n-<span class="num">1</span>);
+}
+<span class="cm">// Space = O(n) — n stack frames!
+// Common wrong answer: "O(1)"</span></pre></div></div>
+    <div class="card"><h4>❌ String += in Loop</h4><div class="code-block"><pre style="font-size:.78rem">String res = <span class="str">""</span>;
+<span class="kw">for</span>(String s : list) res += s; <span class="cm">// O(n²)!</span>
+<span class="cm">// Fix: StringBuilder → O(n)</span>
+StringBuilder sb = <span class="kw">new</span> StringBuilder();
+<span class="kw">for</span>(String s : list) sb.append(s);</pre></div></div>
+    <div class="card"><h4>❌ TreeMap vs HashMap</h4><div class="code-block"><pre style="font-size:.78rem">Map&lt;Integer,Integer&gt; m = <span class="kw">new</span> TreeMap&lt;&gt;();
+<span class="kw">for</span>(<span class="kw">int</span> x : arr) m.put(x,<span class="num">1</span>); <span class="cm">// O(n log n)</span>
+<span class="cm">// If you don't need sorted order:
+// Use HashMap → O(n) total</span></pre></div></div>
+  </div>
+</section>
+
+<!-- OPTIMIZE -->
+<section id="optimize">
+  <div class="section-label">Section 20</div>
+  <h2 class="section-title">Optimization Techniques</h2>
+  <h3>Memoization — O(2ⁿ) → O(n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Fibonacci with memo</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre>Map&lt;Integer,Long&gt; memo = <span class="kw">new</span> HashMap&lt;&gt;();
+<span class="kw">long</span> <span class="fn">fib</span>(<span class="kw">int</span> n) {
+    <span class="kw">if</span>(n&lt;=<span class="num">1</span>) <span class="kw">return</span> n;
+    <span class="kw">if</span>(memo.containsKey(n)) <span class="kw">return</span> memo.get(n); <span class="cm">// O(1) cache hit</span>
+    <span class="kw">long</span> res = <span class="fn">fib</span>(n-<span class="num">1</span>) + <span class="fn">fib</span>(n-<span class="num">2</span>);
+    memo.put(n, res);
+    <span class="kw">return</span> res;
+}
+<span class="cm">// Each value computed once → O(n) time, O(n) space</span></pre></div>
+  <h3>Prefix Sums — O(n) query → O(1)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="cm">// Build prefix array once — O(n)</span>
+<span class="kw">int</span>[] prefix = <span class="kw">new int</span>[n+<span class="num">1</span>];
+<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>;i&lt;n;i++) prefix[i+<span class="num">1</span>] = prefix[i]+arr[i];
+
+<span class="cm">// Any range sum query — O(1)!</span>
+<span class="kw">int</span> rangeSum = prefix[r+<span class="num">1</span>] - prefix[l];
+<span class="cm">// For q queries: O(n) build + O(1)×q = O(n+q) vs O(n×q)</span></pre></div>
+  <h3>Two Pointers — O(n²) → O(n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Two Sum sorted array</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">boolean</span> <span class="fn">twoSumSorted</span>(<span class="kw">int</span>[] arr, <span class="kw">int</span> target) {
+    <span class="kw">int</span> lo=<span class="num">0</span>, hi=arr.length-<span class="num">1</span>;
+    <span class="kw">while</span>(lo&lt;hi) {
+        <span class="kw">int</span> sum = arr[lo]+arr[hi];
+        <span class="kw">if</span>(sum==target) <span class="kw">return true</span>;
+        <span class="kw">else if</span>(sum&lt;target) lo++;
+        <span class="kw">else</span> hi--;
+    }
+    <span class="kw">return false</span>;
+} <span class="cm">// O(n) — each pointer moves at most n times total</span></pre></div>
+  <h3>Sliding Window — O(n²) → O(n)</h3>
+  <div class="code-block"><div class="code-header"><span class="code-lang">java — Max sum subarray length k</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+  <pre><span class="kw">int</span> <span class="fn">maxSumWindow</span>(<span class="kw">int</span>[] arr, <span class="kw">int</span> k) {
+    <span class="kw">int</span> windowSum=<span class="num">0</span>, maxSum=<span class="num">0</span>;
+    <span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">0</span>;i&lt;k;i++) windowSum+=arr[i]; <span class="cm">// initial window</span>
+    maxSum=windowSum;
+    <span class="kw">for</span>(<span class="kw">int</span> i=k;i&lt;arr.length;i++) {
+        windowSum += arr[i]-arr[i-k];           <span class="cm">// slide: +right, -left</span>
+        maxSum = Math.max(maxSum, windowSum);
+    }
+    <span class="kw">return</span> maxSum;
+} <span class="cm">// O(n) — single pass, never recomputing the full window sum</span></pre></div>
+</section>
+<!-- QUIZZES -->
+<section id="quiz-section">
+  <div class="section-label">Section 21</div>
+  <h2 class="section-title">Knowledge Check</h2>
+  <div class="quiz-box" id="q1">
+    <div class="quiz-q">Q1 — Beginner: What is the time complexity of accessing arr[5]?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" onclick="checkAnswer(this,'q1','wrong')">O(n)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q1','correct')">O(1)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q1','wrong')">O(log n)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q1','wrong')">O(n²)</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <div class="quiz-box" id="q2">
+    <div class="quiz-q">Q2 — Beginner: A loop runs n/3 times. Big-O complexity?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" onclick="checkAnswer(this,'q2','wrong')">O(n/3)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q2','correct')">O(n)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q2','wrong')">O(3)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q2','wrong')">O(1)</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <div class="quiz-box" id="q3">
+    <div class="quiz-q">Q3 — Intermediate: Loop 1 runs n times, loop 2 runs n² times (sequential, not nested). Total complexity?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" onclick="checkAnswer(this,'q3','wrong')">O(n³)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q3','correct')">O(n²)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q3','wrong')">O(n + n²)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q3','wrong')">O(n²) only if nested</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <div class="quiz-box" id="q4">
+    <div class="quiz-q">Q4 — Intermediate: Space complexity of recursive factorial(n)?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" onclick="checkAnswer(this,'q4','wrong')">O(2ⁿ)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q4','correct')">O(n)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q4','wrong')">O(1)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q4','wrong')">O(log n)</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <div class="quiz-box" id="q5">
+    <div class="quiz-q">Q5 — Advanced: n = 10⁵, time limit 1 second. Which is feasible?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" onclick="checkAnswer(this,'q5','wrong')">O(n²) — 10 billion ops</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q5','correct')">O(n log n) — ~1.7 million ops</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q5','wrong')">O(2ⁿ) — astronomical</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q5','wrong')">O(n!) — impossible</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <div class="quiz-box" id="q6">
+    <div class="quiz-q">Q6 — FAANG: Arrays.sort() called inside a loop running n times. Total complexity?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" onclick="checkAnswer(this,'q6','wrong')">O(n log n)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q6','wrong')">O(n²)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q6','correct')">O(n² log n)</div>
+      <div class="quiz-opt" onclick="checkAnswer(this,'q6','wrong')">O(log n)</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheatsheet">
+  <div class="section-label">Section 22</div>
+  <h2 class="section-title">Complete Reference Cheat Sheet</h2>
+  <h3>Big-O Summary Table</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Complexity</th><th>Name</th><th>n=10</th><th>n=1,000</th><th>n=10⁶</th><th>Verdict</th></tr>
+    <tr><td class="c-o1" style="font-family:var(--mono)">O(1)</td><td>Constant</td><td>1</td><td>1</td><td>1</td><td>🏆 Perfect</td></tr>
+    <tr><td class="c-logn" style="font-family:var(--mono)">O(log n)</td><td>Logarithmic</td><td>3</td><td>10</td><td>20</td><td>🏆 Excellent</td></tr>
+    <tr><td class="c-n" style="font-family:var(--mono)">O(n)</td><td>Linear</td><td>10</td><td>1,000</td><td>10⁶</td><td>✅ Great</td></tr>
+    <tr><td class="c-nlogn" style="font-family:var(--mono)">O(n log n)</td><td>Linearithmic</td><td>33</td><td>10,000</td><td>2×10⁷</td><td>✅ Good</td></tr>
+    <tr><td class="c-n2" style="font-family:var(--mono)">O(n²)</td><td>Quadratic</td><td>100</td><td>10⁶</td><td>10¹²</td><td>⚠️ Small n only</td></tr>
+    <tr><td style="font-family:var(--mono);color:#ff8a65">O(n³)</td><td>Cubic</td><td>1,000</td><td>10⁹</td><td>10¹⁸</td><td>⚠️ n≤200</td></tr>
+    <tr><td class="c-2n" style="font-family:var(--mono)">O(2ⁿ)</td><td>Exponential</td><td>1,024</td><td>10³⁰⁰</td><td>💀</td><td>❌ n≤20</td></tr>
+    <tr><td class="c-nf" style="font-family:var(--mono)">O(n!)</td><td>Factorial</td><td>3.6M</td><td>10²⁵⁶⁷</td><td>💀</td><td>❌ n≤10</td></tr>
+  </table></div>
+  <h3>Recognition Quick Reference</h3>
+  <div class="grid2">
+    <div>
+      <div class="cheat-row"><span class="cheat-formula c-o1">arr[i]</span><span class="cheat-rule">→ O(1)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-o1">map.get(k)</span><span class="cheat-rule">→ O(1) avg</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-logn">i*=2 loop</span><span class="cheat-rule">→ O(log n)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-logn">treeMap.get(k)</span><span class="cheat-rule">→ O(log n)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-n">one loop</span><span class="cheat-rule">→ O(n)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-n">DFS/BFS</span><span class="cheat-rule">→ O(V+E)</span></div>
+    </div>
+    <div>
+      <div class="cheat-row"><span class="cheat-formula c-nlogn">Arrays.sort()</span><span class="cheat-rule">→ O(n log n)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-nlogn">n × binary search</span><span class="cheat-rule">→ O(n log n)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-n2">two nested loops</span><span class="cheat-rule">→ O(n²)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-n2">triangular loop</span><span class="cheat-rule">→ O(n²)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-2n">all subsets</span><span class="cheat-rule">→ O(2ⁿ)</span></div>
+      <div class="cheat-row"><span class="cheat-formula c-nf">all permutations</span><span class="cheat-rule">→ O(n!)</span></div>
+    </div>
+  </div>
+  <h3>Constraint → Algorithm Mapping</h3>
+  <div class="table-wrap"><table>
+    <tr><th>n ≤</th><th>Target</th><th>Technique to Consider</th></tr>
+    <tr><td class="c-yellow" style="font-family:var(--mono)">10</td><td>O(n!)</td><td>All permutations, backtracking, brute-force search</td></tr>
+    <tr><td class="c-yellow" style="font-family:var(--mono)">20</td><td>O(2ⁿ)</td><td>Bitmask DP, meet in the middle, all subsets</td></tr>
+    <tr><td class="c-yellow" style="font-family:var(--mono)">500</td><td>O(n³)</td><td>Floyd-Warshall, matrix chain multiplication, cube DP</td></tr>
+    <tr><td class="c-yellow" style="font-family:var(--mono)">5,000</td><td>O(n²)</td><td>Standard 2D DP, simple brute force pairs</td></tr>
+    <tr><td class="c-yellow" style="font-family:var(--mono)">10⁵</td><td>O(n log n)</td><td>Sort, merge sort, segment tree, binary indexed tree</td></tr>
+    <tr><td class="c-yellow" style="font-family:var(--mono)">10⁶</td><td>O(n)</td><td>Hashing, prefix sums, sliding window, two pointer</td></tr>
+    <tr><td class="c-yellow" style="font-family:var(--mono)">10⁹</td><td>O(log n) or O(1)</td><td>Binary search on answer, closed-form math formula</td></tr>
+  </table></div>
+</section>
+
+<!-- SUMMARY -->
+<section id="summary">
+  <div class="section-label">Section 23</div>
+  <h2 class="section-title">Summary &amp; Interview Playbook</h2>
+  <div class="callout green"><strong>🏆 The Algorithm Engineer's Mindset:</strong> Every time you write code, ask: "What is the time complexity? Can I do better? Is this acceptable for the expected input size?"</div>
+  <div class="card-grid">
+    <div class="card"><h4>📋 Interview Checklist</h4><ul style="color:var(--text2);font-size:.87rem;line-height:2;padding-left:16px">
+      <li>✅ State time complexity proactively</li>
+      <li>✅ State space complexity too</li>
+      <li>✅ Mention best/worst/average when different</li>
+      <li>✅ Know all DS complexities cold</li>
+      <li>✅ Know sorting complexities cold</li>
+      <li>✅ Recognize when O(n²) is too slow</li>
+      <li>✅ Know HashMap = O(1) amortized</li>
+      <li>✅ Know recursion has stack space cost</li>
+    </ul></div>
+    <div class="card"><h4>🚀 Optimization Toolkit</h4><ul style="color:var(--text2);font-size:.87rem;line-height:2;padding-left:16px">
+      <li>📦 HashMap/HashSet → eliminate O(n) search</li>
+      <li>📊 Prefix sums → O(1) range queries</li>
+      <li>🪟 Sliding window → O(n) subarray problems</li>
+      <li>👆 Two pointers → O(n) from O(n²)</li>
+      <li>🔍 Binary search → O(log n) on any monotone</li>
+      <li>🧠 Memoization → eliminate recomputation</li>
+      <li>📈 Sorting → enables many O(n) passes</li>
+    </ul></div>
+  </div>
+  <div class="callout" style="text-align:center;padding:28px;margin-top:28px">
+    <div style="font-family:var(--display);font-size:1.4rem;font-weight:700;margin-bottom:10px;background:linear-gradient(135deg,var(--cyan),var(--blue2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">You now have everything you need.</div>
+    <p style="color:var(--text2);font-size:.93rem;max-width:480px;margin:0 auto">Solve 3–5 LeetCode problems per week. Always analyze complexity before and after coding. In 3 months you'll think like a senior engineer at any FAANG company.</p>
+  </div>
+</section>
+</main>
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+// ═══ PROGRESS BAR + NAV ═══
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (window.scrollY / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('back-top').classList.toggle('visible', window.scrollY > 400);
+  document.querySelectorAll('section[id]').forEach(sec => {
+    const top = sec.offsetTop - 120;
+    const bot = top + sec.offsetHeight;
+    const link = document.querySelector(`.nav-item[href="#${sec.id}"]`);
+    if (link) link.classList.toggle('active', window.scrollY >= top && window.scrollY < bot);
+  });
+});
+
+// ═══ COPY BUTTONS ═══
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent);
+  btn.textContent = 'copied!';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 1500);
+}
+
+// ═══ HERO CANVAS ═══
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  function resize() { canvas.width = canvas.offsetWidth || 680; canvas.height = 230; draw(); }
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const colors = ['#00ff9d','#00e5ff','#4d8fff','#ffd600','#ff7043'];
+    const labels = ['O(1)','O(log n)','O(n)','O(n log n)','O(n²)'];
+    const fns = [
+      () => 0.5,
+      n => Math.log2(n + 1) * 8,
+      n => n * 4,
+      n => n * Math.log2(n + 1) * 2,
+      n => n * n * 0.6
+    ];
+    const maxV = H - 50;
+    // grid
+    ctx.strokeStyle = 'rgba(77,143,255,0.07)';
+    ctx.lineWidth = 1;
+    for (let r = 0; r <= 4; r++) {
+      const y = 20 + (H - 50) * r / 4;
+      ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(W - 20, y); ctx.stroke();
+    }
+    const steps = 120;
+    const maxN = 18;
+    colors.forEach((color, ci) => {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 5;
+      let first = true;
+      for (let s = 0; s <= steps; s++) {
+        const n = (s / steps) * maxN;
+        const raw = fns[ci](n);
+        const clamped = Math.min(raw / maxV, 1);
+        const x = 50 + (s / steps) * (W - 70);
+        const y = H - 30 - clamped * (H - 55);
+        if (first) { ctx.moveTo(x, y); first = false; }
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // label at end
+      const endN = maxN;
+      const endRaw = fns[ci](endN);
+      const endClamped = Math.min(endRaw / maxV, 1);
+      const lx = W - 68;
+      const ly = H - 30 - endClamped * (H - 55);
+      if (ly > 12 && ly < H - 8) {
+        ctx.fillStyle = color;
+        ctx.font = '11px JetBrains Mono, monospace';
+        ctx.fillText(labels[ci], lx, ly - 4);
+      }
+    });
+    ctx.fillStyle = 'rgba(122,146,196,0.5)';
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillText('n →', W - 18, H - 10);
+    ctx.fillText('ops', 8, 18);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+})();
+
+// ═══ GROWTH CANVAS ═══
+(function() {
+  const c = document.getElementById('growth-canvas');
+  if (!c) return;
+  c.width = 280; c.height = 180;
+  const ctx = c.getContext('2d');
+  const W = 280, H = 180;
+  ctx.strokeStyle = 'rgba(77,143,255,0.08)';
+  for (let i = 0; i <= 3; i++) {
+    ctx.beginPath(); ctx.moveTo(0, H * i / 3); ctx.lineTo(W, H * i / 3); ctx.stroke();
+  }
+  [
+    { fn: () => 2, color: '#00ff9d', label: 'O(1)' },
+    { fn: n => n * 8, color: '#4d8fff', label: 'O(n)' },
+    { fn: n => n * n * 0.8, color: '#ff7043', label: 'O(n²)' }
+  ].forEach(({ fn, color, label }) => {
+    ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+    for (let x = 0; x <= W; x++) {
+      const n = (x / W) * 14;
+      const v = Math.min(fn(n) / (H - 20), 1);
+      const y = H - 10 - v * (H - 20);
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    const en = 14, ev = Math.min(fn(en) / (H - 20), 1);
+    ctx.fillStyle = color; ctx.font = '10px JetBrains Mono';
+    ctx.fillText(label, W - 45, H - 10 - ev * (H - 20) - 4);
+  });
+})();
+
+// ═══ BIG-O COMPARISON CANVAS ═══
+(function() {
+  const c = document.getElementById('bigo-compare');
+  if (!c) return;
+  const W = 660, H = 280;
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.strokeStyle = 'rgba(77,143,255,0.07)';
+  for (let i = 0; i <= 4; i++) {
+    const y = 15 + (H - 40) * i / 4;
+    ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(W - 10, y); ctx.stroke();
+  }
+  const curves = [
+    { fn: () => 1, color: '#00ff9d', label: 'O(1)' },
+    { fn: n => Math.log2(n + 1), color: '#00e5ff', label: 'O(log n)' },
+    { fn: n => n, color: '#4d8fff', label: 'O(n)' },
+    { fn: n => n * Math.log2(n + 1), color: '#ffd600', label: 'O(n log n)' },
+    { fn: n => n * n, color: '#ff7043', label: 'O(n²)' }
+  ];
+  const maxN = 28, maxV = 780;
+  curves.forEach(({ fn, color, label }) => {
+    ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.shadowColor = color; ctx.shadowBlur = 4;
+    for (let s = 0; s <= 100; s++) {
+      const n = (s / 100) * maxN;
+      const v = Math.min(fn(n) / maxV, 1);
+      const x = 50 + (s / 100) * (W - 60);
+      const y = H - 25 - v * (H - 45);
+      s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke(); ctx.shadowBlur = 0;
+    const ev = Math.min(fn(maxN) / maxV, 1);
+    const ey = H - 25 - ev * (H - 45);
+    if (ey > 10 && ey < H - 5) {
+      ctx.fillStyle = color; ctx.font = '11px JetBrains Mono,monospace';
+      ctx.fillText(label, W - 68, ey - 4);
+    }
+  });
+  ctx.fillStyle = 'rgba(122,146,196,0.5)';
+  ctx.font = '11px JetBrains Mono,monospace';
+  ctx.fillText('n →', W - 22, H - 5);
+  ctx.fillText('time ↑', 5, 16);
+})();
+
+// ═══ RECURSION TREE CANVAS ═══
+(function() {
+  const c = document.getElementById('rec-tree');
+  if (!c) return;
+  c.width = 660; c.height = 280;
+  const ctx = c.getContext('2d');
+  function node(x, y, label, color) {
+    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fillStyle = color + '22'; ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#c8d8f8'; ctx.font = '9px JetBrains Mono,monospace';
+    ctx.textAlign = 'center'; ctx.fillText(label, x, y + 3); ctx.textAlign = 'left';
+  }
+  function line(x1, y1, x2, y2) {
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(77,143,255,0.25)'; ctx.lineWidth = 1;
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+  const ns = [
+    { x: 330, y: 32, l: 'fib(4)', c: '#4d8fff' },
+    { x: 195, y: 95, l: 'fib(3)', c: '#00e5ff' },
+    { x: 465, y: 95, l: 'fib(2)', c: '#00e5ff' },
+    { x: 115, y: 165, l: 'fib(2)', c: '#ffd600' },
+    { x: 275, y: 165, l: 'fib(1)', c: '#00ff9d' },
+    { x: 405, y: 165, l: 'fib(1)', c: '#00ff9d' },
+    { x: 525, y: 165, l: 'fib(0)', c: '#00ff9d' },
+    { x: 60, y: 238, l: 'fib(1)', c: '#00ff9d' },
+    { x: 170, y: 238, l: 'fib(0)', c: '#00ff9d' }
+  ];
+  [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6],[3,7],[3,8]].forEach(([a,b]) =>
+    line(ns[a].x, ns[a].y + 20, ns[b].x, ns[b].y - 20));
+  ns.forEach(n => node(n.x, n.y, n.l, n.c));
+  ctx.fillStyle = 'rgba(122,146,196,0.6)'; ctx.font = '11px JetBrains Mono,monospace';
+  ctx.fillText('Recursion tree for fib(4) — branching=2, depth≈4 → O(2⁴)≈16 nodes → O(2ⁿ)', 20, 270);
+})();
+
+// ═══ LOOP VISUALIZER ═══
+function updateLoopViz(n) {
+  n = parseInt(n);
+  document.getElementById('loop-n-val').textContent = n;
+  const patterns = [
+    { name: 'O(1)', ops: 1, color: 'var(--green)' },
+    { name: 'O(log n)', ops: Math.ceil(Math.log2(n + 1)), color: 'var(--cyan)' },
+    { name: 'O(n)', ops: n, color: 'var(--blue2)' },
+    { name: 'O(n log n)', ops: Math.ceil(n * Math.log2(n + 1)), color: 'var(--yellow)' },
+    { name: 'O(n²)', ops: n * n, color: 'var(--orange)' }
+  ];
+  document.getElementById('loop-viz').innerHTML = patterns.map(p => `
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-family:var(--mono);font-size:.9rem;color:${p.color};margin-bottom:4px">${p.name}</div>
+      <div style="font-size:1.25rem;font-weight:700;font-family:var(--mono);color:var(--text)">${p.ops.toLocaleString()}</div>
+      <div style="font-size:.7rem;color:var(--text3)">operations</div>
+    </div>`).join('');
+}
+updateLoopViz(10);
+
+// ═══ COMPLEXITY CALCULATOR ═══
+function calcComplexity() {
+  const outer = document.getElementById('calc-outer').value;
+  const inner = document.getElementById('calc-inner').value;
+  const after = document.getElementById('calc-after').value;
+
+  const outerStr = { '1': 'O(1)', 'n': 'O(n)', 'logn': 'O(log n)', 'sqrt': 'O(√n)' };
+  const innerStr = { '1': '', 'n': ' × O(n)', 'logn': ' × O(log n)', 'tri': ' × O(n) (triangular)' };
+  const afterStr = { '1': 'O(1)', 'n': 'O(n)', 'nlogn': 'O(n log n)', 'n2': 'O(n²)' };
+
+  const loopStr = outer === '1' ? 'O(1)' : (outerStr[outer] + innerStr[inner]);
+
+  function rank(s) {
+    if (s.includes('n²')) return 5;
+    if (s.includes('n log')) return 4;
+    if (s.includes('n)') || s.includes('√n') || s.includes('O(n)')) return 3;
+    if (s.includes('log')) return 2;
+    return 1;
+  }
+  const afterFinal = afterStr[after];
+  const loopFinal = (outer === '1') ? 'O(1)' :
+    inner === '1' ? outerStr[outer] :
+    inner === 'n' ? (outer === 'n' ? 'O(n²)' : outer === 'logn' ? 'O(n log n)' : 'O(n√n)') :
+    inner === 'logn' ? (outer === 'n' ? 'O(n log n)' : 'O(log²n)') : 'O(n²)';
+
+  const dominant = rank(loopFinal) >= rank(afterFinal) ? loopFinal : afterFinal;
+
+  const res = document.getElementById('calc-result');
+  res.style.display = 'block';
+  res.innerHTML = `<span style="color:var(--text2)">Loop part:</span> <span style="color:var(--blue2);font-family:var(--mono)">${loopFinal}</span> &nbsp;|&nbsp; <span style="color:var(--text2)">Plus:</span> <span style="color:var(--blue2);font-family:var(--mono)">${afterFinal}</span><br><br><span style="color:var(--green);font-size:1.1rem">⟹ Final complexity: <strong>${dominant}</strong></span>`;
+}
+
+// ═══ CONSTRAINT CHECKER ═══
+function checkConstraint() {
+  const n = parseFloat(document.getElementById('constraint-n').value);
+  if (!n || n <= 0) return;
+  function factorial(x) { let r = 1; for (let i = 2; i <= x; i++) r *= i; return r; }
+  const budget = 2e8;
+  const checks = [
+    { name: 'O(1)', ops: 1, color: 'var(--green)' },
+    { name: 'O(log n)', ops: Math.ceil(Math.log2(n + 1)), color: 'var(--cyan)' },
+    { name: 'O(√n)', ops: Math.ceil(Math.sqrt(n)), color: 'var(--cyan)' },
+    { name: 'O(n)', ops: n, color: 'var(--blue2)' },
+    { name: 'O(n log n)', ops: n * Math.log2(n + 1), color: 'var(--yellow)' },
+    { name: 'O(n²)', ops: n * n, color: 'var(--orange)' },
+    { name: 'O(n³)', ops: n * n * n, color: '#ff8a65' },
+    { name: 'O(2ⁿ)', ops: n <= 60 ? Math.pow(2, n) : Infinity, color: 'var(--red)' },
+    { name: 'O(n!)', ops: n <= 13 ? factorial(n) : Infinity, color: 'var(--purple)' }
+  ];
+  const fmt = v => isFinite(v) ? (v > 1e15 ? '💀 astronomical' : v.toExponential(2) + ' ops') : '∞';
+  document.getElementById('constraint-result').innerHTML = checks.map(c => {
+    const ok = isFinite(c.ops) && c.ops <= budget;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:7px 12px;border-radius:7px;margin-bottom:5px;background:${ok ? 'rgba(0,255,157,.04)' : 'rgba(255,61,113,.04)'};border:1px solid ${ok ? 'rgba(0,255,157,.15)' : 'rgba(255,61,113,.1)'}">
+      <span style="font-family:var(--mono);color:${c.color};min-width:100px;font-size:.83rem">${c.name}</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--text2);flex:1">${fmt(c.ops)}</span>
+      <span style="font-size:.82rem">${ok ? '✅ Feasible' : '❌ Too slow'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══ QUIZ ENGINE ═══
+const answers = {
+  q1: { ok: 'O(1)', msg: '✅ Array index = base_address + index×size — always exactly 2 CPU ops, independent of array size.' },
+  q2: { ok: 'O(n)', msg: '✅ n/3 iterations = O(n/3) = O(n). Constants are always dropped in Big-O.' },
+  q3: { ok: 'O(n²)', msg: '✅ Sequential: O(n) + O(n²) = O(n + n²). Drop lower-order term → O(n²).' },
+  q4: { ok: 'O(n)', msg: '✅ Time is O(2ⁿ) but SPACE = call stack depth = n stack frames = O(n).' },
+  q5: { ok: 'O(n log n) — ~1.7 million ops', msg: '✅ 10⁵ × log₂(10⁵) ≈ 1.7M ops — well under 2×10⁸ budget. O(n²) = 10¹⁰ — completely out.' },
+  q6: { ok: 'O(n² log n)', msg: '✅ Outer loop O(n) × Arrays.sort() O(n log n) = O(n² log n). Never assume library calls are free inside loops!' }
+};
+function checkAnswer(btn, qId, result) {
+  const box = document.getElementById(qId);
+  if (box.dataset.done) return;
+  box.dataset.done = '1';
+  box.querySelectorAll('.quiz-opt').forEach(o => {
+    o.style.cursor = 'default';
+    if (o.textContent.trim() === answers[qId].ok) o.classList.add('correct');
+  });
+  if (result === 'wrong') btn.classList.add('wrong');
+  const fb = box.querySelector('.quiz-feedback');
+  fb.style.color = result === 'correct' ? 'var(--green)' : 'var(--text2)';
+  fb.innerHTML = (result === 'wrong' ? '💡 ' : '') + answers[qId].msg;
+}
+
+// ═══ SORTING VISUALIZER ═══
+let sortArr = [], sortRunning = false, sortOps = 0;
+function resetSort() {
+  sortRunning = false; sortOps = 0;
+  document.getElementById('sort-ops').textContent = 'ops: 0';
+  sortArr = Array.from({ length: 28 }, () => Math.floor(Math.random() * 130) + 15);
+  drawSort(sortArr, -1, -1);
+}
+function drawSort(arr, h1, h2) {
+  const canvas = document.getElementById('sort-canvas');
+  if (!canvas) return;
+  canvas.width = canvas.offsetWidth || 600;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const bw = (W - 20) / arr.length;
+  arr.forEach((v, i) => {
+    const h = (v / 155) * (H - 10);
+    ctx.fillStyle = i === h1 ? '#ff7043' : i === h2 ? '#00e5ff' : '#4d8fff44';
+    ctx.strokeStyle = i === h1 ? '#ff7043' : i === h2 ? '#00e5ff' : '#4d8fff';
+    ctx.lineWidth = 1;
+    ctx.fillRect(10 + i * bw, H - h, bw - 2, h);
+    ctx.strokeRect(10 + i * bw, H - h, bw - 2, h);
+  });
+}
+async function startSort() {
+  if (sortRunning) return;
+  sortRunning = true; sortOps = 0;
+  const algo = document.getElementById('sort-algo').value;
+  const arr = [...sortArr];
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const updateOps = () => { document.getElementById('sort-ops').textContent = 'ops: ' + sortOps; };
+
+  if (algo === 'bubble') {
+    for (let i = 0; i < arr.length && sortRunning; i++)
+      for (let j = 0; j < arr.length - i - 1 && sortRunning; j++) {
+        sortOps++;
+        if (arr[j] > arr[j + 1]) { [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]]; }
+        updateOps(); drawSort(arr, j, j + 1); await delay(28);
+      }
+  } else if (algo === 'selection') {
+    for (let i = 0; i < arr.length && sortRunning; i++) {
+      let mi = i;
+      for (let j = i + 1; j < arr.length && sortRunning; j++) {
+        sortOps++; if (arr[j] < arr[mi]) mi = j;
+        updateOps(); drawSort(arr, i, j); await delay(20);
+      }
+      [arr[i], arr[mi]] = [arr[mi], arr[i]];
+    }
+  } else {
+    for (let i = 1; i < arr.length && sortRunning; i++) {
+      let key = arr[i], j = i - 1;
+      while (j >= 0 && arr[j] > key && sortRunning) {
+        sortOps++; arr[j + 1] = arr[j]; j--;
+        updateOps(); drawSort(arr, j + 1, i); await delay(22);
+      }
+      arr[j + 1] = key;
+    }
+  }
+  sortArr = arr; sortRunning = false; drawSort(arr, -1, -1);
+}
+resetSort();
+</script>
+</body>
+</html>

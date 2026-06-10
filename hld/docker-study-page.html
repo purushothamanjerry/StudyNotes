@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker — Deep Engineering Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;
+  --surface:rgba(255,255,255,0.04);--surface2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08);--border2:rgba(99,179,237,0.25);
+  --text:#e2e8f0;--muted:#94a3b8;
+  --accent:#38bdf8;--accent2:#06b6d4;
+  --green:#34d399;--orange:#fb923c;--red:#f87171;--purple:#a78bfa;--yellow:#fbbf24;
+  --docker-blue:#2496ed;
+  --grad1:linear-gradient(135deg,#38bdf8,#06b6d4,#0ea5e9);
+  --font-sans:'Space Grotesk',sans-serif;
+  --font-display:'Syne',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --radius:12px;--radius-lg:20px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --shadow-glow:0 0 40px rgba(56,189,248,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:16px;line-height:1.7;overflow-x:hidden}
+
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--grad1);z-index:9999;width:0%;transition:width 0.1s;box-shadow:0 0 12px var(--accent)}
+
+#sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:0 0 40px 0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:22px 20px 18px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:18px;font-weight:800}
+.sidebar-logo .logo-icon{width:32px;height:32px;background:var(--docker-blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.sidebar-search{padding:14px 16px}
+.sidebar-search input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-sans);font-size:13px;outline:none;transition:border-color 0.2s}
+.sidebar-search input:focus{border-color:var(--accent)}
+.nav-group{padding:6px 0}
+.nav-group-title{padding:8px 20px 4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}
+.nav-item{display:block;padding:8px 20px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;border-left:2px solid transparent;transition:all 0.2s;cursor:pointer}
+.nav-item:hover{color:var(--text);background:var(--surface)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(56,189,248,0.06)}
+.nav-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle;opacity:0;transition:opacity 0.2s}
+.nav-item.active .nav-dot{opacity:1}
+
+.main-content{margin-left:260px;min-height:100vh}
+
+.hero{position:relative;overflow:hidden;padding:100px 60px 80px;background:radial-gradient(ellipse at 20% 50%,rgba(36,150,237,0.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(167,139,250,0.08) 0%,transparent 50%),var(--bg);border-bottom:1px solid var(--border)}
+.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(56,189,248,0.06) 1px,transparent 1px);background-size:30px 30px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(36,150,237,0.15);border:1px solid rgba(36,150,237,0.3);color:var(--accent);padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:24px}
+.hero-title{font-family:var(--font-display);font-size:clamp(48px,6vw,80px);font-weight:800;line-height:1.05;background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px}
+.hero-sub{font-size:18px;color:var(--muted);max-width:600px;line-height:1.6;margin-bottom:40px}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column}
+.hero-stat .val{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--accent)}
+.hero-stat .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.hero-docker-anim{position:absolute;right:60px;top:50%;transform:translateY(-50%);opacity:0.15;pointer-events:none}
+@keyframes float{0%,100%{transform:translateY(-50%) translateX(0)}50%{transform:translateY(calc(-50% - 12px)) translateX(4px)}}
+.hero-docker-anim{animation:float 4s ease-in-out infinite}
+
+.section{padding:70px 60px;border-bottom:1px solid var(--border)}
+.section:nth-child(even){background:var(--bg2)}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:40px}
+.section-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:var(--surface2)}
+.section-title{font-family:var(--font-display);font-size:32px;font-weight:800;line-height:1.1;margin-bottom:6px}
+.section-desc{color:var(--muted);font-size:15px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:30px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:all 0.3s;cursor:default}
+.card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:var(--shadow-glow);background:var(--surface2)}
+.card-icon{font-size:28px;margin-bottom:14px}
+.card-title{font-weight:700;font-size:16px;margin-bottom:8px}
+.card-text{color:var(--muted);font-size:14px;line-height:1.6}
+
+.code-wrap{position:relative;margin:20px 0}
+.code-label{position:absolute;top:0;left:0;background:var(--accent);color:#000;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 10px;border-radius:var(--radius) 0 var(--radius) 0;text-transform:uppercase}
+pre{background:#0a0f1a;border:1px solid var(--border);border-radius:var(--radius);padding:42px 22px 22px;overflow-x:auto;font-family:var(--font-mono);font-size:13px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+pre::-webkit-scrollbar{height:5px}
+pre::-webkit-scrollbar-thumb{background:var(--border)}
+.copy-btn{position:absolute;top:8px;right:10px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.2s;font-family:var(--font-sans)}
+.copy-btn:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.copy-btn.copied{background:var(--green);color:#000;border-color:var(--green)}
+
+.kw{color:#c792ea}.cmd{color:#82aaff}.flag{color:#c3e88d}.str{color:#f78c6c}.cmt{color:#546e7a;font-style:italic}.num{color:#f78c6c}.tag{color:#ff5572}.var{color:#ffcb6b}.arg{color:#89ddff}
+
+.accordion{margin:20px 0}
+.acc-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color 0.2s}
+.acc-item.open{border-color:var(--border2)}
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;transition:background 0.2s}
+.acc-header:hover{background:var(--surface)}
+.acc-header .acc-title{font-weight:600;font-size:15px;display:flex;align-items:center;gap:10px}
+.acc-header .acc-arrow{width:20px;height:20px;transition:transform 0.3s;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.acc-item.open .acc-arrow{transform:rotate(180deg);color:var(--accent)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+.acc-body-inner{padding:0 20px 20px;color:var(--muted);font-size:14px;line-height:1.7}
+
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead{background:var(--surface2)}
+th{padding:12px 16px;text-align:left;font-weight:600;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface);color:var(--text)}
+.badge{display:inline-block;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(52,211,153,0.15);color:var(--green)}
+.badge-red{background:rgba(248,113,113,0.15);color:var(--red)}
+.badge-blue{background:rgba(56,189,248,0.15);color:var(--accent)}
+.badge-orange{background:rgba(251,146,60,0.15);color:var(--orange)}
+.badge-purple{background:rgba(167,139,250,0.15);color:var(--purple)}
+
+.tabs{margin:24px 0}
+.tab-nav{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap}
+.tab-btn{padding:10px 20px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:var(--font-sans);font-size:14px;font-weight:500;border-bottom:2px solid transparent;transition:all 0.2s;margin-bottom:-1px}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.diagram-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:30px;overflow-x:auto;margin:24px 0}
+
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:24px 0}
+.flow-step{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;min-width:110px;text-align:center;transition:all 0.3s}
+.flow-step:hover{border-color:var(--border2);background:var(--surface2)}
+.flow-step .icon{font-size:24px;margin-bottom:8px}
+.flow-step .label{font-size:12px;font-weight:600;color:var(--text)}
+.flow-step .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.flow-arrow{flex-shrink:0;padding:0 6px;color:var(--accent);font-size:18px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.quiz{margin:30px 0}
+.quiz-q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.quiz-q .q{font-weight:600;margin-bottom:14px}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 16px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:14px;transition:all 0.2s;background:var(--bg)}
+.quiz-opt:hover:not(.disabled){border-color:var(--accent);color:var(--accent)}
+.quiz-opt.correct{background:rgba(52,211,153,0.1);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(248,113,113,0.1);border-color:var(--red);color:var(--red)}
+.quiz-feedback{margin-top:12px;font-size:13px;padding:10px 14px;border-radius:8px;display:none}
+.quiz-feedback.show{display:block}
+.quiz-feedback.ok{background:rgba(52,211,153,0.1);color:var(--green)}
+.quiz-feedback.no{background:rgba(248,113,113,0.1);color:var(--red)}
+
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:24px}
+.cheat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cheat-card-header{background:var(--surface2);padding:10px 16px;font-weight:700;font-size:13px;color:var(--accent);letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+.cheat-card-body{padding:12px 16px}
+.cheat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px}
+.cheat-row:last-child{border-bottom:none}
+.cheat-row .cheat-cmd{font-family:var(--font-mono);color:var(--accent);font-size:12px}
+.cheat-row .cheat-desc{color:var(--muted);text-align:right;font-size:12px;max-width:55%}
+
+.timeline{position:relative;padding-left:30px;margin:24px 0}
+.timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:28px}
+.tl-item::before{content:'';position:absolute;left:-26px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 0 3px rgba(56,189,248,0.2)}
+.tl-item .tl-title{font-weight:700;margin-bottom:6px}
+.tl-item .tl-text{color:var(--muted);font-size:14px;line-height:1.6}
+
+.info-box{display:flex;gap:14px;padding:16px 20px;border-radius:var(--radius);margin:20px 0;border-left:3px solid}
+.info-box.note{background:rgba(56,189,248,0.07);border-color:var(--accent)}
+.info-box.warn{background:rgba(251,146,60,0.07);border-color:var(--orange)}
+.info-box.danger{background:rgba(248,113,113,0.07);border-color:var(--red)}
+.info-box.success{background:rgba(52,211,153,0.07);border-color:var(--green)}
+.info-box .ib-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.info-box .ib-content{font-size:14px;color:var(--muted);line-height:1.6}
+.info-box .ib-content strong{color:var(--text);display:block;margin-bottom:4px}
+
+#btt{position:fixed;bottom:30px;right:30px;background:var(--accent);color:#000;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;box-shadow:0 4px 20px rgba(56,189,248,0.4);transition:all 0.3s;opacity:0;transform:scale(0.8);z-index:999}
+#btt.show{opacity:1;transform:scale(1)}
+#btt:hover{transform:scale(1.1)}
+
+.sidebar-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;background:var(--accent);color:#000;border:none;width:40px;height:40px;border-radius:8px;cursor:pointer;font-size:18px;align-items:center;justify-content:center}
+
+.arch-diagram{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin:30px 0}
+.arch-box{border:2px solid;border-radius:12px;padding:16px 20px;min-width:140px;text-align:center;transition:all 0.3s}
+.arch-box:hover{transform:translateY(-4px);box-shadow:var(--shadow-glow)}
+.arch-box.host{border-color:var(--purple);background:rgba(167,139,250,0.07)}
+.arch-box.daemon{border-color:var(--docker-blue);background:rgba(36,150,237,0.08)}
+.arch-box.container{border-color:var(--green);background:rgba(52,211,153,0.07)}
+.arch-box.image{border-color:var(--orange);background:rgba(251,146,60,0.07)}
+.arch-box .abox-icon{font-size:26px;margin-bottom:8px}
+.arch-box .abox-title{font-weight:700;font-size:13px;margin-bottom:4px}
+.arch-box .abox-sub{font-size:11px;color:var(--muted)}
+
+.layer-stack{display:flex;flex-direction:column;gap:0;max-width:500px;margin:20px auto}
+.layer{padding:14px 22px;border:1px solid;text-align:center;font-size:13px;font-weight:600;transition:all 0.2s;cursor:default;position:relative}
+.layer:first-child{border-radius:12px 12px 0 0}
+.layer:last-child{border-radius:0 0 12px 12px}
+.layer-1{border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red)}
+.layer-2{border-color:rgba(251,146,60,0.4);background:rgba(251,146,60,0.08);color:var(--orange)}
+.layer-3{border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.08);color:var(--yellow)}
+.layer-4{border-color:rgba(52,211,153,0.4);background:rgba(52,211,153,0.08);color:var(--green)}
+.layer-5{border-color:rgba(56,189,248,0.4);background:rgba(56,189,248,0.08);color:var(--accent)}
+.layer-6{border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.08);color:var(--purple)}
+
+@keyframes containerPulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.3)}50%{box-shadow:0 0 0 8px rgba(52,211,153,0)}}
+.container-anim{animation:containerPulse 2.5s infinite}
+
+.hl{background:rgba(56,189,248,0.12);color:var(--accent);padding:1px 6px;border-radius:4px;font-size:0.9em;font-family:var(--font-mono)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:24px 0}
+.compare-col{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.compare-col.green .compare-head{background:rgba(52,211,153,0.12);color:var(--green)}
+.compare-col.red .compare-head{background:rgba(248,113,113,0.12);color:var(--red)}
+.compare-head{padding:12px 18px;font-weight:700;font-size:14px}
+.compare-body{padding:16px 18px}
+.compare-item{display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:var(--muted);align-items:flex-start}
+.compare-item::before{content:'→';color:var(--accent);flex-shrink:0}
+
+.iq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:24px}
+.iq-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:all 0.3s}
+.iq-card:hover{border-color:var(--border2)}
+.iq-badge{margin-bottom:12px}
+.iq-q{font-weight:600;font-size:14px;margin-bottom:10px;line-height:1.5}
+.iq-a{color:var(--muted);font-size:13px;line-height:1.6;max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+.iq-a.show{max-height:400px}
+.iq-toggle{font-size:12px;color:var(--accent);cursor:pointer;margin-top:10px;display:flex;align-items:center;gap:4px;background:none;border:none;font-family:var(--font-sans);padding:0;transition:opacity 0.2s}
+.iq-toggle:hover{opacity:0.7}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.summary-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:3px solid var(--accent)}
+.summary-item h4{font-size:14px;font-weight:700;margin-bottom:8px}
+.summary-item p{font-size:13px;color:var(--muted);line-height:1.5}
+
+@media(max-width:900px){
+  #sidebar{transform:translateX(-100%);transition:transform 0.3s}
+  #sidebar.open{transform:translateX(0)}
+  .main-content{margin-left:0}
+  .sidebar-toggle{display:flex}
+  .hero{padding:80px 24px 60px}
+  .hero-docker-anim{display:none}
+  .section{padding:50px 24px}
+  .hero-stats{gap:20px}
+  .flow{flex-direction:column;align-items:flex-start}
+  .compare{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<button class="sidebar-toggle" id="sidebarToggle">☰</button>
+<div id="btt" title="Back to top">↑</div>
+
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🐳</div>
+    Docker Guide
+  </div>
+  <div class="sidebar-search"><input type="text" placeholder="Search sections..." id="navSearch"></div>
+  <div class="nav-group">
+    <div class="nav-group-title">Getting Started</div>
+    <a class="nav-item active" href="#intro" onclick="closeSidebar()"><span class="nav-dot"></span>Introduction</a>
+    <a class="nav-item" href="#concepts" onclick="closeSidebar()"><span class="nav-dot"></span>Core Concepts</a>
+    <a class="nav-item" href="#architecture" onclick="closeSidebar()"><span class="nav-dot"></span>Architecture</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Internals</div>
+    <a class="nav-item" href="#images" onclick="closeSidebar()"><span class="nav-dot"></span>Images & Layers</a>
+    <a class="nav-item" href="#networking" onclick="closeSidebar()"><span class="nav-dot"></span>Networking</a>
+    <a class="nav-item" href="#volumes" onclick="closeSidebar()"><span class="nav-dot"></span>Volumes & Storage</a>
+    <a class="nav-item" href="#compose" onclick="closeSidebar()"><span class="nav-dot"></span>Docker Compose</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Real-World</div>
+    <a class="nav-item" href="#dockerfile" onclick="closeSidebar()"><span class="nav-dot"></span>Dockerfile Deep Dive</a>
+    <a class="nav-item" href="#realworld" onclick="closeSidebar()"><span class="nav-dot"></span>Enterprise Usage</a>
+    <a class="nav-item" href="#commands" onclick="closeSidebar()"><span class="nav-dot"></span>Commands</a>
+    <a class="nav-item" href="#security" onclick="closeSidebar()"><span class="nav-dot"></span>Security</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Advanced</div>
+    <a class="nav-item" href="#performance" onclick="closeSidebar()"><span class="nav-dot"></span>Performance</a>
+    <a class="nav-item" href="#troubleshooting" onclick="closeSidebar()"><span class="nav-dot"></span>Troubleshooting</a>
+    <a class="nav-item" href="#interview" onclick="closeSidebar()"><span class="nav-dot"></span>Interview Questions</a>
+    <a class="nav-item" href="#cheatsheet" onclick="closeSidebar()"><span class="nav-dot"></span>Cheat Sheet</a>
+    <a class="nav-item" href="#summary" onclick="closeSidebar()"><span class="nav-dot"></span>Summary</a>
+  </div>
+</nav>
+
+<main class="main-content">
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-badge">🐳 Complete Engineering Reference</div>
+  <h1 class="hero-title">Docker</h1>
+  <p class="hero-sub">From containerization fundamentals to enterprise-grade orchestration. Master the technology powering modern cloud-native infrastructure.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="val" id="c1">0</span><span class="lbl">Sections Covered</span></div>
+    <div class="hero-stat"><span class="val" id="c2">0</span><span class="lbl">Commands Included</span></div>
+    <div class="hero-stat"><span class="val" id="c3">0</span><span class="lbl">Interview Questions</span></div>
+    <div class="hero-stat"><span class="val">3</span><span class="lbl">Skill Levels</span></div>
+  </div>
+  <div class="hero-docker-anim">
+    <svg width="260" height="200" viewBox="0 0 260 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="120" width="240" height="60" rx="12" fill="#2496ed" opacity="0.6"/>
+      <rect x="20" y="80" width="50" height="40" rx="4" fill="#2496ed" opacity="0.8"/>
+      <rect x="80" y="80" width="50" height="40" rx="4" fill="#2496ed" opacity="0.8"/>
+      <rect x="140" y="80" width="50" height="40" rx="4" fill="#2496ed" opacity="0.8"/>
+      <rect x="200" y="80" width="50" height="40" rx="4" fill="#2496ed" opacity="0.8"/>
+      <rect x="20" y="40" width="50" height="40" rx="4" fill="#2496ed" opacity="0.9"/>
+      <rect x="80" y="40" width="50" height="40" rx="4" fill="#2496ed" opacity="0.9"/>
+      <rect x="140" y="40" width="50" height="40" rx="4" fill="#2496ed" opacity="0.9"/>
+      <text x="130" y="157" text-anchor="middle" fill="white" font-size="14" font-weight="bold" opacity="0.9">Docker Engine</text>
+    </svg>
+  </div>
+</section>
+
+<!-- INTRODUCTION -->
+<section class="section" id="intro">
+  <div class="section-header">
+    <div class="section-icon">🎯</div>
+    <div><h2 class="section-title">Introduction to Docker</h2><p class="section-desc">What is Docker, why it exists, and how it revolutionized software delivery</p></div>
+  </div>
+  <p style="color:var(--muted);margin-bottom:20px;font-size:15px;max-width:780px">Before Docker, deploying software was a nightmare. "It works on my machine" was the most infamous phrase in software engineering. Developers built on macOS, tested on Ubuntu, deployed to CentOS — things broke constantly. Docker fixed this once and for all by packaging an application with everything it needs into a single portable unit.</p>
+  <div class="cards">
+    <div class="card"><div class="card-icon">📦</div><div class="card-title">Container = Portable Unit</div><div class="card-text">A Docker container bundles your application with everything it needs — code, runtime, libraries, environment variables, config files — into a single portable unit that runs identically anywhere Docker is installed.</div></div>
+    <div class="card"><div class="card-icon">⚡</div><div class="card-title">Lightweight vs VMs</div><div class="card-text">VMs virtualize hardware and need a full OS per instance (GBs, minutes to boot). Containers share the host kernel, start in milliseconds, and use MBs. Docker lets you run 10x more workloads on the same hardware.</div></div>
+    <div class="card"><div class="card-icon">🔁</div><div class="card-title">Immutable Infrastructure</div><div class="card-text">Docker images are immutable. Once built, they never change. To update your app, you build a new image — not patch a running server. This eliminates configuration drift and makes rollbacks trivial.</div></div>
+    <div class="card"><div class="card-icon">🌍</div><div class="card-title">DevOps Enabler</div><div class="card-text">Docker is the foundation of modern CI/CD. Build once in CI, push to registry, deploy anywhere. The same container runs in dev, staging, and production — eliminating environment inconsistencies forever.</div></div>
+  </div>
+  <div class="info-box note" style="margin-top:30px">
+    <div class="ib-icon">💡</div>
+    <div class="ib-content"><strong>Real-World Analogy</strong>Think of Docker like standardized shipping containers. Before them, cargo was loaded haphazardly — slow, fragile, unpredictable. After standardization, any container fits any ship, crane, or truck. Docker does the same for software: standard, predictable, portable.</div>
+  </div>
+  <h3 style="margin:30px 0 16px;font-size:20px">Timeline: Docker's Evolution</h3>
+  <div class="timeline">
+    <div class="tl-item"><div class="tl-title">2008 — Linux Containers (LXC)</div><div class="tl-text">Linux Kernel adds cgroups + namespaces. LXC gives the first OS-level virtualization. Powerful but too complex for everyday use.</div></div>
+    <div class="tl-item"><div class="tl-title">2013 — Docker 0.1 by dotCloud</div><div class="tl-text">Solomon Hykes demos Docker at PyCon. Initially a wrapper around LXC, it adds a unified CLI, image format (layers), and a registry. Explosion of community adoption.</div></div>
+    <div class="tl-item"><div class="tl-title">2014 — Docker Hub & libcontainer</div><div class="tl-text">Public registry launched with official images. Docker replaces LXC with libcontainer — a native Go implementation giving full control over container lifecycle.</div></div>
+    <div class="tl-item"><div class="tl-title">2016 — Docker Compose & Swarm</div><div class="tl-text">Native orchestration added. Multi-container apps defined in YAML. Compose becomes the standard local development workflow.</div></div>
+    <div class="tl-item"><div class="tl-title">2017 — containerd donated to CNCF</div><div class="tl-text">Docker splits into components. containerd becomes the industry-standard container runtime, later adopted as Kubernetes' default CRI.</div></div>
+    <div class="tl-item"><div class="tl-title">2020–2024 — BuildKit, Compose V2, Rootless</div><div class="tl-text">BuildKit brings parallel cache-efficient builds. Compose V2 integrates natively into Docker CLI. Rootless Docker eliminates daemon privilege requirements. WSL2 support dramatically improves Windows developer experience.</div></div>
+  </div>
+</section>
+<!-- CORE CONCEPTS -->
+<section class="section" id="concepts">
+  <div class="section-header">
+    <div class="section-icon">🧠</div>
+    <div><h2 class="section-title">Core Concepts</h2><p class="section-desc">The fundamental building blocks every Docker user must internalize</p></div>
+  </div>
+  <div class="tabs">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'t1')">Images</button>
+      <button class="tab-btn" onclick="switchTab(this,'t2')">Containers</button>
+      <button class="tab-btn" onclick="switchTab(this,'t3')">Registry</button>
+      <button class="tab-btn" onclick="switchTab(this,'t4')">Daemon</button>
+      <button class="tab-btn" onclick="switchTab(this,'t5')">CLI</button>
+    </div>
+    <div class="tab-pane active" id="t1">
+      <h3 style="margin-bottom:14px">Docker Image — Read-Only Blueprint</h3>
+      <p style="color:var(--muted);margin-bottom:18px">An image is a <strong>read-only blueprint</strong> for a container. Built from a Dockerfile, it consists of stacked <em>layers</em> — each representing a filesystem change. Images are content-addressed by a SHA256 digest.</p>
+      <div class="layer-stack">
+        <div class="layer layer-1">🖥️ App Layer — your application code (writable container layer)</div>
+        <div class="layer layer-2">📦 Dependency Layer — npm/pip/apt packages</div>
+        <div class="layer layer-3">⚙️ Config Layer — ENV vars, entrypoint, exposed ports</div>
+        <div class="layer layer-4">🔧 Runtime Layer — node:18, python:3.11, openjdk:17</div>
+        <div class="layer layer-5">🐧 Base OS Layer — debian, alpine, ubuntu</div>
+        <div class="layer layer-6">🧱 Scratch / Base Image</div>
+      </div>
+      <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">Each layer is a diff. Layers are shared across images → massive disk savings on pull.</p>
+      <div class="info-box note" style="margin-top:20px">
+        <div class="ib-icon">🔑</div>
+        <div class="ib-content"><strong>Content Addressable Storage</strong>Every layer has a SHA256 hash. If two images share a layer (same hash), Docker stores it <em>once</em> on disk. Pulling <span class="hl">node:18</span> after <span class="hl">node:16</span> only downloads the delta layers. This is why <code>docker pull</code> shows "Already exists" for shared layers.</div>
+      </div>
+    </div>
+    <div class="tab-pane" id="t2">
+      <h3 style="margin-bottom:14px">Docker Container — Running Instance</h3>
+      <p style="color:var(--muted);margin-bottom:18px">A container is a <strong>running instance of an image</strong>. Docker adds a thin writable layer on top of the image's read-only layers. All writes go to the writable layer. The image itself is never modified.</p>
+      <div class="arch-diagram">
+        <div class="arch-box container container-anim"><div class="abox-icon">📦</div><div class="abox-title">Container A</div><div class="abox-sub">nginx:latest + writable layer</div></div>
+        <div class="arch-box container container-anim" style="animation-delay:0.5s"><div class="abox-icon">📦</div><div class="abox-title">Container B</div><div class="abox-sub">nginx:latest + writable layer</div></div>
+        <div class="arch-box image" style="width:100%;max-width:340px"><div class="abox-icon">🗂️</div><div class="abox-title">Shared Image Layers (Read-Only)</div><div class="abox-sub">nginx:latest — stored once, shared by all containers</div></div>
+      </div>
+      <h4 style="margin:24px 0 12px">Container Lifecycle</h4>
+      <div class="flow" style="flex-wrap:wrap">
+        <div class="flow-step"><div class="icon">⬇️</div><div class="label">created</div><div class="sub">docker create</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">▶️</div><div class="label">running</div><div class="sub">docker start</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">⏸️</div><div class="label">paused</div><div class="sub">docker pause</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">⏹️</div><div class="label">stopped</div><div class="sub">docker stop</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">🗑️</div><div class="label">removed</div><div class="sub">docker rm</div></div>
+      </div>
+    </div>
+    <div class="tab-pane" id="t3">
+      <h3 style="margin-bottom:14px">Container Registry — Distribution System</h3>
+      <p style="color:var(--muted);margin-bottom:18px">A registry is a storage and distribution system for Docker images — like GitHub but for container images.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Registry</th><th>Type</th><th>Use Case</th><th>Notable Feature</th></tr></thead>
+          <tbody>
+            <tr><td>Docker Hub</td><td><span class="badge badge-blue">Public/Private</span></td><td>Default, 100k+ official images</td><td>Automated builds, free tier</td></tr>
+            <tr><td>AWS ECR</td><td><span class="badge badge-orange">Cloud</span></td><td>AWS-native workloads</td><td>IAM integration, lifecycle policies</td></tr>
+            <tr><td>GCP Artifact Registry</td><td><span class="badge badge-orange">Cloud</span></td><td>GCP workloads</td><td>Vulnerability scanning, regional</td></tr>
+            <tr><td>Azure ACR</td><td><span class="badge badge-orange">Cloud</span></td><td>Azure workloads</td><td>Geo-replication, build tasks</td></tr>
+            <tr><td>GitHub GHCR</td><td><span class="badge badge-purple">Git-native</span></td><td>Open source / CI-CD</td><td>Free for public, Actions integration</td></tr>
+            <tr><td>Harbor</td><td><span class="badge badge-green">Self-hosted</span></td><td>Enterprise on-prem</td><td>RBAC, replication, Helm charts</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-wrap"><div class="code-label">Registry Operations</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Tag an image for a registry</span>
+<span class="cmd">docker tag</span> <span class="arg">myapp:latest</span> <span class="str">registry.example.com/team/myapp:v1.0.0</span>
+<span class="cmt"># Push to registry</span>
+<span class="cmd">docker push</span> <span class="str">registry.example.com/team/myapp:v1.0.0</span>
+<span class="cmt"># Pull from private registry</span>
+<span class="cmd">docker login</span> <span class="str">registry.example.com</span>
+<span class="cmd">docker pull</span> <span class="str">registry.example.com/team/myapp:v1.0.0</span>
+<span class="cmt"># Inspect image manifest (multi-arch)</span>
+<span class="cmd">docker manifest inspect</span> <span class="str">nginx:latest</span></pre></div>
+    </div>
+    <div class="tab-pane" id="t4">
+      <h3 style="margin-bottom:14px">Docker Daemon (dockerd)</h3>
+      <p style="color:var(--muted);margin-bottom:18px">The Docker daemon listens on <span class="hl">/var/run/docker.sock</span> (Unix socket) by default. All Docker CLI commands are REST API calls sent to dockerd, which delegates to containerd, which delegates to runc.</p>
+      <div class="arch-diagram" style="justify-content:flex-start">
+        <div class="arch-box daemon"><div class="abox-icon">🔧</div><div class="abox-title">dockerd</div><div class="abox-sub">Docker daemon — API server</div></div>
+        <div style="display:flex;align-items:center;padding:0 10px;color:var(--accent)">⟷</div>
+        <div class="arch-box" style="border-color:var(--yellow);background:rgba(251,191,36,0.06)"><div class="abox-icon">📡</div><div class="abox-title">containerd</div><div class="abox-sub">Container runtime lifecycle</div></div>
+        <div style="display:flex;align-items:center;padding:0 10px;color:var(--accent)">⟷</div>
+        <div class="arch-box" style="border-color:var(--red);background:rgba(248,113,113,0.06)"><div class="abox-icon">⚙️</div><div class="abox-title">runc</div><div class="abox-sub">OCI runtime, spawns processes</div></div>
+      </div>
+      <div class="info-box warn"><div class="ib-icon">⚠️</div><div class="ib-content"><strong>Security Note</strong>Access to <code>/var/run/docker.sock</code> equals root access on the host. Never mount it into untrusted containers — it allows complete host takeover.</div></div>
+    </div>
+    <div class="tab-pane" id="t5">
+      <h3 style="margin-bottom:14px">Docker CLI — Client Interface</h3>
+      <p style="color:var(--muted);margin-bottom:18px">The Docker CLI sends REST API requests to the daemon. It can connect to local or remote daemons. Every <code>docker run</code>, <code>docker build</code> etc. is a REST call to <span class="hl">dockerd</span>.</p>
+      <div class="code-wrap"><div class="code-label">CLI Architecture</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Flow: CLI → REST API → dockerd → containerd → runc → process</span>
+<span class="cmt"># Connect to remote Docker daemon over SSH</span>
+<span class="cmd">docker context create</span> <span class="str">prod</span> <span class="flag">--docker</span> <span class="str">"host=ssh://user@prod-host"</span>
+<span class="cmd">docker context use</span> <span class="str">prod</span>
+<span class="cmt"># Connect via TLS TCP</span>
+<span class="var">DOCKER_HOST</span>=<span class="str">tcp://192.168.1.10:2376</span> <span class="var">DOCKER_TLS_VERIFY</span>=<span class="num">1</span> <span class="cmd">docker ps</span>
+<span class="cmt"># Check daemon info</span>
+<span class="cmd">docker info</span>
+<span class="cmd">docker version</span></pre></div>
+    </div>
+  </div>
+</section>
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <div class="section-icon">🏗️</div>
+    <div><h2 class="section-title">How Docker Works Internally</h2><p class="section-desc">Linux kernel features: namespaces, cgroups, UnionFS/OverlayFS</p></div>
+  </div>
+  <p style="color:var(--muted);margin-bottom:28px;max-width:780px">Docker containers aren't magic — they're processes running on Linux with carefully configured kernel features that create the illusion of isolation. Understanding these internals is crucial for debugging, security hardening, and performance tuning.</p>
+  <div class="accordion">
+    <div class="acc-item open">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span>🔒</span> Linux Namespaces — Process Isolation</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body" style="max-height:2000px">
+        <div class="acc-body-inner">
+          <p style="margin-bottom:16px">Namespaces partition kernel resources so one set of processes sees a different view than another. Docker uses 6 namespaces:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Namespace</th><th>Isolates</th><th>Docker Effect</th></tr></thead>
+              <tbody>
+                <tr><td><span class="hl">PID</span></td><td>Process IDs</td><td>Container PID 1 is host PID 1234. Container sees only its own processes.</td></tr>
+                <tr><td><span class="hl">NET</span></td><td>Network interfaces, ports, routing tables</td><td>Each container gets its own eth0, IP address, and port space.</td></tr>
+                <tr><td><span class="hl">MNT</span></td><td>Filesystem mount points</td><td>Container has its own filesystem view via OverlayFS.</td></tr>
+                <tr><td><span class="hl">UTS</span></td><td>Hostname and domain name</td><td>Container can have its own hostname (defaults to container ID).</td></tr>
+                <tr><td><span class="hl">IPC</span></td><td>IPC: shared memory, semaphores</td><td>Containers cannot signal each other's processes by default.</td></tr>
+                <tr><td><span class="hl">USER</span></td><td>User and group IDs</td><td>UID 0 inside container ≠ UID 0 on host (with user namespace remapping).</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="code-wrap"><div class="code-label">Inspect Namespaces</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Find container PID on host</span>
+<span class="cmd">docker inspect</span> <span class="flag">--format</span> <span class="str">'{{.State.Pid}}'</span> <span class="arg">mycontainer</span>
+
+<span class="cmt"># List namespaces of container process</span>
+<span class="cmd">ls -la</span> <span class="str">/proc/&lt;PID&gt;/ns/</span>
+
+<span class="cmt"># Enter container namespace from host (powerful debugging tool)</span>
+<span class="cmd">nsenter</span> <span class="flag">--target</span> <span class="arg">&lt;PID&gt;</span> <span class="flag">--mount --uts --ipc --net --pid</span>
+
+<span class="cmt"># Verify PID isolation: container only sees its own processes</span>
+<span class="cmd">docker exec</span> <span class="arg">mycontainer</span> <span class="cmd">ps aux</span></pre></div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span>📊</span> cgroups — Resource Limits &amp; Accounting</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <p style="margin-bottom:16px">Control Groups limit and monitor resources consumed by a group of processes. Without cgroups, one container could starve all others on the host.</p>
+          <div class="code-wrap"><div class="code-label">Resource Control</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Run container with resource limits</span>
+<span class="cmd">docker run</span> <span class="flag">-d</span> \
+  <span class="flag">--memory</span> <span class="str">"512m"</span> \           <span class="cmt"># Hard memory limit</span>
+  <span class="flag">--memory-swap</span> <span class="str">"1g"</span> \        <span class="cmt"># Memory + swap combined limit</span>
+  <span class="flag">--cpus</span> <span class="str">"1.5"</span> \               <span class="cmt"># Max 1.5 CPU cores</span>
+  <span class="flag">--cpu-shares</span> <span class="num">512</span> \           <span class="cmt"># Relative CPU weight (default 1024)</span>
+  <span class="flag">--pids-limit</span> <span class="num">100</span> \           <span class="cmt"># Max process count (fork bomb protection)</span>
+  <span class="flag">--blkio-weight</span> <span class="num">500</span> \         <span class="cmt"># Block I/O priority weight</span>
+  <span class="str">nginx</span>
+
+<span class="cmt"># Inspect cgroup values directly on host</span>
+<span class="cmd">cat</span> <span class="str">/sys/fs/cgroup/memory/docker/&lt;ID&gt;/memory.limit_in_bytes</span>
+<span class="cmd">cat</span> <span class="str">/sys/fs/cgroup/cpu/docker/&lt;ID&gt;/cpu.cfs_quota_us</span>
+
+<span class="cmt"># Live stats</span>
+<span class="cmd">docker stats</span> <span class="flag">--no-stream</span></pre></div>
+          <div class="info-box warn"><div class="ib-icon">⚠️</div><div class="ib-content"><strong>OOM Killer</strong>If a container exceeds its memory limit, the Linux OOM killer terminates its processes. Set <code>--oom-kill-disable</code> only with extreme caution — it can freeze the entire host if memory is exhausted.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span>🗂️</span> Union Filesystems — OverlayFS Deep Dive</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <p style="margin-bottom:16px">Docker uses <strong>OverlayFS</strong> (overlay2 storage driver) to merge multiple directory trees into a coherent view. Two main components: <span class="hl">lowerdir</span> (read-only image layers) and <span class="hl">upperdir</span> (writable container layer).</p>
+          <div class="diagram-box">
+            <svg width="100%" viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="10" width="240" height="80" rx="10" fill="#1e3a4a" stroke="#38bdf8" stroke-width="1.5"/>
+              <text x="130" y="35" text-anchor="middle" font-family="monospace" font-size="12" fill="#38bdf8" font-weight="bold">CONTAINER VIEW</text>
+              <text x="130" y="55" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">Merged filesystem</text>
+              <text x="130" y="72" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">/etc /usr /app /tmp ...</text>
+              <text x="295" y="80" text-anchor="middle" font-family="monospace" font-size="12" fill="#94a3b8">OverlayFS</text>
+              <text x="295" y="96" text-anchor="middle" font-family="monospace" font-size="12" fill="#94a3b8">merges ⟶</text>
+              <rect x="340" y="10" width="200" height="35" rx="6" fill="#1a3a1a" stroke="#34d399" stroke-width="1.5"/>
+              <text x="440" y="32" text-anchor="middle" font-family="monospace" font-size="11" fill="#34d399">upperdir (writable)</text>
+              <rect x="340" y="55" width="200" height="28" rx="6" fill="#0d1a2e" stroke="#4a6580" stroke-width="1"/>
+              <text x="440" y="74" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">lowerdir 3 (app layer)</text>
+              <rect x="340" y="93" width="200" height="28" rx="6" fill="#0d1a2e" stroke="#4a6580" stroke-width="1"/>
+              <text x="440" y="112" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">lowerdir 2 (runtime)</text>
+              <rect x="340" y="131" width="200" height="28" rx="6" fill="#0d1a2e" stroke="#4a6580" stroke-width="1"/>
+              <text x="440" y="150" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">lowerdir 1 (base OS)</text>
+              <line x1="250" y1="50" x2="340" y2="27" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4,3"/>
+              <line x1="250" y1="50" x2="340" y2="69" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4,3"/>
+              <line x1="250" y1="50" x2="340" y2="107" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4,3"/>
+              <line x1="250" y1="50" x2="340" y2="145" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4,3"/>
+              <text x="130" y="115" text-anchor="middle" font-family="monospace" font-size="11" fill="#546e7a">Copy-on-Write: reads from lowerdir,</text>
+              <text x="130" y="130" text-anchor="middle" font-family="monospace" font-size="11" fill="#546e7a">writes go to upperdir only</text>
+            </svg>
+          </div>
+          <div class="code-wrap"><div class="code-label">Inspect OverlayFS</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># View overlay2 mount for a container</span>
+<span class="cmd">docker inspect</span> <span class="flag">--format</span> <span class="str">'{{.GraphDriver}}'</span> <span class="arg">mycontainer</span>
+
+<span class="cmt"># Direct mount info</span>
+<span class="cmd">mount</span> <span class="flag">| grep</span> <span class="str">overlay</span>
+
+<span class="cmt"># overlay2 data on host</span>
+<span class="cmd">ls</span> <span class="str">/var/lib/docker/overlay2/</span>
+
+<span class="cmt"># Check storage driver</span>
+<span class="cmd">docker info</span> <span class="flag">| grep</span> <span class="str">"Storage Driver"</span></pre></div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span>🛡️</span> seccomp, AppArmor &amp; Linux Capabilities</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <p style="margin-bottom:16px">Docker applies additional security layers beyond namespaces and cgroups:</p>
+          <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+            <div class="card"><div class="card-title">🔒 seccomp</div><div class="card-text">Syscall filter. Docker's default profile blocks ~44 dangerous syscalls (e.g. <code>reboot</code>, <code>kexec_load</code>, <code>perf_event_open</code>), preventing kernel exploitation from within containers.</div></div>
+            <div class="card"><div class="card-title">🏷️ AppArmor</div><div class="card-text">Mandatory Access Control. Docker's <code>docker-default</code> profile restricts file paths and capabilities. Active on Ubuntu/Debian. Check with <code>aa-status</code>.</div></div>
+            <div class="card"><div class="card-title">⚙️ Linux Capabilities</div><div class="card-text">Docker drops all capabilities except a minimal safe set. <code>NET_ADMIN</code>, <code>SYS_ADMIN</code> etc. are removed by default. Add with <code>--cap-add</code> only when genuinely necessary.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- IMAGES & LAYERS -->
+<section class="section" id="images">
+  <div class="section-header">
+    <div class="section-icon">🗂️</div>
+    <div><h2 class="section-title">Images &amp; Layers — Deep Dive</h2><p class="section-desc">Build cache, layer optimization, multi-stage builds, and image management</p></div>
+  </div>
+  <div class="tabs">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'img1')">Build Process</button>
+      <button class="tab-btn" onclick="switchTab(this,'img2')">Build Cache</button>
+      <button class="tab-btn" onclick="switchTab(this,'img3')">Multi-Stage</button>
+      <button class="tab-btn" onclick="switchTab(this,'img4')">Inspection</button>
+    </div>
+    <div class="tab-pane active" id="img1">
+      <h3 style="margin-bottom:14px">How <code>docker build</code> Works Step-by-Step</h3>
+      <div class="flow" style="flex-wrap:wrap">
+        <div class="flow-step"><div class="icon">📄</div><div class="label">Parse Dockerfile</div><div class="sub">Lexer → AST</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">📡</div><div class="label">Send Context</div><div class="sub">tar → daemon</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">🔍</div><div class="label">Check Cache</div><div class="sub">Layer hash</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">⚙️</div><div class="label">Execute Steps</div><div class="sub">RUN, COPY, ADD</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">📸</div><div class="label">Snapshot Layer</div><div class="sub">OverlayFS diff</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">🏷️</div><div class="label">Tag Image</div><div class="sub">SHA256 digest</div></div>
+      </div>
+      <div class="info-box note" style="margin-top:20px"><div class="ib-icon">💡</div><div class="ib-content"><strong>Build Context</strong>The build context (everything in <code>.</code>) is tarred and sent to dockerd before any build step runs. A large context = slow builds. Use <code>.dockerignore</code> to exclude <code>node_modules</code>, <code>.git</code>, test files, etc.</div></div>
+    </div>
+    <div class="tab-pane" id="img2">
+      <h3 style="margin-bottom:14px">Build Cache — Optimization Masterclass</h3>
+      <p style="color:var(--muted);margin-bottom:18px">Docker caches each layer by hashing (instruction + parent layer + relevant context). Cache miss = rebuild from that point down. <strong>Order your Dockerfile for maximum cache reuse.</strong></p>
+      <div class="compare">
+        <div class="compare-col red">
+          <div class="compare-head">❌ Cache-Busting Dockerfile</div>
+          <div class="compare-body">
+            <div class="compare-item">COPY . . first — any file change invalidates all subsequent layers</div>
+            <div class="compare-item">npm install after COPY — reinstalls on every single code change</div>
+            <div class="compare-item">Volatile instructions placed early in the file</div>
+          </div>
+        </div>
+        <div class="compare-col green">
+          <div class="compare-head">✅ Cache-Optimized Dockerfile</div>
+          <div class="compare-body">
+            <div class="compare-item">COPY package.json first, RUN npm install (stable cached layer)</div>
+            <div class="compare-item">COPY source code last — changes often but earlier layers stay cached</div>
+            <div class="compare-item">Rarely-changing instructions at the top</div>
+          </div>
+        </div>
+      </div>
+      <div class="code-wrap"><div class="code-label">Cache-Optimized Node.js Dockerfile</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="kw">FROM</span> <span class="str">node:18-alpine</span>
+<span class="kw">WORKDIR</span> <span class="str">/app</span>
+
+<span class="cmt"># Layer 1: Copy manifests ONLY — rarely changes → stable cache</span>
+<span class="kw">COPY</span> <span class="str">package.json package-lock.json ./</span>
+<span class="cmt"># Layer 2: Install deps — only rebuilds when lock file changes</span>
+<span class="kw">RUN</span> <span class="cmd">npm ci --only=production</span>
+
+<span class="cmt"># Layer 3: Source code — changes on every commit but above is CACHED</span>
+<span class="kw">COPY</span> <span class="str">src/ ./src/</span>
+
+<span class="kw">EXPOSE</span> <span class="num">3000</span>
+<span class="kw">CMD</span> [<span class="str">"node"</span>, <span class="str">"src/index.js"</span>]</pre></div>
+    </div>
+    <div class="tab-pane" id="img3">
+      <h3 style="margin-bottom:14px">Multi-Stage Builds — Shrink Images Dramatically</h3>
+      <p style="color:var(--muted);margin-bottom:18px">Multi-stage builds use multiple FROM statements. Build in a large image, copy only artifacts to a minimal final image. Reduce image size from 1GB+ to under 20MB.</p>
+      <div class="code-wrap"><div class="code-label">Go — scratch final image (~5MB)</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Stage 1: Builder (golang:1.21-alpine = ~300MB)</span>
+<span class="kw">FROM</span> <span class="str">golang:1.21-alpine</span> <span class="kw">AS</span> <span class="arg">builder</span>
+<span class="kw">WORKDIR</span> <span class="str">/app</span>
+<span class="kw">COPY</span> <span class="str">go.mod go.sum ./</span>
+<span class="kw">RUN</span> <span class="cmd">go mod download</span>
+<span class="kw">COPY</span> <span class="str">. .</span>
+<span class="kw">RUN</span> <span class="var">CGO_ENABLED</span>=<span class="num">0</span> <span class="cmd">go build</span> <span class="flag">-ldflags="-s -w" -o</span> <span class="str">app .</span>
+
+<span class="cmt"># Stage 2: scratch = empty image — 0 bytes base</span>
+<span class="kw">FROM</span> <span class="str">scratch</span>
+<span class="kw">COPY</span> <span class="flag">--from=builder</span> <span class="str">/app/app /app</span>
+<span class="kw">COPY</span> <span class="flag">--from=builder</span> <span class="str">/etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/</span>
+<span class="kw">EXPOSE</span> <span class="num">8080</span>
+<span class="kw">ENTRYPOINT</span> [<span class="str">"/app"</span>]
+<span class="cmt"># Final image: ~5MB  vs  300MB builder</span></pre></div>
+      <div class="code-wrap"><div class="code-label">React + Nginx (~25MB)</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="kw">FROM</span> <span class="str">node:18-alpine</span> <span class="kw">AS</span> <span class="arg">build</span>
+<span class="kw">WORKDIR</span> <span class="str">/app</span>
+<span class="kw">COPY</span> <span class="str">package*.json ./</span>
+<span class="kw">RUN</span> <span class="cmd">npm ci</span>
+<span class="kw">COPY</span> <span class="str">. .</span>
+<span class="kw">RUN</span> <span class="cmd">npm run build</span>
+
+<span class="kw">FROM</span> <span class="str">nginx:alpine</span>
+<span class="kw">COPY</span> <span class="flag">--from=build</span> <span class="str">/app/build /usr/share/nginx/html</span>
+<span class="kw">COPY</span> <span class="str">nginx.conf /etc/nginx/conf.d/default.conf</span>
+<span class="kw">EXPOSE</span> <span class="num">80</span>
+<span class="cmt"># Final: ~25MB vs ~900MB node dev image</span></pre></div>
+    </div>
+    <div class="tab-pane" id="img4">
+      <h3 style="margin-bottom:14px">Image Inspection &amp; Management</h3>
+      <div class="code-wrap"><div class="code-label">Image Commands</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># List images with size</span>
+<span class="cmd">docker images</span>
+<span class="cmd">docker image ls</span> <span class="flag">--format</span> <span class="str">"table {{.Repository}}\t{{.Tag}}\t{{.Size}}"</span>
+
+<span class="cmt"># Show image layers and their sizes</span>
+<span class="cmd">docker history</span> <span class="flag">--no-trunc</span> <span class="str">nginx:latest</span>
+
+<span class="cmt"># Full metadata JSON</span>
+<span class="cmd">docker image inspect</span> <span class="str">nginx:latest</span>
+
+<span class="cmt"># Interactive layer analysis (install: github.com/wagoodman/dive)</span>
+<span class="cmd">dive</span> <span class="str">nginx:latest</span>
+
+<span class="cmt"># Remove all dangling (untagged) images</span>
+<span class="cmd">docker image prune</span>
+
+<span class="cmt"># Remove ALL unused images (safe on CI)</span>
+<span class="cmd">docker image prune</span> <span class="flag">-a</span>
+
+<span class="cmt"># Export/import for air-gapped environments</span>
+<span class="cmd">docker save</span> <span class="str">myapp:v1</span> <span class="flag">| gzip ></span> <span class="str">myapp-v1.tar.gz</span>
+<span class="cmd">docker load</span> <span class="flag">< myapp-v1.tar.gz</span>
+
+<span class="cmt"># BuildKit: export layer cache to registry (CI optimization)</span>
+<span class="cmd">docker buildx build</span> \
+  <span class="flag">--cache-to</span> <span class="str">type=registry,ref=myrepo/cache</span> \
+  <span class="flag">--cache-from</span> <span class="str">type=registry,ref=myrepo/cache</span> \
+  <span class="flag">-t</span> <span class="str">myapp:latest .</span></pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- NETWORKING -->
+<section class="section" id="networking">
+  <div class="section-header">
+    <div class="section-icon">🌐</div>
+    <div><h2 class="section-title">Docker Networking — Deep Dive</h2><p class="section-desc">Bridge, host, overlay networks, DNS, port mapping, and container-to-container comms</p></div>
+  </div>
+  <div class="tabs">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'net1')">Network Types</button>
+      <button class="tab-btn" onclick="switchTab(this,'net2')">Bridge Internals</button>
+      <button class="tab-btn" onclick="switchTab(this,'net3')">DNS</button>
+      <button class="tab-btn" onclick="switchTab(this,'net4')">Port Mapping</button>
+    </div>
+    <div class="tab-pane active" id="net1">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Driver</th><th>Scope</th><th>Use Case</th><th>Isolation</th></tr></thead>
+          <tbody>
+            <tr><td><span class="hl">bridge</span></td><td>Single host</td><td>Default — containers on same host communicate</td><td>Isolated from host, NAT for external access</td></tr>
+            <tr><td><span class="hl">host</span></td><td>Single host</td><td>Max performance (no NAT overhead)</td><td>None — shares host network namespace entirely</td></tr>
+            <tr><td><span class="hl">overlay</span></td><td>Multi-host</td><td>Docker Swarm, Kubernetes cross-host networking</td><td>VXLAN tunnels, optional encryption</td></tr>
+            <tr><td><span class="hl">macvlan</span></td><td>Single host</td><td>Legacy apps needing real L2 access</td><td>Container gets its own MAC address on physical network</td></tr>
+            <tr><td><span class="hl">ipvlan</span></td><td>Single host</td><td>High-density, same MAC as host NIC</td><td>L2/L3 mode options</td></tr>
+            <tr><td><span class="hl">none</span></td><td>—</td><td>Fully isolated batch/compute jobs</td><td>No network interfaces at all</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-wrap"><div class="code-label">Network Management</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># List all networks</span>
+<span class="cmd">docker network ls</span>
+
+<span class="cmt"># Create custom bridge with specific subnet</span>
+<span class="cmd">docker network create</span> <span class="flag">--driver</span> <span class="str">bridge</span> \
+  <span class="flag">--subnet</span> <span class="str">172.20.0.0/16</span> \
+  <span class="flag">--ip-range</span> <span class="str">172.20.0.0/24</span> \
+  <span class="flag">--gateway</span> <span class="str">172.20.0.1</span> \
+  <span class="str">mynet</span>
+
+<span class="cmt"># Run on specific network</span>
+<span class="cmd">docker run</span> <span class="flag">--network</span> <span class="str">mynet</span> <span class="flag">--name</span> <span class="str">web</span> <span class="str">nginx</span>
+
+<span class="cmt"># Connect running container to additional network</span>
+<span class="cmd">docker network connect</span> <span class="str">mynet</span> <span class="str">existing-container</span>
+
+<span class="cmt"># Inspect (shows containers, IPs, gateway)</span>
+<span class="cmd">docker network inspect</span> <span class="str">mynet</span></pre></div>
+    </div>
+    <div class="tab-pane" id="net2">
+      <h3 style="margin-bottom:14px">Bridge Internals: veth pairs + iptables</h3>
+      <p style="color:var(--muted);margin-bottom:16px">Docker creates a Linux bridge device. Each container gets a <strong>veth pair</strong> — one end in the container namespace, the other on the bridge. iptables handles NAT and port forwarding.</p>
+      <div class="diagram-box">
+        <svg width="100%" viewBox="0 0 580 280" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="10" width="560" height="260" rx="12" stroke="#334155" stroke-width="1.5" fill="#0d1220"/>
+          <text x="30" y="33" font-family="monospace" font-size="12" fill="#e2e8f0" font-weight="bold">Host Machine</text>
+          <rect x="460" y="45" width="90" height="38" rx="6" fill="#1e2d3d" stroke="#2496ed" stroke-width="1.5"/>
+          <text x="505" y="60" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">eth0</text>
+          <text x="505" y="75" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">192.168.1.5</text>
+          <rect x="170" y="130" width="240" height="48" rx="8" fill="#1e2d3d" stroke="#38bdf8" stroke-width="2"/>
+          <text x="290" y="152" text-anchor="middle" font-family="monospace" font-size="12" fill="#e2e8f0" font-weight="bold">docker0 bridge</text>
+          <text x="290" y="170" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">172.17.0.1/16  (gateway)</text>
+          <rect x="30" y="200" width="120" height="55" rx="8" fill="#1a2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="90" y="220" text-anchor="middle" font-family="monospace" font-size="11" fill="#34d399" font-weight="bold">Container A</text>
+          <text x="90" y="235" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">172.17.0.2</text>
+          <text x="90" y="248" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">eth0 ↔ veth</text>
+          <rect x="430" y="200" width="120" height="55" rx="8" fill="#1a2e1a" stroke="#34d399" stroke-width="1.5"/>
+          <text x="490" y="220" text-anchor="middle" font-family="monospace" font-size="11" fill="#34d399" font-weight="bold">Container B</text>
+          <text x="490" y="235" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">172.17.0.3</text>
+          <text x="490" y="248" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">eth0 ↔ veth</text>
+          <line x1="90" y1="200" x2="200" y2="178" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <line x1="490" y1="200" x2="380" y2="178" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <rect x="190" y="55" width="130" height="32" rx="6" fill="#2d1a2e" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="255" y="70" text-anchor="middle" font-family="monospace" font-size="11" fill="#a78bfa" font-weight="bold">iptables NAT</text>
+          <text x="255" y="83" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">MASQUERADE</text>
+          <line x1="255" y1="87" x2="290" y2="130" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="460" y1="64" x2="320" y2="70" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="505" y="105" text-anchor="middle" font-family="monospace" font-size="10" fill="#546e7a">Internet ↑</text>
+        </svg>
+      </div>
+      <div class="code-wrap"><div class="code-label">Inspect Bridge Internals</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># View bridge devices on host</span>
+<span class="cmd">ip link show type bridge</span>
+<span class="cmd">brctl show</span>  <span class="cmt"># Shows docker0 and attached veth pairs</span>
+
+<span class="cmt"># View iptables rules Docker creates</span>
+<span class="cmd">iptables</span> <span class="flag">-L DOCKER -n</span>
+<span class="cmd">iptables</span> <span class="flag">-t nat -L DOCKER -n -v</span>
+
+<span class="cmt"># Sniff container traffic from host</span>
+<span class="cmd">tcpdump</span> <span class="flag">-i docker0 -n</span></pre></div>
+    </div>
+    <div class="tab-pane" id="net3">
+      <h3 style="margin-bottom:14px">Docker DNS — Automatic Service Discovery</h3>
+      <p style="color:var(--muted);margin-bottom:16px">Containers on <strong>user-defined bridge networks</strong> get automatic DNS by container name. Docker runs an embedded DNS server at <span class="hl">127.0.0.11</span> inside each container.</p>
+      <div class="flow" style="flex-wrap:wrap">
+        <div class="flow-step"><div class="icon">📦</div><div class="label">Container A</div><div class="sub">curl http://web</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">📡</div><div class="label">DNS Query</div><div class="sub">→ 127.0.0.11:53</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">🔧</div><div class="label">Docker DNS</div><div class="sub">Resolves "web"</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">↩️</div><div class="label">Answer</div><div class="sub">172.20.0.5</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="icon">📦</div><div class="label">Container B</div><div class="sub">Receives request</div></div>
+      </div>
+      <div class="info-box warn"><div class="ib-icon">⚠️</div><div class="ib-content"><strong>Default docker0 has no DNS!</strong>The default bridge network does NOT provide automatic DNS resolution by container name. You MUST create user-defined networks. Docker Compose automatically creates one per project — this is one key reason to use Compose.</div></div>
+    </div>
+    <div class="tab-pane" id="net4">
+      <h3 style="margin-bottom:14px">Port Mapping — iptables DNAT</h3>
+      <p style="color:var(--muted);margin-bottom:16px">Port mapping adds an iptables DNAT rule: packets arriving at <span class="hl">host:8080</span> are redirected to <span class="hl">container-ip:80</span>. Docker also runs a userland proxy for loopback traffic.</p>
+      <div class="code-wrap"><div class="code-label">Port Mapping Examples</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Map host:8080 → container:80</span>
+<span class="cmd">docker run</span> <span class="flag">-p</span> <span class="num">8080</span>:<span class="num">80</span> <span class="str">nginx</span>
+
+<span class="cmt"># Bind to specific host interface ONLY (security best practice!)</span>
+<span class="cmd">docker run</span> <span class="flag">-p</span> <span class="str">127.0.0.1</span>:<span class="num">8080</span>:<span class="num">80</span> <span class="str">nginx</span>
+
+<span class="cmt"># Map all EXPOSE'd ports to random host ports</span>
+<span class="cmd">docker run</span> <span class="flag">-P</span> <span class="str">nginx</span>
+
+<span class="cmt"># UDP port</span>
+<span class="cmd">docker run</span> <span class="flag">-p</span> <span class="num">5353</span>:<span class="num">5353</span>/<span class="str">udp</span> <span class="str">dnsmasq</span>
+
+<span class="cmt"># View resulting iptables DNAT rule</span>
+<span class="cmd">iptables</span> <span class="flag">-t nat -L DOCKER -n --line-numbers</span>
+<span class="cmt"># DNAT tcp -- 0.0.0.0/0 0.0.0.0/0 tcp dpt:8080 to:172.17.0.2:80</span>
+
+<span class="cmt"># Check port mappings</span>
+<span class="cmd">docker port</span> <span class="str">mycontainer</span></pre></div>
+    </div>
+  </div>
+</section>
+<!-- VOLUMES -->
+<section class="section" id="volumes">
+  <div class="section-header">
+    <div class="section-icon">💾</div>
+    <div><h2 class="section-title">Volumes &amp; Storage</h2><p class="section-desc">Persistent data management, volume drivers, bind mounts, and tmpfs</p></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Syntax</th><th>Persists?</th><th>Best For</th><th>Performance</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-blue">Volume</span></td><td><code>-v mydata:/data</code></td><td><span class="badge badge-green">Yes</span></td><td>Databases, persistent app data</td><td>Best (managed by Docker)</td></tr>
+        <tr><td><span class="badge badge-orange">Bind Mount</span></td><td><code>-v /host/path:/container/path</code></td><td><span class="badge badge-green">Yes</span></td><td>Dev: live code reload, config injection</td><td>Host filesystem speed</td></tr>
+        <tr><td><span class="badge badge-purple">tmpfs</span></td><td><code>--tmpfs /tmp</code></td><td><span class="badge badge-red">No</span></td><td>Secrets, temp files, performance caches</td><td>Fastest (RAM-backed)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="code-wrap"><div class="code-label">Volume Operations</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Create named volume</span>
+<span class="cmd">docker volume create</span> <span class="str">pgdata</span>
+
+<span class="cmt"># Use with postgres</span>
+<span class="cmd">docker run</span> <span class="flag">-d</span> \
+  <span class="flag">--name</span> <span class="str">postgres</span> \
+  <span class="flag">-v</span> <span class="str">pgdata:/var/lib/postgresql/data</span> \
+  <span class="flag">-e</span> <span class="var">POSTGRES_PASSWORD</span>=<span class="str">secret</span> \
+  <span class="str">postgres:16</span>
+
+<span class="cmt"># Inspect volume (find location on host)</span>
+<span class="cmd">docker volume inspect</span> <span class="str">pgdata</span>
+<span class="cmt"># Mountpoint: /var/lib/docker/volumes/pgdata/_data</span>
+
+<span class="cmt"># Backup a volume</span>
+<span class="cmd">docker run</span> <span class="flag">--rm</span> \
+  <span class="flag">-v</span> <span class="str">pgdata:/source:ro</span> \
+  <span class="flag">-v</span> <span class="str">$(pwd):/backup</span> \
+  <span class="str">alpine</span> <span class="cmd">tar czf /backup/pgdata-backup.tar.gz -C /source .</span>
+
+<span class="cmt"># Bind mount for development (live reload)</span>
+<span class="cmd">docker run</span> <span class="flag">-v</span> <span class="str">$(pwd)/src:/app/src</span> <span class="str">myapp:dev</span>
+
+<span class="cmt"># tmpfs for secrets in RAM</span>
+<span class="cmd">docker run</span> <span class="flag">--tmpfs</span> <span class="str">/run/secrets:rw,noexec,nosuid,size=65536k</span> <span class="str">myapp</span>
+
+<span class="cmt"># NFS volume (enterprise)</span>
+<span class="cmd">docker volume create</span> \
+  <span class="flag">--driver</span> <span class="str">local</span> \
+  <span class="flag">--opt</span> <span class="var">type</span>=<span class="str">nfs</span> \
+  <span class="flag">--opt</span> <span class="var">o</span>=<span class="str">addr=nfs-server.example.com,rw</span> \
+  <span class="flag">--opt</span> <span class="var">device</span>=<span class="str">:/exports/data</span> \
+  <span class="str">nfs-data</span>
+
+<span class="cmt"># List and clean</span>
+<span class="cmd">docker volume ls</span>
+<span class="cmd">docker volume prune</span>  <span class="cmt"># Remove all unused volumes</span></pre></div>
+  <div class="info-box warn"><div class="ib-icon">⚠️</div><div class="ib-content"><strong>Container Layer is Ephemeral</strong>Any data written inside a container NOT in a volume is destroyed on <code>docker rm</code>. Always use volumes for databases, uploads, and any data you care about. Running postgres without a volume means losing all data on every restart.</div></div>
+</section>
+
+<!-- COMPOSE -->
+<section class="section" id="compose">
+  <div class="section-header">
+    <div class="section-icon">🎼</div>
+    <div><h2 class="section-title">Docker Compose</h2><p class="section-desc">Multi-container applications defined declaratively in YAML</p></div>
+  </div>
+  <p style="color:var(--muted);margin-bottom:24px;max-width:780px">Docker Compose defines your entire stack — services, networks, volumes — in a single <span class="hl">compose.yaml</span> file. Instead of dozens of docker run commands, one file describes everything.</p>
+  <div class="code-wrap"><div class="code-label">Full Stack: Node.js + PostgreSQL + Redis + Nginx</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># compose.yaml</span>
+<span class="tag">services:</span>
+
+  <span class="tag">nginx:</span>
+    <span class="kw">image:</span> <span class="str">nginx:alpine</span>
+    <span class="kw">ports:</span>
+      <span class="str">- "80:80"</span>
+      <span class="str">- "443:443"</span>
+    <span class="kw">volumes:</span>
+      <span class="str">- ./nginx.conf:/etc/nginx/nginx.conf:ro</span>
+    <span class="kw">depends_on:</span>
+      <span class="str">- api</span>
+    <span class="kw">networks:</span>
+      <span class="str">- frontend</span>
+
+  <span class="tag">api:</span>
+    <span class="kw">build:</span>
+      <span class="kw">context:</span> <span class="str">./api</span>
+      <span class="kw">target:</span> <span class="str">production</span>
+    <span class="kw">environment:</span>
+      <span class="kw">NODE_ENV:</span> <span class="str">production</span>
+      <span class="kw">DATABASE_URL:</span> <span class="str">postgres://user:pass@db:5432/mydb</span>
+      <span class="kw">REDIS_URL:</span> <span class="str">redis://cache:6379</span>
+    <span class="kw">depends_on:</span>
+      <span class="kw">db:</span>
+        <span class="kw">condition:</span> <span class="str">service_healthy</span>
+    <span class="kw">deploy:</span>
+      <span class="kw">replicas:</span> <span class="num">3</span>
+      <span class="kw">restart_policy:</span>
+        <span class="kw">condition:</span> <span class="str">on-failure</span>
+    <span class="kw">networks:</span>
+      <span class="str">- frontend</span>
+      <span class="str">- backend</span>
+
+  <span class="tag">db:</span>
+    <span class="kw">image:</span> <span class="str">postgres:16-alpine</span>
+    <span class="kw">environment:</span>
+      <span class="kw">POSTGRES_DB:</span> <span class="str">mydb</span>
+      <span class="kw">POSTGRES_USER:</span> <span class="str">user</span>
+      <span class="kw">POSTGRES_PASSWORD_FILE:</span> <span class="str">/run/secrets/db_password</span>
+    <span class="kw">volumes:</span>
+      <span class="str">- pgdata:/var/lib/postgresql/data</span>
+      <span class="str">- ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro</span>
+    <span class="kw">healthcheck:</span>
+      <span class="kw">test:</span> [<span class="str">"CMD-SHELL"</span>, <span class="str">"pg_isready -U user -d mydb"</span>]
+      <span class="kw">interval:</span> <span class="num">10s</span>
+      <span class="kw">timeout:</span> <span class="num">5s</span>
+      <span class="kw">retries:</span> <span class="num">5</span>
+    <span class="kw">secrets:</span>
+      <span class="str">- db_password</span>
+    <span class="kw">networks:</span>
+      <span class="str">- backend</span>
+
+  <span class="tag">cache:</span>
+    <span class="kw">image:</span> <span class="str">redis:7-alpine</span>
+    <span class="kw">command:</span> <span class="str">redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru</span>
+    <span class="kw">volumes:</span>
+      <span class="str">- redisdata:/data</span>
+    <span class="kw">networks:</span>
+      <span class="str">- backend</span>
+
+<span class="tag">volumes:</span>
+  <span class="kw">pgdata:</span>
+  <span class="kw">redisdata:</span>
+
+<span class="tag">networks:</span>
+  <span class="kw">frontend:</span>
+  <span class="kw">backend:</span>
+    <span class="kw">internal:</span> <span class="num">true</span>  <span class="cmt"># No external internet access</span>
+
+<span class="tag">secrets:</span>
+  <span class="kw">db_password:</span>
+    <span class="kw">file:</span> <span class="str">./secrets/db_password.txt</span></pre></div>
+  <div class="code-wrap"><div class="code-label">Compose Commands</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Start stack (detached)</span>
+<span class="cmd">docker compose up</span> <span class="flag">-d</span>
+
+<span class="cmt"># Build and start</span>
+<span class="cmd">docker compose up</span> <span class="flag">--build -d</span>
+
+<span class="cmt"># Scale a service</span>
+<span class="cmd">docker compose up</span> <span class="flag">--scale</span> <span class="str">api=5 -d</span>
+
+<span class="cmt"># Follow logs from specific service</span>
+<span class="cmd">docker compose logs</span> <span class="flag">-f</span> <span class="str">api</span>
+
+<span class="cmt"># Run one-off command</span>
+<span class="cmd">docker compose run</span> <span class="flag">--rm</span> <span class="str">api node migrate.js</span>
+
+<span class="cmt"># Stop and remove containers (preserve volumes)</span>
+<span class="cmd">docker compose down</span>
+
+<span class="cmt"># Stop and remove everything including volumes</span>
+<span class="cmd">docker compose down</span> <span class="flag">-v</span>
+
+<span class="cmt"># Use multiple compose files (dev + prod overrides)</span>
+<span class="cmd">docker compose</span> <span class="flag">-f</span> <span class="str">compose.yaml</span> <span class="flag">-f</span> <span class="str">compose.prod.yaml up -d</span></pre></div>
+</section>
+<!-- DOCKERFILE DEEP DIVE -->
+<section class="section" id="dockerfile">
+  <div class="section-header">
+    <div class="section-icon">📄</div>
+    <div><h2 class="section-title">Dockerfile — Complete Reference</h2><p class="section-desc">Every instruction explained with real-world patterns and common pitfalls</p></div>
+  </div>
+  <div class="accordion">
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span class="badge badge-blue">FROM</span> Base Image Selection</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="kw">FROM</span> <span class="str">node:18-alpine</span>          <span class="cmt"># ✅ Minimal (~50MB)</span>
+<span class="kw">FROM</span> <span class="str">node:18-slim</span>            <span class="cmt"># ⚠️ Smaller than full (~150MB)</span>
+<span class="kw">FROM</span> <span class="str">node:18</span>                 <span class="cmt"># ❌ Full Debian (~900MB)</span>
+<span class="kw">FROM</span> <span class="str">gcr.io/distroless/nodejs18-debian11</span>  <span class="cmt"># ✅✅ No shell, minimal attack surface</span>
+<span class="kw">FROM</span> <span class="str">scratch</span>                 <span class="cmt"># ✅✅✅ Empty — for statically compiled binaries</span>
+
+<span class="cmt"># Pin to digest for fully reproducible builds</span>
+<span class="kw">FROM</span> <span class="str">node:18-alpine@sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span class="badge badge-green">RUN</span> Execute Commands — Layer Minimization</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># ❌ BAD — 3 layers, apt cache left in image</span>
+<span class="kw">RUN</span> <span class="cmd">apt-get update</span>
+<span class="kw">RUN</span> <span class="cmd">apt-get install -y curl</span>
+<span class="kw">RUN</span> <span class="cmd">rm -rf /var/lib/apt/lists/*</span>
+
+<span class="cmt"># ✅ GOOD — 1 layer, cache cleaned in same step</span>
+<span class="kw">RUN</span> <span class="cmd">apt-get update</span> && \
+    <span class="cmd">apt-get install</span> <span class="flag">-y --no-install-recommends</span> <span class="str">curl ca-certificates</span> && \
+    <span class="cmd">rm -rf /var/lib/apt/lists/*</span>
+
+<span class="cmt"># Heredoc syntax (Docker 20.10+, much cleaner)</span>
+<span class="kw">RUN</span> &lt;&lt;<span class="str">EOF</span>
+set -ex
+apt-get update
+apt-get install -y --no-install-recommends curl ca-certificates
+rm -rf /var/lib/apt/lists/*
+<span class="str">EOF</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span class="badge badge-orange">COPY vs ADD</span> File Instructions</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># COPY — preferred: explicit, predictable, fast</span>
+<span class="kw">COPY</span> <span class="str">src/ ./src/</span>
+<span class="kw">COPY</span> <span class="flag">--chown=node:node</span> <span class="str">. .</span>          <span class="cmt"># Set ownership during copy</span>
+<span class="kw">COPY</span> <span class="flag">--chmod=755</span> <span class="str">entrypoint.sh .</span>   <span class="cmt"># Set permissions</span>
+<span class="kw">COPY</span> <span class="flag">--from=builder</span> <span class="str">/app/dist ./dist</span>  <span class="cmt"># From another build stage</span>
+<span class="kw">COPY</span> <span class="flag">--link</span> <span class="str">. .</span>                      <span class="cmt"># BuildKit linked layer (better cache)</span>
+
+<span class="cmt"># ADD — extra features but usually avoid</span>
+<span class="kw">ADD</span> <span class="str">archive.tar.gz /app/</span>    <span class="cmt"># Auto-extracts tarballs</span>
+<span class="cmt"># ⚠️ ADD with URLs downloads at build time, bypasses cache = avoid</span>
+<span class="cmt"># ✅ Use: RUN curl -L url | tar xz instead</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span class="badge badge-purple">CMD vs ENTRYPOINT</span> Container Startup Explained</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># ENTRYPOINT = fixed executable, CMD = default args</span>
+<span class="kw">ENTRYPOINT</span> [<span class="str">"node"</span>]
+<span class="kw">CMD</span> [<span class="str">"src/index.js"</span>]
+<span class="cmt"># docker run myapp              → node src/index.js</span>
+<span class="cmt"># docker run myapp src/other.js → node src/other.js  (CMD overridden)</span>
+
+<span class="cmt"># ❌ Shell form — process is sh, not your app</span>
+<span class="cmt"># SIGTERM goes to sh, NOT your app → graceful shutdown fails</span>
+<span class="kw">CMD</span> <span class="str">node src/index.js</span>  <span class="cmt"># = /bin/sh -c "node src/index.js"</span>
+
+<span class="cmt"># ✅ Exec form — your app IS PID 1, receives signals</span>
+<span class="kw">CMD</span> [<span class="str">"node"</span>, <span class="str">"src/index.js"</span>]
+
+<span class="cmt"># Use tini for proper init behavior (zombie reaping + signal forwarding)</span>
+<span class="kw">RUN</span> <span class="cmd">apk add --no-cache tini</span>
+<span class="kw">ENTRYPOINT</span> [<span class="str">"/sbin/tini"</span>, <span class="str">"--"</span>]
+<span class="kw">CMD</span> [<span class="str">"node"</span>, <span class="str">"src/index.js"</span>]</pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title"><span class="badge badge-red">ENV, ARG, USER, HEALTHCHECK</span> Config &amp; Metadata</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># ARG — build-time only (NOT in final image)</span>
+<span class="kw">ARG</span> <span class="var">NODE_ENV</span>=<span class="str">production</span>
+<span class="kw">ARG</span> <span class="var">APP_VERSION</span>=<span class="str">1.0.0</span>
+
+<span class="cmt"># ENV — runtime environment variables (persist in image)</span>
+<span class="kw">ENV</span> <span class="var">NODE_ENV</span>=<span class="str">production</span>
+<span class="kw">ENV</span> <span class="var">PORT</span>=<span class="num">3000</span>
+
+<span class="cmt"># ⚠️ NEVER put passwords/tokens in ENV — visible in docker inspect!</span>
+<span class="cmt"># Use Docker Secrets or environment files instead</span>
+
+<span class="cmt"># USER — run as non-root (critical for security)</span>
+<span class="kw">RUN</span> <span class="cmd">addgroup</span> <span class="flag">--system --gid</span> <span class="num">1001</span> <span class="str">nodejs</span> && \
+    <span class="cmd">adduser</span> <span class="flag">--system --uid</span> <span class="num">1001</span> <span class="str">nextjs</span>
+<span class="kw">USER</span> <span class="str">nextjs</span>
+
+<span class="cmt"># HEALTHCHECK — enables docker ps HEALTH column</span>
+<span class="kw">HEALTHCHECK</span> <span class="flag">--interval</span>=<span class="num">30s</span> <span class="flag">--timeout</span>=<span class="num">10s</span> <span class="flag">--start-period</span>=<span class="num">5s</span> <span class="flag">--retries</span>=<span class="num">3</span> \
+  <span class="kw">CMD</span> <span class="cmd">curl -f</span> <span class="str">http://localhost:3000/health</span> || <span class="cmd">exit 1</span>
+
+<span class="cmt"># LABEL — OCI standard metadata</span>
+<span class="kw">LABEL</span> <span class="var">org.opencontainers.image.title</span>=<span class="str">"My App"</span>
+<span class="kw">LABEL</span> <span class="var">org.opencontainers.image.version</span>=<span class="str">"1.0.0"</span>
+<span class="kw">LABEL</span> <span class="var">org.opencontainers.image.source</span>=<span class="str">"https://github.com/org/repo"</span></pre></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- REAL WORLD -->
+<section class="section" id="realworld">
+  <div class="section-header">
+    <div class="section-icon">🏢</div>
+    <div><h2 class="section-title">Real-World &amp; Enterprise Usage</h2><p class="section-desc">How Docker is used in production at scale across industries</p></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="card-icon">🔄</div><div class="card-title">CI/CD Pipeline</div><div class="card-text">Every commit triggers a Docker build in CI (GitHub Actions, GitLab CI, Jenkins). The exact image that passes tests gets pushed to the registry and deployed. Zero "works on my machine" — the artifact is identical everywhere.</div></div>
+    <div class="card"><div class="card-icon">☸️</div><div class="card-title">Kubernetes Foundation</div><div class="card-text">Kubernetes orchestrates Docker containers at scale. containerd (Docker's runtime) is the default K8s CRI. Your Docker images are the deployment unit. Understanding Docker is mandatory for K8s.</div></div>
+    <div class="card"><div class="card-icon">🌐</div><div class="card-title">Microservices</div><div class="card-text">Each service is a separate Docker image. Teams deploy independently. Services communicate via container networks. Compose for local dev, Helm+K8s for production at scale.</div></div>
+    <div class="card"><div class="card-icon">☁️</div><div class="card-title">Serverless Containers</div><div class="card-text">AWS Fargate, GCP Cloud Run, Azure Container Instances run Docker containers without managing VMs. Lambda supports container images up to 10GB. "Serverless" is really containerless-server.</div></div>
+    <div class="card"><div class="card-icon">🔬</div><div class="card-title">Reproducible Research</div><div class="card-text">Data scientists use Docker to freeze entire ML stacks — CUDA version, Python, PyTorch, all pip packages. Share a Dockerfile instead of a 40-step README. Guarantees reproducibility years later.</div></div>
+    <div class="card"><div class="card-icon">🧪</div><div class="card-title">Test Containers</div><div class="card-text">Testcontainers library spins up real Docker containers (postgres, redis, kafka) in unit tests. No mocking, no shared test state, true isolation. Tests run identically on developer laptops and CI servers.</div></div>
+  </div>
+  <h3 style="margin:36px 0 16px;font-size:20px">GitHub Actions CI/CD Pipeline</h3>
+  <div class="code-wrap"><div class="code-label">.github/workflows/docker.yml</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="kw">name:</span> <span class="str">Build and Deploy</span>
+<span class="kw">on:</span>
+  <span class="kw">push:</span>
+    <span class="kw">branches:</span> [<span class="str">main</span>]
+
+<span class="kw">jobs:</span>
+  <span class="kw">build:</span>
+    <span class="kw">runs-on:</span> <span class="str">ubuntu-latest</span>
+    <span class="kw">steps:</span>
+      <span class="str">- uses: actions/checkout@v4</span>
+
+      <span class="str">- name: Set up Docker Buildx</span>
+        <span class="kw">uses:</span> <span class="str">docker/setup-buildx-action@v3</span>
+
+      <span class="str">- name: Login to GHCR</span>
+        <span class="kw">uses:</span> <span class="str">docker/login-action@v3</span>
+        <span class="kw">with:</span>
+          <span class="kw">registry:</span> <span class="str">ghcr.io</span>
+          <span class="kw">username:</span> <span class="str">${{ github.actor }}</span>
+          <span class="kw">password:</span> <span class="str">${{ secrets.GITHUB_TOKEN }}</span>
+
+      <span class="str">- name: Build, scan, and push</span>
+        <span class="kw">uses:</span> <span class="str">docker/build-push-action@v5</span>
+        <span class="kw">with:</span>
+          <span class="kw">context:</span> <span class="str">.</span>
+          <span class="kw">platforms:</span> <span class="str">linux/amd64,linux/arm64</span>
+          <span class="kw">push:</span> <span class="num">true</span>
+          <span class="kw">tags:</span> <span class="str">ghcr.io/${{ github.repository }}:${{ github.sha }}</span>
+          <span class="kw">cache-from:</span> <span class="str">type=gha</span>
+          <span class="kw">cache-to:</span> <span class="str">type=gha,mode=max</span>
+
+      <span class="str">- name: Scan for CVEs</span>
+        <span class="kw">uses:</span> <span class="str">aquasecurity/trivy-action@master</span>
+        <span class="kw">with:</span>
+          <span class="kw">image-ref:</span> <span class="str">ghcr.io/${{ github.repository }}:${{ github.sha }}</span>
+          <span class="kw">exit-code:</span> <span class="str">'1'</span>
+          <span class="kw">severity:</span> <span class="str">CRITICAL</span></pre></div>
+</section>
+<!-- COMMANDS -->
+<section class="section" id="commands">
+  <div class="section-header">
+    <div class="section-icon">⌨️</div>
+    <div><h2 class="section-title">Essential Commands Reference</h2><p class="section-desc">Complete command reference with flags and real-world examples</p></div>
+  </div>
+  <div class="tabs">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'cmd1')">Container</button>
+      <button class="tab-btn" onclick="switchTab(this,'cmd2')">Image</button>
+      <button class="tab-btn" onclick="switchTab(this,'cmd3')">Network</button>
+      <button class="tab-btn" onclick="switchTab(this,'cmd4')">System</button>
+    </div>
+    <div class="tab-pane active" id="cmd1">
+      <div class="code-wrap"><div class="code-label">Container Commands</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Run a container (all common flags)</span>
+<span class="cmd">docker run</span> <span class="flag">-d</span> \           <span class="cmt"># detached mode</span>
+  <span class="flag">--name</span> <span class="str">web</span> \            <span class="cmt"># assign a name</span>
+  <span class="flag">--rm</span> \                   <span class="cmt"># auto-remove when stopped</span>
+  <span class="flag">-p</span> <span class="num">8080:80</span> \             <span class="cmt"># port mapping</span>
+  <span class="flag">-e</span> <span class="var">FOO</span>=<span class="str">bar</span> \             <span class="cmt"># env variable</span>
+  <span class="flag">-v</span> <span class="str">data:/data</span> \          <span class="cmt"># named volume</span>
+  <span class="flag">--network</span> <span class="str">mynet</span> \        <span class="cmt"># network</span>
+  <span class="flag">--restart</span> <span class="str">unless-stopped</span> \ <span class="cmt"># restart policy</span>
+  <span class="flag">--memory</span> <span class="str">512m</span> \          <span class="cmt"># memory limit</span>
+  <span class="flag">--cpus</span> <span class="str">"1"</span> \             <span class="cmt"># cpu limit</span>
+  <span class="str">nginx:alpine</span>
+
+<span class="cmt"># Execute in running container</span>
+<span class="cmd">docker exec</span> <span class="flag">-it</span> <span class="str">web sh</span>         <span class="cmt"># interactive shell</span>
+<span class="cmd">docker exec</span> <span class="flag">-u root</span> <span class="str">web id</span>   <span class="cmt"># run as specific user</span>
+<span class="cmd">docker exec</span> <span class="str">web nginx -t</span>       <span class="cmt"># test nginx config</span>
+
+<span class="cmt"># Inspect</span>
+<span class="cmd">docker inspect</span> <span class="str">web</span>
+<span class="cmd">docker inspect</span> <span class="flag">--format</span> <span class="str">'{{.NetworkSettings.IPAddress}}'</span> <span class="str">web</span>
+<span class="cmd">docker inspect</span> <span class="flag">--format</span> <span class="str">'{{.State.ExitCode}}'</span> <span class="str">web</span>
+
+<span class="cmt"># Logs</span>
+<span class="cmd">docker logs</span> <span class="flag">-f</span> <span class="str">web</span>               <span class="cmt"># follow logs</span>
+<span class="cmd">docker logs</span> <span class="flag">--since</span> <span class="str">5m web</span>      <span class="cmt"># last 5 minutes</span>
+<span class="cmd">docker logs</span> <span class="flag">--tail</span> <span class="num">100</span> <span class="str">web</span>       <span class="cmt"># last 100 lines</span>
+
+<span class="cmt"># Copy files</span>
+<span class="cmd">docker cp</span> <span class="str">web:/etc/nginx/nginx.conf .</span>
+<span class="cmd">docker cp</span> <span class="str">./nginx.conf web:/etc/nginx/nginx.conf</span>
+
+<span class="cmt"># Stats and processes</span>
+<span class="cmd">docker stats</span>                    <span class="cmt"># live CPU/memory/net/disk</span>
+<span class="cmd">docker top</span> <span class="str">web</span>                  <span class="cmt"># processes inside container</span>
+
+<span class="cmt"># List all containers</span>
+<span class="cmd">docker ps</span> <span class="flag">-a</span> <span class="flag">--format</span> <span class="str">"table {{.Names}}\t{{.Status}}\t{{.Ports}}"</span>
+
+<span class="cmt"># Bulk remove stopped containers</span>
+<span class="cmd">docker container prune</span></pre></div>
+    </div>
+    <div class="tab-pane" id="cmd2">
+      <div class="code-wrap"><div class="code-label">Image Commands</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Build</span>
+<span class="cmd">docker build</span> <span class="flag">-t</span> <span class="str">myapp:1.0 .</span>
+<span class="cmd">docker build</span> <span class="flag">--no-cache -t</span> <span class="str">myapp:1.0 .</span>
+<span class="cmd">docker build</span> <span class="flag">--build-arg</span> <span class="var">VERSION</span>=<span class="str">2.0 .</span>
+<span class="cmd">docker buildx build</span> <span class="flag">--platform</span> <span class="str">linux/amd64,linux/arm64</span> <span class="flag">-t</span> <span class="str">myapp .</span>
+
+<span class="cmt"># List</span>
+<span class="cmd">docker images</span>
+<span class="cmd">docker images</span> <span class="flag">--filter</span> <span class="str">dangling=true</span>
+<span class="cmd">docker images</span> <span class="flag">--filter</span> <span class="str">reference=nginx*</span>
+
+<span class="cmt"># Pull/Push/Tag</span>
+<span class="cmd">docker pull</span> <span class="str">nginx:1.25</span>
+<span class="cmd">docker pull</span> <span class="flag">--platform</span> <span class="str">linux/arm64 nginx</span>
+<span class="cmd">docker push</span> <span class="str">myrepo/myapp:1.0</span>
+<span class="cmd">docker tag</span> <span class="str">myapp:1.0 myrepo/myapp:latest</span>
+
+<span class="cmt"># History / inspection</span>
+<span class="cmd">docker history</span> <span class="flag">--no-trunc</span> <span class="str">nginx:latest</span>
+<span class="cmd">docker image inspect</span> <span class="str">nginx:latest</span>
+
+<span class="cmt"># Export/Import (air-gapped)</span>
+<span class="cmd">docker save</span> <span class="str">myapp:v1</span> <span class="flag">| gzip ></span> <span class="str">myapp.tar.gz</span>
+<span class="cmd">docker load</span> <span class="flag">< myapp.tar.gz</span></pre></div>
+    </div>
+    <div class="tab-pane" id="cmd3">
+      <div class="code-wrap"><div class="code-label">Network Commands</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmd">docker network ls</span>
+<span class="cmd">docker network create</span> <span class="flag">--driver bridge</span> <span class="str">mynet</span>
+<span class="cmd">docker network inspect</span> <span class="str">mynet</span>
+<span class="cmd">docker network connect</span> <span class="str">mynet container1</span>
+<span class="cmd">docker network disconnect</span> <span class="str">mynet container1</span>
+<span class="cmd">docker network rm</span> <span class="str">mynet</span>
+<span class="cmd">docker network prune</span>
+
+<span class="cmt"># Create encrypted overlay (Swarm)</span>
+<span class="cmd">docker network create</span> \
+  <span class="flag">--driver overlay</span> \
+  <span class="flag">--opt encrypted</span> \
+  <span class="flag">--attachable</span> \
+  <span class="str">secure-net</span></pre></div>
+    </div>
+    <div class="tab-pane" id="cmd4">
+      <div class="code-wrap"><div class="code-label">System Commands</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Disk usage breakdown</span>
+<span class="cmd">docker system df</span> <span class="flag">-v</span>
+
+<span class="cmt"># Clean everything unused</span>
+<span class="cmd">docker system prune</span>           <span class="cmt"># containers, networks, dangling images</span>
+<span class="cmd">docker system prune</span> <span class="flag">-a</span>       <span class="cmt"># + all unused images</span>
+<span class="cmd">docker system prune</span> <span class="flag">-a --volumes</span>  <span class="cmt"># + volumes (CAREFUL!)</span>
+
+<span class="cmt"># Real-time events</span>
+<span class="cmd">docker events</span>
+<span class="cmd">docker events</span> <span class="flag">--filter</span> <span class="str">type=container</span>
+<span class="cmd">docker events</span> <span class="flag">--filter</span> <span class="str">event=die</span>
+
+<span class="cmt"># Context management (multiple Docker hosts)</span>
+<span class="cmd">docker context ls</span>
+<span class="cmd">docker context create</span> <span class="str">remote</span> <span class="flag">--docker</span> <span class="str">"host=ssh://user@host"</span>
+<span class="cmd">docker context use</span> <span class="str">remote</span>
+
+<span class="cmt"># daemon.json — configure Docker daemon</span>
+<span class="cmt"># /etc/docker/daemon.json example:</span>
+<span class="cmt"># {</span>
+<span class="cmt">#   "log-driver": "json-file",</span>
+<span class="cmt">#   "log-opts": {"max-size": "10m", "max-file": "3"},</span>
+<span class="cmt">#   "default-ulimits": {"nofile": {"soft": 65536, "hard": 65536}},</span>
+<span class="cmt">#   "userland-proxy": false,</span>
+<span class="cmt">#   "storage-driver": "overlay2"</span>
+<span class="cmt"># }</span></pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="section" id="security">
+  <div class="section-header">
+    <div class="section-icon">🔐</div>
+    <div><h2 class="section-title">Docker Security</h2><p class="section-desc">Threats, hardening, scanning, secrets management, and least-privilege principles</p></div>
+  </div>
+  <div class="cards">
+    <div class="card" style="border-color:rgba(248,113,113,0.3)"><div class="card-icon">🚨</div><div class="card-title">Container Escape</div><div class="card-text">Running <code>--privileged</code> or mounting <code>/var/run/docker.sock</code> gives full host access. A malicious process can mount the host filesystem and install rootkits. Never use privileged unless absolutely necessary.</div></div>
+    <div class="card" style="border-color:rgba(251,146,60,0.3)"><div class="card-icon">💣</div><div class="card-title">Supply Chain Attacks</div><div class="card-text">Malicious base images or packages typosquatted on Docker Hub. Always pin to image digests, use official/verified publisher images, and scan all layers for CVEs before deployment.</div></div>
+    <div class="card" style="border-color:rgba(251,191,36,0.3)"><div class="card-icon">🔑</div><div class="card-title">Secret Leakage</div><div class="card-text">Secrets in ENV vars are visible in <code>docker inspect</code> and image history. Use Docker Secrets (Swarm), K8s Secrets with external stores, Vault, or BuildKit <code>--mount=type=secret</code>.</div></div>
+    <div class="card" style="border-color:rgba(52,211,153,0.3)"><div class="card-icon">🛡️</div><div class="card-title">CVEs in Base Images</div><div class="card-text">Stale base images accumulate unpatched vulnerabilities. Use Trivy, Grype, or Docker Scout to scan in CI. Rebuild images on a schedule, not just when code changes.</div></div>
+  </div>
+  <h3 style="margin:36px 0 16px;font-size:20px">Security Hardening</h3>
+  <div class="accordion">
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">✅ Run as Non-Root User</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># In Dockerfile</span>
+<span class="kw">RUN</span> <span class="cmd">addgroup</span> <span class="flag">-S</span> <span class="str">appgroup</span> && <span class="cmd">adduser</span> <span class="flag">-S</span> <span class="str">appuser</span> <span class="flag">-G</span> <span class="str">appgroup</span>
+<span class="kw">USER</span> <span class="str">appuser</span>
+
+<span class="cmt"># Override at runtime</span>
+<span class="cmd">docker run</span> <span class="flag">--user</span> <span class="num">1001:1001</span> <span class="str">myapp</span>
+
+<span class="cmt"># In Compose</span>
+<span class="kw">services:</span>
+  <span class="kw">app:</span>
+    <span class="kw">user:</span> <span class="str">"1001:1001"</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">✅ Drop Capabilities + No New Privileges</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmd">docker run</span> \
+  <span class="flag">--cap-drop ALL</span> \                <span class="cmt"># Drop all Linux capabilities</span>
+  <span class="flag">--cap-add NET_BIND_SERVICE</span> \    <span class="cmt"># Re-add only what's needed</span>
+  <span class="flag">--security-opt no-new-privileges:true</span> \  <span class="cmt"># Block privilege escalation</span>
+  <span class="flag">--security-opt seccomp:profile.json</span> \    <span class="cmt"># Custom syscall filter</span>
+  <span class="str">myapp</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">✅ Read-Only Root Filesystem</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmd">docker run</span> <span class="flag">--read-only</span> \
+  <span class="flag">--tmpfs</span> <span class="str">/tmp:rw,noexec,nosuid,size=100m</span> \
+  <span class="flag">--tmpfs</span> <span class="str">/run:rw,noexec,nosuid</span> \
+  <span class="str">myapp</span>
+
+<span class="cmt"># In Compose</span>
+<span class="kw">services:</span>
+  <span class="kw">app:</span>
+    <span class="kw">read_only:</span> <span class="num">true</span>
+    <span class="kw">tmpfs:</span> [<span class="str">/tmp:rw,noexec,nosuid</span>]</pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">✅ Vulnerability Scanning in CI</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Trivy (comprehensive, recommended)</span>
+<span class="cmd">trivy image</span> <span class="str">nginx:latest</span>
+<span class="cmd">trivy image</span> <span class="flag">--severity HIGH,CRITICAL</span> <span class="str">nginx:latest</span>
+<span class="cmd">trivy image</span> <span class="flag">--exit-code 1 --severity CRITICAL</span> <span class="str">myapp:latest</span>
+
+<span class="cmt"># Docker Scout (built into Docker CLI)</span>
+<span class="cmd">docker scout cves</span> <span class="str">nginx:latest</span>
+<span class="cmd">docker scout recommendations</span> <span class="str">nginx:latest</span>
+
+<span class="cmt"># Grype (Anchore)</span>
+<span class="cmd">grype</span> <span class="flag">--fail-on critical</span> <span class="str">myapp:1.0</span></pre></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PERFORMANCE -->
+<section class="section" id="performance">
+  <div class="section-header">
+    <div class="section-icon">⚡</div>
+    <div><h2 class="section-title">Performance Optimization</h2><p class="section-desc">Build performance, runtime tuning, image size reduction</p></div>
+  </div>
+  <div class="tabs">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'perf1')">BuildKit</button>
+      <button class="tab-btn" onclick="switchTab(this,'perf2')">Runtime Tuning</button>
+      <button class="tab-btn" onclick="switchTab(this,'perf3')">Image Size</button>
+    </div>
+    <div class="tab-pane active" id="perf1">
+      <h3 style="margin-bottom:14px">BuildKit — Parallel Builds &amp; Mount Cache</h3>
+      <div class="code-wrap"><div class="code-label">BuildKit Advanced Features</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># BuildKit is default in Docker 23+. Enable explicitly:</span>
+<span class="var">DOCKER_BUILDKIT</span>=<span class="num">1</span> <span class="cmd">docker build .</span>
+
+<span class="cmt"># Mount cache — persist package manager cache between builds</span>
+<span class="kw">RUN</span> <span class="flag">--mount=type=cache,target=/root/.npm</span> \
+    <span class="cmd">npm ci</span>
+
+<span class="kw">RUN</span> <span class="flag">--mount=type=cache,target=/var/cache/apt,sharing=locked</span> \
+    <span class="flag">--mount=type=cache,target=/var/lib/apt,sharing=locked</span> \
+    <span class="cmd">apt-get update</span> && <span class="cmd">apt-get install</span> <span class="flag">-y</span> <span class="str">curl</span>
+
+<span class="kw">RUN</span> <span class="flag">--mount=type=cache,target=/root/.cache/pip</span> \
+    <span class="cmd">pip install</span> <span class="flag">-r</span> <span class="str">requirements.txt</span>
+
+<span class="cmt"># Secret mount — never stored in image layers</span>
+<span class="kw">RUN</span> <span class="flag">--mount=type=secret,id=npmrc</span> \
+    <span class="cmd">cp /run/secrets/npmrc ~/.npmrc</span> && \
+    <span class="cmd">npm install</span> && \
+    <span class="cmd">rm ~/.npmrc</span>
+
+<span class="cmt"># SSH agent forwarding for private git repos</span>
+<span class="kw">RUN</span> <span class="flag">--mount=type=ssh</span> \
+    <span class="cmd">git clone</span> <span class="str">git@github.com:company/private.git</span>
+
+<span class="cmt"># Build with secrets and SSH</span>
+<span class="cmd">docker buildx build</span> \
+  <span class="flag">--secret</span> <span class="str">id=npmrc,src=.npmrc</span> \
+  <span class="flag">--ssh</span> <span class="str">default</span> \
+  <span class="str">.</span>
+
+<span class="cmt"># Multi-platform build</span>
+<span class="cmd">docker buildx build</span> \
+  <span class="flag">--platform</span> <span class="str">linux/amd64,linux/arm64,linux/arm/v7</span> \
+  <span class="flag">--push</span> \
+  <span class="flag">-t</span> <span class="str">myrepo/myapp:latest</span> \
+  <span class="str">.</span></pre></div>
+    </div>
+    <div class="tab-pane" id="perf2">
+      <h3 style="margin-bottom:14px">Runtime Performance Tuning</h3>
+      <div class="code-wrap"><div class="code-label">Production Runtime Settings</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Always set memory limits to prevent host OOM</span>
+<span class="cmd">docker run</span> <span class="flag">--memory 2g --memory-reservation 1g</span> <span class="str">myapp</span>
+
+<span class="cmt"># CPU guarantee AND limit</span>
+<span class="cmd">docker run</span> <span class="flag">--cpus "2" --cpu-shares 1024</span> <span class="str">myapp</span>
+
+<span class="cmt"># Host networking — eliminates NAT overhead (useful for Redis, Kafka)</span>
+<span class="cmd">docker run</span> <span class="flag">--network host</span> <span class="str">redis</span>
+
+<span class="cmt"># Tune ulimits for high-concurrency apps</span>
+<span class="cmd">docker run</span> \
+  <span class="flag">--ulimit nofile=65536:65536</span> \
+  <span class="flag">--ulimit nproc=65536</span> \
+  <span class="str">nginx</span>
+
+<span class="cmt"># /etc/docker/daemon.json tuning:</span>
+<span class="cmt"># {</span>
+<span class="cmt">#   "userland-proxy": false,        ← faster port mapping via iptables only</span>
+<span class="cmt">#   "storage-driver": "overlay2",  ← best driver for modern kernels</span>
+<span class="cmt">#   "log-driver": "local",          ← more efficient than json-file</span>
+<span class="cmt">#   "max-concurrent-downloads": 10  ← parallel pulls</span>
+<span class="cmt"># }</span></pre></div>
+    </div>
+    <div class="tab-pane" id="perf3">
+      <h3 style="margin-bottom:14px">Minimizing Image Size</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Technique</th><th>Typical Saving</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Alpine base instead of debian</td><td>~700MB</td><td><code>FROM node:18-alpine</code></td></tr>
+            <tr><td>Multi-stage builds</td><td>50–99%</td><td>Build in golang, copy to scratch</td></tr>
+            <tr><td>Distroless base</td><td>~30MB vs Alpine</td><td><code>FROM gcr.io/distroless/...</code></td></tr>
+            <tr><td>Chain RUN + cleanup</td><td>10–100MB</td><td>apt cache not duplicated in layer</td></tr>
+            <tr><td>.dockerignore file</td><td>Variable</td><td>Exclude node_modules, .git, tests</td></tr>
+            <tr><td>Specific COPY paths</td><td>Variable</td><td>COPY src/ not COPY . .</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-wrap" style="margin-top:16px"><div class="code-label">.dockerignore</div><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># .dockerignore — exclude from build context</span>
+<span class="str">node_modules</span>
+<span class="str">npm-debug.log*</span>
+<span class="str">.git</span>
+<span class="str">.gitignore</span>
+<span class="str">README.md</span>
+<span class="str">*.test.js</span>
+<span class="str">__tests__</span>
+<span class="str">.env*</span>
+<span class="str">dist</span>
+<span class="str">coverage</span>
+<span class="str">*.log</span>
+<span class="str">docker-compose*.yml</span>
+<span class="str">Dockerfile*</span>
+<span class="str">.dockerignore</span></pre></div>
+    </div>
+  </div>
+</section>
+<!-- TROUBLESHOOTING -->
+<section class="section" id="troubleshooting">
+  <div class="section-header">
+    <div class="section-icon">🔧</div>
+    <div><h2 class="section-title">Troubleshooting Guide</h2><p class="section-desc">Common issues, diagnostic commands, and step-by-step resolution</p></div>
+  </div>
+  <div class="accordion">
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">🔴 Container exits immediately (Exit code 1 / 137 / 143)</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Step 1: Check exit logs immediately</span>
+<span class="cmd">docker logs</span> <span class="str">&lt;container_id&gt;</span>
+
+<span class="cmt"># Step 2: Check exit code</span>
+<span class="cmd">docker inspect</span> <span class="flag">--format</span> <span class="str">'{{.State.ExitCode}}'</span> <span class="str">&lt;container_id&gt;</span>
+
+<span class="cmt"># Step 3: Override entrypoint to debug interactively</span>
+<span class="cmd">docker run</span> <span class="flag">--entrypoint sh -it</span> <span class="str">myapp</span>
+
+<span class="cmt"># Exit code reference:</span>
+<span class="cmt"># 1   → Application error (check app logs)</span>
+<span class="cmt"># 126 → Command not executable (permission issue)</span>
+<span class="cmt"># 127 → Command not found in PATH</span>
+<span class="cmt"># 137 → SIGKILL — OOM killer or docker kill</span>
+<span class="cmt"># 139 → Segmentation fault</span>
+<span class="cmt"># 143 → SIGTERM — graceful shutdown triggered</span>
+
+<span class="cmt"># Check OOM events</span>
+<span class="cmd">dmesg</span> <span class="flag">| grep</span> <span class="str">-i "oom\|killed process"</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">🔴 Container can't reach another container</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Step 1: Verify both on same network</span>
+<span class="cmd">docker network inspect</span> <span class="str">mynet</span> <span class="flag">--format</span> <span class="str">'{{json .Containers}}'</span>
+
+<span class="cmt"># Step 2: Test DNS resolution inside container</span>
+<span class="cmd">docker exec</span> <span class="str">container_a</span> <span class="cmd">nslookup container_b</span>
+<span class="cmd">docker exec</span> <span class="str">container_a</span> <span class="cmd">ping container_b</span>
+
+<span class="cmt"># Step 3: Test port connectivity</span>
+<span class="cmd">docker exec</span> <span class="str">container_a</span> <span class="cmd">wget -qO-</span> <span class="str">http://container_b:80</span>
+<span class="cmd">docker exec</span> <span class="str">container_a</span> <span class="cmd">nc -zv container_b 5432</span>
+
+<span class="cmt"># Step 4: Verify service is actually listening in container_b</span>
+<span class="cmd">docker exec</span> <span class="str">container_b</span> <span class="cmd">ss -tlnp</span>
+
+<span class="cmt"># Most common cause: default docker0 bridge has NO DNS</span>
+<span class="cmt"># Solution: create a user-defined network</span>
+<span class="cmd">docker network create</span> <span class="str">mynet</span>
+<span class="cmd">docker run</span> <span class="flag">--network mynet --name db</span> <span class="str">postgres</span>
+<span class="cmd">docker run</span> <span class="flag">--network mynet --name api</span> <span class="str">myapp</span>
+<span class="cmt"># Now "api" can reach "db" by hostname "db"</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">🔴 Permission denied on mounted volume</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Symptom: EACCES: permission denied, open '/data/file'</span>
+<span class="cmt"># Cause: Volume created/owned as root, container runs as UID 1001</span>
+
+<span class="cmt"># Debug: Check ownership</span>
+<span class="cmd">docker exec</span> <span class="str">myapp</span> <span class="cmd">ls -la /data</span>
+<span class="cmd">docker exec</span> <span class="str">myapp id</span>
+
+<span class="cmt"># Fix 1: Match UID at runtime</span>
+<span class="cmd">docker run</span> <span class="flag">--user</span> <span class="num">1001:1001</span> <span class="str">myapp</span>
+
+<span class="cmt"># Fix 2: Pre-chown the volume</span>
+<span class="cmd">docker run</span> <span class="flag">--rm -v</span> <span class="str">data:/data</span> <span class="str">alpine</span> <span class="cmd">chown -R 1001:1001 /data</span>
+
+<span class="cmt"># Fix 3: Use entrypoint to fix ownership at startup</span>
+<span class="cmt"># entrypoint.sh:</span>
+<span class="cmt"># #!/bin/sh</span>
+<span class="cmt"># chown -R appuser:appuser /data</span>
+<span class="cmt"># exec gosu appuser "$@"</span>
+
+<span class="cmt"># Fix 4: In Dockerfile — VOLUME after chown preserves ownership</span>
+<span class="kw">RUN</span> <span class="cmd">mkdir -p /data</span> && <span class="cmd">chown appuser:appuser /data</span>
+<span class="kw">VOLUME</span> <span class="str">/data</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">🔴 Build cache not working / slow builds</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Diagnose: use --progress=plain to see CACHED vs RUN</span>
+<span class="cmd">docker build</span> <span class="flag">--progress=plain .</span> <span class="num">2</span>&amp;<span class="num">1</span> <span class="flag">| grep -E</span> <span class="str">'CACHED|RUN'</span>
+
+<span class="cmt"># Common causes of cache invalidation:</span>
+<span class="cmt"># 1. COPY . . too early — any file change busts all layers below</span>
+<span class="cmt"># 2. Missing .dockerignore — volatile files (node_modules, .git) in context</span>
+<span class="cmt"># 3. ARG before FROM with changing value</span>
+<span class="cmt"># 4. apt-get update in its own RUN (always misses cache)</span>
+
+<span class="cmt"># Check build context size (should be small!)</span>
+<span class="cmd">docker build</span> <span class="flag">--no-cache .</span> <span class="num">2</span>&amp;<span class="num">1</span> <span class="flag">| head -3</span>
+<span class="cmt"># "Sending build context to Docker daemon  5.12MB" → too large? check .dockerignore</span>
+
+<span class="cmt"># Use BuildKit cache mount to persist package caches</span>
+<span class="kw">RUN</span> <span class="flag">--mount=type=cache,target=/root/.npm</span> <span class="cmd">npm ci</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">🔴 Out of disk space on Docker host</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Diagnose: what's consuming space?</span>
+<span class="cmd">docker system df</span> <span class="flag">-v</span>
+<span class="cmd">du -sh /var/lib/docker/*</span>
+
+<span class="cmt"># Targeted cleanup</span>
+<span class="cmd">docker image prune</span>         <span class="cmt"># dangling images only</span>
+<span class="cmd">docker container prune</span>     <span class="cmt"># stopped containers</span>
+<span class="cmd">docker volume prune</span>        <span class="cmt"># unused volumes</span>
+<span class="cmd">docker network prune</span>       <span class="cmt"># unused networks</span>
+
+<span class="cmt"># Nuclear option</span>
+<span class="cmd">docker system prune</span> <span class="flag">-a</span>
+
+<span class="cmt"># Automated daily cleanup (add to cron)</span>
+<span class="str">"0 2 * * * /usr/bin/docker system prune -f --filter until=24h"</span>
+
+<span class="cmt"># Move Docker data dir to larger disk</span>
+<span class="cmt"># /etc/docker/daemon.json: { "data-root": "/data/docker" }</span>
+<span class="cmd">systemctl restart docker</span></pre></div>
+      </div></div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)"><div class="acc-title">🔴 Port already in use / bind error</div><div class="acc-arrow">▼</div></div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><span class="cmt"># Error: Bind for 0.0.0.0:8080 failed: port is already allocated</span>
+
+<span class="cmt"># Find what's using the port</span>
+<span class="cmd">ss -tlnp</span> <span class="flag">| grep</span> <span class="num">8080</span>
+<span class="cmd">lsof -i :8080</span>
+
+<span class="cmt"># Find which Docker container has the port</span>
+<span class="cmd">docker ps</span> <span class="flag">--filter</span> <span class="str">publish=8080</span>
+
+<span class="cmt"># Use a different host port</span>
+<span class="cmd">docker run</span> <span class="flag">-p</span> <span class="num">8081:80</span> <span class="str">nginx</span>
+
+<span class="cmt"># Or bind only to localhost</span>
+<span class="cmd">docker run</span> <span class="flag">-p</span> <span class="str">127.0.0.1:8080:80</span> <span class="str">nginx</span></pre></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- INTERVIEW -->
+<section class="section" id="interview">
+  <div class="section-header">
+    <div class="section-icon">🎤</div>
+    <div><h2 class="section-title">Interview Questions</h2><p class="section-desc">Beginner to expert — click any card to reveal the full answer</p></div>
+  </div>
+  <div class="iq-grid">
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-green">Beginner</span></div>
+      <div class="iq-q">What is the difference between a Docker image and a container?</div>
+      <div class="iq-a">An image is a read-only blueprint — like a class in OOP — built from a Dockerfile. It contains the application and all dependencies. A container is a running instance of that image — like an object instantiated from a class. Multiple containers can run from the same image simultaneously. When a container runs, Docker adds a thin writable layer on top of the read-only image layers (using OverlayFS Copy-on-Write).</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-green">Beginner</span></div>
+      <div class="iq-q">What is the difference between CMD and ENTRYPOINT in a Dockerfile?</div>
+      <div class="iq-a">ENTRYPOINT defines the fixed executable that always runs — it requires --entrypoint flag to override. CMD provides default arguments to ENTRYPOINT, or if no ENTRYPOINT, the command itself. CMD is easily overridden by passing arguments to docker run. Best pattern: ENTRYPOINT = your executable, CMD = default args. Always use exec form (JSON array) to ensure your process is PID 1 and receives Unix signals properly for graceful shutdown.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-green">Beginner</span></div>
+      <div class="iq-q">What happens to data inside a container when you remove it?</div>
+      <div class="iq-a">All data written inside a container's writable layer is permanently lost when the container is removed with docker rm. The writable layer exists only for the lifetime of the container. To persist data, you must use: named volumes (-v mydata:/data), bind mounts (-v /host/path:/container/path), or external storage. Running a database like PostgreSQL without a volume means losing all data every time the container restarts or is removed.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-blue">Intermediate</span></div>
+      <div class="iq-q">How do Docker image layers work, and why does instruction order matter?</div>
+      <div class="iq-a">Each Dockerfile instruction (RUN, COPY, ADD) creates a new read-only layer stored as an OverlayFS diff. Layers are identified by a SHA256 content hash. Docker caches each layer — if the instruction and all parent layer hashes match, the cached layer is reused. A cache miss invalidates ALL subsequent layers. Therefore: put rarely-changing instructions first (base image, apt installs), and frequently-changing ones last (application source code). Incorrect ordering can cause 100% rebuilds on every commit instead of just rebuilding the changed layer.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-blue">Intermediate</span></div>
+      <div class="iq-q">What are namespaces and cgroups, and how do they enable containerization?</div>
+      <div class="iq-a">Namespaces provide isolation — each container gets its own view of PID tree, network interfaces, mount points, hostname, and IPC. The container thinks it's alone on the system. cgroups (Control Groups) limit resource consumption: max memory, CPU shares, block I/O, and process count. Together: namespaces = what you see, cgroups = how much you can use. Docker uses 6 namespaces (PID, NET, MNT, UTS, IPC, USER) and cgroups v1/v2 for all resource limits. This is fundamentally different from VMs, which virtualize hardware — containers share the host kernel.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-blue">Intermediate</span></div>
+      <div class="iq-q">Explain Docker networking: what happens when you run -p 8080:80?</div>
+      <div class="iq-a">Docker creates a Linux bridge device. Each container gets a veth pair — one end in the container's network namespace, one attached to the bridge. When you specify -p 8080:80, Docker adds an iptables DNAT rule that redirects TCP packets arriving at any host interface on port 8080 to the container's internal IP address on port 80. Docker also starts a userland proxy for loopback traffic. On user-defined bridge networks, Docker runs an embedded DNS server at 127.0.0.11 that resolves container names to their IPs — enabling service discovery.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-orange">Advanced</span></div>
+      <div class="iq-q">What is a container escape and how do you prevent it?</div>
+      <div class="iq-a">A container escape exploits the shared kernel to break out of namespace isolation and gain host access. Common attack vectors: --privileged flag (full host device access), mounting /var/run/docker.sock (Docker API = root equivalent), kernel CVE exploitation, runc/containerd vulnerabilities, and writable /proc mounts. Prevention: run as non-root USER, drop ALL Linux capabilities and add only what's needed, use --security-opt no-new-privileges, apply custom seccomp profiles, read-only filesystem, never mount docker.sock, use rootless Docker mode, keep kernel patched, scan images for CVEs with Trivy, and use AppArmor/SELinux profiles.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-orange">Advanced</span></div>
+      <div class="iq-q">Explain multi-stage builds and their production benefits</div>
+      <div class="iq-a">Multi-stage builds use multiple FROM statements. Each FROM starts a new stage with its own filesystem. You COPY --from=stagename artifacts between stages. Key benefit: build tools (compilers, test frameworks, devDependencies) stay in builder stages and are never included in the final image. Example: compile a Go binary in golang:1.21 (300MB), copy only the 5MB binary to scratch (0MB base). Or build React in node:18 (900MB), copy /dist to nginx:alpine (25MB). Benefits: smaller attack surface, fewer CVEs, faster pulls/deploys, lower registry storage costs, and clear separation between build and runtime dependencies.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-purple">Expert</span></div>
+      <div class="iq-q">What is containerd and how does it relate to Docker and Kubernetes?</div>
+      <div class="iq-a">containerd is an industry-standard container runtime that manages the complete container lifecycle: image pull/push, storage (snapshotter), networking (CNI), and container execution. Docker Engine is built on containerd — docker run calls dockerd → containerd → runc → Linux kernel. containerd was extracted from Docker and donated to CNCF in 2017. Kubernetes uses containerd directly via the CRI (Container Runtime Interface), bypassing the Docker daemon entirely since K8s 1.24. runc is the low-level OCI runtime that actually creates namespaces and cgroups for each container. Other OCI runtimes: kata-containers (VMs), gVisor (kernel sandbox), runsc.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+    <div class="iq-card">
+      <div class="iq-badge"><span class="badge badge-purple">Expert</span></div>
+      <div class="iq-q">Scenario: a container consuming 100% CPU on production. How do you diagnose it?</div>
+      <div class="iq-a">1. docker stats — identify container, see CPU%, memory, net I/O. 2. docker top container — see processes and their CPU. 3. docker exec -it container sh, then top/htop to find the PID. 4. Get host PID: docker inspect --format '{{.State.Pid}}' container, then strace -p PID or perf top -p PID on the host for deep analysis. 5. Check logs for error patterns causing tight retry loops. 6. Profile the application (Node.js: --inspect, JVM: jstack). 7. Immediately mitigate with --cpus limit to prevent host starvation. 8. Check if it's bursty (acceptable) or sustained (bug). 9. Consider horizontal scaling vs fixing the root cause.</div>
+      <button class="iq-toggle" onclick="toggleIQ(this)">▶ Show Answer</button>
+    </div>
+  </div>
+
+  <h3 style="margin:40px 0 16px;font-size:20px">Quick Knowledge Check</h3>
+  <div class="quiz">
+    <div class="quiz-q" id="q1">
+      <div class="q">Which Linux kernel feature LIMITS resource consumption (CPU, memory) of Docker containers?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this,'q1',false)">Namespaces</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q1',true)">cgroups (Control Groups)</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q1',false)">seccomp</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q1',false)">OverlayFS</div>
+      </div>
+      <div class="quiz-feedback ok" id="fb-q1-ok">✅ Correct! cgroups limit and account for resource usage. Namespaces provide isolation (what you see), seccomp filters syscalls, OverlayFS provides the layered filesystem.</div>
+      <div class="quiz-feedback no" id="fb-q1-no">❌ Not quite. cgroups (Control Groups) is the correct answer. Namespaces provide isolation (what a process sees), not resource limits.</div>
+    </div>
+    <div class="quiz-q" id="q2">
+      <div class="q">What is the Docker embedded DNS server IP address inside a container on a user-defined network?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this,'q2',false)">172.17.0.1</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q2',true)">127.0.0.11</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q2',false)">8.8.8.8</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q2',false)">192.168.0.1</div>
+      </div>
+      <div class="quiz-feedback ok" id="fb-q2-ok">✅ Correct! Docker's embedded DNS server runs at 127.0.0.11 inside containers on user-defined networks. This resolves container names to IPs automatically.</div>
+      <div class="quiz-feedback no" id="fb-q2-no">❌ Incorrect. Docker's embedded DNS is at 127.0.0.11. 172.17.0.1 is typically the docker0 gateway, and 8.8.8.8 is Google's public DNS.</div>
+    </div>
+    <div class="quiz-q" id="q3">
+      <div class="q">What is the safest way to use secrets during a Docker build without leaking them into the image?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this,'q3',false)">Use ARG variable</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q3',false)">Use ENV variable</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q3',true)">BuildKit --mount=type=secret</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q3',false)">COPY the file then delete in RUN</div>
+      </div>
+      <div class="quiz-feedback ok" id="fb-q3-ok">✅ Correct! BuildKit --mount=type=secret mounts the secret at /run/secrets/ during build only — it's never stored in any image layer and won't appear in docker history.</div>
+      <div class="quiz-feedback no" id="fb-q3-no">❌ BuildKit --mount=type=secret is correct. ARG and ENV values appear in docker history. Even deleting a file in a separate RUN doesn't remove it from the layer it was created in.</div>
+    </div>
+    <div class="quiz-q" id="q4">
+      <div class="q">Which storage driver does Docker use by default on modern Linux kernels?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this,'q4',false)">aufs</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q4',false)">devicemapper</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q4',true)">overlay2</div>
+        <div class="quiz-opt" onclick="answerQuiz(this,'q4',false)">btrfs</div>
+      </div>
+      <div class="quiz-feedback ok" id="fb-q4-ok">✅ Correct! overlay2 is the default and recommended storage driver on modern Linux kernels (4.0+). It uses the OverlayFS kernel filesystem for efficient Copy-on-Write layer management.</div>
+      <div class="quiz-feedback no" id="fb-q4-no">❌ overlay2 is the default storage driver. aufs was the original but is deprecated. devicemapper has performance issues. btrfs requires a specific filesystem.</div>
+    </div>
+  </div>
+</section>
+<!-- CHEAT SHEET -->
+<section class="section" id="cheatsheet">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <div><h2 class="section-title">Cheat Sheet</h2><p class="section-desc">Everything you need at a glance — commands, ports, key concepts</p></div>
+  </div>
+  <div class="cheat-grid">
+    <div class="cheat-card">
+      <div class="cheat-card-header">Container Lifecycle</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">docker run -d --name x</span><span class="cheat-desc">Run detached with name</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker start / stop</span><span class="cheat-desc">Start / graceful stop</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker exec -it x sh</span><span class="cheat-desc">Shell into container</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker logs -f x</span><span class="cheat-desc">Follow live logs</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker stats</span><span class="cheat-desc">Live resource metrics</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker rm -f x</span><span class="cheat-desc">Force remove running</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker container prune</span><span class="cheat-desc">Remove all stopped</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Image Management</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">docker build -t name .</span><span class="cheat-desc">Build from Dockerfile</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker images</span><span class="cheat-desc">List local images</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker pull / push</span><span class="cheat-desc">Registry operations</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker history img</span><span class="cheat-desc">Show layers + sizes</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker image prune -a</span><span class="cheat-desc">Remove all unused</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker save | load</span><span class="cheat-desc">Export / import tar</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker tag src dest</span><span class="cheat-desc">Rename / re-tag</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Networking</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">docker network create</span><span class="cheat-desc">Create network</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">-p host:container</span><span class="cheat-desc">Port mapping</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">-p 127.0.0.1:H:C</span><span class="cheat-desc">Localhost only mapping</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">--network host</span><span class="cheat-desc">Share host network</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">--network none</span><span class="cheat-desc">No network</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">127.0.0.11:53</span><span class="cheat-desc">Docker DNS server</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker network inspect</span><span class="cheat-desc">Show IPs / containers</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Volumes &amp; Storage</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">-v name:/path</span><span class="cheat-desc">Named volume</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">-v /host:/container</span><span class="cheat-desc">Bind mount</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">--tmpfs /path</span><span class="cheat-desc">RAM filesystem</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker volume create</span><span class="cheat-desc">Create named volume</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">docker volume prune</span><span class="cheat-desc">Remove unused</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">/var/lib/docker/volumes</span><span class="cheat-desc">Storage location</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Key Ports</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">2375</span><span class="cheat-desc">Docker API (no TLS) ⚠️</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">2376</span><span class="cheat-desc">Docker API (TLS) ✅</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">2377</span><span class="cheat-desc">Swarm management</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">4789/udp</span><span class="cheat-desc">Overlay (VXLAN)</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">7946</span><span class="cheat-desc">Swarm node comms</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">5000</span><span class="cheat-desc">Local registry default</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Dockerfile Instructions</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">FROM</span><span class="cheat-desc">Base image</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">RUN</span><span class="cheat-desc">Execute at build time</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">COPY / ADD</span><span class="cheat-desc">Copy files into image</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">ENV / ARG</span><span class="cheat-desc">Runtime / build vars</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">EXPOSE</span><span class="cheat-desc">Document port (no bind)</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">HEALTHCHECK</span><span class="cheat-desc">Container health probe</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">USER</span><span class="cheat-desc">Run as specific user</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Security Best Practices</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">USER 1001:1001</span><span class="cheat-desc">Never run as root</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">--read-only</span><span class="cheat-desc">Immutable filesystem</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">--cap-drop ALL</span><span class="cheat-desc">Drop all capabilities</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">no-new-privileges</span><span class="cheat-desc">Block escalation</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">trivy image scan</span><span class="cheat-desc">CVE scanning in CI</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">--mount=type=secret</span><span class="cheat-desc">Build-time secrets</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">Never mount docker.sock</span><span class="cheat-desc">Prevent host escape</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Compose Commands</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">compose up -d</span><span class="cheat-desc">Start all services</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">compose up --build</span><span class="cheat-desc">Rebuild and start</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">compose down -v</span><span class="cheat-desc">Stop + remove volumes</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">compose logs -f svc</span><span class="cheat-desc">Follow service logs</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">compose run --rm</span><span class="cheat-desc">One-off command</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">compose scale svc=N</span><span class="cheat-desc">Scale replicas</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">compose ps</span><span class="cheat-desc">Status of all services</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-card-header">Kernel Internals Quick Ref</div>
+      <div class="cheat-card-body">
+        <div class="cheat-row"><span class="cheat-cmd">Namespaces</span><span class="cheat-desc">Process isolation (what)</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">cgroups</span><span class="cheat-desc">Resource limits (how much)</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">overlay2</span><span class="cheat-desc">Layer filesystem driver</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">veth pair</span><span class="cheat-desc">Container ↔ bridge link</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">iptables DNAT</span><span class="cheat-desc">Port mapping mechanism</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">seccomp</span><span class="cheat-desc">Syscall filter</span></div>
+        <div class="cheat-row"><span class="cheat-cmd">runc / containerd</span><span class="cheat-desc">OCI runtime stack</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUMMARY -->
+<section class="section" id="summary">
+  <div class="section-header">
+    <div class="section-icon">🎓</div>
+    <div><h2 class="section-title">Summary &amp; Key Takeaways</h2><p class="section-desc">Everything that matters, distilled into actionable knowledge</p></div>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-item"><h4>🧱 The Foundation</h4><p>Docker uses Linux kernel features: <strong>namespaces</strong> for isolation (PID, NET, MNT, UTS, IPC, USER) and <strong>cgroups</strong> for resource limits. These enable lightweight, millisecond-start containers — not VMs.</p></div>
+    <div class="summary-item"><h4>🗂️ Images Are Layered</h4><p>Images consist of read-only OverlayFS layers, content-addressed by SHA256. Layers are shared across images, cached during builds. Optimize Dockerfile instruction order for maximum cache reuse.</p></div>
+    <div class="summary-item"><h4>📦 Containers Are Ephemeral</h4><p>All data in a container's writable layer is lost on removal. Use named <strong>volumes</strong> for databases, <strong>bind mounts</strong> for dev workflows, and <strong>tmpfs</strong> for sensitive temporary data.</p></div>
+    <div class="summary-item"><h4>🌐 Networking via Bridge + iptables</h4><p>User-defined bridges provide automatic DNS. Port mapping uses iptables DNAT. Overlay networks span multiple hosts via VXLAN. Always use user-defined networks — default docker0 has no DNS.</p></div>
+    <div class="summary-item"><h4>⚡ Optimize for Production</h4><p>Multi-stage builds, .dockerignore, minimal bases (Alpine/distroless), BuildKit cache mounts, non-root users, resource limits, and health checks are non-negotiable for production.</p></div>
+    <div class="summary-item"><h4>🔐 Security Is Not Optional</h4><p>Never run privileged containers. Drop all capabilities, add back only what's needed. Scan images for CVEs in CI. Use BuildKit secrets. Never mount docker.sock. Run as non-root.</p></div>
+    <div class="summary-item"><h4>🎼 Compose for Dev &amp; Simple Deploys</h4><p>Compose is the right tool for multi-container local development. Use healthchecks and depends_on conditions. Isolate frontend/backend with separate networks.</p></div>
+    <div class="summary-item"><h4>🏗️ The Bigger Picture</h4><p>Docker containers are the deployment unit in Kubernetes. containerd (Docker's runtime) is the K8s default. Understanding Docker deeply means understanding the entire cloud-native ecosystem.</p></div>
+  </div>
+  <div class="info-box success" style="margin-top:36px">
+    <div class="ib-icon">🚀</div>
+    <div class="ib-content"><strong>What to Learn Next</strong>Now that you've mastered Docker: explore <strong>Kubernetes</strong> (container orchestration at scale), <strong>Docker Swarm</strong> (simpler native clustering), <strong>BuildKit</strong> advanced pipelines, <strong>Testcontainers</strong> (containers in integration tests), <strong>OCI specifications</strong> (image-spec, runtime-spec), and <strong>Rootless Docker</strong> for enhanced security.</div>
+  </div>
+  <div style="text-align:center;margin-top:48px;padding:36px;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border)">
+    <div style="font-size:48px;margin-bottom:14px">🐳</div>
+    <div style="font-family:var(--font-display);font-size:26px;font-weight:800;margin-bottom:10px">You're now Docker-literate.</div>
+    <div style="color:var(--muted);max-width:520px;margin:0 auto;font-size:15px;line-height:1.7">From container internals to enterprise CI/CD pipelines — you have the knowledge to use Docker with confidence, debug issues systematically, and build production-grade containerized systems.</div>
+  </div>
+</section>
+</main>
+<script>
+// SCROLL PROGRESS
+const progressBar = document.getElementById('progress-bar');
+const btt = document.getElementById('btt');
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+  btt.classList.toggle('show', scrollTop > 400);
+  updateNav();
+});
+btt.addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
+
+// SIDEBAR TOGGLE (mobile)
+const sidebar = document.getElementById('sidebar');
+document.getElementById('sidebarToggle').addEventListener('click', () => sidebar.classList.toggle('open'));
+function closeSidebar() { sidebar.classList.remove('open'); }
+
+// ACTIVE NAV HIGHLIGHT
+function updateNav() {
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+  const scrollY = window.scrollY + 120;
+  sections.forEach(section => {
+    if (section.offsetTop <= scrollY && section.offsetTop + section.offsetHeight > scrollY) {
+      navItems.forEach(n => n.classList.toggle('active', n.getAttribute('href') === '#' + section.id));
+    }
+  });
+}
+
+// NAV SEARCH FILTER
+document.getElementById('navSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// TABS
+function switchTab(btn, paneId) {
+  const nav = btn.closest('.tab-nav');
+  const container = nav.closest('.tabs');
+  nav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  container.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(paneId).classList.add('active');
+}
+
+// ACCORDION
+function toggleAcc(header) {
+  const item = header.closest('.acc-item');
+  const body = item.querySelector('.acc-body');
+  const isOpen = item.classList.contains('open');
+  item.classList.toggle('open', !isOpen);
+  body.style.maxHeight = isOpen ? '0' : body.scrollHeight + 'px';
+}
+
+// COPY CODE
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// INTERVIEW ANSWER TOGGLE
+function toggleIQ(btn) {
+  const ans = btn.closest('.iq-card').querySelector('.iq-a');
+  const shown = ans.classList.toggle('show');
+  btn.textContent = shown ? '▼ Hide Answer' : '▶ Show Answer';
+}
+
+// QUIZ
+function answerQuiz(opt, qId, isCorrect) {
+  const qEl = document.getElementById(qId);
+  if (qEl.dataset.answered) return;
+  qEl.dataset.answered = '1';
+  qEl.querySelectorAll('.quiz-opt').forEach(o => {
+    o.style.pointerEvents = 'none';
+    o.classList.add('disabled');
+  });
+  opt.classList.add(isCorrect ? 'correct' : 'wrong');
+  const fbOk = document.getElementById('fb-' + qId + '-ok');
+  const fbNo = document.getElementById('fb-' + qId + '-no');
+  if (isCorrect) { fbOk.classList.add('show'); }
+  else { fbNo.classList.add('show'); }
+}
+
+// ANIMATED COUNTERS
+function animateCounter(el, target, suffix) {
+  suffix = suffix || '';
+  let current = 0;
+  const step = target / 60;
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = Math.round(current) + suffix;
+    if (current >= target) clearInterval(timer);
+  }, 25);
+}
+
+// INTERSECTION OBSERVER — trigger counters on hero visibility
+const heroObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      animateCounter(document.getElementById('c1'), 14);
+      animateCounter(document.getElementById('c2'), 80, '+');
+      animateCounter(document.getElementById('c3'), 10);
+      heroObs.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+heroObs.observe(document.getElementById('hero'));
+
+// FADE IN CARDS on scroll
+const cardObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.card, .iq-card, .summary-item, .cheat-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(12px)';
+  el.style.transition = 'opacity 0.5s ease, transform 0.4s ease';
+  cardObs.observe(el);
+});
+
+// Init: open the first accordion in each section
+document.querySelectorAll('.acc-item.open .acc-body').forEach(b => {
+  b.style.maxHeight = b.scrollHeight + 'px';
+});
+
+// Init: run nav highlight on load
+updateNav();
+</script>
+</body>
+</html>
