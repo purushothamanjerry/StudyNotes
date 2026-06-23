@@ -1,22 +1,10 @@
 /* =============================================
    DEVDOCS — script.js
-   Premium Developer Learning Hub
-   ─ Manual topic configuration
-   ─ Sidebar rendering
-   ─ Search / filter
-   ─ Content loading via iframe
-   ─ Breadcrumb, keyboard shortcut
-   ─ Progress tracking (localStorage)
-   ─ Recently viewed
-   ─ Learning statistics
+   Dashboard-First Developer Learning Hub
    ============================================= */
 
 /* ============================================================
-   1. MANUAL TOPIC CONFIGURATION
-      ↓ Edit this object to add / remove categories & topics.
-      Each topic has:
-        title  — displayed in sidebar & breadcrumb
-        file   — path relative to index.html (e.g. "java/topic1.html")
+   1. TOPIC CONFIGURATION
    ============================================================ */
 const topics = {
   Java: {
@@ -53,7 +41,6 @@ const topics = {
       { title: "Weekend Review", file: "java/Topic26_Weekend_Review" },
     ],
   },
-
 
   HLD: {
     color: "#a78bfa",
@@ -110,200 +97,230 @@ const topics = {
    ============================================================ */
 let activeLink = null;
 let activeCat = null;
+let sidebarMode = "nav"; // "nav" | "topics"
 
 /* ============================================================
    3. HELPERS
    ============================================================ */
-function resolveFile(filePath) {
-  // If the user omits .html extension, we add it.
-  if (!filePath.includes(".")) return filePath + ".html";
-  return filePath;
+function resolveFile(f) {
+  return f.includes(".") ? f : f + ".html";
 }
 
 function totalTopics() {
-  return Object.values(topics).reduce((sum, cat) => sum + cat.items.length, 0);
+  return Object.values(topics).reduce((s, c) => s + c.items.length, 0);
 }
 
-/* ============================================================
-   3b. LOCAL STORAGE — Progress & Recently Viewed
-   ============================================================ */
-const STORAGE_KEYS = {
-  viewed: 'devdocs_viewed_topics',
-  recent: 'devdocs_recent_topics',
-  streak: 'devdocs_streak',
-  lastVisit: 'devdocs_last_visit',
-  sidebarCollapsed: 'devdocs_sidebar_collapsed',
+/* ── LocalStorage ────────────────────────────── */
+const SK = {
+  viewed: "devdocs_viewed",
+  recent: "devdocs_recent",
+  streak: "devdocs_streak",
+  lastVisit: "devdocs_lastvisit",
 };
 
-function getViewedTopics() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.viewed)) || {};
-  } catch { return {}; }
+function getViewed() {
+  try { return JSON.parse(localStorage.getItem(SK.viewed)) || {}; } catch { return {}; }
 }
-
-function saveViewedTopic(file, title, cat) {
-  const viewed = getViewedTopics();
-  viewed[file] = { title, cat, timestamp: Date.now() };
-  localStorage.setItem(STORAGE_KEYS.viewed, JSON.stringify(viewed));
+function saveViewed(file, title, cat) {
+  const v = getViewed();
+  v[file] = { title, cat, ts: Date.now() };
+  localStorage.setItem(SK.viewed, JSON.stringify(v));
 }
-
-function getRecentTopics() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.recent)) || [];
-  } catch { return []; }
+function getRecent() {
+  try { return JSON.parse(localStorage.getItem(SK.recent)) || []; } catch { return []; }
 }
-
-function saveRecentTopic(file, title, cat) {
-  let recent = getRecentTopics();
-  // Remove duplicate
-  recent = recent.filter(r => r.file !== file);
-  // Add to front
-  recent.unshift({ file, title, cat, timestamp: Date.now() });
-  // Keep last 8
-  recent = recent.slice(0, 8);
-  localStorage.setItem(STORAGE_KEYS.recent, JSON.stringify(recent));
+function saveRecent(file, title, cat) {
+  let r = getRecent().filter(x => x.file !== file);
+  r.unshift({ file, title, cat, ts: Date.now() });
+  localStorage.setItem(SK.recent, JSON.stringify(r.slice(0, 10)));
 }
-
 function updateStreak() {
-  const now = new Date();
-  const today = now.toISOString().split('T')[0];
-  const lastVisit = localStorage.getItem(STORAGE_KEYS.lastVisit);
-  let streak = parseInt(localStorage.getItem(STORAGE_KEYS.streak)) || 0;
-
-  if (lastVisit === today) {
-    // Already visited today, no change
-    return streak;
-  }
-
-  if (lastVisit) {
-    const lastDate = new Date(lastVisit);
-    const diffDays = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
-    if (diffDays === 1) {
-      // Consecutive day
-      streak += 1;
-    } else if (diffDays > 1) {
-      // Streak broken
-      streak = 1;
-    }
-  } else {
-    streak = 1;
-  }
-
-  localStorage.setItem(STORAGE_KEYS.streak, String(streak));
-  localStorage.setItem(STORAGE_KEYS.lastVisit, today);
-  return streak;
+  const today = new Date().toISOString().split("T")[0];
+  const last = localStorage.getItem(SK.lastVisit);
+  let s = parseInt(localStorage.getItem(SK.streak)) || 0;
+  if (last === today) return s;
+  if (last) {
+    const diff = Math.floor((new Date() - new Date(last)) / 864e5);
+    s = diff === 1 ? s + 1 : 1;
+  } else { s = 1; }
+  localStorage.setItem(SK.streak, String(s));
+  localStorage.setItem(SK.lastVisit, today);
+  return s;
 }
-
-function getViewedCountForCategory(catName) {
-  const viewed = getViewedTopics();
-  const catItems = topics[catName]?.items || [];
-  let count = 0;
-  catItems.forEach(item => {
-    const file = resolveFile(item.file);
-    if (viewed[file]) count++;
-  });
-  return count;
+function catViewedCount(cat) {
+  const v = getViewed();
+  return (topics[cat]?.items || []).filter(i => v[resolveFile(i.file)]).length;
 }
+function totalViewed() { return Object.keys(getViewed()).length; }
 
-function getTotalViewedCount() {
-  return Object.keys(getViewedTopics()).length;
-}
-
-function getLastViewedInCategory(catName) {
-  const viewed = getViewedTopics();
-  const catItems = topics[catName]?.items || [];
-  let latest = null;
-  catItems.forEach(item => {
-    const file = resolveFile(item.file);
-    if (viewed[file] && (!latest || viewed[file].timestamp > latest.timestamp)) {
-      latest = { ...viewed[file], file };
-    }
-  });
-  return latest;
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + "m ago";
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + "h ago";
+  const d = Math.floor(h / 24);
+  return d < 7 ? d + "d ago" : Math.floor(d / 7) + "w ago";
 }
 
 /* ============================================================
-   4. BUILD SIDEBAR
+   4. SIDEBAR — NAV MODE (default)
    ============================================================ */
-function buildSidebar() {
+function buildSidebarNav() {
+  sidebarMode = "nav";
   const nav = document.getElementById("sidebarNav");
-  nav.innerHTML = "";
 
-  Object.entries(topics).forEach(([catName, catData], catIdx) => {
-    const group = document.createElement("div");
-    group.className = "category-group";
-    group.dataset.cat = catName;
+  const navItems = [
+    { icon: "🏠", label: "Dashboard", action: () => goHome(), active: !activeCat },
+    { type: "divider" },
+    { type: "label", text: "Learning Paths" },
+  ];
 
-    // Header
-    const header = document.createElement("button");
-    header.className = "category-header";
-    header.setAttribute("aria-expanded", "false");
-    header.innerHTML = `
-      <span class="cat-left">
-        <span class="cat-dot" style="background:${catData.color}22; color:${catData.color};">${catData.icon}</span>
-        <span class="cat-label">${catName}</span>
-      </span>
-      <span class="cat-count">${catData.items.length}</span>
-      <svg class="cat-chevron" viewBox="0 0 16 16" fill="none">
-        <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`;
-
-    header.addEventListener("click", () => toggleCategory(group, header));
-
-    // Topics
-    const list = document.createElement("div");
-    list.className = "topics-list";
-
-    catData.items.forEach((topic, idx) => {
-      const link = document.createElement("button");
-      link.className = "topic-link";
-      link.textContent = topic.title;
-      link.dataset.cat = catName;
-      link.dataset.title = topic.title;
-      link.dataset.file = resolveFile(topic.file);
-      link.style.setProperty("animation-delay", `${idx * 0.03}s`);
-
-      link.addEventListener("click", () => {
-        loadTopic(link, catName, topic.title, resolveFile(topic.file));
-        if (window.innerWidth < 900) closeSidebar();
-      });
-
-      list.appendChild(link);
+  // Add category items
+  Object.entries(topics).forEach(([catName, catData]) => {
+    navItems.push({
+      icon: catData.icon,
+      label: catName,
+      badge: catData.items.length,
+      action: () => openCategory(catName),
+      active: activeCat === catName,
+      color: catData.color,
     });
+  });
 
-    group.appendChild(header);
-    group.appendChild(list);
-    nav.appendChild(group);
+  navItems.push(
+    { type: "divider" },
+    { type: "label", text: "Tools" },
+    { icon: "🕒", label: "Recent Notes", badge: getRecent().length, action: () => goHome() },
+    { icon: "📊", label: "Progress", action: () => goHome() },
+    { icon: "🔥", label: "Study Streak", badge: updateStreak(), action: () => goHome() },
+  );
 
-    // Auto-open first category
-    if (catIdx === 0) toggleCategory(group, header);
+  let html = "";
+  navItems.forEach(item => {
+    if (item.type === "divider") {
+      html += `<div class="nav-divider"></div>`;
+    } else if (item.type === "label") {
+      html += `<div class="nav-section-label">${item.text}</div>`;
+    } else {
+      html += `<button class="nav-item${item.active ? " active" : ""}" data-action="nav">
+        <span class="nav-item-icon">${item.icon}</span>
+        <span class="nav-item-label">${item.label}</span>
+        ${item.badge !== undefined ? `<span class="nav-item-badge">${item.badge}</span>` : ""}
+      </button>`;
+    }
+  });
+
+  nav.innerHTML = html;
+
+  // Attach event listeners
+  const buttons = nav.querySelectorAll(".nav-item");
+  let btnIdx = 0;
+  navItems.forEach(item => {
+    if (item.type) return;
+    const btn = buttons[btnIdx++];
+    if (item.action) btn.addEventListener("click", () => {
+      item.action();
+      if (window.innerWidth < 900) closeSidebar();
+    });
   });
 }
 
-function toggleCategory(group, header) {
-  const isOpen = group.classList.contains("open");
-  group.classList.toggle("open", !isOpen);
-  header.setAttribute("aria-expanded", String(!isOpen));
+/* ============================================================
+   5. SIDEBAR — TOPICS MODE (when category is opened)
+   ============================================================ */
+function buildSidebarTopics(catName) {
+  sidebarMode = "topics";
+  activeCat = catName;
+  const catData = topics[catName];
+  const nav = document.getElementById("sidebarNav");
+
+  // Back button
+  let html = `
+    <button class="sidebar-back-btn" id="sidebarBackBtn">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All Paths
+    </button>
+    <div class="sidebar-cat-header">
+      <div class="sidebar-cat-icon" style="background:${catData.color}15;color:${catData.color}">${catData.icon}</div>
+      <div class="sidebar-cat-info">
+        <div class="sidebar-cat-name">${catName}</div>
+        <div class="sidebar-cat-count">${catData.items.length} topics · ${catViewedCount(catName)} completed</div>
+      </div>
+    </div>
+    <div class="sidebar-topics-list">`;
+
+  catData.items.forEach(topic => {
+    const file = resolveFile(topic.file);
+    html += `<button class="topic-link" data-file="${file}" data-title="${topic.title}" data-cat="${catName}">${topic.title}</button>`;
+  });
+
+  html += `</div>`;
+  nav.innerHTML = html;
+
+  // Back button
+  document.getElementById("sidebarBackBtn").addEventListener("click", () => {
+    activeCat = null;
+    goHome();
+  });
+
+  // Topic links
+  nav.querySelectorAll(".topic-link").forEach(link => {
+    link.addEventListener("click", () => {
+      loadTopic(link, catName, link.dataset.title, link.dataset.file);
+      if (window.innerWidth < 900) closeSidebar();
+    });
+  });
 }
 
 /* ============================================================
-   5. LOAD TOPIC
+   6. OPEN CATEGORY (transition from dashboard to learning mode)
    ============================================================ */
-function loadTopic(linkEl, catName, topicTitle, filePath) {
-  // Deactivate previous
-  if (activeLink) activeLink.classList.remove("active");
-  activeLink = linkEl;
-  linkEl.classList.add("active");
+function openCategory(catName) {
+  const catData = topics[catName];
+  if (!catData) return;
+
   activeCat = catName;
 
-  // Make sure that category is open
-  const group = document.querySelector(`.category-group[data-cat="${CSS.escape(catName)}"]`);
-  if (group && !group.classList.contains("open")) {
-    const header = group.querySelector(".category-header");
-    toggleCategory(group, header);
+  // Build topics sidebar
+  buildSidebarTopics(catName);
+
+  // Load last viewed topic in this category, or the first one
+  const viewed = getViewed();
+  let targetTopic = null;
+  let latestTs = 0;
+
+  catData.items.forEach(item => {
+    const file = resolveFile(item.file);
+    if (viewed[file] && viewed[file].ts > latestTs) {
+      latestTs = viewed[file].ts;
+      targetTopic = { title: item.title, file };
+    }
+  });
+
+  if (!targetTopic) {
+    const first = catData.items[0];
+    targetTopic = { title: first.title, file: resolveFile(first.file) };
   }
 
-  // Hide welcome
+  // Find and activate the link
+  const link = document.querySelector(`.topic-link[data-file="${targetTopic.file}"]`);
+  if (link) {
+    loadTopic(link, catName, targetTopic.title, targetTopic.file);
+  }
+}
+
+/* ============================================================
+   7. LOAD TOPIC
+   ============================================================ */
+function loadTopic(linkEl, catName, topicTitle, filePath) {
+  if (activeLink) activeLink.classList.remove("active");
+  activeLink = linkEl;
+  if (linkEl) linkEl.classList.add("active");
+  activeCat = catName;
+
+  // Hide dashboard
   document.getElementById("welcomeScreen").style.display = "none";
 
   // Show loading
@@ -312,40 +329,30 @@ function loadTopic(linkEl, catName, topicTitle, filePath) {
   loading.classList.add("active");
   frame.classList.remove("active");
 
-  // Update breadcrumb
-  updateBreadcrumb(catName, topicTitle, topics[catName].color);
+  // Breadcrumb
+  updateBreadcrumb(catName, topicTitle, topics[catName]?.color || "#3B82F6");
 
   // Load iframe
-  frame.onload = () => {
-    loading.classList.remove("active");
-    frame.classList.add("active");
-  };
-  frame.onerror = () => {
-    loading.classList.remove("active");
-    frame.classList.add("active");
-  };
+  frame.onload = () => { loading.classList.remove("active"); frame.classList.add("active"); };
+  frame.onerror = () => { loading.classList.remove("active"); frame.classList.add("active"); };
   frame.src = filePath;
 
-  // Track progress
-  saveViewedTopic(filePath, topicTitle, catName);
-  saveRecentTopic(filePath, topicTitle, catName);
+  // Track
+  saveViewed(filePath, topicTitle, catName);
+  saveRecent(filePath, topicTitle, catName);
 
-  // Update URL hash (no page reload)
-  const slug = filePath.replace(/\.html$/, "");
-  history.replaceState(null, "", `#${slug}`);
+  // Hash
+  history.replaceState(null, "", `#${filePath.replace(/\.html$/, "")}`);
 }
 
 /* ============================================================
-   6. BREADCRUMB
+   8. BREADCRUMB
    ============================================================ */
 function updateBreadcrumb(catName, topicTitle, color) {
-  const bc = document.getElementById("breadcrumb");
-  bc.innerHTML = `
+  document.getElementById("breadcrumb").innerHTML = `
     <span class="bc-home" onclick="goHome()">
-      <svg viewBox="0 0 16 16" fill="none">
-        <path d="M2 6.5L8 2l6 4.5V14H10v-3.5H6V14H2V6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-      </svg>
-      Home
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2l6 4.5V14H10v-3.5H6V14H2V6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      Dashboard
     </span>
     <span class="bc-sep">›</span>
     <span class="bc-cat" style="color:${color}">${catName}</span>
@@ -353,6 +360,9 @@ function updateBreadcrumb(catName, topicTitle, color) {
     <span class="bc-topic">${topicTitle}</span>`;
 }
 
+/* ============================================================
+   9. GO HOME (back to dashboard)
+   ============================================================ */
 function goHome() {
   if (activeLink) activeLink.classList.remove("active");
   activeLink = null;
@@ -363,320 +373,183 @@ function goHome() {
   document.getElementById("contentFrame").src = "";
   document.getElementById("welcomeScreen").style.display = "";
 
-  const bc = document.getElementById("breadcrumb");
-  bc.innerHTML = `
+  document.getElementById("breadcrumb").innerHTML = `
     <span class="bc-home">
-      <svg viewBox="0 0 16 16" fill="none">
-        <path d="M2 6.5L8 2l6 4.5V14H10v-3.5H6V14H2V6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-      </svg>
-      Home
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2l6 4.5V14H10v-3.5H6V14H2V6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      Dashboard
     </span>`;
 
   history.replaceState(null, "", window.location.pathname);
 
-  // Refresh dashboard data
+  // Rebuild sidebar to nav mode & refresh dashboard
+  buildSidebarNav();
   refreshDashboard();
 }
 
 /* ============================================================
-   7. WELCOME CARDS (Enhanced with progress)
+   10. DASHBOARD — Learning Path Cards
    ============================================================ */
-function buildWelcomeCards() {
-  const container = document.getElementById("welcomeCards");
-  container.innerHTML = "";
+function buildPathCards() {
+  const grid = document.getElementById("pathsGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
 
-  Object.entries(topics).forEach(([catName, catData], i) => {
-    const viewedCount = getViewedCountForCategory(catName);
-    const totalCount = catData.items.length;
-    const progress = totalCount > 0 ? Math.round((viewedCount / totalCount) * 100) : 0;
-    const lastViewed = getLastViewedInCategory(catName);
+  const cats = Object.entries(topics);
+  document.getElementById("pathsCount").textContent = cats.length + " paths";
+
+  cats.forEach(([catName, catData], i) => {
+    const viewed = catViewedCount(catName);
+    const total = catData.items.length;
+    const pct = total > 0 ? Math.round((viewed / total) * 100) : 0;
 
     const card = document.createElement("div");
-    card.className = "welcome-card";
-    card.style.animationDelay = `${i * 0.06 + 0.1}s`;
-    card.style.setProperty('--card-color', catData.color);
+    card.className = "path-card";
+    card.style.setProperty("--card-color", catData.color);
+    card.style.animationDelay = `${i * 0.05}s`;
+    card.style.animation = "fadeUp .4s ease both";
 
-    let actionText = "Start Learning →";
-    if (lastViewed) {
-      actionText = "Continue →";
-    }
+    const action = viewed > 0 ? "Continue →" : "Start →";
 
     card.innerHTML = `
-      <div class="card-top">
-        <div class="card-icon" style="background:${catData.color}18; color:${catData.color}">
-          ${catData.icon}
-        </div>
-        <div class="card-arrow">→</div>
+      <div class="path-card-top">
+        <div class="path-icon" style="background:${catData.color}12;color:${catData.color}">${catData.icon}</div>
+        <div class="path-arrow">→</div>
       </div>
-      <div class="card-title">${catName}</div>
-      <div class="card-count">${totalCount} topic${totalCount !== 1 ? "s" : ""}</div>
-      <div class="card-progress">
-        <div class="card-progress-fill" style="width:${progress}%; background:${catData.color};" data-progress="${progress}"></div>
-      </div>
-      <div class="card-footer">
-        <span class="card-progress-text">${viewedCount}/${totalCount} viewed</span>
-        <span class="card-action">${actionText}</span>
+      <div class="path-name">${catName}</div>
+      <div class="path-count">${total} topic${total !== 1 ? "s" : ""}</div>
+      <div class="path-progress"><div class="path-progress-fill" style="background:${catData.color};width:${pct}%"></div></div>
+      <div class="path-footer">
+        <span class="path-pct">${viewed}/${total}</span>
+        <span class="path-action">${action}</span>
       </div>`;
 
-    card.addEventListener("click", () => {
-      // If there's a last viewed topic in this category, continue from there
-      // Otherwise open the first topic
-      if (lastViewed) {
-        const allLinks = document.querySelectorAll(".topic-link");
-        for (const link of allLinks) {
-          if (link.dataset.file === lastViewed.file) {
-            loadTopic(link, catName, lastViewed.title, lastViewed.file);
-            return;
-          }
-        }
-      }
-
-      // Fallback: open category in sidebar
-      const group = document.querySelector(`.category-group[data-cat="${CSS.escape(catName)}"]`);
-      if (group) {
-        if (!group.classList.contains("open")) {
-          const header = group.querySelector(".category-header");
-          toggleCategory(group, header);
-        }
-        group.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      if (window.innerWidth < 900) openSidebar();
-    });
-
-    container.appendChild(card);
-  });
-
-  // Animate progress bars after a brief delay
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      document.querySelectorAll('.card-progress-fill').forEach(fill => {
-        fill.style.width = fill.dataset.progress + '%';
-      });
-    }, 200);
+    card.addEventListener("click", () => openCategory(catName));
+    grid.appendChild(card);
   });
 }
 
 /* ============================================================
-   7b. RECENTLY VIEWED
+   11. DASHBOARD — Continue Learning (recently viewed)
    ============================================================ */
-function buildRecentlyViewed() {
-  const container = document.getElementById("recentList");
-  const recent = getRecentTopics();
+function buildContinueSection() {
+  const grid = document.getElementById("continueGrid");
+  if (!grid) return;
+  const recent = getRecent();
 
   if (recent.length === 0) {
-    container.innerHTML = `<div class="empty-recent">No topics viewed yet — start exploring!</div>`;
+    grid.innerHTML = `<div class="empty-state">Start exploring a learning path to see your recent activity.</div>`;
     return;
   }
 
-  container.innerHTML = "";
-  recent.forEach((item, i) => {
-    const catData = topics[item.cat];
-    const color = catData ? catData.color : '#3B82F6';
-    const timeAgo = formatTimeAgo(item.timestamp);
-
+  grid.innerHTML = "";
+  recent.slice(0, 6).forEach((item, i) => {
+    const color = topics[item.cat]?.color || "#3B82F6";
     const el = document.createElement("div");
-    el.className = "recent-item";
-    el.style.animationDelay = `${i * 0.04}s`;
-    el.style.animation = 'fadeUp .3s ease both';
+    el.className = "continue-item";
+    el.style.animation = `fadeUp .3s ease ${i * 0.04}s both`;
     el.innerHTML = `
-      <div class="recent-dot" style="background:${color}"></div>
-      <div class="recent-info">
-        <div class="recent-title">${item.title}</div>
-        <div class="recent-cat">${item.cat}</div>
+      <div class="continue-dot" style="background:${color}"></div>
+      <div class="continue-info">
+        <div class="continue-title">${item.title}</div>
+        <div class="continue-cat">${item.cat}</div>
       </div>
-      <div class="recent-time">${timeAgo}</div>`;
+      <div class="continue-time">${timeAgo(item.ts)}</div>`;
 
     el.addEventListener("click", () => {
-      const file = resolveFile(item.file.replace(/\.html$/, ''));
-      const allLinks = document.querySelectorAll(".topic-link");
-      for (const link of allLinks) {
-        if (link.dataset.file === file) {
-          loadTopic(link, item.cat, item.title, file);
-          return;
-        }
+      const file = resolveFile(item.file.replace(/\.html$/, ""));
+      // Switch sidebar to that category's topics
+      if (topics[item.cat]) {
+        buildSidebarTopics(item.cat);
+        const link = document.querySelector(`.topic-link[data-file="${file}"]`);
+        loadTopic(link, item.cat, item.title, file);
       }
-      // Fallback: direct load
-      loadTopicDirect(item.cat, item.title, file);
     });
-
-    container.appendChild(el);
+    grid.appendChild(el);
   });
-}
-
-function loadTopicDirect(catName, topicTitle, filePath) {
-  // For when we can't find the sidebar link
-  if (activeLink) activeLink.classList.remove("active");
-  activeLink = null;
-  activeCat = catName;
-
-  document.getElementById("welcomeScreen").style.display = "none";
-  const loading = document.getElementById("loadingScreen");
-  const frame = document.getElementById("contentFrame");
-  loading.classList.add("active");
-  frame.classList.remove("active");
-  updateBreadcrumb(catName, topicTitle, topics[catName]?.color || '#3B82F6');
-
-  frame.onload = () => { loading.classList.remove("active"); frame.classList.add("active"); };
-  frame.onerror = () => { loading.classList.remove("active"); frame.classList.add("active"); };
-  frame.src = filePath;
-
-  saveViewedTopic(filePath, topicTitle, catName);
-  saveRecentTopic(filePath, topicTitle, catName);
-
-  const slug = filePath.replace(/\.html$/, "");
-  history.replaceState(null, "", `#${slug}`);
-}
-
-function formatTimeAgo(timestamp) {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return 'just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return `${Math.floor(days / 7)}w ago`;
 }
 
 /* ============================================================
-   7c. LEARNING STATISTICS
+   12. DASHBOARD — Quick Stats
    ============================================================ */
 function buildQuickStats() {
-  const grid = document.getElementById("quickStatsGrid");
+  const grid = document.getElementById("qstatsGrid");
   if (!grid) return;
 
-  const totalViewed = getTotalViewedCount();
-  const total = totalTopics();
-  const completionPct = total > 0 ? Math.round((totalViewed / total) * 100) : 0;
+  const tv = totalViewed(), tt = totalTopics();
+  const pct = tt > 0 ? Math.round((tv / tt) * 100) : 0;
 
-  // Find most studied category
-  let maxCat = '—';
-  let maxCount = 0;
-  Object.entries(topics).forEach(([catName]) => {
-    const count = getViewedCountForCategory(catName);
-    if (count > maxCount) { maxCount = count; maxCat = catName; }
+  let maxCat = "—", maxCnt = 0;
+  Object.keys(topics).forEach(c => {
+    const cnt = catViewedCount(c);
+    if (cnt > maxCnt) { maxCnt = cnt; maxCat = c; }
   });
 
   grid.innerHTML = `
-    <div class="quick-stat">
-      <div class="quick-stat-label">Completion</div>
-      <div class="quick-stat-value">${completionPct}%</div>
-      <div class="quick-stat-sub">${totalViewed} of ${total} topics</div>
+    <div class="qstat">
+      <div class="qstat-label">Completion</div>
+      <div class="qstat-value">${pct}%</div>
+      <div class="qstat-sub">${tv} of ${tt} topics</div>
     </div>
-    <div class="quick-stat">
-      <div class="quick-stat-label">Most Studied</div>
-      <div class="quick-stat-value" style="font-size:1.1rem;">${maxCat}</div>
-      <div class="quick-stat-sub">${maxCount} topics viewed</div>
+    <div class="qstat">
+      <div class="qstat-label">Most Studied</div>
+      <div class="qstat-value" style="font-size:1.05rem">${maxCat}</div>
+      <div class="qstat-sub">${maxCnt} topics</div>
     </div>
-    <div class="quick-stat">
-      <div class="quick-stat-label">Categories</div>
-      <div class="quick-stat-value">${Object.keys(topics).length}</div>
-      <div class="quick-stat-sub">learning paths</div>
+    <div class="qstat">
+      <div class="qstat-label">Learning Paths</div>
+      <div class="qstat-value">${Object.keys(topics).length}</div>
+      <div class="qstat-sub">categories</div>
     </div>
-    <div class="quick-stat">
-      <div class="quick-stat-label">Recent Activity</div>
-      <div class="quick-stat-value">${getRecentTopics().length}</div>
-      <div class="quick-stat-sub">topics this session</div>
+    <div class="qstat">
+      <div class="qstat-label">Recent Sessions</div>
+      <div class="qstat-value">${getRecent().length}</div>
+      <div class="qstat-sub">topics accessed</div>
     </div>`;
 }
 
 /* ============================================================
-   7d. DASHBOARD STATS HEADER
+   13. DASHBOARD — Stats Header
    ============================================================ */
-function updateDashboardStats() {
-  const el = (id) => document.getElementById(id);
-
-  // Total topics
-  const total = totalTopics();
-  const totalEl = el('statTotalTopics');
-  if (totalEl) totalEl.textContent = total;
-
-  // Categories
-  const catEl = el('statCategories');
-  if (catEl) catEl.textContent = Object.keys(topics).length;
-
-  // Viewed
-  const viewedEl = el('statViewed');
-  if (viewedEl) viewedEl.textContent = getTotalViewedCount();
-
-  // Streak
-  const streak = updateStreak();
-  const streakEl = el('statStreak');
-  if (streakEl) streakEl.textContent = streak;
-
-  // Paths badge
-  const pathsBadge = el('pathsBadge');
-  if (pathsBadge) pathsBadge.textContent = `${Object.keys(topics).length} paths`;
+function updateStats() {
+  const el = id => document.getElementById(id);
+  const t = el("statTotal"); if (t) t.textContent = totalTopics();
+  const v = el("statViewed"); if (v) v.textContent = totalViewed();
+  const c = el("statCats"); if (c) c.textContent = Object.keys(topics).length;
+  const s = el("statStreak"); if (s) s.textContent = updateStreak();
 }
 
 function refreshDashboard() {
-  updateDashboardStats();
-  buildWelcomeCards();
-  buildRecentlyViewed();
+  updateStats();
+  buildPathCards();
+  buildContinueSection();
   buildQuickStats();
 }
 
 /* ============================================================
-   8. SEARCH
+   14. SEARCH
    ============================================================ */
 document.getElementById("searchInput").addEventListener("input", function () {
   const q = this.value.toLowerCase().trim();
-  let anyVisible = false;
 
-  const groups = document.querySelectorAll(".category-group");
-  groups.forEach((group) => {
-    const links = group.querySelectorAll(".topic-link");
-    let groupHasMatch = false;
-
-    links.forEach((link) => {
-      const matches = link.dataset.title.toLowerCase().includes(q);
-      link.classList.toggle("hidden", !matches);
-      if (matches) groupHasMatch = true;
+  if (sidebarMode === "topics") {
+    // Filter topics in current category
+    document.querySelectorAll(".topic-link").forEach(link => {
+      link.classList.toggle("hidden", !link.dataset.title.toLowerCase().includes(q));
     });
+    return;
+  }
 
-    // Open groups that have matches; collapse empty ones
-    if (q && groupHasMatch) {
-      group.classList.add("open");
-      group.querySelector(".category-header").setAttribute("aria-expanded", "true");
-    }
-    if (q && !groupHasMatch) {
-      group.classList.remove("open");
-    }
-    if (!q) {
-      // Restore default open state (first only)
-    }
-
-    if (groupHasMatch) anyVisible = true;
+  // In nav mode, filter category nav items
+  document.querySelectorAll(".nav-item").forEach(item => {
+    const label = item.querySelector(".nav-item-label");
+    if (!label) return;
+    const matches = label.textContent.toLowerCase().includes(q);
+    item.classList.toggle("hidden", q && !matches);
   });
-
-  // Remove existing no-results message
-  const existing = document.getElementById("noResults");
-  if (existing) existing.remove();
-
-  if (q && !anyVisible) {
-    const msg = document.createElement("div");
-    msg.className = "no-results";
-    msg.id = "noResults";
-    msg.textContent = `No topics found for "${q}"`;
-    document.getElementById("sidebarNav").appendChild(msg);
-  }
-
-  // Reset: if cleared, re-open first category only
-  if (!q) {
-    groups.forEach((group, i) => {
-      group.querySelectorAll(".topic-link").forEach((l) => l.classList.remove("hidden"));
-      if (i === 0) {
-        group.classList.add("open");
-      } else {
-        // Keep user-toggled state — only close if they weren't manually opened
-      }
-    });
-  }
 });
 
 /* ============================================================
-   9. KEYBOARD SHORTCUT  ⌘K / Ctrl+K
+   15. KEYBOARD SHORTCUT ⌘K / Ctrl+K
    ============================================================ */
 document.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -686,12 +559,15 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.key === "Escape") {
     document.getElementById("searchInput").blur();
+    document.getElementById("searchInput").value = "";
+    // Clear search filters
+    document.querySelectorAll(".topic-link, .nav-item").forEach(el => el.classList.remove("hidden"));
     closeSidebar();
   }
 });
 
 /* ============================================================
-   10. MOBILE SIDEBAR TOGGLE
+   16. MOBILE SIDEBAR TOGGLE
    ============================================================ */
 function openSidebar() {
   document.getElementById("sidebar").classList.add("open");
@@ -703,66 +579,47 @@ function closeSidebar() {
 }
 
 document.getElementById("hamburger").addEventListener("click", () => {
-  const isOpen = document.getElementById("sidebar").classList.contains("open");
-  isOpen ? closeSidebar() : openSidebar();
+  document.getElementById("sidebar").classList.contains("open") ? closeSidebar() : openSidebar();
 });
 document.getElementById("overlay").addEventListener("click", closeSidebar);
 
 /* ============================================================
-   10b. SIDEBAR COLLAPSE (Desktop)
-   ============================================================ */
-function toggleSidebarCollapse() {
-  document.body.classList.toggle('sidebar-collapsed');
-  const collapsed = document.body.classList.contains('sidebar-collapsed');
-  localStorage.setItem(STORAGE_KEYS.sidebarCollapsed, collapsed ? '1' : '0');
-}
-
-function restoreSidebarState() {
-  if (localStorage.getItem(STORAGE_KEYS.sidebarCollapsed) === '1') {
-    document.body.classList.add('sidebar-collapsed');
-  }
-}
-
-/* ============================================================
-   11. TOPIC COUNTER
+   17. TOPIC COUNTER
    ============================================================ */
 function updateCounter() {
-  const total = totalTopics();
-  document.getElementById("topicCounter").textContent = `${total} topic${total !== 1 ? "s" : ""}`;
+  const t = totalTopics();
+  document.getElementById("topicCounter").textContent = `${t} topic${t !== 1 ? "s" : ""}`;
 }
 
 /* ============================================================
-   12. HASH ROUTING (deep links)
+   18. HASH ROUTING (deep links)
    ============================================================ */
 function handleHashRoute() {
   const hash = decodeURIComponent(window.location.hash.slice(1));
   if (!hash) return;
 
-  // Try to find a matching file
   for (const [catName, catData] of Object.entries(topics)) {
     for (const topic of catData.items) {
       const resolved = resolveFile(topic.file);
       const slug = resolved.replace(/\.html$/, "");
       if (slug === hash || resolved === hash) {
-        // Find the link element and click it
-        const allLinks = document.querySelectorAll(".topic-link");
-        for (const link of allLinks) {
-          if (link.dataset.file === resolved) {
-            loadTopic(link, catName, topic.title, resolved);
-            return;
-          }
-        }
+        // Open the category sidebar, then load the topic
+        buildSidebarTopics(catName);
+        setTimeout(() => {
+          const link = document.querySelector(`.topic-link[data-file="${resolved}"]`);
+          if (link) loadTopic(link, catName, topic.title, resolved);
+        }, 50);
+        return;
       }
     }
   }
 }
 
 /* ============================================================
-   13. INIT
+   19. INIT
    ============================================================ */
 function init() {
-  restoreSidebarState();
-  buildSidebar();
+  buildSidebarNav();   // Sidebar starts in nav mode — NO auto-expanded Java
   updateCounter();
   refreshDashboard();
   handleHashRoute();

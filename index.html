@@ -4,14 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DevDocs — Developer Learning Hub</title>
-  <meta name="description" content="A premium developer learning hub for Java, HLD, DevOps, Networking, and OS. Study notes, interview prep, and system design — all in one place." />
+  <meta name="description" content="A premium developer learning hub. Java, System Design, DevOps, Networking, and more — all in one place." />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
 </head>
 <body>
 
-  <!-- Mobile overlay -->
   <div class="overlay" id="overlay"></div>
 
   <!-- ===== TOPBAR ===== -->
@@ -20,22 +19,19 @@
       <span></span><span></span><span></span>
     </button>
     <div class="topbar-brand">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="28" height="28" rx="7" fill="url(#grad1)"/>
-        <path d="M8 9h5l3 5-3 5H8l3-5-3-5z" fill="white" opacity="0.9"/>
-        <path d="M14 9h6v10h-6l3-5-3-5z" fill="white" opacity="0.5"/>
-        <defs>
-          <linearGradient id="grad1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#3B82F6"/>
-            <stop offset="1" stop-color="#8B5CF6"/>
-          </linearGradient>
-        </defs>
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="7" fill="url(#g1)"/>
+        <path d="M8 9h5l3 5-3 5H8l3-5-3-5z" fill="white" opacity=".9"/>
+        <path d="M14 9h6v10h-6l3-5-3-5z" fill="white" opacity=".5"/>
+        <defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#3B82F6"/><stop offset="1" stop-color="#8B5CF6"/>
+        </linearGradient></defs>
       </svg>
       <span class="brand-name">DevDocs</span>
     </div>
     <div class="topbar-search">
       <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M13.5 13.5L18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
+      <input type="text" id="searchInput" placeholder="Search everything…" autocomplete="off" />
       <kbd>⌘K</kbd>
     </div>
     <div class="topbar-actions">
@@ -49,7 +45,7 @@
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
       <nav class="sidebar-nav" id="sidebarNav">
-        <!-- Injected by script.js -->
+        <!-- Injected by script.js: either nav-mode or topics-mode -->
       </nav>
     </aside>
 
@@ -60,103 +56,83 @@
       <div class="breadcrumb" id="breadcrumb">
         <span class="bc-home">
           <svg viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2l6 4.5V14H10v-3.5H6V14H2V6.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-          Home
+          Dashboard
         </span>
       </div>
 
-      <!-- Welcome / Content area -->
+      <!-- Content area -->
       <div class="content-area" id="contentArea">
 
-        <!-- Welcome dashboard screen -->
+        <!-- Dashboard screen -->
         <div class="welcome-screen" id="welcomeScreen">
           <div class="welcome-glow"></div>
 
-          <!-- Hero section -->
-          <div class="welcome-hero">
-            <div class="welcome-inner">
-              <div class="welcome-badge">
-                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#3B82F6;animation:pulse 2s infinite;"></span>
-                Learning Hub
-              </div>
-              <div class="welcome-greeting">
-                <span class="greeting-wave">👋</span>
-              </div>
-              <h1 class="welcome-title">Your Learning<br/><em>Knowledge Base</em></h1>
-              <p class="welcome-subtitle">Browse topics from the sidebar, track your progress, and continue where you left off.</p>
-            </div>
-          </div>
+          <div class="dashboard" id="dashboardContainer">
 
-          <!-- Stats row -->
-          <div class="stats-row" id="statsRow">
-            <div class="stat-card">
-              <div class="stat-icon" style="background:rgba(59,130,246,.1); color:#3B82F6;">📚</div>
-              <div class="stat-info">
-                <div class="stat-value" id="statTotalTopics">0</div>
-                <div class="stat-label">Total Topics</div>
+            <!-- Welcome -->
+            <div class="dash-welcome">
+              <div class="dash-badge">
+                <span class="dash-badge-dot"></span> Learning Hub
               </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon" style="background:rgba(139,92,246,.1); color:#8B5CF6;">📂</div>
-              <div class="stat-info">
-                <div class="stat-value" id="statCategories">0</div>
-                <div class="stat-label">Categories</div>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon" style="background:rgba(16,185,129,.1); color:#10B981;">✅</div>
-              <div class="stat-info">
-                <div class="stat-value" id="statViewed">0</div>
-                <div class="stat-label">Topics Viewed</div>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon" style="background:rgba(245,158,11,.1); color:#F59E0B;">🔥</div>
-              <div class="stat-info">
-                <div class="stat-value" id="statStreak">0</div>
-                <div class="stat-label">Day Streak</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Dashboard content -->
-          <div class="dashboard-content">
-
-            <!-- Learning Paths -->
-            <div class="section-header">
-              <div class="section-title">
-                <span class="section-title-icon">📖</span>
-                Learning Paths
-              </div>
-              <span class="section-badge" id="pathsBadge">0 paths</span>
-            </div>
-            <div class="welcome-cards" id="welcomeCards">
-              <!-- Injected dynamically -->
+              <h1 class="dash-title">Your <em>Knowledge Base</em></h1>
+              <p class="dash-subtitle">Track your progress, continue where you left off, and explore all learning paths.</p>
             </div>
 
-            <!-- Recently Viewed -->
-            <div class="recently-viewed-section" id="recentlyViewedSection">
-              <div class="section-header">
-                <div class="section-title">
-                  <span class="section-title-icon">🕐</span>
-                  Recently Viewed
+            <!-- Stats -->
+            <div class="stats-bar" id="statsBar">
+              <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(59,130,246,.08);color:#3B82F6">📚</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="statTotal">0</div>
+                  <div class="stat-label">Total Topics</div>
                 </div>
               </div>
-              <div class="recent-list" id="recentList">
-                <div class="empty-recent">No topics viewed yet — start exploring!</div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(16,185,129,.08);color:#10B981">✅</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="statViewed">0</div>
+                  <div class="stat-label">Completed</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(139,92,246,.08);color:#8B5CF6">📂</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="statCats">0</div>
+                  <div class="stat-label">Paths</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(245,158,11,.08);color:#F59E0B">🔥</div>
+                <div class="stat-info">
+                  <div class="stat-value" id="statStreak">0</div>
+                  <div class="stat-label">Day Streak</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Learning Paths -->
+            <div class="section-head">
+              <div class="section-title"><span class="section-title-icon">📖</span> Learning Paths</div>
+              <span class="section-count" id="pathsCount">0</span>
+            </div>
+            <div class="paths-grid" id="pathsGrid"></div>
+
+            <!-- Continue Learning -->
+            <div class="continue-section" id="continueSection">
+              <div class="section-head">
+                <div class="section-title"><span class="section-title-icon">🕐</span> Continue Learning</div>
+              </div>
+              <div class="continue-grid" id="continueGrid">
+                <div class="empty-state">Start exploring a learning path to see your recent activity.</div>
               </div>
             </div>
 
             <!-- Quick Stats -->
-            <div class="quick-stats-section" id="quickStatsSection">
-              <div class="section-header">
-                <div class="section-title">
-                  <span class="section-title-icon">📊</span>
-                  Learning Statistics
-                </div>
+            <div class="qstats-section" id="qstatsSection">
+              <div class="section-head">
+                <div class="section-title"><span class="section-title-icon">📊</span> Statistics</div>
               </div>
-              <div class="quick-stats-grid" id="quickStatsGrid">
-                <!-- Injected dynamically -->
-              </div>
+              <div class="qstats-grid" id="qstatsGrid"></div>
             </div>
 
           </div>
@@ -165,7 +141,7 @@
         <!-- Loading -->
         <div class="loading-screen" id="loadingScreen">
           <div class="loader-ring"></div>
-          <span>Loading content…</span>
+          <span>Loading…</span>
         </div>
 
         <!-- iframe viewer -->
