@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevDocs — Learning Documentation</title>
+  <title>DevDocs — Developer Learning Hub</title>
+  <meta name="description" content="A premium developer learning hub for Java, HLD, DevOps, Networking, and OS. Study notes, interview prep, and system design — all in one place." />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -25,8 +26,8 @@
         <path d="M14 9h6v10h-6l3-5-3-5z" fill="white" opacity="0.5"/>
         <defs>
           <linearGradient id="grad1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#6EE7B7"/>
-            <stop offset="1" stop-color="#3B82F6"/>
+            <stop stop-color="#3B82F6"/>
+            <stop offset="1" stop-color="#8B5CF6"/>
           </linearGradient>
         </defs>
       </svg>
@@ -66,16 +67,98 @@
       <!-- Welcome / Content area -->
       <div class="content-area" id="contentArea">
 
-        <!-- Welcome screen -->
+        <!-- Welcome dashboard screen -->
         <div class="welcome-screen" id="welcomeScreen">
           <div class="welcome-glow"></div>
-          <div class="welcome-inner">
-            <div class="welcome-badge">Documentation</div>
-            <h1 class="welcome-title">Your Learning<br/><em>Knowledge Base</em></h1>
-            <p class="welcome-subtitle">Browse topics from the sidebar or use the search bar to find exactly what you're looking for.</p>
+
+          <!-- Hero section -->
+          <div class="welcome-hero">
+            <div class="welcome-inner">
+              <div class="welcome-badge">
+                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#3B82F6;animation:pulse 2s infinite;"></span>
+                Learning Hub
+              </div>
+              <div class="welcome-greeting">
+                <span class="greeting-wave">👋</span>
+              </div>
+              <h1 class="welcome-title">Your Learning<br/><em>Knowledge Base</em></h1>
+              <p class="welcome-subtitle">Browse topics from the sidebar, track your progress, and continue where you left off.</p>
+            </div>
+          </div>
+
+          <!-- Stats row -->
+          <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(59,130,246,.1); color:#3B82F6;">📚</div>
+              <div class="stat-info">
+                <div class="stat-value" id="statTotalTopics">0</div>
+                <div class="stat-label">Total Topics</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(139,92,246,.1); color:#8B5CF6;">📂</div>
+              <div class="stat-info">
+                <div class="stat-value" id="statCategories">0</div>
+                <div class="stat-label">Categories</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(16,185,129,.1); color:#10B981;">✅</div>
+              <div class="stat-info">
+                <div class="stat-value" id="statViewed">0</div>
+                <div class="stat-label">Topics Viewed</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(245,158,11,.1); color:#F59E0B;">🔥</div>
+              <div class="stat-info">
+                <div class="stat-value" id="statStreak">0</div>
+                <div class="stat-label">Day Streak</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard content -->
+          <div class="dashboard-content">
+
+            <!-- Learning Paths -->
+            <div class="section-header">
+              <div class="section-title">
+                <span class="section-title-icon">📖</span>
+                Learning Paths
+              </div>
+              <span class="section-badge" id="pathsBadge">0 paths</span>
+            </div>
             <div class="welcome-cards" id="welcomeCards">
               <!-- Injected dynamically -->
             </div>
+
+            <!-- Recently Viewed -->
+            <div class="recently-viewed-section" id="recentlyViewedSection">
+              <div class="section-header">
+                <div class="section-title">
+                  <span class="section-title-icon">🕐</span>
+                  Recently Viewed
+                </div>
+              </div>
+              <div class="recent-list" id="recentList">
+                <div class="empty-recent">No topics viewed yet — start exploring!</div>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats-section" id="quickStatsSection">
+              <div class="section-header">
+                <div class="section-title">
+                  <span class="section-title-icon">📊</span>
+                  Learning Statistics
+                </div>
+              </div>
+              <div class="quick-stats-grid" id="quickStatsGrid">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
           </div>
         </div>
 
