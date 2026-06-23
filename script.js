@@ -68,6 +68,14 @@ const topics = {
     ],
   },
 
+  Devops: {
+    color: "#ff6b35",
+    icon: "🚀",
+    items: [
+      { title: "Redis Interview Terms", file: "Devops/devops_redis_interview_terms" },
+    ],
+  },
+
   Networking: {
     color: "#4f8ef7",
     icon: "🌐",

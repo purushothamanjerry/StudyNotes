@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOps Interview Terms — Redis Cluster Project | HLD Academy</title>
+  <meta name="description"
+    content="Master 17 DevOps interview terms from your Redis Cluster project. Each term links directly to what you built — with what to say, how to say it, and interview tips.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --bg: #080c14;
+      --bg2: #0d1220;
+      --bg3: #111827;
+      --bg4: #1a2235;
+      --card: #0f1829;
+      --border: #1e2d45;
+      --border2: #243350;
+      --accent: #a78bfa;
+      --accent2: #8b6ff0;
+      --accent3: #00ff88;
+      --accent4: #ff6b35;
+      --accent5: #00d4ff;
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --cat-devops: #a78bfa;
+      --cat-devops-bg: rgba(167, 139, 250, .08);
+      --cat-devops-border: rgba(167, 139, 250, .2);
+      --cat-ansible: #00d4ff;
+      --cat-ansible-bg: rgba(0, 212, 255, .08);
+      --cat-ansible-border: rgba(0, 212, 255, .2);
+      --cat-redis: #ff6b35;
+      --cat-redis-bg: rgba(255, 107, 53, .08);
+      --cat-redis-border: rgba(255, 107, 53, .2);
+      --cat-infra: #00ff88;
+      --cat-infra-bg: rgba(0, 255, 136, .08);
+      --cat-infra-border: rgba(0, 255, 136, .2);
+      --cat-networking: #fbbf24;
+      --cat-networking-bg: rgba(251, 191, 36, .08);
+      --cat-networking-border: rgba(251, 191, 36, .2);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      z-index: 100;
+      background: linear-gradient(90deg, var(--accent), var(--accent5), var(--accent3));
+      transition: width .15s;
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 12px rgba(167, 139, 250, .5);
+    }
+
+    /* ── FLOATING ORBS ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+      opacity: .4;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: rgba(167, 139, 250, .12);
+      top: -80px;
+      right: -100px;
+      animation: float1 20s ease-in-out infinite;
+    }
+
+    .orb-2 {
+      width: 350px;
+      height: 350px;
+      background: rgba(0, 212, 255, .08);
+      bottom: 10%;
+      left: -120px;
+      animation: float2 25s ease-in-out infinite;
+    }
+
+    .orb-3 {
+      width: 300px;
+      height: 300px;
+      background: rgba(255, 107, 53, .06);
+      top: 50%;
+      right: 20%;
+      animation: float3 18s ease-in-out infinite;
+    }
+
+    @keyframes float1 {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(-30px, 40px);
+      }
+    }
+
+    @keyframes float2 {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(40px, -30px);
+      }
+    }
+
+    @keyframes float3 {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(-20px, -40px);
+      }
+    }
+
+    /* ── CONTAINER ── */
+    .page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 72px 0 56px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(167, 139, 250, .08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40%;
+      left: 10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(0, 212, 255, .05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .breadcrumb {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .breadcrumb span {
+      color: var(--accent);
+    }
+
+    .breadcrumb a {
+      color: var(--text3);
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--text);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(167, 139, 250, .08);
+      border: 1px solid rgba(167, 139, 250, .2);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent5) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      color: var(--text2);
+      max-width: 700px;
+      margin-bottom: 32px;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-ring {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border: 2px solid;
+      position: relative;
+    }
+
+    .stat-ring::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      border-top-color: inherit;
+      opacity: .3;
+      animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 20px 0 8px;
+      border-top: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+      max-width: 400px;
+      position: relative;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text3);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px 10px 40px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text3);
+    }
+
+    .search-box input:focus {
+      border-color: rgba(167, 139, 250, .4);
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, .08);
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .view-btn {
+      width: 36px;
+      height: 32px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all .2s;
+    }
+
+    .view-btn.active {
+      background: rgba(167, 139, 250, .12);
+      color: var(--accent);
+    }
+
+    .view-btn:hover:not(.active) {
+      color: var(--text);
+    }
+
+    /* ── CATEGORY PILLS ── */
+    .tag-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 0 20px;
+    }
+
+    .pill {
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text2);
+      transition: all .25s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .pill:hover {
+      border-color: var(--border2);
+      color: var(--text);
+      background: var(--bg3);
+    }
+
+    .pill.active {
+      background: rgba(167, 139, 250, .1);
+      border-color: rgba(167, 139, 250, .35);
+      color: var(--accent);
+      box-shadow: 0 0 16px rgba(167, 139, 250, .1);
+    }
+
+    .pill .count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, .06);
+      padding: 1px 7px;
+      border-radius: 99px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .pill.active .count {
+      background: rgba(167, 139, 250, .15);
+    }
+
+    /* ── COUNT + SORT BAR ── */
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0 16px;
+      font-size: 14px;
+      color: var(--text3);
+    }
+
+    .results-bar .count-text span {
+      font-weight: 600;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+    }
+
+    .expand-all-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 6px 14px;
+      background: rgba(167, 139, 250, .06);
+      border: 1px solid rgba(167, 139, 250, .15);
+      color: var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .expand-all-btn:hover {
+      background: rgba(167, 139, 250, .12);
+    }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+      padding-bottom: 80px;
+    }
+
+    .grid.list-view {
+      grid-template-columns: 1fr;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--accent));
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .card:hover {
+      border-color: var(--border2);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card.open {
+      border-color: var(--card-accent, var(--accent));
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .3), 0 0 0 1px var(--card-accent, rgba(167, 139, 250, .15));
+    }
+
+    .card.open::before {
+      opacity: 1;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px 22px;
+    }
+
+    .card-icon-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+      position: relative;
+    }
+
+    .card-icon-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      background: inherit;
+      opacity: .4;
+      filter: blur(8px);
+      z-index: -1;
+    }
+
+    .card-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-term {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .card-cat {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .chevron {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text3);
+      background: var(--bg3);
+      flex-shrink: 0;
+      margin-top: 4px;
+      transition: all .3s;
+    }
+
+    .card.open .chevron {
+      transform: rotate(180deg);
+      background: rgba(167, 139, 250, .12);
+      color: var(--accent);
+    }
+
+    .card:hover .chevron {
+      background: var(--bg4);
+      color: var(--text2);
+    }
+
+    /* ── CARD BODY ── */
+    .card-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .4s cubic-bezier(.4, 0, .2, 1), padding .3s;
+      padding: 0 22px;
+      border-top: 1px solid transparent;
+    }
+
+    .card.open .card-body {
+      max-height: 800px;
+      padding: 0 22px 22px;
+      border-top-color: var(--border);
+    }
+
+    .card-body-inner {
+      padding-top: 18px;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 12px;
+      height: 1px;
+    }
+
+    .section-label.def {
+      color: var(--accent);
+    }
+
+    .section-label.def::before {
+      background: var(--accent);
+    }
+
+    .section-label.how {
+      color: var(--accent3);
+    }
+
+    .section-label.how::before {
+      background: var(--accent3);
+    }
+
+    .section-label.say {
+      color: var(--accent4);
+    }
+
+    .section-label.say::before {
+      background: var(--accent4);
+    }
+
+    .section-label.tip {
+      color: var(--warn);
+    }
+
+    .section-label.tip::before {
+      background: var(--warn);
+    }
+
+    .def-text {
+      font-size: 13.5px;
+      color: var(--text2);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .quote-box {
+      background: rgba(255, 107, 53, .04);
+      border-left: 3px solid var(--accent4);
+      border-radius: 0 10px 10px 0;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+
+    .quote-box p {
+      font-size: 13.5px;
+      color: var(--text);
+      line-height: 1.65;
+      font-style: italic;
+      margin: 0;
+    }
+
+    .tip-box {
+      background: rgba(251, 191, 36, .05);
+      border: 1px solid rgba(251, 191, 36, .15);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .tip-box::before {
+      content: '💡';
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .tip-box p {
+      font-size: 12.5px;
+      color: var(--warn);
+      line-height: 1.55;
+      margin: 0;
+      opacity: .9;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      grid-column: 1 / -1;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: .3;
+    }
+
+    .empty-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .empty-desc {
+      font-size: 14px;
+      color: var(--text3);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border);
+      margin-top: 0;
+      font-size: 13px;
+      color: var(--text3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .page-container {
+        padding: 0 20px;
+      }
+
+      .hero {
+        padding: 48px 0 36px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .hero-desc {
+        font-size: 15px;
+      }
+
+      .hero-stats {
+        gap: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-box {
+        max-width: none;
+      }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 3px;
+    }
+
+    /* ── STAGGER ANIMATION ── */
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card {
+      animation: cardIn .4s ease both;
+    }
+
+    /* ── KEYBOARD FOCUS ── */
+    .card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .pill:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="page-container">
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="breadcrumb">
+        <a href="#">HLD Academy</a> <span>›</span>
+        <a href="#">DevOps & Observability</a> <span>›</span>
+        Interview Terms
+      </div>
+      <div class="hero-tag">🎯 Interview Prep</div>
+      <h1>DevOps Interview Terms<br>from Your <em>Redis Project</em></h1>
+      <p class="hero-desc">Each term links directly to what you built. Click any card to see the definition, how you
+        used it in your Redis Cluster project, exactly what to say in an interview, and a pro tip.</p>
+
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-ring" style="border-color: var(--accent); color: var(--accent);">17</div>
+          <div>
+            <div class="stat-value">17</div>
+            <div class="stat-label">Total Terms</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-ring" style="border-color: var(--accent5); color: var(--accent5);">5</div>
+          <div>
+            <div class="stat-value">5</div>
+            <div class="stat-label">Categories</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-ring" style="border-color: var(--accent3); color: var(--accent3);">✓</div>
+          <div>
+            <div class="stat-value">Ready</div>
+            <div class="stat-label">Interview-Ready Scripts</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="ti ti-search"></i>
+        <input type="text" id="searchInput" placeholder="Search terms, categories, definitions…" autocomplete="off">
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="grid" title="Grid view" aria-label="Grid view"><i
+            class="ti ti-layout-grid"></i></button>
+        <button class="view-btn" data-view="list" title="List view" aria-label="List view"><i
+            class="ti ti-list"></i></button>
+      </div>
+    </div>
+
+    <!-- CATEGORY PILLS -->
+    <div class="tag-bar" id="tags"></div>
+
+    <!-- RESULTS BAR -->
+    <div class="results-bar">
+      <div class="count-text">Showing <span id="count">17</span> terms</div>
+      <button class="expand-all-btn" id="expandAllBtn" onclick="toggleExpandAll()">Expand All</button>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid" id="grid"></div>
+
+    <footer class="footer">
+      // HLD Academy — DevOps Interview Terms — Redis Cluster Project
+    </footer>
+  </div>
+
+  <script>
+    const terms = [
+      {
+        term: "Zero-downtime rolling upgrade",
+        cat: "DevOps Practice",
+        icon: "ti-refresh",
+        def: "Upgrading software nodes one at a time so the service stays available throughout. At no point do all nodes go down simultaneously.",
+        how: "You upgraded replicas first (one at a time), then triggered a controlled CLUSTER FAILOVER before upgrading each master. The cluster stayed in ok state between every step.",
+        say: "In the rolling upgrade strategy I implemented, I always upgraded replicas before masters. Before touching any master, I triggered a CLUSTER FAILOVER so its replica promoted and took over—then I upgraded the old master with zero slot coverage gap.",
+        tip: "Never say 'we just restarted the server'. Mention the failover sequence and the verification step after each node."
+      },
+      {
+        term: "Infrastructure as Code (IaC)",
+        cat: "DevOps Practice",
+        icon: "ti-code",
+        def: "Managing infrastructure through machine-readable config files rather than manual commands. Changes are versioned, repeatable, and auditable.",
+        how: "Your entire Redis cluster—6 nodes, cluster formation, config—is defined in Ansible playbooks and a compose file. Anyone can re-run it and get the same result.",
+        say: "The entire cluster lifecycle—provisioning, upgrade, teardown—is codified in Ansible playbooks. There's no manual SSH or redis-cli during operations; the tool orchestrates everything declaratively.",
+        tip: "Emphasize reproducibility and version control of the playbooks."
+      },
+      {
+        term: "Idempotency",
+        cat: "Ansible",
+        icon: "ti-repeat",
+        def: "An operation that produces the same result whether run once or ten times. Running it again on an already-configured system causes no unintended changes.",
+        how: "Your Ansible tasks use modules like apt, template, and service which are idempotent by design. Re-running provision on an already-provisioned cluster is a no-op.",
+        say: "I designed the playbooks to be idempotent—using Ansible's built-in modules so re-running provision doesn't break a live cluster. This was important because an accidental re-run in production should be safe.",
+        tip: "Interviewers love this word. It signals you think about real-world ops, not just happy-path scripts."
+      },
+      {
+        term: "Ansible inventory & roles",
+        cat: "Ansible",
+        icon: "ti-server",
+        def: "Inventory defines which hosts Ansible manages. Roles are reusable, structured collections of tasks, handlers, templates, and defaults.",
+        how: "You defined 6 nodes in hosts.ini with static IPs. Your redis role contains tasks/, handlers/, templates/, and defaults/—the standard Ansible role structure.",
+        say: "I structured the automation as an Ansible role rather than flat playbooks. This separates concerns—defaults hold tunable variables, templates render the Redis config per node, and handlers restart the service only when config actually changes.",
+        tip: "Mention handlers specifically—they show you understand idempotent service restarts."
+      },
+      {
+        term: "Ansible handlers",
+        cat: "Ansible",
+        icon: "ti-bolt",
+        def: "Tasks that run only when notified by another task—typically to restart a service after a config change. They run once at the end of a play, not on every execution.",
+        how: "When your template task changes redis.conf, it notifies a handler to restart the Redis service. If the config didn't change, the handler never fires—no unnecessary restarts.",
+        say: "I used Ansible handlers for service restarts—they only fire when a config template actually changes. This prevents needless Redis restarts during re-runs, which matters in a live cluster.",
+        tip: "This shows you understand the difference between tasks and event-driven side effects."
+      },
+      {
+        term: "Redis Cluster & hash slots",
+        cat: "Redis",
+        icon: "ti-topology-ring",
+        def: "Redis Cluster splits the keyspace into 16,384 hash slots distributed across masters. Each key maps to a slot via CRC16; the cluster routes commands to the right node automatically.",
+        how: "Your 3 masters each own a range: 0–5460, 5461–10922, 10923–16383. When you seeded 1000 keys, they distributed across masters based on slot ownership.",
+        say: "The cluster uses consistent hashing over 16,384 slots. During the upgrade, I had to ensure no master went down without its slots being covered by a promoted replica—otherwise the cluster would enter a fail state.",
+        tip: "Mention slot coverage during the upgrade. It shows you understand what 'zero downtime' actually requires."
+      },
+      {
+        term: "CLUSTER FAILOVER",
+        cat: "Redis",
+        icon: "ti-switch-horizontal",
+        def: "A Redis command that triggers a controlled leader election—the replica explicitly asks to become master before the old master is taken down. Unlike automatic failover, it's synchronous and predictable.",
+        how: "Before upgrading each master, you ran CLUSTER FAILOVER on its replica. This promoted the replica to master cleanly, so the slots stayed covered while you upgraded the old master node.",
+        say: "I triggered CLUSTER FAILOVER manually before touching each master—this is the controlled path, not the emergency automatic failover. It guarantees the replica is fully synced before promotion, minimizing risk.",
+        tip: "Distinguish controlled failover from emergency failover. Interviewers appreciate this nuance."
+      },
+      {
+        term: "Replication lag & sync",
+        cat: "Redis",
+        icon: "ti-activity",
+        def: "The delay between a write on the master and its acknowledgment on the replica. During upgrade, you must wait for master_link_status:up before proceeding.",
+        how: "After restarting a replica with the new version, your playbook waits for it to rejoin and complete replication sync before moving to the next node.",
+        say: "After each node upgrade I used a wait_for loop in Ansible to poll the replica's INFO replication output until master_link_status showed up. Moving to the next node before sync completes risks data loss during a failover.",
+        tip: "This shows you thought about failure modes, not just the happy path."
+      },
+      {
+        term: "Data integrity verification",
+        cat: "DevOps Practice",
+        icon: "ti-shield-check",
+        def: "Proving that data was not corrupted or lost across an operation by comparing checksums or values before and after.",
+        how: "You seeded 1000 keys with deterministic values (SHA256 of the key name), then re-ran data verify after the upgrade to confirm all 1000 keys matched expected values.",
+        say: "Before and after the upgrade, I ran a deterministic verification: 1000 keys whose expected values are derived from their key name via SHA256. Post-upgrade, I recomputed and compared all 1000—PASS means the upgrade introduced zero data loss.",
+        tip: "Mention the pre- and post-upgrade baseline. It shows you treat verification as part of the deployment, not an afterthought."
+      },
+      {
+        term: "Pre-flight checks",
+        cat: "DevOps Practice",
+        icon: "ti-checklist",
+        def: "Validations run before a critical operation to confirm the system is in a known-good state. Catch problems before you start, not halfway through.",
+        how: "Your upgrade command checks cluster_state:ok, all nodes reachable, and current version ≠ target version before touching a single node.",
+        say: "The upgrade starts with pre-flight checks—cluster health, node reachability, and version mismatch validation. Failing any check aborts the operation before a single node is changed. This is standard practice for zero-downtime deployments.",
+        tip: "Emphasize that you abort on failure, not silently continue. That's the responsible default."
+      },
+      {
+        term: "SSH key-based authentication",
+        cat: "Infrastructure",
+        icon: "ti-key",
+        def: "Authenticating to remote machines using asymmetric key pairs instead of passwords. The public key lives on the server; the private key stays on the control node.",
+        how: "Your Docker containers run an SSH daemon, and your host machine (Ansible control node) authenticates to all 6 nodes using a shared key pair—no passwords anywhere in the automation.",
+        say: "The 6 containers expose SSH, and Ansible authenticates with key-based auth. There are no passwords in the playbooks or inventory—credentials are managed via key pairs, which is the standard for automated config management.",
+        tip: "Always link auth to security and automation requirements, not just convenience."
+      },
+      {
+        term: "Container networking & static IPs",
+        cat: "Networking",
+        icon: "ti-network",
+        def: "A user-defined Docker/Podman network with a fixed subnet, giving containers predictable, stable IP addresses instead of dynamic ones.",
+        how: "Your compose file uses a static subnet (10.10.0.0/24), assigning fixed IPs (10.10.0.11–16) so the Ansible inventory never needs to change between container restarts.",
+        say: "I used a static container subnet so the Ansible inventory has stable IPs. Dynamic IPs would break the cluster's node configuration, since Redis Cluster embeds node IPs in its cluster config file.",
+        tip: "Mentioning that Redis embeds node IPs in the config shows deep understanding of why this matters."
+      },
+      {
+        term: "CLI tool as orchestration layer",
+        cat: "DevOps Practice",
+        icon: "ti-terminal",
+        def: "A purpose-built command-line interface that wraps lower-level tools (like Ansible) behind a consistent, user-friendly interface—hiding complexity without losing control.",
+        how: "redis-tool is the single entrypoint. The user runs one command; the tool handles prerequisite checks, delegates to the right Ansible playbook, and surfaces the result.",
+        say: "I built redis-tool as a thin orchestration layer over Ansible. The operator doesn't need to know which playbook to run or in what order—the CLI enforces the right sequence, does pre-flight checks, and provides consistent output regardless of the underlying runtime.",
+        tip: "This is the separation of concerns principle applied to ops tooling. Say it that way."
+      },
+      {
+        term: "Jinja2 templating in Ansible",
+        cat: "Ansible",
+        icon: "ti-template",
+        def: "Ansible's built-in templating engine for generating config files dynamically. Variables from inventory, group_vars, or role defaults are injected at playbook runtime.",
+        how: "Your redis.conf is a Jinja2 template. Variables like bind address, port, and cluster-node-timeout are injected per node from defaults/ or inventory vars—no hardcoded configs.",
+        say: "Redis configuration is rendered from a Jinja2 template at provision time. Node-specific values like the bind IP come from inventory variables, so the same template works for all 6 nodes without duplication.",
+        tip: "Mention that templates make the role reusable across environments—dev, staging, production."
+      },
+      {
+        term: "wait_for module & polling",
+        cat: "Ansible",
+        icon: "ti-clock",
+        def: "Ansible's wait_for module blocks playbook execution until a condition is true—a port is open, a file exists, or a string appears in a file—with configurable timeout and interval.",
+        how: "After starting Redis on each node, your playbook uses wait_for to poll port 6379 until it's listening before proceeding to cluster formation or verification.",
+        say: "Between every node operation I used Ansible's wait_for module to poll the Redis port and cluster state before moving on. Blind sleeps are fragile—polling with a timeout is deterministic and surfaces failures immediately.",
+        tip: "Comparing polling to blind sleep() shows operational maturity."
+      },
+      {
+        term: "Prerequisite validation & graceful exit",
+        cat: "DevOps Practice",
+        icon: "ti-alert-circle",
+        def: "Checking for required dependencies at startup and exiting with a clear, actionable error message if they're missing—rather than failing cryptically mid-execution.",
+        how: "redis-tool checks for Docker/Podman and Ansible before running any command. If missing, it prints exactly what to install and exits with a non-zero code.",
+        say: "The tool always runs a dependency check first. If Ansible or the container runtime is missing, it exits immediately with installation instructions rather than failing halfway through a playbook. This is important for runbooks that get handed off to other engineers.",
+        tip: "Frame it as an ops handoff concern—tools should be usable by someone who didn't write them."
+      },
+      {
+        term: "Cluster state machine (ok / fail)",
+        cat: "Redis",
+        icon: "ti-chart-dots",
+        def: "Redis Cluster transitions between states based on slot coverage and node availability. A cluster enters fail state when any hash slot range has no available master—blocking all writes.",
+        how: "After every node operation in your upgrade, you checked cluster_state before proceeding. If it wasn't ok, the upgrade halted immediately rather than cascading into a fail state.",
+        say: "I treat cluster_state:ok as a gate between every upgrade step. If the cluster enters a degraded state after a node operation, the tool stops and reports which node caused it—rather than continuing and making recovery harder.",
+        tip: "The phrase 'gate between steps' signals production-grade thinking."
+      }
+    ];
+
+    // Category config
+    const catConfig = {
+      'DevOps Practice': { color: 'var(--cat-devops)', bg: 'var(--cat-devops-bg)', border: 'var(--cat-devops-border)', icon: '⚙️' },
+      'Ansible': { color: 'var(--cat-ansible)', bg: 'var(--cat-ansible-bg)', border: 'var(--cat-ansible-border)', icon: '🔧' },
+      'Redis': { color: 'var(--cat-redis)', bg: 'var(--cat-redis-bg)', border: 'var(--cat-redis-border)', icon: '⚡' },
+      'Infrastructure': { color: 'var(--cat-infra)', bg: 'var(--cat-infra-bg)', border: 'var(--cat-infra-border)', icon: '🏗️' },
+      'Networking': { color: 'var(--cat-networking)', bg: 'var(--cat-networking-bg)', border: 'var(--cat-networking-border)', icon: '🌐' }
+    };
+
+    const grid = document.getElementById('grid');
+    const countEl = document.getElementById('count');
+    const searchInput = document.getElementById('searchInput');
+    const tagsContainer = document.getElementById('tags');
+    let currentCat = 'all';
+    let allExpanded = false;
+
+    // Build pills
+    function buildPills() {
+      const cats = {};
+      terms.forEach(t => { cats[t.cat] = (cats[t.cat] || 0) + 1; });
+
+      let html = `<button class="pill active" data-cat="all" tabindex="0">All <span class="count">${terms.length}</span></button>`;
+      Object.entries(cats).forEach(([cat, count]) => {
+        html += `<button class="pill" data-cat="${cat}" tabindex="0">${catConfig[cat]?.icon || ''} ${cat} <span class="count">${count}</span></button>`;
+      });
+      tagsContainer.innerHTML = html;
+
+      tagsContainer.querySelectorAll('.pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          tagsContainer.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          currentCat = pill.dataset.cat;
+          renderCards();
+        });
+      });
+    }
+
+    function getFiltered() {
+      const query = searchInput.value.toLowerCase().trim();
+      let filtered = currentCat === 'all' ? terms : terms.filter(t => t.cat === currentCat);
+      if (query) {
+        filtered = filtered.filter(t =>
+          t.term.toLowerCase().includes(query) ||
+          t.cat.toLowerCase().includes(query) ||
+          t.def.toLowerCase().includes(query) ||
+          t.how.toLowerCase().includes(query) ||
+          t.say.toLowerCase().includes(query) ||
+          t.tip.toLowerCase().includes(query)
+        );
+      }
+      return filtered;
+    }
+
+    function renderCards() {
+      const filtered = getFiltered();
+      countEl.textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No terms found</div>
+        <div class="empty-desc">Try adjusting your search or selecting a different category.</div>
+      </div>`;
+        return;
+      }
+
+      grid.innerHTML = '';
+      filtered.forEach((t, i) => {
+        const cfg = catConfig[t.cat] || catConfig['DevOps Practice'];
+        const card = document.createElement('div');
+        card.className = 'card' + (allExpanded ? ' open' : '');
+        card.tabIndex = 0;
+        card.style.setProperty('--card-accent', cfg.color);
+        card.style.animationDelay = `${i * 0.04}s`;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-expanded', allExpanded ? 'true' : 'false');
+
+        card.innerHTML = `
+      <div class="card-head">
+        <div class="card-icon-wrap" style="background:${cfg.bg}; color:${cfg.color};">
+          <i class="ti ${t.icon}" aria-hidden="true"></i>
+        </div>
+        <div class="card-meta">
+          <div class="card-term">${t.term}</div>
+          <div class="card-cat" style="background:${cfg.bg}; color:${cfg.color}; border: 1px solid ${cfg.border};">
+            ${t.cat}
+          </div>
+        </div>
+        <div class="chevron"><i class="ti ti-chevron-down" aria-hidden="true"></i></div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="section-label def">What It Means</div>
+          <div class="def-text">${t.def}</div>
+          <div class="section-label how">How You Used It</div>
+          <div class="def-text">${t.how}</div>
+          <div class="section-label say">What To Say</div>
+          <div class="quote-box"><p>"${t.say}"</p></div>
+          <div class="section-label tip">Interview Tip</div>
+          <div class="tip-box"><p>${t.tip}</p></div>
+        </div>
+      </div>
+    `;
+
+        const toggle = () => {
+          const isOpen = card.classList.toggle('open');
+          card.setAttribute('aria-expanded', isOpen);
+        };
+        card.addEventListener('click', toggle);
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleExpandAll() {
+      allExpanded = !allExpanded;
+      document.getElementById('expandAllBtn').textContent = allExpanded ? 'Collapse All' : 'Expand All';
+      document.querySelectorAll('.card').forEach(c => {
+        c.classList.toggle('open', allExpanded);
+        c.setAttribute('aria-expanded', allExpanded);
+      });
+    }
+
+    // View toggle
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        grid.classList.toggle('list-view', btn.dataset.view === 'list');
+      });
+    });
+
+    // Search with debounce
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(renderCards, 200);
+    });
+
+    // Progress bar
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement;
+      const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+      document.getElementById('progressBar').style.width = pct + '%';
+    });
+
+    // Init
+    buildPills();
+    renderCards();
+  </script>
+</body>
+
+</html>
