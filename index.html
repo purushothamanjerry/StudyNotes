@@ -1,41 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevDocs — Developer Learning Hub</title>
-  <meta name="description" content="A premium developer learning hub. Java, System Design, DevOps, Networking, and more — all in one place." />
+  <title>DevDocs — Premium Developer Learning Platform</title>
+  <meta name="description" content="A premium developer learning platform. Master Java, System Design, DevOps, Networking, and Operating Systems — all in one beautiful dashboard." />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
 
   <div class="overlay" id="overlay"></div>
 
   <!-- ===== TOPBAR ===== -->
-  <header class="topbar">
+  <header class="topbar" id="topbar">
+    <!-- Mobile hamburger -->
     <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
       <span></span><span></span><span></span>
     </button>
-    <div class="topbar-brand">
-      <svg width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="28" height="28" rx="7" fill="url(#g1)"/>
-        <path d="M8 9h5l3 5-3 5H8l3-5-3-5z" fill="white" opacity=".9"/>
-        <path d="M14 9h6v10h-6l3-5-3-5z" fill="white" opacity=".5"/>
-        <defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#3B82F6"/><stop offset="1" stop-color="#8B5CF6"/>
-        </linearGradient></defs>
+
+    <!-- Desktop sidebar toggle -->
+    <button class="sidebar-toggle" id="sidebarCollapseBtn" aria-label="Collapse sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="3"/>
+        <line x1="9" y1="3" x2="9" y2="21"/>
       </svg>
+    </button>
+
+    <!-- Brand -->
+    <div class="topbar-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 9h5l3 5-3 5H8l3-5-3-5z" fill="white" opacity=".9"/>
+          <path d="M14 9h4v10h-4l3-5-3-5z" fill="white" opacity=".5"/>
+        </svg>
+      </div>
       <span class="brand-name">DevDocs</span>
     </div>
+
+    <!-- Search -->
     <div class="topbar-search">
       <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M13.5 13.5L18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      <input type="text" id="searchInput" placeholder="Search everything…" autocomplete="off" />
+      <input type="text" id="searchInput" placeholder="Search topics…" autocomplete="off" />
       <kbd>⌘K</kbd>
     </div>
+
+    <!-- Actions -->
     <div class="topbar-actions">
-      <span class="topic-counter" id="topicCounter">0 topics</span>
+      <!-- Progress badge -->
+      <span class="progress-badge" id="progressBadge">
+        <span class="dot"></span>
+        <span id="progressPct">0%</span>
+      </span>
+
+      <!-- Theme toggle -->
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <!-- Sun icon (shown in dark mode) -->
+        <svg id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- Moon icon (shown in light mode) -->
+        <svg id="moonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+      </button>
+
+      <!-- Notifications -->
+      <button class="notif-btn" id="notifBtn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+        <span class="notif-badge"></span>
+      </button>
+
+      <!-- User avatar -->
+      <div class="user-avatar" id="userAvatar" title="John Doe">JD</div>
     </div>
   </header>
 
@@ -45,8 +86,21 @@
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
       <nav class="sidebar-nav" id="sidebarNav">
-        <!-- Injected by script.js: either nav-mode or topics-mode -->
+        <!-- Injected by script.js -->
       </nav>
+      <!-- Profile card -->
+      <div class="sidebar-profile" id="sidebarProfile">
+        <div class="sidebar-profile-avatar">JD</div>
+        <div class="sidebar-profile-info">
+          <div class="sidebar-profile-name">John Doe</div>
+          <div class="sidebar-profile-role">Full-Stack Developer</div>
+        </div>
+        <button class="sidebar-profile-settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
     </aside>
 
     <!-- ===== MAIN ===== -->
@@ -69,51 +123,45 @@
 
           <div class="dashboard" id="dashboardContainer">
 
-            <!-- Welcome -->
-            <div class="dash-welcome">
-              <div class="dash-badge">
-                <span class="dash-badge-dot"></span> Learning Hub
+            <!-- Hero / Greeting -->
+            <div class="dash-hero">
+              <div class="dash-greeting-small">Good morning</div>
+              <h1 class="dash-greeting">Welcome back, <em>John</em> 👋</h1>
+              <p class="dash-subtitle">Continue your learning journey. You're making great progress — keep the momentum going!</p>
+
+              <div class="hero-pills" id="heroPills">
+                <span class="hero-pill">
+                  <span class="hero-pill-icon">🔥</span>
+                  <span>Streak</span>
+                  <span class="hero-pill-value" id="heroStreak">0 days</span>
+                </span>
+                <span class="hero-pill">
+                  <span class="hero-pill-icon">🎯</span>
+                  <span>Weekly Goal</span>
+                  <span class="hero-pill-value" id="heroWeeklyGoal">0/5</span>
+                </span>
+                <span class="hero-pill">
+                  <span class="hero-pill-icon">📊</span>
+                  <span>Completed</span>
+                  <span class="hero-pill-value" id="heroCompletion">0%</span>
+                </span>
+                <span class="hero-pill">
+                  <span class="hero-pill-icon">📖</span>
+                  <span>Next</span>
+                  <span class="hero-pill-value" id="heroNext">—</span>
+                </span>
               </div>
-              <h1 class="dash-title">Your <em>Knowledge Base</em></h1>
-              <p class="dash-subtitle">Track your progress, continue where you left off, and explore all learning paths.</p>
             </div>
 
-            <!-- Stats -->
-            <div class="stats-bar" id="statsBar">
-              <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(59,130,246,.08);color:#3B82F6">📚</div>
-                <div class="stat-info">
-                  <div class="stat-value" id="statTotal">0</div>
-                  <div class="stat-label">Total Topics</div>
-                </div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(16,185,129,.08);color:#10B981">✅</div>
-                <div class="stat-info">
-                  <div class="stat-value" id="statViewed">0</div>
-                  <div class="stat-label">Completed</div>
-                </div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(139,92,246,.08);color:#8B5CF6">📂</div>
-                <div class="stat-info">
-                  <div class="stat-value" id="statCats">0</div>
-                  <div class="stat-label">Paths</div>
-                </div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(245,158,11,.08);color:#F59E0B">🔥</div>
-                <div class="stat-info">
-                  <div class="stat-value" id="statStreak">0</div>
-                  <div class="stat-label">Day Streak</div>
-                </div>
-              </div>
+            <!-- Stats Grid (6 cards) -->
+            <div class="stats-grid" id="statsGrid">
+              <!-- Injected by JS -->
             </div>
 
             <!-- Learning Paths -->
             <div class="section-head">
-              <div class="section-title"><span class="section-title-icon">📖</span> Learning Paths</div>
-              <span class="section-count" id="pathsCount">0</span>
+              <div class="section-title"><span class="section-title-icon">📚</span> Learning Paths</div>
+              <span class="section-count" id="pathsCount">0 paths</span>
             </div>
             <div class="paths-grid" id="pathsGrid"></div>
 
@@ -121,18 +169,74 @@
             <div class="continue-section" id="continueSection">
               <div class="section-head">
                 <div class="section-title"><span class="section-title-icon">🕐</span> Continue Learning</div>
+                <span class="section-action" id="clearRecent">Clear All</span>
               </div>
               <div class="continue-grid" id="continueGrid">
                 <div class="empty-state">Start exploring a learning path to see your recent activity.</div>
               </div>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="qstats-section" id="qstatsSection">
+            <!-- Recommended Next -->
+            <div class="recommend-section" id="recommendSection">
               <div class="section-head">
-                <div class="section-title"><span class="section-title-icon">📊</span> Statistics</div>
+                <div class="section-title"><span class="section-title-icon">✨</span> Recommended Next</div>
               </div>
-              <div class="qstats-grid" id="qstatsGrid"></div>
+              <div class="recommend-grid" id="recommendGrid"></div>
+            </div>
+
+            <!-- Weekly Activity Heatmap -->
+            <div class="heatmap-section" id="heatmapSection">
+              <div class="heatmap-card">
+                <div class="heatmap-header">
+                  <div class="section-title"><span class="section-title-icon">📅</span> Learning Activity</div>
+                  <div class="heatmap-legend">
+                    <span>Less</span>
+                    <span class="heatmap-legend-square l0" style="background:var(--ring-track)"></span>
+                    <span class="heatmap-legend-square l1" style="background:color-mix(in srgb, var(--accent) 25%, var(--ring-track))"></span>
+                    <span class="heatmap-legend-square l2" style="background:color-mix(in srgb, var(--accent) 50%, var(--ring-track))"></span>
+                    <span class="heatmap-legend-square l3" style="background:color-mix(in srgb, var(--accent) 75%, var(--ring-track))"></span>
+                    <span class="heatmap-legend-square l4" style="background:var(--accent)"></span>
+                    <span>More</span>
+                  </div>
+                </div>
+                <div class="heatmap-container">
+                  <div class="heatmap-day-labels">
+                    <span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span>
+                  </div>
+                  <div class="heatmap-grid-wrapper">
+                    <div class="heatmap-grid" id="heatmapGrid"></div>
+                    <div class="heatmap-month-labels" id="heatmapMonths"></div>
+                  </div>
+                </div>
+                <div class="heatmap-stats" id="heatmapStats"></div>
+              </div>
+            </div>
+
+            <!-- Two-column: Achievements + Analytics -->
+            <div class="dashboard-two-col">
+              <!-- Achievements -->
+              <div class="achievements-section" id="achievementsSection">
+                <div class="section-head">
+                  <div class="section-title"><span class="section-title-icon">🏆</span> Achievements</div>
+                  <span class="section-count" id="achievementsCount">0/0</span>
+                </div>
+                <div class="achievements-grid" id="achievementsGrid"></div>
+              </div>
+
+              <!-- Learning Analytics -->
+              <div class="analytics-section" id="analyticsSection">
+                <div class="section-head">
+                  <div class="section-title"><span class="section-title-icon">📈</span> Analytics</div>
+                </div>
+                <div class="analytics-card" id="analyticsWeeklyChart">
+                  <h4>Weekly Study Sessions</h4>
+                  <div class="bar-chart" id="weeklyBarChart"></div>
+                </div>
+                <div class="analytics-card" id="analyticsTimePerPath" style="margin-top:12px">
+                  <h4>Time per Path</h4>
+                  <div class="time-chart" id="timePerPathChart"></div>
+                </div>
+              </div>
             </div>
 
           </div>
