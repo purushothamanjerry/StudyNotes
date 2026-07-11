@@ -100,6 +100,16 @@ const topics = {
       { title: "Deadlocks", file: "os/deadlocks" },
     ],
   },
+
+  Mysql: {
+    color: "#00758F",
+    icon: "🐬",
+    difficulty: "intermediate",
+    duration: "10h",
+    items: [
+      { title: "Introduction to MySQL", file: "Mysql/introduction" },
+    ],
+  },
 };
 
 /* ============================================================
