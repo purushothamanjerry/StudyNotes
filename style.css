@@ -840,6 +840,7 @@ kbd {
 .path-difficulty.beginner { color: var(--green); background: var(--green-dim); }
 .path-difficulty.intermediate { color: var(--amber); background: var(--amber-dim); }
 .path-difficulty.advanced { color: var(--red); background: var(--red-dim); }
+.path-difficulty.utility { color: var(--cyan); background: var(--cyan-dim); }
 
 .path-name {
   font-family: var(--font-ui); font-size: .88rem;

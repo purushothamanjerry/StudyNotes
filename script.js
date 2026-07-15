@@ -112,6 +112,17 @@ const topics = {
   },
 };
 
+const tools = {
+  SchemaDesigner: {
+    title: "Schema Designer",
+    description: "Design interactive entity-relationship (ER) diagrams and generate SQL schemas.",
+    icon: "📐",
+    color: "#06B6D4",
+    file: "Tools/Schema Desiner.html",
+    difficulty: "utility"
+  }
+};
+
 /* ============================================================
    2. STATE
    ============================================================ */
@@ -237,6 +248,16 @@ function applyTheme(theme) {
     sunIcon.style.display = "none";
     moonIcon.style.display = "block";
   }
+
+  // Propagate theme to iframe if loaded
+  const frame = document.getElementById("contentFrame");
+  if (frame && frame.contentDocument && frame.contentDocument.documentElement) {
+    frame.contentDocument.documentElement.setAttribute("data-theme", theme);
+    const win = frame.contentWindow;
+    if (win && typeof win.render === "function") {
+      win.render();
+    }
+  }
 }
 
 function toggleTheme() {
@@ -290,6 +311,7 @@ function buildSidebarNav() {
     chart: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="15" x2="5" y2="9"/><line x1="10" y1="15" x2="10" y2="4"/><line x1="15" y1="15" x2="15" y2="11"/></svg>`,
     flame: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2C10 2 5 7 5 11.5a5 5 0 0010 0C15 7 10 2 10 2z"/><path d="M10 18c-1.66 0-3-1.12-3-2.5S8.34 13 10 13s3 1.12 3 2.5S11.66 18 10 18z"/></svg>`,
     chevron: `<svg class="section-expand-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 4 10 8 6 12"/></svg>`,
+    schema: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="13" y="2" width="5" height="5" rx="1"/><rect x="7.5" y="13" width="5" height="5" rx="1"/><path d="M4.5 7v3.5h11V7M10 10.5V13"/></svg>`
   };
 
   let html = "";
@@ -323,6 +345,14 @@ function buildSidebarNav() {
   </button>`;
 
   html += `<div class="nav-section-items${expandedSections.tools ? " expanded" : ""}" id="toolsSection">`;
+  
+  // Interactive Tools
+  const isSchemaActive = activeLink && activeLink.dataset.file === "Tools/Schema Desiner.html";
+  html += `<button class="nav-item${isSchemaActive ? " active" : ""}" data-action="tool" data-file="Tools/Schema Desiner.html" data-title="Schema Designer">
+    <span class="nav-item-icon">${icons.schema}</span>
+    <span class="nav-item-label">Schema Designer</span>
+  </button>`;
+
   html += `<button class="nav-item" data-action="home">
     <span class="nav-item-icon">${icons.clock}</span>
     <span class="nav-item-label">Recent Notes</span>
@@ -341,6 +371,10 @@ function buildSidebarNav() {
 
   nav.innerHTML = html;
 
+  if (isSchemaActive) {
+    activeLink = nav.querySelector(`[data-file="Tools/Schema Desiner.html"]`);
+  }
+
   // Event: Dashboard
   nav.querySelectorAll('[data-action="home"]').forEach(btn => {
     btn.addEventListener("click", () => {
@@ -353,6 +387,14 @@ function buildSidebarNav() {
   nav.querySelectorAll('[data-action="cat"]').forEach(btn => {
     btn.addEventListener("click", () => {
       openCategory(btn.dataset.cat);
+      if (window.innerWidth < 900) closeSidebar();
+    });
+  });
+
+  // Event: Utility tools
+  nav.querySelectorAll('[data-action="tool"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      loadTopic(btn, "Tools", btn.dataset.title, btn.dataset.file);
       if (window.innerWidth < 900) closeSidebar();
     });
   });
@@ -471,7 +513,19 @@ function loadTopic(linkEl, catName, topicTitle, filePath) {
   updateBreadcrumb(catName, topicTitle, topics[catName]?.color || "#2563EB");
 
   // Load iframe
-  frame.onload = () => { loading.classList.remove("active"); frame.classList.add("active"); };
+  frame.onload = () => {
+    loading.classList.remove("active");
+    frame.classList.add("active");
+    // Sync theme on load
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+    if (frame.contentDocument && frame.contentDocument.documentElement) {
+      frame.contentDocument.documentElement.setAttribute("data-theme", currentTheme);
+      const win = frame.contentWindow;
+      if (win && typeof win.render === "function") {
+        win.render();
+      }
+    }
+  };
   frame.onerror = () => { loading.classList.remove("active"); frame.classList.add("active"); };
   frame.src = filePath;
 
@@ -726,6 +780,9 @@ function buildContinueSection() {
         buildSidebarTopics(item.cat);
         const link = document.querySelector(`.topic-link[data-file="${file}"]`);
         loadTopic(link, item.cat, item.title, file);
+      } else if (item.cat === "Tools") {
+        const link = document.querySelector(`.nav-item[data-action="tool"][data-file="${file}"]`);
+        loadTopic(link, "Tools", item.title, file);
       }
     });
     grid.appendChild(el);
@@ -1052,11 +1109,54 @@ function refreshDashboard() {
   updateHeroPills();
   buildStatCards();
   buildPathCards();
+  buildToolsGrid();
   buildContinueSection();
   buildRecommendations();
   buildHeatmap();
   buildAchievements();
   buildAnalytics();
+}
+
+/* ============================================================
+   22b. DEVELOPER TOOLS GRID
+   ============================================================ */
+function buildToolsGrid() {
+  const grid = document.getElementById("toolsGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  const toolEntries = Object.entries(tools);
+  const countEl = document.getElementById("toolsCount");
+  if (countEl) countEl.textContent = toolEntries.length + " tool" + (toolEntries.length !== 1 ? "s" : "");
+
+  toolEntries.forEach(([key, toolData], i) => {
+    const card = document.createElement("div");
+    card.className = "path-card";
+    card.style.setProperty("--card-color", toolData.color);
+    card.style.animation = `fadeUp .4s ease ${i * 0.06}s both`;
+
+    card.innerHTML = `
+      <div class="path-card-top">
+        <div class="path-icon-wrap">
+          <div class="path-icon" style="background:${toolData.color}12;color:${toolData.color}">${toolData.icon}</div>
+        </div>
+        <span class="path-difficulty utility">${toolData.difficulty}</span>
+      </div>
+      <div class="path-name">${toolData.title}</div>
+      <div class="path-meta" style="margin-bottom: 24px; min-height: 32px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal;">
+        ${toolData.description}
+      </div>
+      <div class="path-footer">
+        <span class="path-pct">Interactive Utility</span>
+        <span class="path-action-btn">Launch →</span>
+      </div>`;
+
+    card.addEventListener("click", () => {
+      const link = document.querySelector(`.nav-item[data-action="tool"][data-file="${toolData.file}"]`);
+      loadTopic(link, "Tools", toolData.title, toolData.file);
+    });
+    grid.appendChild(card);
+  });
 }
 
 /* ============================================================
@@ -1128,6 +1228,14 @@ document.getElementById("clearRecent")?.addEventListener("click", () => {
 function handleHashRoute() {
   const hash = decodeURIComponent(window.location.hash.slice(1));
   if (!hash) return;
+
+  if (hash === "Tools/Schema Desiner" || hash === "Tools/Schema Desiner.html") {
+    setTimeout(() => {
+      const link = document.querySelector(`.nav-item[data-action="tool"][data-file="Tools/Schema Desiner.html"]`);
+      if (link) loadTopic(link, "Tools", "Schema Designer", "Tools/Schema Desiner.html");
+    }, 50);
+    return;
+  }
 
   for (const [catName, catData] of Object.entries(topics)) {
     for (const topic of catData.items) {
