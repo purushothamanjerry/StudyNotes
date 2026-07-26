@@ -38,7 +38,6 @@ const topics = {
       { title: "Java 8 Features", file: "java/Topic23_Java8_Features" },
       { title: "Multithreading", file: "java/Topic24_Multithreading" },
       { title: "JDBc", file: "java/Topic25_JDBC" },
-      { title: "JDBC", file: "java/Topic25_JDBC" },
       { title: "Complexity Mastery", file: "java/complexity-mastery" },
       { title: "Weekend Review", file: "java/Topic26_Weekend_Review" },
     ],
@@ -345,7 +344,7 @@ function buildSidebarNav() {
   </button>`;
 
   html += `<div class="nav-section-items${expandedSections.tools ? " expanded" : ""}" id="toolsSection">`;
-  
+
   // Interactive Tools
   const isSchemaActive = activeLink && activeLink.dataset.file === "Tools/Schema Desiner.html";
   html += `<button class="nav-item${isSchemaActive ? " active" : ""}" data-action="tool" data-file="Tools/Schema Desiner.html" data-title="Schema Designer">
