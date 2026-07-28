@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 06 — Aggregate Functions &amp; GROUP BY | MySQL Interview Blueprint</title>
+<style>
+:root{
+  --bg:#080b12;
+  --bg-2:#0c111c;
+  --panel:rgba(255,255,255,0.035);
+  --panel-strong:rgba(255,255,255,0.06);
+  --border:rgba(148,178,224,0.14);
+  --border-strong:rgba(148,178,224,0.28);
+  --grid:rgba(110,231,249,0.05);
+  --text:#e9edf6;
+  --text-dim:#94a1ba;
+  --text-faint:#576079;
+  --ink:#6EE7F9;
+  --ink-2:#A78BFA;
+  --amber:#f0b429;
+  --coral:#fb7185;
+  --mint:#34d399;
+  --code-bg:#0a0e17;
+  --radius:14px;
+  --font-display:'Segoe UI Semibold','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 15% -10%, rgba(110,231,249,0.08), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(167,139,250,0.07), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(90deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.6;
+}
+::selection{background:rgba(110,231,249,0.25);color:#fff;}
+a{color:inherit;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(148,178,224,0.25);border-radius:8px;}
+
+#progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--ink),var(--ink-2));
+  z-index:1000;
+  box-shadow:0 0 12px rgba(110,231,249,0.6);
+  transition:width .08s linear;
+}
+
+#topbar{
+  position:sticky;top:0;z-index:900;
+  display:none;
+  align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  background:rgba(8,11,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{font-family:var(--font-display);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);}
+#menu-toggle{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:8px 10px;cursor:pointer;
+}
+
+#layout{
+  display:grid;
+  grid-template-columns:270px minmax(0,1fr);
+  max-width:1400px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+
+#sidebar{
+  position:sticky;top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 18px 40px 28px;
+  border-right:1px solid var(--border);
+}
+.brand-block{margin-bottom:28px;}
+.brand-eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+  color:var(--ink);text-transform:uppercase;
+}
+.brand-title{
+  font-family:var(--font-display);font-size:19px;margin-top:6px;
+  letter-spacing:.01em;
+}
+.brand-sub{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+
+nav#toc{display:flex;flex-direction:column;gap:2px;}
+.toc-group-label{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;
+  color:var(--text-faint);text-transform:uppercase;
+  margin:16px 0 6px 12px;
+}
+.toc-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:8px;
+  font-size:13.5px;color:var(--text-dim);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.toc-link .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex:none;
+  transition:background .2s ease,box-shadow .2s ease;
+}
+.toc-link:hover{background:var(--panel);color:var(--text);}
+.toc-link.active{
+  background:var(--panel-strong);color:var(--ink);
+  border-left-color:var(--ink);
+}
+.toc-link.active .dot{background:var(--ink);box-shadow:0 0 8px var(--ink);}
+
+#sidebar-footer{
+  margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);
+}
+
+main{padding:0 0 120px 0;min-width:0;}
+.section{
+  padding:90px clamp(20px,4vw,64px) 10px;
+  scroll-margin-top:20px;
+  max-width:920px;
+}
+.section-inner{max-width:820px;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);
+  padding:5px 12px;border:1px solid rgba(110,231,249,0.3);
+  border-radius:999px;background:rgba(110,231,249,0.06);
+  margin-bottom:18px;
+}
+h1.section-title{
+  font-family:var(--font-display);font-size:clamp(28px,4vw,42px);
+  letter-spacing:-0.01em;line-height:1.15;margin-bottom:14px;
+}
+p.section-lede{font-size:16.5px;color:var(--text-dim);max-width:680px;margin-bottom:6px;}
+h2.h2{
+  font-family:var(--font-display);font-size:22px;margin:44px 0 14px;
+  display:flex;align-items:center;gap:10px;
+}
+h2.h2 .idx{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink);
+  border:1px solid var(--border-strong);border-radius:6px;
+  padding:2px 7px;
+}
+h3.h3{font-family:var(--font-display);font-size:16.5px;margin:22px 0 10px;color:var(--text);}
+p{font-size:15px;color:var(--text-dim);margin-bottom:12px;}
+p strong{color:var(--text);font-weight:600;}
+ul.plain-list{margin:8px 0 16px 0;padding-left:0;list-style:none;}
+ul.plain-list li{
+  position:relative;padding-left:20px;margin-bottom:8px;font-size:14.5px;color:var(--text-dim);
+}
+ul.plain-list li::before{
+  content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--ink);
+}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  backdrop-filter:blur(10px);
+  margin:16px 0;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 12px 30px -14px rgba(0,0,0,.6);}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.card-grid{grid-template-columns:1fr;}}
+
+.label-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.label-row svg{flex:none;}
+.label-row .lbl{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+
+.box{
+  border-radius:12px;padding:16px 18px;margin:16px 0;
+  border:1px solid; position:relative; overflow:hidden;
+}
+.box .box-title{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700;
+}
+.box p{margin-bottom:6px;font-size:14px;}
+.box.tip{background:rgba(110,231,249,0.06);border-color:rgba(110,231,249,0.28);}
+.box.tip .box-title{color:var(--ink);}
+.box.mistake{background:rgba(251,113,133,0.07);border-color:rgba(251,113,133,0.3);}
+.box.mistake .box-title{color:var(--coral);}
+.box.warn{background:rgba(240,180,41,0.08);border-color:rgba(240,180,41,0.32);}
+.box.warn .box-title{color:var(--amber);}
+.box.best{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);}
+.box.best .box-title{color:var(--mint);}
+.box.memory{background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(110,231,249,0.06));border-color:rgba(167,139,250,0.32);}
+.box.memory .box-title{color:var(--ink-2);}
+
+.code-block{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin:16px 0;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.code-head .dots{display:flex;gap:6px;}
+.code-head .dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);}
+.code-head .filename{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+.run-btn{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+  background:rgba(110,231,249,0.1);color:var(--ink);
+  border:1px solid rgba(110,231,249,0.35);border-radius:7px;
+  padding:5px 10px;cursor:pointer;transition:background .2s ease;
+}
+.run-btn:hover{background:rgba(110,231,249,0.2);}
+pre.code{
+  padding:16px 18px;font-family:var(--font-mono);font-size:13.2px;
+  overflow-x:auto;color:#c9d3e6;line-height:1.7;
+}
+.k{color:#6EE7F9;font-weight:600;}
+.t{color:#a78bfa;}
+.s{color:#fbbf24;}
+.c{color:#576079;font-style:italic;}
+.f{color:#34d399;}
+.n{color:#fb7185;}
+
+.exec-result{
+  border-top:1px dashed var(--border);
+  padding:14px 18px;font-family:var(--font-mono);font-size:12.5px;
+  color:var(--mint);display:none;
+}
+.exec-result.show{display:block;animation:fadein .4s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.exec-result table{border-collapse:collapse;margin-top:8px;width:100%;}
+.exec-result th,.exec-result td{border:1px solid rgba(52,211,153,0.25);padding:5px 10px;font-size:12px;color:var(--text-dim);}
+.exec-result th{color:var(--mint);text-align:left;}
+
+.tabs{display:flex;gap:6px;margin:16px 0 0;flex-wrap:wrap;}
+.tab-btn{
+  font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:8px 8px 0 0;
+  background:var(--panel);border:1px solid var(--border);border-bottom:none;
+  color:var(--text-faint);cursor:pointer;transition:color .2s,background .2s;
+}
+.tab-btn.active{color:var(--ink);background:var(--panel-strong);}
+.tab-panels{border:1px solid var(--border);border-radius:0 10px 10px 10px;background:var(--panel);padding:18px;margin-bottom:16px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadein .3s ease;}
+
+.accordion-item{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--panel);}
+.accordion-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;cursor:pointer;font-size:14.5px;color:var(--text);font-weight:500;
+}
+.accordion-head .plus{color:var(--ink);font-family:var(--font-mono);transition:transform .3s ease;font-size:16px;}
+.accordion-item.open .plus{transform:rotate(45deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 16px;}
+.accordion-item.open .accordion-body{padding:0 16px 16px;}
+.accordion-body p{font-size:13.8px;}
+.tag{
+  display:inline-block;font-family:var(--font-mono);font-size:10.5px;
+  padding:2px 8px;border-radius:999px;margin-left:8px;
+  background:rgba(167,139,250,0.12);color:var(--ink-2);border:1px solid rgba(167,139,250,0.3);
+}
+.tag.company{background:rgba(240,180,41,0.1);color:var(--amber);border-color:rgba(240,180,41,0.3);}
+.tag.scenario{background:rgba(251,113,133,0.1);color:var(--coral);border-color:rgba(251,113,133,0.3);}
+
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+.cmp-table th,.cmp-table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.cmp-table th{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--border-strong);
+}
+.cmp-table td{color:var(--text-dim);}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+.diagram-wrap{
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  background:radial-gradient(ellipse at top left, rgba(110,231,249,0.05), transparent 60%);
+  margin:18px 0;overflow-x:auto;
+}
+.diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;}
+
+.flow{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+.flow-step{display:flex;gap:16px;position:relative;padding-bottom:26px;}
+.flow-step:last-child{padding-bottom:0;}
+.flow-step::before{
+  content:"";position:absolute;left:15px;top:34px;bottom:0;width:1px;
+  background:linear-gradient(var(--border-strong),transparent);
+}
+.flow-step:last-child::before{display:none;}
+.flow-num{
+  flex:none;width:32px;height:32px;border-radius:50%;
+  background:var(--panel-strong);border:1px solid var(--border-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;color:var(--ink);z-index:1;
+}
+.flow-body{padding-top:4px;}
+.flow-body h4{font-size:14.5px;color:var(--text);margin-bottom:3px;font-weight:600;}
+.flow-body p{font-size:13.5px;margin-bottom:0;}
+
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+.mini-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.mini-card h4{font-size:13.5px;color:var(--ink);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:.04em;}
+.mini-card p{font-size:13px;margin-bottom:0;}
+
+.flash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:18px 0;}
+.flashcard{perspective:1000px;height:170px;cursor:pointer;}
+.flashcard-inner{
+  position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.flash-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:12px;border:1px solid var(--border-strong);
+  padding:18px;display:flex;flex-direction:column;justify-content:center;
+}
+.flash-front{background:linear-gradient(150deg,rgba(110,231,249,0.08),rgba(255,255,255,0.02));}
+.flash-back{background:linear-gradient(150deg,rgba(167,139,250,0.14),rgba(20,25,38,0.9));transform:rotateY(180deg);}
+.flash-face .fc-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.flash-face p{font-size:14px;color:var(--text);margin:0;}
+
+.quiz-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.quiz-q{font-size:15px;color:var(--text);margin-bottom:14px;font-weight:500;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  border:1px solid var(--border);background:var(--panel);border-radius:9px;
+  padding:11px 14px;font-size:13.8px;cursor:pointer;color:var(--text-dim);
+  transition:border-color .2s,background .2s;
+}
+.quiz-opt:hover{border-color:var(--border-strong);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(52,211,153,0.1);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--coral);background:rgba(251,113,133,0.1);color:var(--coral);}
+#quiz-score-bar{
+  position:sticky;top:10px;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,23,0.85);backdrop-filter:blur(10px);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;margin-bottom:20px;font-family:var(--font-mono);font-size:13px;
+}
+#quiz-score-bar .score{color:var(--ink);}
+
+.roadmap{position:relative;margin:26px 0 10px;padding-left:26px;}
+.roadmap::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--ink),var(--ink-2),transparent);}
+.rm-item{position:relative;margin-bottom:26px;}
+.rm-item::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ink);}
+.rm-item h4{font-size:14.5px;color:var(--text);margin-bottom:4px;}
+.rm-item p{font-size:13.5px;margin-bottom:0;}
+
+.hero{
+  min-height:92vh;display:flex;flex-direction:column;justify-content:center;
+  padding:60px clamp(20px,4vw,64px);position:relative;
+}
+.hero-kicker{
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:20px;display:flex;align-items:center;gap:12px;
+}
+.hero-kicker::before{content:"";width:34px;height:1px;background:var(--ink);}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(38px,6vw,72px);line-height:1.03;
+  letter-spacing:-0.02em;max-width:900px;
+  background:linear-gradient(120deg,#fff 30%,var(--ink) 65%,var(--ink-2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.hero-sub{font-size:17px;color:var(--text-dim);max-width:620px;margin:22px 0 30px;}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px;}
+.hero-tag{
+  font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--panel);
+}
+.hero-scroll{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:8px;}
+.hero-scroll svg{animation:bob 1.8s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+.blueprint-hero{margin-top:10px;border:1px solid var(--border);border-radius:16px;padding:22px;background:rgba(255,255,255,0.02);}
+
+footer.page-footer{
+  text-align:center;padding:60px 20px 40px;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;
+  border-top:1px solid var(--border);margin-top:60px;
+}
+
+/* ---- mini bar chart for report demo ---- */
+.bar-chart{display:flex;align-items:flex-end;gap:14px;height:150px;margin:18px 0;padding:10px 6px 0;}
+.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+.bar{width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--ink),var(--ink-2));
+  box-shadow:0 0 18px rgba(110,231,249,0.25); transition:height 1s cubic-bezier(.2,.8,.2,1); height:0;}
+.bar-label{margin-top:8px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);text-align:center;}
+.bar-value{font-family:var(--font-mono);font-size:11px;color:var(--ink);margin-bottom:4px;}
+
+@media(max-width:980px){
+  #layout{grid-template-columns:1fr;}
+  #sidebar{
+    position:fixed;left:0;top:57px;bottom:0;width:270px;
+    transform:translateX(-100%);transition:transform .3s ease;
+    background:rgba(8,11,18,0.98);z-index:800;height:calc(100vh - 57px);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #topbar{display:flex;}
+  .section{padding-top:56px;}
+  .hero{min-height:auto;padding-top:50px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div id="topbar">
+  <span class="brand">MySQL Blueprint · Mod 06</span>
+  <button id="menu-toggle" aria-label="Toggle menu">☰ Menu</button>
+</div>
+
+<div id="layout">
+  <aside id="sidebar">
+    <div class="brand-block">
+      <div class="brand-eyebrow">Interview Blueprint · Module 06</div>
+      <div class="brand-title">Aggregate Functions &amp; GROUP BY</div>
+      <div class="brand-sub">MySQL reporting queries for Java Full Stack fresher interviews</div>
+    </div>
+    <nav id="toc">
+      <a class="toc-link" href="#hero"><span class="dot"></span>Overview</a>
+      <div class="toc-group-label">Core Topics</div>
+      <a class="toc-link" href="#count"><span class="dot"></span>COUNT</a>
+      <a class="toc-link" href="#sum"><span class="dot"></span>SUM</a>
+      <a class="toc-link" href="#avg"><span class="dot"></span>AVG</a>
+      <a class="toc-link" href="#maxmin"><span class="dot"></span>MAX / MIN</a>
+      <a class="toc-link" href="#groupby"><span class="dot"></span>GROUP BY</a>
+      <a class="toc-link" href="#having"><span class="dot"></span>HAVING</a>
+      <a class="toc-link" href="#reports"><span class="dot"></span>Real-world Reports</a>
+      <div class="toc-group-label">Revision</div>
+      <a class="toc-link" href="#cheatsheet"><span class="dot"></span>Cheat Sheet</a>
+      <a class="toc-link" href="#mindmap"><span class="dot"></span>Mind Map</a>
+      <a class="toc-link" href="#flashcards"><span class="dot"></span>Flash Cards</a>
+      <a class="toc-link" href="#quiz"><span class="dot"></span>Quick Quiz</a>
+      <a class="toc-link" href="#top20"><span class="dot"></span>Top 20 Questions</a>
+      <a class="toc-link" href="#roadmap"><span class="dot"></span>Roadmap</a>
+      <a class="toc-link" href="#summary"><span class="dot"></span>Summary</a>
+    </nav>
+    <div id="sidebar-footer">Fresher track · Java + Spring Boot + MySQL<br>Zoho · TCS Digital · Infosys · Accenture · Capgemini · Cognizant · HCL · Wipro</div>
+  </aside>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="hero-kicker">Module 06 / 12 — MySQL Interview Track</div>
+      <h1>Aggregate Functions &amp; GROUP BY</h1>
+      <p class="hero-sub">Raw rows don't answer business questions. "Total revenue by region," "average salary per department," "top 5 products this month" — every dashboard your Java backend feeds is built on <strong>COUNT, SUM, AVG, MAX, MIN, GROUP BY, and HAVING</strong>.</p>
+      <div class="hero-tags">
+        <span class="hero-tag">COUNT</span>
+        <span class="hero-tag">SUM</span>
+        <span class="hero-tag">AVG</span>
+        <span class="hero-tag">MAX</span>
+        <span class="hero-tag">MIN</span>
+        <span class="hero-tag">GROUP BY</span>
+        <span class="hero-tag">HAVING</span>
+        <span class="hero-tag">Real-world Reports</span>
+      </div>
+
+      <div class="blueprint-hero reveal">
+        <div class="label-row"><span class="lbl">Live diagram — rows collapsing into groups, then into aggregates</span></div>
+        <div class="diagram-wrap" style="margin-top:6px;border:none;padding:0;background:none;">
+          <svg viewBox="0 0 760 200" width="100%">
+            <defs>
+              <marker id="arrowhead-hero6" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#6EE7F9"/>
+              </marker>
+            </defs>
+            <g font-family="ui-monospace,monospace" font-size="11">
+              <text x="20" y="18" fill="#576079">employees (raw rows)</text>
+              <g fill="rgba(255,255,255,0.04)" stroke="#576079">
+                <rect x="20" y="28" width="130" height="22" rx="4"/><rect x="20" y="54" width="130" height="22" rx="4"/>
+                <rect x="20" y="80" width="130" height="22" rx="4"/><rect x="20" y="106" width="130" height="22" rx="4"/>
+                <rect x="20" y="132" width="130" height="22" rx="4"/>
+              </g>
+              <text x="30" y="43" fill="#e9edf6">Sales · 50k</text>
+              <text x="30" y="69" fill="#e9edf6">Sales · 62k</text>
+              <text x="30" y="95" fill="#e9edf6">IT · 71k</text>
+              <text x="30" y="121" fill="#e9edf6">IT · 58k</text>
+              <text x="30" y="147" fill="#e9edf6">HR · 44k</text>
+
+              <line x1="150" y1="90" x2="330" y2="90" stroke="#6EE7F9" stroke-width="1.4" marker-end="url(#arrowhead-hero6)"/>
+              <text x="180" y="80" fill="#6EE7F9">GROUP BY dept</text>
+
+              <rect x="340" y="30" width="150" height="36" rx="6" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="415" y="52" text-anchor="middle" fill="#6EE7F9">Sales → AVG 56k</text>
+              <rect x="340" y="76" width="150" height="36" rx="6" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="415" y="98" text-anchor="middle" fill="#A78BFA">IT → AVG 64.5k</text>
+              <rect x="340" y="122" width="150" height="36" rx="6" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="415" y="144" text-anchor="middle" fill="#34d399">HR → AVG 44k</text>
+
+              <line x1="490" y1="90" x2="600" y2="90" stroke="#f0b429" stroke-width="1.4" marker-end="url(#arrowhead-hero6)"/>
+              <text x="510" y="80" fill="#f0b429">HAVING avg &gt; 50k</text>
+              <rect x="600" y="60" width="140" height="60" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429" stroke-dasharray="3 3"/>
+              <text x="670" y="86" text-anchor="middle" fill="#f0b429">Sales</text>
+              <text x="670" y="106" text-anchor="middle" fill="#f0b429">IT</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-scroll" style="margin-top:26px;">
+        <span>Scroll to begin</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#6EE7F9" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </section>
+
+    <!-- ================= INTRO ================= -->
+    <section class="section" id="intro">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Why this module exists</div>
+        <h1 class="section-title">Every "report" question is an aggregation question</h1>
+        <p class="section-lede">"How many orders today?" "What's our average order value?" "Which region sold the most?" Interviewers deliberately phrase these as business questions to see whether you can translate them into COUNT/SUM/AVG + GROUP BY + HAVING without hand-holding.</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Real-world analogy</span></div>
+            <p>GROUP BY is like sorting a pile of receipts into labeled envelopes — one envelope per department, per month, per product. Aggregate functions are what you calculate <em>after</em> sorting: total per envelope, average per envelope, biggest single receipt per envelope.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Problem it solves</span></div>
+            <p>Without aggregation, you'd have to pull every raw row into your Java service and sum/count/average it in application code — slow, memory-heavy, and exactly the kind of work a database engine is built to do far more efficiently at the storage layer.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= COUNT ================= -->
+    <section class="section" id="count">
+      <div class="section-inner reveal">
+        <div class="eyebrow">01 · Function</div>
+        <h1 class="section-title">COUNT</h1>
+        <p class="section-lede">Counts rows — but which variant you use changes what gets counted, a classic interview trap.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">count.sql</div><button class="run-btn" data-target="res-count">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT COUNT</span>(*) <span class="k">FROM</span> <span class="f">employees</span>;                    <span class="c">-- all rows, including NULLs anywhere</span>
+<span class="k">SELECT COUNT</span>(<span class="f">phone</span>) <span class="k">FROM</span> <span class="f">employees</span>;             <span class="c">-- only rows where phone IS NOT NULL</span>
+<span class="k">SELECT COUNT</span>(<span class="k">DISTINCT</span> <span class="f">dept_id</span>) <span class="k">FROM</span> <span class="f">employees</span>; <span class="c">-- unique department count</span></pre>
+          <div class="exec-result" id="res-count">
+            → COUNT(*) = 120 total rows<br>
+            → COUNT(phone) = 87 (33 rows have NULL phone)<br>
+            → COUNT(DISTINCT dept_id) = 6 unique departments
+          </div>
+        </div>
+
+        <table class="cmp-table">
+          <tr><th>Form</th><th>Counts</th></tr>
+          <tr><td>COUNT(*)</td><td>Every row, regardless of NULLs in any column</td></tr>
+          <tr><td>COUNT(column)</td><td>Only rows where that column is NOT NULL</td></tr>
+          <tr><td>COUNT(DISTINCT column)</td><td>Unique non-NULL values in that column</td></tr>
+        </table>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>"Is COUNT(*) slower than COUNT(1)?" — In modern MySQL/InnoDB, they perform identically; the optimizer treats them the same. This used to matter in very old engines but is a myth today — say so confidently.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="count">
+          <div class="accordion-item"><div class="accordion-head">Does COUNT(column) include NULL values?<span class="plus">+</span></div><div class="accordion-body"><p>No — COUNT on a specific column skips rows where that column is NULL. Only COUNT(*) counts every row unconditionally.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Scenario: How do you count how many distinct customers placed an order last month? <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p><code>SELECT COUNT(DISTINCT customer_id) FROM orders WHERE order_date >= '2026-06-01' AND order_date < '2026-07-01';</code></p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SUM ================= -->
+    <section class="section" id="sum">
+      <div class="section-inner reveal">
+        <div class="eyebrow">02 · Function</div>
+        <h1 class="section-title">SUM</h1>
+        <p class="section-lede">Totals a numeric column across a group of rows — the backbone of every revenue and total-cost report.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">sum.sql</div><button class="run-btn" data-target="res-sum">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT SUM</span>(<span class="f">amount</span>) <span class="k">AS</span> <span class="f">total_revenue</span>
+<span class="k">FROM</span> <span class="f">orders</span>
+<span class="k">WHERE</span> <span class="f">order_date</span> &gt;= <span class="s">'2026-01-01'</span>;</pre>
+          <div class="exec-result" id="res-sum">
+            → total_revenue = 1,842,350.00<br>
+            → SUM ignores NULL values automatically; SUM over zero rows returns NULL, not 0
+          </div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Common mistake</div>
+          <p>Assuming <code>SUM(amount)</code> returns 0 when no rows match. It actually returns <strong>NULL</strong> — wrap it with <code>COALESCE(SUM(amount), 0)</code> if your Java code expects a numeric default.</p>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Spring Boot relation</div>
+          <p>A <code>@Query("SELECT SUM(o.amount) FROM Order o WHERE ...")</code> JPQL method returning a <code>BigDecimal</code> must handle a possible <code>null</code> result the same way — a very common NPE source for freshers.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= AVG ================= -->
+    <section class="section" id="avg">
+      <div class="section-inner reveal">
+        <div class="eyebrow">03 · Function</div>
+        <h1 class="section-title">AVG</h1>
+        <p class="section-lede">The mean of a numeric column — quietly skips NULLs, which changes the denominator in ways people forget.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">avg.sql</div><button class="run-btn" data-target="res-avg">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT AVG</span>(<span class="f">salary</span>) <span class="k">AS</span> <span class="f">avg_salary</span> <span class="k">FROM</span> <span class="f">employees</span>;
+
+<span class="c">-- vs manually computing SUM / COUNT(*) — these can differ!</span>
+<span class="k">SELECT SUM</span>(<span class="f">salary</span>) / <span class="k">COUNT</span>(*) <span class="k">AS</span> <span class="f">manual_avg</span> <span class="k">FROM</span> <span class="f">employees</span>;</pre>
+          <div class="exec-result" id="res-avg">
+            → AVG(salary) divides SUM(salary) by COUNT(salary) — NULL salaries excluded from both<br>
+            → SUM(salary)/COUNT(*) divides by ALL rows including NULL-salary ones — can give a different, lower number
+          </div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>AVG(column) is <strong>not</strong> the same as SUM(column)/COUNT(*) if the column has NULLs — AVG's internal denominator is COUNT(column), which excludes NULLs, while COUNT(*) counts every row.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MAX / MIN ================= -->
+    <section class="section" id="maxmin">
+      <div class="section-inner reveal">
+        <div class="eyebrow">04 · Functions</div>
+        <h1 class="section-title">MAX / MIN</h1>
+        <p class="section-lede">The highest and lowest values in a column — work on numbers, dates, and even strings (lexicographic order).</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">max_min.sql</div><button class="run-btn" data-target="res-mm">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT MAX</span>(<span class="f">salary</span>) <span class="k">AS</span> <span class="f">highest_paid</span>,
+       <span class="k">MIN</span>(<span class="f">salary</span>) <span class="k">AS</span> <span class="f">lowest_paid</span>,
+       <span class="k">MAX</span>(<span class="f">hire_date</span>) <span class="k">AS</span> <span class="f">most_recent_hire</span>
+<span class="k">FROM</span> <span class="f">employees</span>;</pre>
+          <div class="exec-result" id="res-mm">
+            → highest_paid = 98000.00, lowest_paid = 32000.00<br>
+            → most_recent_hire = 2026-05-14 (MAX works on DATE/DATETIME too)
+          </div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>MAX/MIN on an indexed column can often be answered instantly by MySQL by reading just one end of the B+Tree — no full scan needed. Watch for "Select tables optimized away" in EXPLAIN output as proof.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="mm">
+          <div class="accordion-item"><div class="accordion-head">Scenario: Find the employee(s) with the highest salary in each department. <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>A plain <code>MAX(salary)</code> with GROUP BY only gives the value, not the employee row. You need either a correlated subquery, a self-join comparing to the per-department MAX, or a window function: <code>RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC)</code> (MySQL 8+).</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= GROUP BY ================= -->
+    <section class="section" id="groupby">
+      <div class="section-inner reveal">
+        <div class="eyebrow">05 · Clause</div>
+        <h1 class="section-title">GROUP BY</h1>
+        <p class="section-lede">Collapses many rows into one row per distinct group — the mechanism every aggregate function above actually relies on.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">group_by.sql</div><button class="run-btn" data-target="res-gb">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">dept_id</span>,
+       <span class="k">COUNT</span>(*) <span class="k">AS</span> <span class="f">headcount</span>,
+       <span class="k">AVG</span>(<span class="f">salary</span>) <span class="k">AS</span> <span class="f">avg_salary</span>,
+       <span class="k">SUM</span>(<span class="f">salary</span>) <span class="k">AS</span> <span class="f">total_payroll</span>
+<span class="k">FROM</span> <span class="f">employees</span>
+<span class="k">GROUP BY</span> <span class="f">dept_id</span>;</pre>
+          <div class="exec-result show" id="res-gb">
+            <table><tr><th>dept_id</th><th>headcount</th><th>avg_salary</th><th>total_payroll</th></tr>
+            <tr><td>1</td><td>18</td><td>52,400</td><td>943,200</td></tr>
+            <tr><td>2</td><td>24</td><td>61,850</td><td>1,484,400</td></tr>
+            <tr><td>3</td><td>9</td><td>44,000</td><td>396,000</td></tr></table>
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>How MySQL works internally</h2>
+        <div class="flow">
+          <div class="flow-step reveal"><div class="flow-num">1</div><div class="flow-body"><h4>Rows filtered by WHERE first</h4><p>Only qualifying rows enter the grouping stage — WHERE runs before GROUP BY.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">2</div><div class="flow-body"><h4>Rows bucketed by group key</h4><p>MySQL either sorts rows by the GROUP BY columns, or (often faster) builds an in-memory hash table keyed by the group values.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">3</div><div class="flow-body"><h4>Aggregate functions computed per bucket</h4><p>COUNT/SUM/AVG/MAX/MIN accumulate as each row streams into its bucket.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">4</div><div class="flow-body"><h4>HAVING filters the buckets</h4><p>Only after aggregation is complete does HAVING remove entire groups that don't qualify.</p></div></div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake — SELECT list rule</div>
+          <p>Every non-aggregated column in SELECT must appear in GROUP BY. <code>SELECT dept_id, first_name, COUNT(*) FROM employees GROUP BY dept_id</code> is invalid/ambiguous — MySQL's default strict mode (<code>ONLY_FULL_GROUP_BY</code>, on since 5.7) will reject it.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Multi-column grouping</h2>
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">group_multi.sql</div><button class="run-btn" data-target="res-gbm">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">dept_id</span>, <span class="k">YEAR</span>(<span class="f">hire_date</span>) <span class="k">AS</span> <span class="f">hire_year</span>, <span class="k">COUNT</span>(*) <span class="k">AS</span> <span class="f">hires</span>
+<span class="k">FROM</span> <span class="f">employees</span>
+<span class="k">GROUP BY</span> <span class="f">dept_id</span>, <span class="k">YEAR</span>(<span class="f">hire_date</span>);</pre>
+          <div class="exec-result" id="res-gbm">→ One row per unique (dept_id, hire_year) combination — grouping on multiple columns forms a compound key</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HAVING ================= -->
+    <section class="section" id="having">
+      <div class="section-inner reveal">
+        <div class="eyebrow">06 · Clause</div>
+        <h1 class="section-title">HAVING</h1>
+        <p class="section-lede">WHERE for groups. The single most common WHERE-vs-HAVING confusion in fresher interviews.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">having.sql</div><button class="run-btn" data-target="res-hav">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">dept_id</span>, <span class="k">COUNT</span>(*) <span class="k">AS</span> <span class="f">headcount</span>, <span class="k">AVG</span>(<span class="f">salary</span>) <span class="k">AS</span> <span class="f">avg_salary</span>
+<span class="k">FROM</span> <span class="f">employees</span>
+<span class="k">WHERE</span> <span class="f">status</span> = <span class="s">'ACTIVE'</span>
+<span class="k">GROUP BY</span> <span class="f">dept_id</span>
+<span class="k">HAVING</span> <span class="k">COUNT</span>(*) &gt; <span class="n">5</span> <span class="k">AND</span> <span class="k">AVG</span>(<span class="f">salary</span>) &gt; <span class="n">50000</span>
+<span class="k">ORDER BY</span> <span class="f">avg_salary</span> <span class="k">DESC</span>;</pre>
+          <div class="exec-result" id="res-hav">
+            → WHERE removes inactive employees BEFORE grouping<br>
+            → HAVING then removes entire departments whose group didn't meet the aggregate thresholds
+          </div>
+        </div>
+
+        <table class="cmp-table">
+          <tr><th>Aspect</th><th>WHERE</th><th>HAVING</th></tr>
+          <tr><td>Operates on</td><td>Individual rows</td><td>Aggregated groups</td></tr>
+          <tr><td>Runs</td><td>Before GROUP BY</td><td>After GROUP BY / aggregation</td></tr>
+          <tr><td>Can use aggregate functions</td><td>No</td><td>Yes — that's its whole purpose</td></tr>
+          <tr><td>Can use column aliases</td><td>No</td><td>Yes (in MySQL specifically)</td></tr>
+        </table>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>"Can you write <code>WHERE COUNT(*) > 5</code>?" — No. Aggregate functions aren't computed yet when WHERE runs; that's precisely why HAVING exists as a separate, later filtering stage.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best practice</div>
+          <p>Filter as much as possible in WHERE before grouping, and use HAVING only for conditions that genuinely depend on the aggregate result — this lets MySQL discard rows early and group fewer of them.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="hav">
+          <div class="accordion-item"><div class="accordion-head">Asked at TCS Digital: Write a query to find departments with more than 10 employees. <span class="tag company">TCS Digital</span><span class="plus">+</span></div><div class="accordion-body"><p><code>SELECT dept_id, COUNT(*) FROM employees GROUP BY dept_id HAVING COUNT(*) > 10;</code></p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Scenario: Find customers who placed more than 3 orders with a total spend over ₹10,000. <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p><code>SELECT customer_id, COUNT(*) AS order_count, SUM(amount) AS total_spend FROM orders GROUP BY customer_id HAVING COUNT(*) > 3 AND SUM(amount) > 10000;</code></p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= REAL WORLD REPORTS ================= -->
+    <section class="section" id="reports">
+      <div class="section-inner reveal">
+        <div class="eyebrow">07 · Applied</div>
+        <h1 class="section-title">Real-world Reports</h1>
+        <p class="section-lede">Aggregate + GROUP BY + HAVING combined into the exact report shapes you'll actually be asked to build in interviews and on the job.</p>
+
+        <h2 class="h2"><span class="idx">01</span>Live report demo — monthly revenue</h2>
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">monthly_revenue.sql</div><button class="run-btn" data-target="res-report" data-chart="chart1">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="k">MONTHNAME</span>(<span class="f">order_date</span>) <span class="k">AS</span> <span class="f">month</span>,
+       <span class="k">SUM</span>(<span class="f">amount</span>) <span class="k">AS</span> <span class="f">revenue</span>
+<span class="k">FROM</span> <span class="f">orders</span>
+<span class="k">WHERE</span> <span class="f">order_date</span> &gt;= <span class="s">'2026-01-01'</span>
+<span class="k">GROUP BY</span> <span class="k">MONTH</span>(<span class="f">order_date</span>), <span class="k">MONTHNAME</span>(<span class="f">order_date</span>)
+<span class="k">ORDER BY</span> <span class="k">MONTH</span>(<span class="f">order_date</span>);</pre>
+          <div class="exec-result" id="res-report">→ 6 rows returned — one per month, revenue trending upward toward June</div>
+        </div>
+        <div class="bar-chart" id="chart1">
+          <div class="bar-item"><div class="bar-value">₹210k</div><div class="bar" data-h="42%"></div><div class="bar-label">Jan</div></div>
+          <div class="bar-item"><div class="bar-value">₹240k</div><div class="bar" data-h="48%"></div><div class="bar-label">Feb</div></div>
+          <div class="bar-item"><div class="bar-value">₹260k</div><div class="bar" data-h="52%"></div><div class="bar-label">Mar</div></div>
+          <div class="bar-item"><div class="bar-value">₹300k</div><div class="bar" data-h="60%"></div><div class="bar-label">Apr</div></div>
+          <div class="bar-item"><div class="bar-value">₹340k</div><div class="bar" data-h="68%"></div><div class="bar-label">May</div></div>
+          <div class="bar-item"><div class="bar-value">₹492k</div><div class="bar" data-h="100%"></div><div class="bar-label">Jun</div></div>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Common report patterns to memorize</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="r-top">Top-N per group</button>
+          <button class="tab-btn" data-tab="r-thresh">Threshold report</button>
+          <button class="tab-btn" data-tab="r-pct">Percentage of total</button>
+        </div>
+        <div class="tab-panels">
+          <div class="tab-panel active" id="r-top">
+            <p>"Top spending customer per city" — needs a window function (MySQL 8+) or a correlated subquery, since plain GROUP BY only returns aggregate values, not the specific row that produced the max.</p>
+            <pre class="code" style="padding:0;"><span class="k">SELECT</span> * <span class="k">FROM</span> (
+  <span class="k">SELECT</span> <span class="f">city</span>, <span class="f">customer_id</span>, <span class="k">SUM</span>(<span class="f">amount</span>) <span class="k">AS</span> <span class="f">total</span>,
+         <span class="k">RANK</span>() <span class="k">OVER</span> (<span class="k">PARTITION BY</span> <span class="f">city</span> <span class="k">ORDER BY</span> <span class="k">SUM</span>(<span class="f">amount</span>) <span class="k">DESC</span>) <span class="k">AS</span> <span class="f">rnk</span>
+  <span class="k">FROM</span> <span class="f">orders</span> <span class="k">GROUP BY</span> <span class="f">city</span>, <span class="f">customer_id</span>
+) <span class="f">ranked</span> <span class="k">WHERE</span> <span class="f">rnk</span> = <span class="n">1</span>;</pre>
+          </div>
+          <div class="tab-panel" id="r-thresh">
+            <p>"Products with fewer than 10 units left in stock across all warehouses" — an aggregate threshold filtered with HAVING after summing.</p>
+            <pre class="code" style="padding:0;"><span class="k">SELECT</span> <span class="f">product_id</span>, <span class="k">SUM</span>(<span class="f">stock</span>) <span class="k">AS</span> <span class="f">total_stock</span>
+<span class="k">FROM</span> <span class="f">inventory</span> <span class="k">GROUP BY</span> <span class="f">product_id</span>
+<span class="k">HAVING</span> <span class="k">SUM</span>(<span class="f">stock</span>) &lt; <span class="n">10</span>;</pre>
+          </div>
+          <div class="tab-panel" id="r-pct">
+            <p>"What % of total revenue does each region contribute?" — combine a group aggregate with a scalar subquery for the grand total.</p>
+            <pre class="code" style="padding:0;"><span class="k">SELECT</span> <span class="f">region</span>, <span class="k">SUM</span>(<span class="f">amount</span>) <span class="k">AS</span> <span class="f">region_total</span>,
+       <span class="k">ROUND</span>(<span class="k">SUM</span>(<span class="f">amount</span>) / (<span class="k">SELECT SUM</span>(<span class="f">amount</span>) <span class="k">FROM</span> <span class="f">orders</span>) * <span class="n">100</span>, <span class="n">2</span>) <span class="k">AS</span> <span class="f">pct_of_total</span>
+<span class="k">FROM</span> <span class="f">orders</span> <span class="k">GROUP BY</span> <span class="f">region</span>;</pre>
+          </div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>When an interviewer describes a report in plain English, silently map it: "grouped by ___" → GROUP BY column, "total/average/count of ___" → aggregate function, "only show groups where ___" → HAVING, "only show rows where ___" → WHERE.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">03</span>Interview questions</h2>
+        <div class="accordion" data-group="rep">
+          <div class="accordion-item"><div class="accordion-head">Asked at Accenture: Write a query showing total sales per product category, sorted highest first. <span class="tag company">Accenture</span><span class="plus">+</span></div><div class="accordion-body"><p><code>SELECT category, SUM(amount) AS total_sales FROM orders GROUP BY category ORDER BY total_sales DESC;</code></p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Scenario: Find the average order value per customer, but only for customers with at least 5 orders. <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p><code>SELECT customer_id, AVG(amount) AS avg_order_value FROM orders GROUP BY customer_id HAVING COUNT(*) >= 5;</code></p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHEAT SHEET ================= -->
+    <section class="section" id="cheatsheet">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Cheat Sheet</h1>
+        <div class="code-block">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">cheatsheet.sql</div></div>
+          <pre class="code"><span class="k">SELECT COUNT</span>(*), <span class="k">COUNT</span>(<span class="f">col</span>), <span class="k">COUNT</span>(<span class="k">DISTINCT</span> <span class="f">col</span>) <span class="k">FROM</span> <span class="f">t</span>;
+<span class="k">SELECT SUM</span>(<span class="f">col</span>), <span class="k">AVG</span>(<span class="f">col</span>), <span class="k">MAX</span>(<span class="f">col</span>), <span class="k">MIN</span>(<span class="f">col</span>) <span class="k">FROM</span> <span class="f">t</span>;
+
+<span class="k">SELECT</span> <span class="f">g</span>, <span class="k">COUNT</span>(*) <span class="k">FROM</span> <span class="f">t</span>
+<span class="k">WHERE</span> <span class="f">cond</span>              <span class="c">-- filters rows first</span>
+<span class="k">GROUP BY</span> <span class="f">g</span>
+<span class="k">HAVING</span> <span class="k">COUNT</span>(*) &gt; <span class="n">5</span>    <span class="c">-- filters groups after aggregation</span>
+<span class="k">ORDER BY</span> <span class="k">COUNT</span>(*) <span class="k">DESC</span>;
+
+<span class="c">-- % of total pattern</span>
+<span class="k">SELECT</span> <span class="f">g</span>, <span class="k">SUM</span>(<span class="f">col</span>)/(<span class="k">SELECT SUM</span>(<span class="f">col</span>) <span class="k">FROM</span> <span class="f">t</span>)*<span class="n">100</span> <span class="k">FROM</span> <span class="f">t</span> <span class="k">GROUP BY</span> <span class="f">g</span>;</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MIND MAP ================= -->
+    <section class="section" id="mindmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Mind Map</h1>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 800 420" width="100%">
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <circle cx="400" cy="210" r="55" fill="rgba(110,231,249,0.1)" stroke="#6EE7F9"/>
+              <text x="400" y="205" text-anchor="middle" fill="#6EE7F9" font-weight="bold">Aggregate</text>
+              <text x="400" y="222" text-anchor="middle" fill="#6EE7F9" font-weight="bold">+ GROUP BY</text>
+
+              <g stroke="#576079" stroke-width="1">
+                <line x1="400" y1="155" x2="400" y2="65"/>
+                <line x1="352" y1="180" x2="130" y2="90"/>
+                <line x1="352" y1="240" x2="130" y2="330"/>
+                <line x1="448" y1="180" x2="670" y2="90"/>
+                <line x1="448" y1="240" x2="670" y2="330"/>
+              </g>
+              <rect x="320" y="24" width="160" height="42" rx="8" fill="rgba(255,255,255,0.04)" stroke="#94a1ba"/>
+              <text x="400" y="50" text-anchor="middle" fill="#94a1ba">COUNT / SUM / AVG</text>
+
+              <rect x="30" y="66" width="200" height="42" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="130" y="92" text-anchor="middle" fill="#34d399">MAX / MIN</text>
+
+              <rect x="30" y="308" width="200" height="42" rx="8" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="130" y="334" text-anchor="middle" fill="#A78BFA">GROUP BY</text>
+
+              <rect x="570" y="66" width="200" height="42" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+              <text x="670" y="92" text-anchor="middle" fill="#f0b429">HAVING</text>
+
+              <rect x="570" y="308" width="200" height="42" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+              <text x="670" y="334" text-anchor="middle" fill="#fb7185">Real-world Reports</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FLASHCARDS ================= -->
+    <section class="section" id="flashcards">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Flash Cards</h1>
+        <p class="section-lede">Click any card to flip it.</p>
+        <div class="flash-grid" id="flash-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= QUIZ ================= -->
+    <section class="section" id="quiz">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Quick Quiz</h1>
+        <div id="quiz-score-bar">Score <span class="score" id="quiz-score">0 / 0</span></div>
+        <div id="quiz-container"></div>
+      </div>
+    </section>
+
+    <!-- ================= TOP 20 ================= -->
+    <section class="section" id="top20">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Top 20 Interview Questions</h1>
+        <div class="accordion" id="top20-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ROADMAP ================= -->
+    <section class="section" id="roadmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Where to go next</div>
+        <h1 class="section-title">Learning Roadmap</h1>
+        <div class="roadmap">
+          <div class="rm-item"><h4>1. Master this module</h4><p>COUNT, SUM, AVG, MAX, MIN, GROUP BY, HAVING — able to translate a plain-English report into SQL instantly.</p></div>
+          <div class="rm-item"><h4>2. Window functions</h4><p>RANK, DENSE_RANK, ROW_NUMBER, running totals with OVER() — the modern replacement for tricky correlated subqueries.</p></div>
+          <div class="rm-item"><h4>3. Joins + aggregation together</h4><p>Aggregating across joined tables, avoiding row multiplication bugs from one-to-many joins before grouping.</p></div>
+          <div class="rm-item"><h4>4. Subqueries &amp; CTEs</h4><p>WITH clauses to build multi-step reports readably.</p></div>
+          <div class="rm-item"><h4>5. Indexing for GROUP BY performance</h4><p>How a covering index can let MySQL skip a temporary table/filesort during grouping.</p></div>
+        </div>
+        <h2 class="h2"><span class="idx">→</span>Further topics to explore</h2>
+        <ul class="plain-list">
+          <li>ROLLUP for subtotal + grand-total reports in one query</li>
+          <li>Window functions vs GROUP BY — when each is the right tool</li>
+          <li>ONLY_FULL_GROUP_BY strict mode and why it exists</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+    <section class="section" id="summary">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Wrap-up</div>
+        <h1 class="section-title">Summary &amp; Revision Notes</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>COUNT</h4><p>COUNT(*) counts all rows; COUNT(col) skips NULLs; COUNT(DISTINCT col) counts unique non-NULL values.</p></div>
+          <div class="mini-card"><h4>SUM / AVG</h4><p>Both ignore NULLs; SUM over zero rows returns NULL, not 0 — guard with COALESCE.</p></div>
+          <div class="mini-card"><h4>MAX / MIN</h4><p>Work on numbers, dates, and strings; fast on an indexed column.</p></div>
+          <div class="mini-card"><h4>GROUP BY</h4><p>Collapses rows into one row per group; every non-aggregated SELECT column must appear in it.</p></div>
+          <div class="mini-card"><h4>HAVING</h4><p>Filters groups after aggregation — the only place aggregate functions can appear in a filter condition.</p></div>
+          <div class="mini-card"><h4>Reports</h4><p>Translate plain-English asks directly: "total/avg/count of X" → aggregate, "grouped by Y" → GROUP BY, "only groups where" → HAVING.</p></div>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Before your interview</div>
+          <p>Be ready to write a full GROUP BY + HAVING report from a one-sentence business ask on the spot, and explain clearly why WHERE can't filter on an aggregate value.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">MySQL Interview Blueprint · Module 06 of 12 · Built for Java Full Stack fresher interview prep</footer>
+  </main>
+</div>
+
+<script>
+const progressBar = document.getElementById('progress-bar');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+const sections = document.querySelectorAll('main section[id], .hero[id]');
+const links = document.querySelectorAll('.toc-link');
+function spy(){
+  let current = sections[0] ? sections[0].id : '';
+  sections.forEach(sec=>{
+    const rect = sec.getBoundingClientRect();
+    if(rect.top <= 140) current = sec.id;
+  });
+  links.forEach(l=>{
+    l.classList.toggle('active', l.getAttribute('href') === '#'+current);
+  });
+}
+document.addEventListener('scroll', spy, {passive:true});
+spy();
+
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+});
+links.forEach(l=>l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+document.querySelectorAll('.run-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    btn.textContent = '⏳ Running...';
+    setTimeout(()=>{
+      if(target) target.classList.add('show');
+      if(btn.dataset.chart){
+        const chart = document.getElementById(btn.dataset.chart);
+        chart.querySelectorAll('.bar').forEach(b=>{ b.style.height = b.dataset.h; });
+      }
+      btn.textContent = '✓ Executed';
+      setTimeout(()=>{ btn.textContent = '▶ Run'; }, 1600);
+    }, 500);
+  });
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const wrap = btn.closest('div').parentElement;
+    wrap.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const panelsWrap = wrap.querySelector('.tab-panels');
+    panelsWrap.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.addEventListener('click', (e)=>{
+  const head = e.target.closest('.accordion-head');
+  if(!head) return;
+  const item = head.closest('.accordion-item');
+  const body = item.querySelector('.accordion-body');
+  const wasOpen = item.classList.contains('open');
+  item.classList.toggle('open');
+  body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
+});
+
+const flashcards = [
+  {q:"Difference between COUNT(*) and COUNT(column)?", a:"COUNT(*) counts every row; COUNT(column) only counts rows where that column is NOT NULL."},
+  {q:"What does SUM(amount) return when zero rows match?", a:"NULL, not 0 — wrap with COALESCE(SUM(amount), 0) if a numeric default is needed."},
+  {q:"Is AVG(col) the same as SUM(col)/COUNT(*)?", a:"Not necessarily — AVG divides by COUNT(col), which excludes NULLs, unlike COUNT(*)."},
+  {q:"Can WHERE filter on an aggregate like COUNT(*) > 5?", a:"No — aggregates aren't computed yet when WHERE runs. Use HAVING instead."},
+  {q:"What must every non-aggregated SELECT column do in a GROUP BY query?", a:"It must appear in the GROUP BY clause, or MySQL's ONLY_FULL_GROUP_BY mode rejects the query."},
+  {q:"Which runs first: WHERE or GROUP BY?", a:"WHERE — it filters individual rows before they're bucketed into groups."},
+  {q:"Which runs first: GROUP BY or HAVING?", a:"GROUP BY — groups and their aggregates are computed first, then HAVING filters the groups."},
+  {q:"How do you count unique non-NULL values in a column?", a:"COUNT(DISTINCT column)."},
+  {q:"How do you find the top earner per department (not just the max value)?", a:"A window function like RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC), or a correlated subquery."},
+  {q:"Is COUNT(*) slower than COUNT(1) in modern MySQL?", a:"No — the optimizer treats them identically; this is an outdated myth."}
+];
+const flashGrid = document.getElementById('flash-grid');
+flashcards.forEach((c,i)=>{
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.innerHTML = `
+    <div class="flashcard-inner">
+      <div class="flash-face flash-front"><div class="fc-lbl">Question ${i+1}</div><p>${c.q}</p></div>
+      <div class="flash-face flash-back"><div class="fc-lbl">Answer</div><p>${c.a}</p></div>
+    </div>`;
+  card.addEventListener('click', ()=> card.classList.toggle('flipped'));
+  flashGrid.appendChild(card);
+});
+
+const quizData = [
+  {q:"Which function counts rows including NULLs in every column?", opts:["COUNT(column)","COUNT(*)","COUNT(DISTINCT column)","SUM(1)"], correct:1},
+  {q:"What does SUM() return when no rows match the WHERE clause?", opts:["0","NULL","An error","Empty string"], correct:1},
+  {q:"Which clause filters groups after aggregation?", opts:["WHERE","GROUP BY","HAVING","ORDER BY"], correct:2},
+  {q:"Can an aggregate function be used inside WHERE?", opts:["Yes, always","No, use HAVING instead","Only with COUNT","Only with SUM"], correct:1},
+  {q:"What must every non-aggregated column in SELECT do under strict mode?", opts:["Nothing special","Appear in GROUP BY","Appear in HAVING","Be cast to a string"], correct:1},
+  {q:"Which function is best for 'unique departments represented'?", opts:["COUNT(*)","COUNT(dept_id)","COUNT(DISTINCT dept_id)","SUM(dept_id)"], correct:2},
+  {q:"To find the highest-paid employee per department (the row, not just value), you'd typically use:", opts:["Only GROUP BY", "A window function or correlated subquery","ORDER BY alone","DISTINCT"], correct:1}
+];
+const quizContainer = document.getElementById('quiz-container');
+let quizAnswered = 0, quizCorrect = 0;
+const scoreEl = document.getElementById('quiz-score');
+function updateScore(){ scoreEl.textContent = quizCorrect + ' / ' + quizAnswered; }
+
+quizData.forEach((q,qi)=>{
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  const optsHtml = q.opts.map((o,oi)=>`<div class="quiz-opt" data-idx="${oi}">${o}</div>`).join('');
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${q.q}</div><div class="quiz-opts">${optsHtml}</div>`;
+  quizContainer.appendChild(card);
+
+  let locked = false;
+  card.querySelectorAll('.quiz-opt').forEach(optEl=>{
+    optEl.addEventListener('click', ()=>{
+      if(locked) return;
+      locked = true;
+      quizAnswered++;
+      const chosen = parseInt(optEl.dataset.idx,10);
+      if(chosen === q.correct){ quizCorrect++; optEl.classList.add('correct'); }
+      else{
+        optEl.classList.add('wrong');
+        card.querySelectorAll('.quiz-opt')[q.correct].classList.add('correct');
+      }
+      updateScore();
+    });
+  });
+});
+
+const top20 = [
+  ["What's the difference between COUNT(*), COUNT(column), and COUNT(DISTINCT column)?","COUNT(*) counts every row; COUNT(column) counts only non-NULL values in that column; COUNT(DISTINCT column) counts unique non-NULL values."],
+  ["Why does SUM() return NULL instead of 0 for no matching rows?","SQL aggregate functions return NULL over an empty set by convention, since there's no meaningful numeric total to report; the caller must handle this explicitly."],
+  ["Why can AVG(col) differ from SUM(col)/COUNT(*)?","AVG divides by COUNT(col), which skips NULLs, while COUNT(*) includes every row regardless — the denominators can differ when the column has NULLs."],
+  ["Why can't WHERE filter on an aggregate value?","WHERE runs before GROUP BY and aggregation happen, so aggregate values simply don't exist yet at that stage of logical execution."],
+  ["What does HAVING do that WHERE cannot?","It filters entire groups based on the result of an aggregate function, applied after GROUP BY has computed those aggregates."],
+  ["What is ONLY_FULL_GROUP_BY and why does it matter?","A MySQL strict SQL mode (default since 5.7) that rejects queries where a non-aggregated SELECT column isn't in the GROUP BY clause, preventing ambiguous results."],
+  ["How do you find the top-N rows per group (e.g. top earner per department)?","Use a window function like RANK() OVER (PARTITION BY ... ORDER BY ...) in MySQL 8+, or a correlated subquery in older versions — plain GROUP BY only returns aggregate values, not the row."],
+  ["Can you GROUP BY multiple columns?","Yes — GROUP BY dept_id, YEAR(hire_date) groups rows by the unique combination of both values."],
+  ["Does MAX/MIN require a full table scan?","Not necessarily — if the column is indexed, MySQL can often read just one end of the B+Tree directly, shown as 'Select tables optimized away' in EXPLAIN."],
+  ["What's the % of total revenue per region query pattern?","GROUP BY region with SUM(amount), divided by a scalar subquery computing SUM(amount) over the whole table, multiplied by 100."],
+  ["Is COUNT(*) slower than COUNT(1) in MySQL?","No — the query optimizer treats them identically; this is an outdated myth from older database engines."],
+  ["Why must non-aggregated SELECT columns appear in GROUP BY?","Without it, MySQL can't determine a single deterministic value for that column per group, since a group can contain many differing values for it."],
+  ["What's a common mistake when reading SUM() results in Java?","Not handling a possible null return value from the query when zero rows match, leading to NullPointerExceptions."],
+  ["How would you report 'departments with more than 10 active employees'?","SELECT dept_id, COUNT(*) FROM employees WHERE status='ACTIVE' GROUP BY dept_id HAVING COUNT(*) > 10;"],
+  ["What does GROUP BY do internally in MySQL?","It buckets filtered rows by the group key (via sorting or an in-memory hash table) and accumulates aggregate values as rows stream into each bucket."],
+  ["Can HAVING use a column alias defined in SELECT?","Yes, in MySQL specifically — unlike WHERE, HAVING can reference SELECT aliases since it executes after SELECT's expressions are computed."],
+  ["What's the difference between a report that needs WHERE vs one that needs HAVING?","WHERE handles row-level conditions ('only active employees'); HAVING handles group-level conditions ('only departments with more than 5 employees')."],
+  ["How do you calculate a running total or rank without collapsing rows via GROUP BY?","Use window functions (SUM() OVER, RANK() OVER) in MySQL 8+, which compute aggregates per row without reducing the row count."],
+  ["What does 'MONTHNAME(order_date)' combined with GROUP BY MONTH(order_date) achieve in a revenue report?","Groups orders by calendar month while displaying a readable month name, ordering correctly by the numeric MONTH() rather than alphabetically by name."],
+  ["Why is it good practice to filter with WHERE before grouping rather than filtering everything in HAVING?","WHERE discards non-matching rows before the (often expensive) grouping/aggregation step, reducing the amount of work MySQL has to do."]
+];
+const top20List = document.getElementById('top20-list');
+top20.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'accordion-item';
+  div.innerHTML = `<div class="accordion-head">${i+1}. ${item[0]}<span class="plus">+</span></div><div class="accordion-body"><p>${item[1]}</p></div>`;
+  top20List.appendChild(div);
+});
+</script>
+</body>
+</html>

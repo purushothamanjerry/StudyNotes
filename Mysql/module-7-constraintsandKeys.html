@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 7 · Constraints &amp; Keys — MySQL Interview Mastery</title>
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --bg-2: #0d1220;
+            --surface: rgba(255, 255, 255, 0.035);
+            --surface-hover: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.09);
+            --border-soft: rgba(255, 255, 255, 0.05);
+            --text: #e9edf5;
+            --text-dim: #93a0b8;
+            --text-faint: #5c6a84;
+            --violet: #7c6cf6;
+            --violet-soft: rgba(124, 108, 246, 0.14);
+            --cyan: #22d3ee;
+            --cyan-soft: rgba(34, 211, 238, 0.12);
+            --amber: #f5a623;
+            --amber-soft: rgba(245, 166, 35, 0.12);
+            --rose: #fb5a7e;
+            --rose-soft: rgba(251, 90, 126, 0.12);
+            --emerald: #34d399;
+            --emerald-soft: rgba(52, 211, 153, 0.12);
+            --grad: linear-gradient(135deg, #7c6cf6, #22d3ee);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(ellipse 900px 600px at 15% -5%, rgba(124, 108, 246, 0.16), transparent 60%),
+                radial-gradient(ellipse 900px 700px at 100% 10%, rgba(34, 211, 238, 0.10), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+        }
+
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: var(--grad);
+            z-index: 1000;
+            transition: width .1s ease-out;
+            box-shadow: 0 0 12px rgba(124, 108, 246, 0.7);
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px 0 20px;
+            background: rgba(10, 14, 26, 0.7);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            font-size: 15px;
+        }
+
+        .topbar .brand .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--grad);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .topbar .brand small {
+            color: var(--text-faint);
+            font-weight: 500;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+
+        #menu-toggle {
+            display: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .module-pill {
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 100px;
+            background: var(--violet-soft);
+            color: #c9c0ff;
+            border: 1px solid rgba(124, 108, 246, 0.3);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .layout {
+            display: flex;
+            padding-top: 60px;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 270px;
+            flex-shrink: 0;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            border-right: 1px solid var(--border-soft);
+            overflow-y: auto;
+            padding: 22px 14px 40px;
+            background: rgba(255, 255, 255, 0.012);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar h4 {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-faint);
+            margin: 18px 10px 8px;
+            font-weight: 700;
+        }
+
+        .sidebar h4:first-child {
+            margin-top: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 9px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all .18s ease;
+            position: relative;
+        }
+
+        .nav-link .idx {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-faint);
+            width: 16px;
+        }
+
+        .nav-link:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            background: var(--violet-soft);
+            color: #cfc7ff;
+        }
+
+        .nav-link.active .idx {
+            color: var(--cyan);
+        }
+
+        main {
+            flex: 1;
+            margin-left: 270px;
+            padding: 0;
+            max-width: 100%;
+        }
+
+        .content-wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 0 32px 120px;
+        }
+
+        @media (max-width:980px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform .25s ease;
+                z-index: 950;
+                background: #0a0e1a;
+                width: 82%;
+                max-width: 300px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 20px 0 60px rgba(0, 0, 0, 0.5);
+            }
+
+            main {
+                margin-left: 0;
+            }
+
+            #menu-toggle {
+                display: flex;
+            }
+
+            .content-wrap {
+                padding: 0 18px 100px;
+            }
+        }
+
+        .hero {
+            padding: 150px 0 70px;
+            position: relative;
+        }
+
+        .hero .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            background: var(--cyan-soft);
+            padding: 7px 14px;
+            border-radius: 100px;
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 800;
+            letter-spacing: -0.035em;
+            line-height: 1.04;
+            background: linear-gradient(180deg, #fff, #b8c2d9 140%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero h1 span {
+            background: var(--grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p.lead {
+            margin-top: 22px;
+            font-size: 17px;
+            color: var(--text-dim);
+            max-width: 640px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 14px;
+            margin-top: 36px;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 18px;
+            min-width: 120px;
+        }
+
+        .stat-chip b {
+            display: block;
+            font-size: 20px;
+            font-weight: 800;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-chip span {
+            font-size: 11.5px;
+            color: var(--text-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        section.block {
+            padding: 64px 0;
+            border-top: 1px solid var(--border-soft);
+            scroll-margin-top: 80px;
+        }
+
+        section.block:first-of-type {
+            border-top: none;
+        }
+
+        .block-head {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .block-head .num {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--text-faint);
+            border: 1px solid var(--border);
+            padding: 4px 9px;
+            border-radius: 7px;
+        }
+
+        .block-head h2 {
+            font-size: clamp(1.5rem, 3vw, 2.05rem);
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        .block-sub {
+            color: var(--text-dim);
+            font-size: 15px;
+            margin-bottom: 26px;
+            max-width: 680px;
+        }
+
+        .reveal {
+            opacity: 1;
+            transform: none;
+            transition: opacity .7s cubic-bezier(.16, 1, .3, 1), transform .7s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .reveal.pre {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card+.card {
+            margin-top: 16px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width:760px) {
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .box {
+            border-radius: var(--radius-sm);
+            padding: 16px 18px;
+            border: 1px solid;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .box .box-icon {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            margin-top: 1px;
+        }
+
+        .box b.box-title {
+            display: block;
+            font-size: 12.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+
+        .box p {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .box.tip {
+            background: var(--emerald-soft);
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .box.tip b {
+            color: var(--emerald);
+        }
+
+        .box.warn {
+            background: var(--amber-soft);
+            border-color: rgba(245, 166, 35, 0.3);
+        }
+
+        .box.warn b {
+            color: var(--amber);
+        }
+
+        .box.mistake {
+            background: var(--rose-soft);
+            border-color: rgba(251, 90, 126, 0.3);
+        }
+
+        .box.mistake b {
+            color: var(--rose);
+        }
+
+        .box.interview {
+            background: var(--violet-soft);
+            border-color: rgba(124, 108, 246, 0.3);
+        }
+
+        .box.interview b {
+            color: #a99bff;
+        }
+
+        .code {
+            background: #080b13;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin: 14px 0;
+        }
+
+        .code .code-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-soft);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .code .code-head span {
+            font-size: 11px;
+            color: var(--text-faint);
+            font-family: var(--mono);
+            letter-spacing: 0.03em;
+        }
+
+        .code .dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .code .dots i {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .code .dots i:nth-child(1) {
+            background: #fb5a7e55;
+        }
+
+        .code .dots i:nth-child(2) {
+            background: #f5a62355;
+        }
+
+        .code .dots i:nth-child(3) {
+            background: #34d39955;
+        }
+
+        .code pre {
+            padding: 16px 18px;
+            overflow-x: auto;
+            font-family: var(--mono);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .kw {
+            color: #7c6cf6;
+            font-weight: 600;
+        }
+
+        .fn {
+            color: #22d3ee;
+        }
+
+        .str {
+            color: #f5a623;
+        }
+
+        .num {
+            color: #34d399;
+        }
+
+        .cm {
+            color: #5c6a84;
+            font-style: italic;
+        }
+
+        .id {
+            color: #e9edf5;
+        }
+
+        .run-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--grad);
+            color: #0a0e1a;
+            font-weight: 700;
+            font-size: 12.5px;
+            padding: 8px 15px;
+            border-radius: 100px;
+            border: none;
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .run-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(124, 108, 246, 0.35);
+        }
+
+        .run-output {
+            margin-top: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height .4s ease, opacity .4s ease;
+        }
+
+        .run-output.show {
+            max-height: 400px;
+            opacity: 1;
+        }
+
+        .run-output table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+            font-family: var(--mono);
+        }
+
+        .run-output th {
+            background: rgba(124, 108, 246, 0.12);
+            color: #c9c0ff;
+            text-align: left;
+            padding: 8px 12px;
+            font-weight: 700;
+        }
+
+        .run-output td {
+            padding: 7px 12px;
+            border-top: 1px solid var(--border-soft);
+            color: var(--text-dim);
+        }
+
+        .run-output .ok-line {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--emerald);
+            font-family: var(--mono);
+            background: rgba(52, 211, 153, 0.06);
+        }
+
+        .run-output .err-line {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--rose);
+            font-family: var(--mono);
+            background: rgba(251, 90, 126, 0.06);
+        }
+
+        .acc-item {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        .acc-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 18px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14.5px;
+        }
+
+        .acc-head:hover {
+            background: var(--surface-hover);
+        }
+
+        .acc-head .chev {
+            transition: transform .25s ease;
+            color: var(--text-faint);
+            flex-shrink: 0;
+        }
+
+        .acc-item.open .acc-head .chev {
+            transform: rotate(180deg);
+            color: var(--cyan);
+        }
+
+        .acc-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .35s ease;
+        }
+
+        .acc-body-inner {
+            padding: 0 18px 18px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 100px;
+            margin-left: 8px;
+            letter-spacing: 0.03em;
+        }
+
+        .tag.company {
+            background: rgba(124, 108, 246, 0.15);
+            color: #b7adff;
+            border: 1px solid rgba(124, 108, 246, 0.3);
+        }
+
+        .tag.hard {
+            background: var(--rose-soft);
+            color: var(--rose);
+        }
+
+        .tag.med {
+            background: var(--amber-soft);
+            color: var(--amber);
+        }
+
+        .tag.easy {
+            background: var(--emerald-soft);
+            color: var(--emerald);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-faint);
+            font-weight: 600;
+            font-size: 13.5px;
+            padding: 9px 14px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .tab-btn.active {
+            color: var(--text);
+            border-color: var(--cyan);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        table.cmp {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            min-width: 560px;
+        }
+
+        table.cmp th {
+            background: rgba(255, 255, 255, 0.04);
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-faint);
+        }
+
+        table.cmp td {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-soft);
+            color: var(--text-dim);
+        }
+
+        table.cmp tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text);
+        }
+
+        .fc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .fc {
+            perspective: 1200px;
+            height: 150px;
+            cursor: pointer;
+        }
+
+        .fc-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform .6s cubic-bezier(.16, 1, .3, 1);
+            transform-style: preserve-3d;
+        }
+
+        .fc.flip .fc-inner {
+            transform: rotateY(180deg);
+        }
+
+        .fc-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 13.5px;
+        }
+
+        .fc-front {
+            background: var(--surface);
+            font-weight: 700;
+        }
+
+        .fc-back {
+            background: var(--violet-soft);
+            transform: rotateY(180deg);
+            color: #dcd6ff;
+            font-size: 12.5px;
+        }
+
+        .fc-front small {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            color: var(--text-faint);
+            font-weight: 400;
+            font-size: 10.5px;
+        }
+
+        .quiz-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin-bottom: 16px;
+        }
+
+        .quiz-q {
+            font-weight: 600;
+            font-size: 14.5px;
+            margin-bottom: 14px;
+        }
+
+        .quiz-opt {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 11px 14px;
+            border-radius: 9px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 13.5px;
+            transition: all .15s ease;
+        }
+
+        .quiz-opt:hover {
+            border-color: rgba(124, 108, 246, 0.4);
+        }
+
+        .quiz-opt.correct {
+            background: var(--emerald-soft);
+            border-color: var(--emerald);
+            color: var(--emerald);
+        }
+
+        .quiz-opt.wrong {
+            background: var(--rose-soft);
+            border-color: var(--rose);
+            color: var(--rose);
+        }
+
+        .quiz-score {
+            font-size: 13px;
+            color: var(--text-faint);
+            margin-top: 6px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 26px;
+            margin-top: 20px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: linear-gradient(var(--violet), var(--cyan));
+        }
+
+        .tl-item {
+            position: relative;
+            padding-bottom: 26px;
+        }
+
+        .tl-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 3px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 2px solid var(--cyan);
+        }
+
+        .tl-item h4 {
+            font-size: 14.5px;
+            font-weight: 700;
+        }
+
+        .tl-item p {
+            font-size: 13.5px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .mindmap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            margin-top: 20px;
+        }
+
+        .mm-root {
+            background: var(--grad);
+            color: #0a0e1a;
+            font-weight: 800;
+            padding: 12px 26px;
+            border-radius: 12px;
+            font-size: 15px;
+            text-align: center;
+        }
+
+        .mm-branches {
+            display: flex;
+            gap: 14px;
+            margin-top: 26px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mm-node {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 12px 16px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .mm-node b {
+            font-size: 13px;
+            display: block;
+            margin-bottom: 4px;
+            color: var(--cyan);
+        }
+
+        .mm-node span {
+            font-size: 11px;
+            color: var(--text-faint);
+        }
+
+        .cheat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        @media (max-width:700px) {
+            .cheat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cheat-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+        }
+
+        .cheat-item code {
+            font-family: var(--mono);
+            color: var(--cyan);
+            font-size: 13px;
+        }
+
+        .cheat-item p {
+            font-size: 12.5px;
+            color: var(--text-faint);
+            margin-top: 4px;
+        }
+
+        footer {
+            padding: 60px 0 40px;
+            text-align: center;
+            color: var(--text-faint);
+            font-size: 13px;
+            border-top: 1px solid var(--border-soft);
+            margin-top: 40px;
+        }
+
+        #toTop {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease;
+            z-index: 800;
+        }
+
+        #toTop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width:760px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        h3.sub-h {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 22px 0 10px;
+            letter-spacing: -0.01em;
+        }
+
+        p.body-p {
+            font-size: 14.5px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        ul.plain {
+            padding-left: 20px;
+            font-size: 14.5px;
+            color: var(--text-dim);
+            margin: 10px 0;
+        }
+
+        ul.plain li {
+            margin-bottom: 6px;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .small-badge {
+            font-size: 11px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 100px;
+            color: var(--text-dim);
+        }
+
+        /* ---- Keys Explorer (signature interactive) ---- */
+        .explorer {
+            margin: 26px 0;
+        }
+
+        .explorer-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .key-pill {
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 100px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-dim);
+            transition: all .18s ease;
+        }
+
+        .key-pill:hover {
+            border-color: rgba(124, 108, 246, 0.4);
+            color: var(--text);
+        }
+
+        .key-pill.active {
+            background: var(--grad);
+            color: #0a0e1a;
+            border-color: transparent;
+        }
+
+        .explorer-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        table.explorer-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: 12.5px;
+            min-width: 640px;
+        }
+
+        table.explorer-tbl th {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px 14px;
+            text-align: left;
+            color: var(--text-faint);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border);
+            transition: all .25s ease;
+        }
+
+        table.explorer-tbl td {
+            padding: 10px 14px;
+            border-top: 1px solid var(--border-soft);
+            color: var(--text-dim);
+        }
+
+        table.explorer-tbl th.hl,
+        table.explorer-tbl td.hl {
+            background: rgba(124, 108, 246, 0.18);
+            color: #dcd6ff;
+            box-shadow: inset 0 0 0 1px rgba(124, 108, 246, 0.4);
+        }
+
+        .explorer-detail {
+            margin-top: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .explorer-detail h4 {
+            font-size: 14.5px;
+            color: var(--cyan);
+            margin-bottom: 8px;
+        }
+
+        .explorer-detail p {
+            font-size: 13.5px;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="progress-bar"></div>
+
+    <div class="topbar">
+        <div style="display:flex;align-items:center;gap:14px;">
+            <button id="menu-toggle" aria-label="Toggle navigation">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </button>
+            <div class="brand"><span class="dot"></span> MySQL Interview Deck <small>· Java Full Stack Track</small>
+            </div>
+        </div>
+        <div class="module-pill">Module 07 / Constraints &amp; Keys</div>
+    </div>
+
+    <div class="layout">
+        <nav class="sidebar" id="sidebar">
+            <h4>Foundations</h4>
+            <a class="nav-link" href="#intro"><span class="idx">00</span>Introduction</a>
+            <a class="nav-link" href="#overview"><span class="idx">01</span>Why Constraints Exist</a>
+            <h4>Column &amp; Row Constraints</h4>
+            <a class="nav-link" href="#pk"><span class="idx">02</span>PRIMARY KEY</a>
+            <a class="nav-link" href="#fk"><span class="idx">03</span>FOREIGN KEY</a>
+            <a class="nav-link" href="#unique"><span class="idx">04</span>UNIQUE</a>
+            <a class="nav-link" href="#check"><span class="idx">05</span>CHECK</a>
+            <a class="nav-link" href="#default"><span class="idx">06</span>DEFAULT</a>
+            <a class="nav-link" href="#notnull"><span class="idx">07</span>NOT NULL</a>
+            <h4>Key Theory</h4>
+            <a class="nav-link" href="#explorer"><span class="idx">08</span>Keys Explorer</a>
+            <a class="nav-link" href="#candidate"><span class="idx">09</span>Candidate Key</a>
+            <a class="nav-link" href="#super"><span class="idx">10</span>Super Key</a>
+            <a class="nav-link" href="#alternate"><span class="idx">11</span>Alternate Key</a>
+            <a class="nav-link" href="#composite"><span class="idx">12</span>Composite Key</a>
+            <a class="nav-link" href="#surrogate"><span class="idx">13</span>Surrogate Key</a>
+            <h4>Interview Prep</h4>
+            <a class="nav-link" href="#mistakes"><span class="idx">14</span>Common Mistakes</a>
+            <a class="nav-link" href="#springboot"><span class="idx">15</span>Spring Boot Relation</a>
+            <a class="nav-link" href="#tradeoffs"><span class="idx">16</span>Natural vs Surrogate</a>
+            <a class="nav-link" href="#memory"><span class="idx">17</span>Memory Tricks</a>
+            <a class="nav-link" href="#top20"><span class="idx">18</span>Top 20 Questions</a>
+            <a class="nav-link" href="#flashcards"><span class="idx">19</span>Flash Cards</a>
+            <a class="nav-link" href="#quiz"><span class="idx">20</span>Quick Quiz</a>
+            <a class="nav-link" href="#practice"><span class="idx">21</span>SQL Practice</a>
+            <h4>Wrap Up</h4>
+            <a class="nav-link" href="#cheatsheet"><span class="idx">22</span>Cheat Sheet</a>
+            <a class="nav-link" href="#mindmap"><span class="idx">23</span>Mind Map</a>
+            <a class="nav-link" href="#roadmap"><span class="idx">24</span>Roadmap &amp; Next</a>
+        </nav>
+
+        <main>
+            <div class="content-wrap">
+
+                <section class="hero" id="intro">
+                    <div class="eyebrow">Module 07 · Fresher-to-Product-Company Track</div>
+                    <h1>Constraints &amp; Keys, <span>the rules that keep data honest.</span></h1>
+                    <p class="lead">PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, DEFAULT, NOT NULL — and the theory behind
+                        them: candidate, super, alternate, composite, and surrogate keys. This is the single most-asked
+                        theory block in fresher MySQL interviews, and this module builds every term from zero with one
+                        interactive table you can click through.</p>
+                    <div class="hero-stats">
+                        <div class="stat-chip"><b>11</b><span>Concepts</span></div>
+                        <div class="stat-chip"><b>20</b><span>Interview Qs</span></div>
+                        <div class="stat-chip"><b>12</b><span>Flash cards</span></div>
+                        <div class="stat-chip"><b>1</b><span>Keys Explorer</span></div>
+                    </div>
+                </section>
+
+                <!-- ================= OVERVIEW ================= -->
+                <section class="block reveal" id="overview">
+                    <div class="block-head"><span class="num">01</span>
+                        <h2>Why Constraints Exist</h2>
+                    </div>
+                    <p class="block-sub">A table is just rows and columns — constraints are the rules that stop it from
+                        filling up with garbage.</p>
+                    <h3 class="sub-h">Problem it solves</h3>
+                    <ul class="plain">
+                        <li>Without rules, nothing stops two "unique" employee IDs, an order pointing at a customer that
+                            doesn't exist, or a salary of -5000.</li>
+                        <li>Constraints push data validation down into the database itself, so it's enforced no matter
+                            which application, script, or person touches the table.</li>
+                        <li>Keys additionally give MySQL a reliable way to identify a row and to relate rows across
+                            tables.</li>
+                    </ul>
+                    <h3 class="sub-h">Real-world example</h3>
+                    <p class="body-p">Think of a college admission form: a PRIMARY KEY is your unique roll number; a
+                        FOREIGN KEY links your enrolled course to a real course in the catalog; UNIQUE stops two
+                        students from registering the same email; NOT NULL means the name field can't be left blank;
+                        CHECK rejects an age below 15; DEFAULT auto-fills "Pending" as your application status if you
+                        don't set one.</p>
+                    <div class="box interview">
+                        <div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6" />
+                                <path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg></div>
+                        <div><b class="box-title">Interview Tip</b>
+                            <p>Interviewers separate two layers here: <b>constraints</b> (PRIMARY KEY, FOREIGN KEY,
+                                UNIQUE, CHECK, DEFAULT, NOT NULL) are things you literally write in DDL. <b>Key
+                                    theory</b> (candidate, super, alternate, composite, surrogate) is relational-model
+                                vocabulary that explains <i>why</i> you chose the constraints you did. Freshers often
+                                blur the two — keep them distinct in your answers.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= PRIMARY KEY ================= -->
+                <section class="block reveal" id="pk">
+                    <div class="block-head"><span class="num">02</span>
+                        <h2>PRIMARY KEY</h2>
+                    </div>
+                    <p class="block-sub">The column (or set of columns) that uniquely identifies every row in a table —
+                        chosen from among the candidate keys.</p>
+                    <div class="code">
+                        <div class="code-head"><span>primary_key.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span> <span class="kw">AUTO_INCREMENT</span>,
+  <span class="id">name</span> <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>
+);</pre>
+                    </div>
+                    <h3 class="sub-h">How MySQL internally works</h3>
+                    <p class="body-p">In InnoDB, the PRIMARY KEY isn't just a constraint — it <b>is</b> the physical
+                        storage order of the table (a clustered index). Every row is stored sorted by its primary key,
+                        and every secondary index secretly stores the primary key value to look the full row up. This is
+                        why a table without an explicit primary key still gets an internal hidden one generated by
+                        InnoDB.</p>
+                    <div class="grid-2">
+                        <div class="box tip">
+                            <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6" />
+                                </svg></div>
+                            <div><b class="box-title">Rules</b>
+                                <p>Only one PRIMARY KEY per table; it is implicitly NOT NULL + UNIQUE; can span multiple
+                                    columns (composite primary key).</p>
+                            </div>
+                        </div>
+                        <div class="box mistake">
+                            <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2"
+                                        stroke-linecap="round" />
+                                    <path
+                                        d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z"
+                                        stroke="#fb5a7e" stroke-width="1.5" />
+                                </svg></div>
+                            <div><b class="box-title">Common Mistake</b>
+                                <p>Assuming a table "doesn't need" a primary key. Every InnoDB table benefits from one —
+                                    without it, InnoDB adds an invisible 6-byte row ID and clustering becomes harder to
+                                    reason about or replicate reliably.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= FOREIGN KEY ================= -->
+                <section class="block reveal" id="fk">
+                    <div class="block-head"><span class="num">03</span>
+                        <h2>FOREIGN KEY</h2>
+                    </div>
+                    <p class="block-sub">A column that references the PRIMARY KEY (or a UNIQUE key) of another table,
+                        enforcing that the relationship always points to something real.</p>
+                    <div class="code">
+                        <div class="code-head"><span>foreign_key.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span> <span class="kw">AUTO_INCREMENT</span>,
+  <span class="id">name</span> <span class="fn">VARCHAR</span>(<span class="num">100</span>),
+  <span class="id">department_id</span> <span class="fn">INT</span>,
+  <span class="kw">FOREIGN KEY</span> (<span class="id">department_id</span>) <span class="kw">REFERENCES</span> <span class="id">department</span>(<span class="id">id</span>)
+    <span class="kw">ON DELETE</span> <span class="kw">SET NULL</span>
+    <span class="kw">ON UPDATE</span> <span class="kw">CASCADE</span>
+);</pre>
+                    </div>
+                    <button class="run-btn" onclick="runDemo('fk')">▶ Try inserting an invalid reference</button>
+                    <div class="run-output" id="out-fk">
+                        <div class="err-line">✗ ERROR 1452: Cannot add or update a child row: a foreign key constraint
+                            fails (department_id = 99 does not exist in department)</div>
+                    </div>
+                    <h3 class="sub-h">ON DELETE / ON UPDATE Actions</h3>
+                    <div class="table-wrap">
+                        <table class="cmp">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Behaviour on parent DELETE/UPDATE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>CASCADE</td>
+                                    <td>Automatically deletes/updates matching child rows too</td>
+                                </tr>
+                                <tr>
+                                    <td>SET NULL</td>
+                                    <td>Sets the child's foreign key column to NULL</td>
+                                </tr>
+                                <tr>
+                                    <td>RESTRICT / NO ACTION</td>
+                                    <td>Blocks the parent operation if matching child rows exist (MySQL default)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="box warn">
+                        <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 9v4M12 17h.01" stroke="#f5a623" stroke-width="2" stroke-linecap="round" />
+                                <path
+                                    d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z"
+                                    stroke="#f5a623" stroke-width="1.5" />
+                            </svg></div>
+                        <div><b class="box-title">Warning</b>
+                            <p>Foreign keys are only enforced by <b>InnoDB</b>, MySQL's default storage engine — the
+                                older MyISAM engine silently ignores them. Always confirm the engine in an interview
+                                answer about referential integrity.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= UNIQUE ================= -->
+                <section class="block reveal" id="unique">
+                    <div class="block-head"><span class="num">04</span>
+                        <h2>UNIQUE</h2>
+                    </div>
+                    <p class="block-sub">Guarantees no two rows share the same value in a column (or column combination)
+                        — but unlike PRIMARY KEY, it allows NULLs.</p>
+                    <div class="code">
+                        <div class="code-head"><span>unique_constraint.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+  <span class="id">email</span> <span class="fn">VARCHAR</span>(<span class="num">150</span>) <span class="kw">UNIQUE</span>,
+  <span class="id">ssn</span> <span class="fn">VARCHAR</span>(<span class="num">20</span>) <span class="kw">UNIQUE</span>
+);</pre>
+                    </div>
+                    <div class="box interview">
+                        <div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6" />
+                                <path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg></div>
+                        <div><b class="box-title">Interview Tip</b>
+                            <p>Classic trap question: "Can a UNIQUE column have multiple NULLs?" In MySQL, <b>yes</b> —
+                                NULL is never considered equal to another NULL, so multiple NULLs don't violate
+                                uniqueness (this differs from some other databases like SQL Server, which historically
+                                allowed only one NULL).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= CHECK ================= -->
+                <section class="block reveal" id="check">
+                    <div class="block-head"><span class="num">05</span>
+                        <h2>CHECK</h2>
+                    </div>
+                    <p class="block-sub">Enforces a boolean condition on every row — fully supported from MySQL 8.0.16
+                        onward (earlier versions parsed but silently ignored it).</p>
+                    <div class="code">
+                        <div class="code-head"><span>check_constraint.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+  <span class="id">salary</span> <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="kw">CHECK</span> (<span class="id">salary</span> &gt; <span class="num">0</span>),
+  <span class="id">age</span> <span class="fn">INT</span> <span class="kw">CHECK</span> (<span class="id">age</span> &gt;= <span class="num">18</span>)
+);</pre>
+                    </div>
+                    <div class="box mistake">
+                        <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round" />
+                                <path
+                                    d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z"
+                                    stroke="#fb5a7e" stroke-width="1.5" />
+                            </svg></div>
+                        <div><b class="box-title">Common Mistake</b>
+                            <p>Assuming CHECK constraints always worked in MySQL. Before 8.0.16, MySQL accepted the
+                                syntax but never enforced it — a well-known interview "gotcha" specific to MySQL's
+                                version history.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= DEFAULT ================= -->
+                <section class="block reveal" id="default">
+                    <div class="block-head"><span class="num">06</span>
+                        <h2>DEFAULT</h2>
+                    </div>
+                    <p class="block-sub">Supplies an automatic value for a column when an INSERT doesn't specify one.
+                    </p>
+                    <div class="code">
+                        <div class="code-head"><span>default_constraint.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+  <span class="id">status</span> <span class="fn">VARCHAR</span>(<span class="num">20</span>) <span class="kw">DEFAULT</span> <span class="str">'ACTIVE'</span>,
+  <span class="id">created_at</span> <span class="fn">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="fn">CURRENT_TIMESTAMP</span>
+);
+
+<span class="kw">INSERT INTO</span> <span class="id">employee</span> (<span class="id">id</span>) <span class="kw">VALUES</span> (<span class="num">1</span>);
+<span class="cm">-- status becomes 'ACTIVE', created_at becomes now() automatically</span></pre>
+                    </div>
+                    <div class="box tip">
+                        <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6" />
+                            </svg></div>
+                        <div><b class="box-title">Best Practice</b>
+                            <p>Prefer database-level DEFAULT for audit columns like <code
+                                    style="font-family:var(--mono)">created_at</code> over setting them in application
+                                code — it guarantees consistency even for rows inserted by scripts, migrations, or
+                                another service entirely.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= NOT NULL ================= -->
+                <section class="block reveal" id="notnull">
+                    <div class="block-head"><span class="num">07</span>
+                        <h2>NOT NULL</h2>
+                    </div>
+                    <p class="block-sub">The simplest constraint — a column must always contain a value; MySQL rejects
+                        any INSERT or UPDATE that would leave it empty.</p>
+                    <div class="code">
+                        <div class="code-head"><span>not_null.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,
+  <span class="id">name</span> <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>
+);</pre>
+                    </div>
+                    <div class="box interview">
+                        <div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6" />
+                                <path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg></div>
+                        <div><b class="box-title">Interview Tip</b>
+                            <p>NOT NULL is a column-level constraint only — it can't span multiple columns like CHECK or
+                                UNIQUE can. If you need "at least one of column A or B must be filled," you need a CHECK
+                                constraint instead.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= KEYS EXPLORER (signature interactive) ================= -->
+                <section class="block reveal" id="explorer">
+                    <div class="block-head"><span class="num">08</span>
+                        <h2>Keys Explorer</h2>
+                    </div>
+                    <p class="block-sub">One employee table, five kinds of keys. Click a key type to see exactly which
+                        column(s) qualify and why.</p>
+
+                    <div class="explorer">
+                        <div class="explorer-pills" id="key-pills">
+                            <button class="key-pill active" data-key="candidate">Candidate Key</button>
+                            <button class="key-pill" data-key="super">Super Key</button>
+                            <button class="key-pill" data-key="alternate">Alternate Key</button>
+                            <button class="key-pill" data-key="composite">Composite Key</button>
+                            <button class="key-pill" data-key="surrogate">Surrogate Key</button>
+                        </div>
+                        <div class="explorer-table-wrap">
+                            <table class="explorer-tbl" id="explorer-table">
+                                <thead>
+                                    <tr>
+                                        <th data-col="id">id (PK)</th>
+                                        <th data-col="ssn">ssn</th>
+                                        <th data-col="email">email</th>
+                                        <th data-col="dept">department_id</th>
+                                        <th data-col="seat">seat_no</th>
+                                        <th data-col="name">first_name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td data-col="id">101</td>
+                                        <td data-col="ssn">771-22-9981</td>
+                                        <td data-col="email">asha@mail.com</td>
+                                        <td data-col="dept">4</td>
+                                        <td data-col="seat">A-12</td>
+                                        <td data-col="name">Asha</td>
+                                    </tr>
+                                    <tr>
+                                        <td data-col="id">102</td>
+                                        <td data-col="ssn">552-19-4471</td>
+                                        <td data-col="email">ravi@mail.com</td>
+                                        <td data-col="dept">2</td>
+                                        <td data-col="seat">B-04</td>
+                                        <td data-col="name">Ravi</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="explorer-detail" id="explorer-detail"></div>
+                    </div>
+                </section>
+
+                <!-- ================= CANDIDATE KEY ================= -->
+                <section class="block reveal" id="candidate">
+                    <div class="block-head"><span class="num">09</span>
+                        <h2>Candidate Key</h2>
+                    </div>
+                    <p class="block-sub">Any column (or minimal column combination) that could, on its own, uniquely
+                        identify every row.</p>
+                    <p class="body-p">In our employee table: <code style="font-family:var(--mono)">id</code>, <code
+                            style="font-family:var(--mono)">ssn</code>, and <code
+                            style="font-family:var(--mono)">email</code> are all candidate keys — each independently
+                        guarantees uniqueness. MySQL doesn't have a literal <code
+                            style="font-family:var(--mono)">CANDIDATE KEY</code> keyword; you express candidacy by
+                        making each one either the PRIMARY KEY or a UNIQUE constraint.</p>
+                    <div class="box tip">
+                        <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6" />
+                            </svg></div>
+                        <div><b class="box-title">Key Rule</b>
+                            <p>A candidate key must be <b>minimal</b> — no column inside it can be removed without
+                                losing uniqueness. That minimality is exactly what separates a candidate key from a
+                                super key.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= SUPER KEY ================= -->
+                <section class="block reveal" id="super">
+                    <div class="block-head"><span class="num">10</span>
+                        <h2>Super Key</h2>
+                    </div>
+                    <p class="block-sub">Any set of columns that uniquely identifies a row — including extra,
+                        unnecessary columns.</p>
+                    <p class="body-p">Every candidate key is a super key, but not every super key is a candidate key.
+                        <code style="font-family:var(--mono)">{id}</code> is a super key. So is <code
+                            style="font-family:var(--mono)">{id, first_name}</code> — it's still unique because <code
+                            style="font-family:var(--mono)">id</code> alone already guarantees that — but it's <b>not
+                            minimal</b>, so it's not a candidate key.</p>
+                    <div class="box mistake">
+                        <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round" />
+                                <path
+                                    d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z"
+                                    stroke="#fb5a7e" stroke-width="1.5" />
+                            </svg></div>
+                        <div><b class="box-title">Common Mistake</b>
+                            <p>Saying "super key" when you mean "candidate key," or vice versa. The one-line test: <i>is
+                                    every column in the set actually necessary?</i> If yes → candidate key. If some are
+                                redundant → just a super key.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= ALTERNATE KEY ================= -->
+                <section class="block reveal" id="alternate">
+                    <div class="block-head"><span class="num">11</span>
+                        <h2>Alternate Key</h2>
+                    </div>
+                    <p class="block-sub">Any candidate key that was <b>not</b> chosen as the primary key.</p>
+                    <p class="body-p">If <code style="font-family:var(--mono)">id</code> becomes the PRIMARY KEY, then
+                        <code style="font-family:var(--mono)">ssn</code> and <code
+                            style="font-family:var(--mono)">email</code> — still perfectly valid unique identifiers —
+                        become alternate keys. In MySQL you enforce them with a <code
+                            style="font-family:var(--mono)">UNIQUE</code> constraint, since the PRIMARY KEY slot is
+                        already taken.</p>
+                    <div class="code">
+                        <div class="code-head"><span>alternate_key.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span>,           <span class="cm">-- chosen candidate key</span>
+  <span class="id">ssn</span> <span class="fn">VARCHAR</span>(<span class="num">20</span>) <span class="kw">UNIQUE</span>,     <span class="cm">-- alternate key</span>
+  <span class="id">email</span> <span class="fn">VARCHAR</span>(<span class="num">150</span>) <span class="kw">UNIQUE</span>   <span class="cm">-- alternate key</span>
+);</pre>
+                    </div>
+                </section>
+
+                <!-- ================= COMPOSITE KEY ================= -->
+                <section class="block reveal" id="composite">
+                    <div class="block-head"><span class="num">12</span>
+                        <h2>Composite Key</h2>
+                    </div>
+                    <p class="block-sub">A key made of two or more columns together, where no single column alone is
+                        unique.</p>
+                    <p class="body-p">Classic example: an <code style="font-family:var(--mono)">order_items</code> table
+                        where neither <code style="font-family:var(--mono)">order_id</code> nor <code
+                            style="font-family:var(--mono)">product_id</code> is unique alone, but the pair together is.
+                    </p>
+                    <div class="code">
+                        <div class="code-head"><span>composite_key.sql</span>
+                            <div class="dots"><i></i><i></i><i></i></div>
+                        </div>
+                        <pre><span class="kw">CREATE TABLE</span> <span class="id">order_items</span> (
+  <span class="id">order_id</span> <span class="fn">INT</span>,
+  <span class="id">product_id</span> <span class="fn">INT</span>,
+  <span class="id">quantity</span> <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+  <span class="kw">PRIMARY KEY</span> (<span class="id">order_id</span>, <span class="id">product_id</span>)
+);</pre>
+                    </div>
+                    <div class="box interview">
+                        <div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6" />
+                                <path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg></div>
+                        <div><b class="box-title">Interview Tip</b>
+                            <p>A composite key is a description of <i>how many columns</i> a key uses — it can describe
+                                a primary key, a candidate key, or a unique key. It's an orthogonal concept, not a rival
+                                to those terms.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= SURROGATE KEY ================= -->
+                <section class="block reveal" id="surrogate">
+                    <div class="block-head"><span class="num">13</span>
+                        <h2>Surrogate Key</h2>
+                    </div>
+                    <p class="block-sub">An artificial, system-generated identifier with no real-world business meaning
+                        — chosen purely to identify a row.</p>
+                    <p class="body-p"><code style="font-family:var(--mono)">id INT AUTO_INCREMENT</code> is a surrogate
+                        key: it means nothing outside the database. Compare that to a <b>natural key</b> like <code
+                            style="font-family:var(--mono)">ssn</code> or <code
+                            style="font-family:var(--mono)">email</code>, which has meaning in the real world
+                        independent of the database.</p>
+                    <div class="box tip">
+                        <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6" />
+                            </svg></div>
+                        <div><b class="box-title">Best Practice</b>
+                            <p>Product companies almost always default to surrogate keys as the primary key, even when a
+                                natural key exists — natural keys can change (an email gets updated) or turn out to not
+                                be as unique as assumed (two people sharing a legacy ID format).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= COMMON MISTAKES ================= -->
+                <section class="block reveal" id="mistakes">
+                    <div class="block-head"><span class="num">14</span>
+                        <h2>Common Mistakes &amp; Performance Notes</h2>
+                    </div>
+                    <div id="acc-mistakes">
+                        <div class="acc-item">
+                            <div class="acc-head">Forgetting FOREIGN KEY needs InnoDB <span class="chev">▾</span></div>
+                            <div class="acc-body">
+                                <div class="acc-body-inner">MyISAM tables accept the FOREIGN KEY syntax but never
+                                    actually enforce it — always confirm engine = InnoDB when referential integrity
+                                    matters.</div>
+                            </div>
+                        </div>
+                        <div class="acc-item">
+                            <div class="acc-head">Confusing UNIQUE with PRIMARY KEY <span class="chev">▾</span></div>
+                            <div class="acc-body">
+                                <div class="acc-body-inner">UNIQUE allows multiple NULLs and a table can have many
+                                    UNIQUE constraints, but only one PRIMARY KEY, which is always NOT NULL.</div>
+                            </div>
+                        </div>
+                        <div class="acc-item">
+                            <div class="acc-head">Adding too many indexes/keys "just in case" <span
+                                    class="chev">▾</span></div>
+                            <div class="acc-body">
+                                <div class="acc-body-inner">Every UNIQUE/FOREIGN KEY constraint typically creates a
+                                    backing index, which speeds up reads but slows down every INSERT/UPDATE/DELETE. Add
+                                    only what the access patterns actually need.</div>
+                            </div>
+                        </div>
+                        <div class="acc-item">
+                            <div class="acc-head">Using a natural key as PRIMARY KEY that later changes <span
+                                    class="chev">▾</span></div>
+                            <div class="acc-body">
+                                <div class="acc-body-inner">If email is the primary key and a user changes their email,
+                                    every foreign key referencing it must cascade-update — expensive and risky at scale.
+                                    Prefer a surrogate key instead.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= SPRING BOOT RELATION ================= -->
+                <section class="block reveal" id="springboot">
+                    <div class="block-head"><span class="num">15</span>
+                        <h2>Spring Boot Relation</h2>
+                    </div>
+                    <p class="block-sub">JPA/Hibernate annotations map almost one-to-one onto these constraints.</p>
+                    <div class="table-wrap">
+                        <table class="cmp">
+                            <thead>
+                                <tr>
+                                    <th>SQL Concept</th>
+                                    <th>JPA / Hibernate Annotation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>PRIMARY KEY</td>
+                                    <td><code style="font-family:var(--mono)">@Id</code>, with <code
+                                            style="font-family:var(--mono)">@GeneratedValue</code> for surrogate keys
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>FOREIGN KEY</td>
+                                    <td><code style="font-family:var(--mono)">@ManyToOne</code> / <code
+                                            style="font-family:var(--mono)">@JoinColumn</code></td>
+                                </tr>
+                                <tr>
+                                    <td>UNIQUE</td>
+                                    <td><code style="font-family:var(--mono)">@Column(unique = true)</code> or <code
+                                            style="font-family:var(--mono)">@Table(uniqueConstraints = ...)</code></td>
+                                </tr>
+                                <tr>
+                                    <td>NOT NULL</td>
+                                    <td><code style="font-family:var(--mono)">@Column(nullable = false)</code>, often
+                                        paired with <code style="font-family:var(--mono)">@NotNull</code> (Bean
+                                        Validation)</td>
+                                </tr>
+                                <tr>
+                                    <td>CHECK</td>
+                                    <td>No direct annotation — usually a native <code
+                                            style="font-family:var(--mono)">@Check</code> (Hibernate-specific) or
+                                        enforced in the DB migration script</td>
+                                </tr>
+                                <tr>
+                                    <td>Composite Key</td>
+                                    <td><code style="font-family:var(--mono)">@EmbeddedId</code> or <code
+                                            style="font-family:var(--mono)">@IdClass</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- ================= TRADEOFFS ================= -->
+                <section class="block reveal" id="tradeoffs">
+                    <div class="block-head"><span class="num">16</span>
+                        <h2>Natural Key vs Surrogate Key</h2>
+                    </div>
+                    <div class="tabs" id="tradeoff-tabs">
+                        <button class="tab-btn active" data-tab="nat">Natural Key</button>
+                        <button class="tab-btn" data-tab="sur">Surrogate Key</button>
+                    </div>
+                    <div class="tab-panel active" data-panel="nat">
+                        <ul class="plain">
+                            <li>Has real-world meaning (email, SSN, ISBN) — self-documenting in queries.</li>
+                            <li>Risk: can change over time, forcing cascading updates.</li>
+                            <li>Risk: "uniqueness" assumptions can break (duplicate SSNs across systems, format
+                                changes).</li>
+                        </ul>
+                    </div>
+                    <div class="tab-panel" data-panel="sur">
+                        <ul class="plain">
+                            <li>Never changes, has no business meaning, always safe to reference.</li>
+                            <li>Smaller and faster to index (a 4-byte INT vs a long VARCHAR).</li>
+                            <li>Downside: an extra join or lookup is sometimes needed to get to human-meaningful data.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- ================= MEMORY TRICKS ================= -->
+                <section class="block reveal" id="memory">
+                    <div class="block-head"><span class="num">17</span>
+                        <h2>Memory Tricks</h2>
+                    </div>
+                    <div class="grid-3">
+                        <div class="card"><b style="color:var(--cyan);font-size:13px;">Key Family</b>
+                            <p class="body-p" style="margin-top:8px;">"Super holds Candidates, Candidate becomes Primary
+                                or stays Alternate" — super ⊇ candidate ⊇ {primary + alternates}.</p>
+                        </div>
+                        <div class="card"><b style="color:var(--cyan);font-size:13px;">Constraints Sentence</b>
+                            <p class="body-p" style="margin-top:8px;">"Please Find Unique Checks Done Nicely" → Primary,
+                                Foreign, Unique, Check, Default, NOT NULL.</p>
+                        </div>
+                        <div class="card"><b style="color:var(--cyan);font-size:13px;">Surrogate vs Natural</b>
+                            <p class="body-p" style="margin-top:8px;">"Surrogate is Synthetic" — both start with S, both
+                                are artificial/meaningless outside the DB.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= TOP 20 ================= -->
+                <section class="block reveal" id="top20">
+                    <div class="block-head"><span class="num">18</span>
+                        <h2>Top 20 Interview Questions</h2>
+                    </div>
+                    <p class="block-sub">Tagged with the companies where this style of question is commonly reported.
+                    </p>
+                    <div id="acc-top20"></div>
+                </section>
+
+                <!-- ================= FLASHCARDS ================= -->
+                <section class="block reveal" id="flashcards">
+                    <div class="block-head"><span class="num">19</span>
+                        <h2>Flash Cards</h2>
+                    </div>
+                    <p class="block-sub">Tap a card to flip it.</p>
+                    <div class="fc-grid" id="fc-grid"></div>
+                </section>
+
+                <!-- ================= QUIZ ================= -->
+                <section class="block reveal" id="quiz">
+                    <div class="block-head"><span class="num">20</span>
+                        <h2>Quick Quiz</h2>
+                    </div>
+                    <p class="block-sub">Pick an answer — instant feedback, no page reload.</p>
+                    <div id="quiz-container"></div>
+                    <div class="quiz-score" id="quiz-score">Score: 0 / 0</div>
+                </section>
+
+                <!-- ================= SQL PRACTICE ================= -->
+                <section class="block reveal" id="practice">
+                    <div class="block-head"><span class="num">21</span>
+                        <h2>SQL Practice Questions</h2>
+                    </div>
+                    <div id="acc-practice">
+                        <div class="acc-item">
+                            <div class="acc-head">Add a composite primary key to an existing order_items table <span
+                                    class="chev">▾</span></div>
+                            <div class="acc-body">
+                                <div class="acc-body-inner">
+                                    <div class="code" style="margin:0;">
+                                        <pre><span class="kw">ALTER TABLE</span> <span class="id">order_items</span>
+<span class="kw">ADD PRIMARY KEY</span> (<span class="id">order_id</span>, <span class="id">product_id</span>);</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="acc-item">
+                            <div class="acc-head">Add a foreign key from employee.department_id to department.id,
+                                cascading deletes <span class="chev">▾</span></div>
+                            <div class="acc-body">
+                                <div class="acc-body-inner">
+                                    <div class="code" style="margin:0;">
+                                        <pre><span class="kw">ALTER TABLE</span> <span class="id">employee</span>
+<span class="kw">ADD CONSTRAINT</span> <span class="id">fk_department</span>
+<span class="kw">FOREIGN KEY</span> (<span class="id">department_id</span>) <span class="kw">REFERENCES</span> <span class="id">department</span>(<span class="id">id</span>)
+<span class="kw">ON DELETE CASCADE</span>;</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="acc-item">
+                            <div class="acc-head">Ensure salary is always positive and defaults to 0 <span
+                                    class="chev">▾</span></div>
+                            <div class="acc-body">
+                                <div class="acc-body-inner">
+                                    <div class="code" style="margin:0;">
+                                        <pre><span class="kw">ALTER TABLE</span> <span class="id">employee</span>
+<span class="kw">MODIFY</span> <span class="id">salary</span> <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="kw">DEFAULT</span> <span class="num">0</span> <span class="kw">CHECK</span> (<span class="id">salary</span> &gt;= <span class="num">0</span>);</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= CHEAT SHEET ================= -->
+                <section class="block reveal" id="cheatsheet">
+                    <div class="block-head"><span class="num">22</span>
+                        <h2>Cheat Sheet</h2>
+                    </div>
+                    <div class="cheat-grid">
+                        <div class="cheat-item"><code>PRIMARY KEY</code>
+                            <p>Unique + NOT NULL, one per table, defines InnoDB row storage order</p>
+                        </div>
+                        <div class="cheat-item"><code>FOREIGN KEY</code>
+                            <p>Enforces referential integrity — requires InnoDB</p>
+                        </div>
+                        <div class="cheat-item"><code>UNIQUE</code>
+                            <p>Unique values, multiple NULLs allowed, many per table</p>
+                        </div>
+                        <div class="cheat-item"><code>CHECK</code>
+                            <p>Enforced only from MySQL 8.0.16+</p>
+                        </div>
+                        <div class="cheat-item"><code>DEFAULT</code>
+                            <p>Auto-fills a value when none is provided on INSERT</p>
+                        </div>
+                        <div class="cheat-item"><code>NOT NULL</code>
+                            <p>Column can never be empty</p>
+                        </div>
+                        <div class="cheat-item"><code>Super ⊇ Candidate ⊇ Primary/Alternate</code>
+                            <p>The key hierarchy in one line</p>
+                        </div>
+                        <div class="cheat-item"><code>Surrogate ≠ Natural</code>
+                            <p>Artificial ID vs real-world meaningful ID</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= MIND MAP ================= -->
+                <section class="block reveal" id="mindmap">
+                    <div class="block-head"><span class="num">23</span>
+                        <h2>Mind Map</h2>
+                    </div>
+                    <div class="mindmap">
+                        <div class="mm-root">Constraints &amp; Keys</div>
+                        <div class="mm-branches">
+                            <div class="mm-node"><b>Constraints</b><span>PK·FK·UNIQUE·CHECK·DEFAULT·NOT NULL</span>
+                            </div>
+                            <div class="mm-node"><b>Candidate Key</b><span>Minimal unique set</span></div>
+                            <div class="mm-node"><b>Super Key</b><span>Any unique superset</span></div>
+                            <div class="mm-node"><b>Alternate Key</b><span>Unchosen candidates</span></div>
+                            <div class="mm-node"><b>Composite Key</b><span>Multi-column key</span></div>
+                            <div class="mm-node"><b>Surrogate Key</b><span>Artificial identifier</span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= ROADMAP ================= -->
+                <section class="block reveal" id="roadmap">
+                    <div class="block-head"><span class="num">24</span>
+                        <h2>Learning Roadmap &amp; Further Topics</h2>
+                    </div>
+                    <div class="timeline">
+                        <div class="tl-item">
+                            <h4>Module 7 — Constraints &amp; Keys ✓ (you are here)</h4>
+                            <p>PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, DEFAULT, NOT NULL, and the full key-type
+                                hierarchy.</p>
+                        </div>
+                        <div class="tl-item">
+                            <h4>Module 8 — Normalization &amp; Schema Design</h4>
+                            <p>1NF through BCNF, functional dependencies, denormalization trade-offs.</p>
+                        </div>
+                        <div class="tl-item">
+                            <h4>Module 9 — Joins Deep Dive</h4>
+                            <p>INNER/LEFT/RIGHT/FULL joins, self-joins, and how foreign keys drive join conditions.</p>
+                        </div>
+                        <div class="tl-item">
+                            <h4>Module 10 — Indexing &amp; Query Optimization</h4>
+                            <p>How PRIMARY KEY and UNIQUE constraints become physical indexes, EXPLAIN plans.</p>
+                        </div>
+                        <div class="tl-item">
+                            <h4>Module 11 — Transactions, Locking &amp; Isolation Levels</h4>
+                            <p>How foreign key checks interact with locks and concurrent transactions.</p>
+                        </div>
+                    </div>
+                    <h3 class="sub-h">Summary</h3>
+                    <p class="body-p">Constraints (PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, DEFAULT, NOT NULL) are rules
+                        you write in DDL to keep data valid and relationships intact. Key theory (candidate, super,
+                        alternate, composite, surrogate) is the relational-model vocabulary explaining which columns
+                        qualify as identifiers and why one was chosen over the others. Every candidate key is a super
+                        key; every unchosen candidate key becomes an alternate key; a key spanning multiple columns is
+                        composite regardless of which category it falls into; and product teams almost always prefer an
+                        artificial surrogate key over a natural one for stability at scale.</p>
+                </section>
+
+                <footer>Module 7 of the MySQL Interview Mastery series · Built for Java Full Stack fresher interviews
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <div id="toTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <script>
+        /* ---------------- progress bar + back to top ---------------- */
+        const progressBar = document.getElementById('progress-bar');
+        const toTop = document.getElementById('toTop');
+        window.addEventListener('scroll', () => {
+            const h = document.documentElement;
+            const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+            progressBar.style.width = scrolled + '%';
+            toTop.classList.toggle('show', h.scrollTop > 600);
+        });
+
+        /* reveal on scroll — progressive enhancement only; content visible by default. */
+        const revealEls = document.querySelectorAll('.reveal');
+        if ('IntersectionObserver' in window) {
+            revealEls.forEach(el => el.classList.add('pre'));
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+            }, { threshold: 0.12 });
+            revealEls.forEach(el => io.observe(el));
+            setTimeout(() => revealEls.forEach(el => el.classList.add('in')), 4000);
+        }
+
+        /* active sidebar link on scroll */
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = [...document.querySelectorAll('section[id]')];
+        const navObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    const link = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+                    if (link) link.classList.add('active');
+                }
+            });
+        }, { rootMargin: '-30% 0px -60% 0px' });
+        sections.forEach(s => navObserver.observe(s));
+
+        /* mobile sidebar toggle */
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('menu-toggle').addEventListener('click', () => sidebar.classList.toggle('open'));
+        navLinks.forEach(l => l.addEventListener('click', () => sidebar.classList.remove('open')));
+
+        /* ---------------- run demo output ---------------- */
+        function runDemo(id) {
+            const el = document.getElementById('out-' + id);
+            el.classList.toggle('show');
+        }
+
+        /* ---------------- accordion generic ---------------- */
+        function wireAccordions(root) {
+            root.querySelectorAll('.acc-head').forEach(head => {
+                head.addEventListener('click', () => {
+                    const item = head.parentElement;
+                    const body = item.querySelector('.acc-body');
+                    const isOpen = item.classList.contains('open');
+                    item.classList.toggle('open', !isOpen);
+                    body.style.maxHeight = isOpen ? null : body.scrollHeight + 'px';
+                });
+            });
+        }
+        wireAccordions(document.getElementById('acc-mistakes'));
+        wireAccordions(document.getElementById('acc-practice'));
+
+        /* ---------------- tabs ---------------- */
+        document.querySelectorAll('#tradeoff-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#tradeoff-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelector('.tab-panel[data-panel="' + btn.dataset.tab + '"]').classList.add('active');
+            });
+        });
+
+        /* ---------------- Keys Explorer ---------------- */
+        const explorerData = {
+            candidate: { cols: ['id', 'ssn', 'email'], mode: 'any', title: 'Candidate Keys', text: 'id, ssn, and email are each independently a candidate key — every one of them alone uniquely identifies a row, and none can be shortened further.' },
+            super: { cols: ['id', 'name'], mode: 'all', title: 'A Super Key (non-minimal)', text: '{id, first_name} is a super key: it is unique because id alone already guarantees it. But it is not minimal — first_name is redundant — so it is NOT a candidate key.' },
+            alternate: { cols: ['ssn', 'email'], mode: 'any', title: 'Alternate Keys', text: 'Since id was chosen as the PRIMARY KEY, the other candidate keys — ssn and email — become alternate keys. They still uniquely identify rows, just not the "official" one.' },
+            composite: { cols: ['dept', 'seat'], mode: 'all', title: 'A Composite Key', text: 'department_id alone repeats across employees, and seat_no alone repeats across departments — but the pair {department_id, seat_no} together is unique, making it a composite key for a seating-assignment scenario.' },
+            surrogate: { cols: ['id'], mode: 'all', title: 'Surrogate Key', text: 'id is auto-generated and has no meaning outside the database — a pure surrogate key. Compare with ssn or email, which are natural keys carrying real-world meaning.' }
+        };
+        const keyPills = document.querySelectorAll('.key-pill');
+        const explorerTable = document.getElementById('explorer-table');
+        const explorerDetail = document.getElementById('explorer-detail');
+        function renderExplorer(key) {
+            const data = explorerData[key];
+            explorerTable.querySelectorAll('th, td').forEach(cell => cell.classList.remove('hl'));
+            data.cols.forEach(col => {
+                explorerTable.querySelectorAll('[data-col="' + col + '"]').forEach(cell => cell.classList.add('hl'));
+            });
+            explorerDetail.innerHTML = '<h4>' + data.title + '</h4><p>' + data.text + '</p>';
+        }
+        keyPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                keyPills.forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                renderExplorer(pill.dataset.key);
+            });
+        });
+        renderExplorer('candidate');
+
+        /* ---------------- Top 20 interview questions ---------------- */
+        const top20 = [
+            { q: 'Can a table have more than one PRIMARY KEY?', a: 'No — a table can have exactly one PRIMARY KEY, though it may span multiple columns (a composite primary key).', co: 'TCS Digital', diff: 'easy' },
+            { q: 'Can a UNIQUE column store multiple NULL values in MySQL?', a: 'Yes — MySQL never treats two NULLs as equal, so multiple NULLs are allowed in a UNIQUE column, unlike some other RDBMS that restrict it to one.', co: 'Zoho', diff: 'med' },
+            { q: 'What storage engine is required for FOREIGN KEY enforcement?', a: 'InnoDB — MyISAM parses the FOREIGN KEY syntax but never actually enforces referential integrity.', co: 'Infosys', diff: 'med' },
+            { q: 'What is the difference between a candidate key and a super key?', a: 'A candidate key is a minimal unique set of columns; a super key is any unique set, including ones with redundant extra columns. Every candidate key is a super key, not the reverse.', co: 'Zoho', diff: 'hard' },
+            { q: 'What is an alternate key?', a: 'A candidate key that exists but was not chosen as the primary key — still unique, just not the official identifier.', co: 'Accenture', diff: 'easy' },
+            { q: 'Give a real example of a composite key.', a: 'In an order_items table, {order_id, product_id} together form a composite key, since neither column alone is unique.', co: 'Capgemini', diff: 'easy' },
+            { q: 'Why do product companies prefer surrogate keys over natural keys?', a: 'Surrogate keys never change and carry no business meaning, avoiding cascading updates when a natural value like an email changes, and they are typically smaller and faster to index.', co: 'Product Companies', diff: 'hard' },
+            { q: 'From which MySQL version is CHECK actually enforced?', a: 'MySQL 8.0.16 — earlier versions accept CHECK syntax but silently ignore it.', co: 'Cognizant', diff: 'hard' },
+            {
+                q: 'What happens on ON DELETE CASCADE vs ON DELETE SET NULL?', a: 'CASCADE automatically deletes matching child rows when the parent is deleted; SET NULL instead sets the child\\'s foreign key column to NULL, keeping the child row.', co:'HCL', diff:'med'},
+  { q: 'Is NOT NULL the same as a CHECK constraint?', a: 'No — NOT NULL only ensures a column always has a value; CHECK can enforce arbitrary boolean conditions across one or more columns.', co: 'Wipro', diff: 'easy' },
+  { q: 'How does InnoDB physically use the PRIMARY KEY?', a: 'InnoDB stores table rows in a clustered index ordered by the primary key, and every secondary index stores the primary key value internally to fetch full rows.', co: 'Zoho', diff: 'hard' },
+            { q: 'What is the default action if a FOREIGN KEY has no ON DELETE clause?', a: 'RESTRICT (or NO ACTION) — MySQL blocks the delete on the parent if matching child rows exist.', co: 'TCS Digital', diff: 'med' },
+            {
+                q: 'Can a column be both PRIMARY KEY and FOREIGN KEY at the same time?', a: 'Yes — common in a one-to-one relationship, where the child table\\'s primary key is also a foreign key referencing the parent.', co:'Infosys', diff:'med'},
+  { q: 'What is the minimality property of a candidate key?', a: 'No column can be removed from the key without losing its ability to uniquely identify rows — this is what separates a candidate key from a merely-unique super key.', co: 'Accenture', diff: 'hard' },
+  { q: 'Why might using email as a PRIMARY KEY be risky?', a: 'Users can change their email; since foreign keys reference the primary key, that change would need to cascade everywhere it\\'s referenced — expensive and error- prone compared to a stable surrogate ID.', co:'Product Companies', diff:'hard'},
+  {
+                q: 'What\\'s the difference between DEFAULT and NOT NULL?', a:'DEFAULT supplies an automatic value when none is given; NOT NULL just rejects any attempt to leave the column empty — they are often used together.', co:'Capgemini', diff:'easy'},
+  { q: 'Does adding a UNIQUE constraint automatically create an index?', a: 'Yes — MySQL creates a unique index behind every UNIQUE constraint (and every PRIMARY KEY), which is why over-adding them can slow down writes.', co: 'Cognizant', diff: 'med' },
+  { q: 'What is a super key that is also minimal called?', a: 'A candidate key — minimality is exactly the property that promotes a super key to candidate status.', co: 'Wipro', diff: 'easy' },
+            { q: 'Explain referential integrity in one sentence.', a: 'It\\'s the guarantee that a foreign key value always matches an existing value in the referenced table\\'s primary/unique key, or is NULL if allowed.', co: 'HCL', diff: 'med' },
+            { q: 'Why does adding too many FOREIGN KEY / UNIQUE constraints slow down writes?', a: 'Each one typically backs an index that MySQL must check and update on every INSERT/UPDATE/DELETE, trading write performance for stronger guarantees and faster reads.', co: 'Zoho', diff: 'hard' }
+        ];
+        const top20Container = document.getElementById('acc-top20');
+        top20.forEach((item, idx) => {
+            const div = document.createElement('div');
+            div.className = 'acc-item';
+            div.innerHTML = `<div class="acc-head"><span>${idx + 1}. ${item.q} <span class="tag company">${item.co}</span><span class="tag ${item.diff}">${item.diff}</span></span><span class="chev">▾</span></div>
+  <div class="acc-body"><div class="acc-body-inner">${item.a}</div></div>`;
+            top20Container.appendChild(div);
+        });
+        wireAccordions(top20Container);
+
+        /* ---------------- flash cards ---------------- */
+        const flashcards = [
+            {
+                f: 'PRIMARY KEY', b: 'Unique + NOT NULL, one per table, drives InnoDB\\'s clustered storage order.'},
+  { f: 'FOREIGN KEY', b: 'References another table\\'s PK/ UNIQUE key — needs InnoDB to be enforced.'},
+  { f: 'UNIQUE', b: 'No duplicate values, but multiple NULLs allowed in MySQL.' },
+  { f: 'CHECK', b: 'Enforces a boolean condition — only real from MySQL 8.0.16+.' },
+            { f: 'DEFAULT', b: 'Auto-fills a value when INSERT omits the column.' },
+            { f: 'NOT NULL', b: 'Column can never be left empty.' },
+            { f: 'Candidate Key', b: 'A minimal column set that could uniquely identify a row.' },
+            { f: 'Super Key', b: 'Any unique column set — may include redundant columns.' },
+            { f: 'Alternate Key', b: 'A candidate key not chosen as the primary key.' },
+            { f: 'Composite Key', b: 'A key made of two or more columns together.' },
+            { f: 'Surrogate Key', b: 'An artificial ID with no real-world meaning, e.g. auto-increment id.' },
+            { f: 'Natural Key', b: 'A real-world meaningful identifier, e.g. email or SSN — opposite of surrogate.' }
+        ];
+        const fcGrid = document.getElementById('fc-grid');
+        flashcards.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'fc';
+            div.innerHTML = `<div class="fc-inner">
+    <div class="fc-face fc-front">${c.f}<small>Tap to flip</small></div>
+    <div class="fc-face fc-back">${c.b}</div>
+  </div>`;
+            div.addEventListener('click', () => div.classList.toggle('flip'));
+            fcGrid.appendChild(div);
+        });
+
+        /* ---------------- quiz ---------------- */
+        const quizData = [
+            { q: 'Which constraint requires InnoDB to actually be enforced?', opts: ['NOT NULL', 'UNIQUE', 'FOREIGN KEY', 'DEFAULT'], correct: 2 },
+            { q: 'Which of these is NOT necessarily minimal?', opts: ['Candidate Key', 'Super Key', 'Primary Key', 'Alternate Key'], correct: 1 },
+            { q: 'From which MySQL version is CHECK enforced?', opts: ['5.7', '8.0.0', '8.0.16', '9.0'], correct: 2 },
+            { q: 'A candidate key not chosen as primary is called a(n)?', opts: ['Super Key', 'Surrogate Key', 'Alternate Key', 'Composite Key'], correct: 2 },
+            { q: 'Which key type has no real-world business meaning?', opts: ['Natural Key', 'Surrogate Key', 'Candidate Key', 'Composite Key'], correct: 1 }
+        ];
+        let score = 0, answered = 0;
+        const quizContainer = document.getElementById('quiz-container');
+        quizData.forEach((item, qi) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            card.innerHTML = `<div class="quiz-q">${qi + 1}. ${item.q}</div>` +
+                item.opts.map((o, oi) => `<button class="quiz-opt" data-q="${qi}" data-o="${oi}">${o}</button>`).join('');
+            quizContainer.appendChild(card);
+        });
+        quizContainer.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('quiz-opt')) return;
+            const btn = e.target;
+            if (btn.disabled) return;
+            const qi = btn.dataset.q, item = quizData[qi];
+            const allBtns = quizContainer.querySelectorAll(`[data-q="${qi}"]`);
+            allBtns.forEach(b => b.disabled = true);
+            const oi = parseInt(btn.dataset.o);
+            if (oi === item.correct) { btn.classList.add('correct'); score++; }
+            else {
+                btn.classList.add('wrong');
+                allBtns[item.correct].classList.add('correct');
+            }
+            answered++;
+            document.getElementById('quiz-score').textContent = `Score: ${score} / ${answered}`;
+        });
+    </script>
+</body>
+
+</html>

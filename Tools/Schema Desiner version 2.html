@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SchemaForge — ER Diagram Designer</title>
+<style>
+/* =========================================================
+   1. RESET & BASE
+   ========================================================= */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+input,select{font-family:inherit;color:inherit;}
+::selection{background:var(--accent);color:#fff;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:8px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22);}
+
+/* =========================================================
+   2. THEME TOKENS
+   ========================================================= */
+:root, html[data-theme="dark"]{
+  --bg:#0F172A;
+  --bg-elevated:#111c34;
+  --card:#1E293B;
+  --card-soft:#243247;
+  --accent:#3B82F6;
+  --accent2:#8B5CF6;
+  --text:#F8FAFC;
+  --text-dim:#94A3B8;
+  --text-faint:#64748B;
+  --border:rgba(255,255,255,.08);
+  --border-strong:rgba(255,255,255,.16);
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow-md:0 8px 24px rgba(0,0,0,.35);
+  --shadow-lg:0 20px 50px rgba(0,0,0,.45);
+  --grid-dot: rgba(255,255,255,.06);
+  --grid-line: rgba(255,255,255,.035);
+  --success:#22C55E;
+  --danger:#EF4444;
+  --warning:#F59E0B;
+}
+html[data-theme="light"]{
+  --bg:#EEF1F8;
+  --bg-elevated:#FFFFFF;
+  --card:#FFFFFF;
+  --card-soft:#F3F5FB;
+  --accent:#3B82F6;
+  --accent2:#8B5CF6;
+  --text:#0F172A;
+  --text-dim:#475569;
+  --text-faint:#94A3B8;
+  --border:rgba(15,23,42,.08);
+  --border-strong:rgba(15,23,42,.16);
+  --shadow-md:0 8px 24px rgba(15,23,42,.10);
+  --shadow-lg:0 20px 50px rgba(15,23,42,.16);
+  --grid-dot: rgba(15,23,42,.09);
+  --grid-line: rgba(15,23,42,.05);
+}
+
+/* =========================================================
+   3. APP SHELL / LAYOUT
+   ========================================================= */
+#app{
+  height:100vh;
+  display:grid;
+  grid-template-rows:56px 1fr;
+  grid-template-columns:1fr;
+}
+.main-layout{
+  display:grid;
+  grid-template-columns:52px 1fr 280px;
+  min-height:0;
+  transition:grid-template-columns .28s cubic-bezier(.4,0,.2,1);
+}
+
+/* =========================================================
+   4. NAVBAR
+   ========================================================= */
+.navbar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:0 16px;
+  background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+  scrollbar-width:thin;
+}
+.brand{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.brand-mark{
+  width:30px;height:30px;border-radius:9px;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;box-shadow:0 4px 14px rgba(59,130,246,.35);
+  flex-shrink:0;
+}
+.brand-name{font-weight:700;font-size:15px;letter-spacing:.2px;}
+.brand-name span{color:var(--accent2);}
+.project-name-wrap{display:flex;align-items:center;flex-shrink:0;}
+#projectName{
+  background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);
+  padding:6px 10px;font-size:13px;color:var(--text-dim);min-width:120px;max-width:220px;
+  transition:border-color .18s, background .18s;
+}
+#projectName:hover{border-color:var(--border);}
+#projectName:focus{outline:none;border-color:var(--accent);background:var(--card-soft);color:var(--text);}
+.nav-divider{width:1px;height:24px;background:var(--border);flex-shrink:0;}
+.nav-group{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+
+.nbtn{
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:6px;
+  padding:8px 12px;border-radius:var(--radius-sm);
+  font-size:12.5px;font-weight:600;color:var(--text-dim);
+  transition:background .18s, color .18s, transform .12s;
+  flex-shrink:0;
+}
+.nbtn:hover{background:var(--card-soft);color:var(--text);}
+.nbtn:active{transform:scale(.94);}
+.nbtn[disabled]{opacity:.35;pointer-events:none;}
+.nbtn.icon-only{padding:8px;width:34px;justify-content:center;}
+.nbtn.primary{background:var(--accent);color:#fff;}
+.nbtn.primary:hover{background:#2f6fe0;}
+.nbtn.ghost-accent{border:1px solid var(--border-strong);}
+
+.ripple{
+  position:absolute;border-radius:50%;transform:scale(0);
+  background:rgba(255,255,255,.45);animation:ripple .5s ease-out;pointer-events:none;
+}
+@keyframes ripple{to{transform:scale(3.2);opacity:0;}}
+
+.zoom-pill{
+  display:flex;align-items:center;gap:2px;background:var(--card-soft);
+  border-radius:999px;padding:3px;flex-shrink:0;border:1px solid var(--border);
+  position:relative;
+}
+.zoom-pill button{width:26px;height:26px;border-radius:999px;font-size:14px;color:var(--text-dim);transition:background .15s,color .15s;}
+.zoom-pill button:hover{background:var(--card);color:var(--text);}
+.zoom-pill button.txt{width:auto;padding:0 8px;font-size:10.5px;font-weight:800;letter-spacing:.2px;}
+#zoomLabel{font-size:12px;font-weight:700;width:44px;text-align:center;color:var(--text);cursor:pointer;}
+.zoom-pill-sep{width:1px;height:16px;background:var(--border-strong);margin:0 2px;flex-shrink:0;}
+
+.zoom-settings-pop{
+  position:absolute;top:calc(100% + 8px);right:0;background:var(--bg-elevated);
+  border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);
+  padding:12px 14px;width:200px;z-index:60;
+  opacity:0;transform:translateY(-6px) scale(.97);pointer-events:none;
+  transition:opacity .15s,transform .15s;
+}
+.zoom-settings-pop.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all;}
+.zoom-settings-pop label{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:8px;}
+.zoom-settings-pop label b{color:var(--text);font-weight:800;}
+.zoom-settings-pop input[type="range"]{width:100%;accent-color:var(--accent);}
+
+.search-wrap{position:relative;flex-shrink:0;}
+.search-wrap input{
+  width:150px;background:var(--card-soft);border:1px solid var(--border);
+  border-radius:999px;padding:7px 12px 7px 30px;font-size:12.5px;color:var(--text);
+  transition:width .2s, border-color .2s;
+}
+.search-wrap input:focus{outline:none;width:210px;border-color:var(--accent);}
+.search-wrap .si{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-faint);}
+
+.spacer{flex:1;min-width:8px;}
+
+.switch{
+  position:relative;width:42px;height:24px;border-radius:999px;background:var(--card-soft);
+  border:1px solid var(--border);flex-shrink:0;transition:background .2s;
+}
+.switch::after{
+  content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));transition:transform .22s cubic-bezier(.4,0,.2,1);
+}
+html[data-theme="light"] .switch::after{transform:translateX(18px);}
+.switch .si-icon{position:absolute;font-size:11px;top:50%;transform:translateY(-50%);}
+.switch .si-moon{left:5px;}
+.switch .si-sun{right:5px;}
+
+/* =========================================================
+   5. LEFT SIDEBAR — TOOLS
+   ========================================================= */
+.sidebar-left{
+  background:var(--bg-elevated);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 0;gap:4px;overflow:hidden;
+  transition:opacity .18s ease;
+}
+.main-layout.sidebar-collapsed .sidebar-left{opacity:0;pointer-events:none;}
+.tool-btn{
+  width:38px;height:38px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-dim);position:relative;flex-shrink:0;
+  transition:background .16s, color .16s, transform .12s;
+}
+.tool-btn .ti{font-size:16px;line-height:1;}
+.tool-btn .tl{display:none;}
+.sidebar-collapse-btn{margin-top:auto;color:var(--text-faint);}
+.sidebar-expand-fab{
+  display:none;position:absolute;left:8px;top:8px;width:32px;height:32px;
+  border-radius:var(--radius-sm);background:var(--bg-elevated);border:1px solid var(--border-strong);
+  color:var(--text-dim);align-items:center;justify-content:center;font-size:13px;
+  box-shadow:var(--shadow-md);z-index:25;transition:background .15s,color .15s,transform .12s;
+}
+.sidebar-expand-fab:hover{background:var(--card-soft);color:var(--text);}
+.sidebar-expand-fab.show{display:flex;}
+.tool-btn:hover{background:var(--card-soft);color:var(--text);}
+.tool-btn.active{
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  color:#fff;box-shadow:0 6px 16px rgba(59,130,246,.35);
+}
+.tool-btn.active:hover{background:linear-gradient(135deg, var(--accent), var(--accent2));}
+.tool-btn::after{
+  content:attr(data-tip);position:absolute;left:54px;top:50%;transform:translateY(-50%) translateX(-4px);
+  background:#0b1120;color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:6px;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s, transform .15s;box-shadow:var(--shadow-md);
+  z-index:50;
+}
+.tool-btn:hover::after{opacity:1;transform:translateY(-50%) translateX(0);}
+.tool-sep{width:28px;height:1px;background:var(--border);margin:6px 0;}
+
+/* =========================================================
+   6. CANVAS
+   ========================================================= */
+.canvas-wrapper{position:relative;overflow:hidden;background:var(--bg);}
+#canvasViewport{
+  position:absolute;inset:0;overflow:hidden;cursor:default;
+}
+#canvasViewport.tool-hand, #canvasViewport.spacePan{cursor:grab;}
+#canvasViewport.panning{cursor:grabbing;}
+#canvasViewport.tool-entity, #canvasViewport.tool-text, #canvasViewport.tool-note{cursor:crosshair;}
+#canvasViewport.tool-delete{cursor:not-allowed;}
+#canvasViewport.tool-relationship{cursor:crosshair;}
+
+#canvasContent{
+  position:absolute;top:0;left:0;width:24000px;height:24000px;
+  transform-origin:0 0;
+  background-image:
+    radial-gradient(var(--grid-dot) 1.4px, transparent 1.4px),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:24px 24px, 168px 168px, 168px 168px;
+  background-position:0 0,0 0,0 0;
+}
+
+#relLayer{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;}
+#entitiesLayer{position:absolute;top:0;left:0;}
+#textsLayer{position:absolute;top:0;left:0;}
+#guideLayer{position:absolute;top:0;left:0;pointer-events:none;}
+
+.snap-guide{position:absolute;background:var(--accent2);opacity:.85;pointer-events:none;z-index:5;}
+.snap-guide.v{width:1px;}
+.snap-guide.h{height:1px;}
+
+/* Entity Card */
+.entity-card{
+  position:absolute;
+  background:var(--card);
+  border:1.5px solid var(--border-strong);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-md);
+  min-width:190px;
+  backdrop-filter:blur(6px);
+  transition:box-shadow .18s ease, border-color .18s ease, opacity .18s;
+  user-select:none;
+}
+.entity-card:hover{box-shadow:var(--shadow-lg);}
+.entity-card.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(59,130,246,.28), var(--shadow-lg);
+}
+.entity-card.linking{
+  border-color:var(--accent2);
+  box-shadow:0 0 0 3px rgba(139,92,246,.35), var(--shadow-lg);
+  animation:pulseLink 1.1s ease-in-out infinite;
+}
+.entity-card.dimmed{opacity:.28;}
+.entity-card.match{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(139,92,246,.4), var(--shadow-lg);}
+@keyframes pulseLink{0%,100%{box-shadow:0 0 0 3px rgba(139,92,246,.35), var(--shadow-lg);}50%{box-shadow:0 0 0 7px rgba(139,92,246,.12), var(--shadow-lg);}}
+
+.entity-header{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
+  border-radius:var(--radius) var(--radius) 0 0;color:#fff;cursor:grab;
+}
+.entity-header:active{cursor:grabbing;}
+.entity-icon{font-size:15px;flex-shrink:0;}
+.entity-name{
+  font-weight:700;font-size:13.5px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  outline:none;border-radius:4px;padding:1px 3px;
+}
+.entity-name[contenteditable="true"]{background:rgba(255,255,255,.18);cursor:text;}
+.entity-count{font-size:10px;opacity:.85;font-weight:700;background:rgba(255,255,255,.2);padding:2px 6px;border-radius:999px;flex-shrink:0;}
+
+.entity-fields{padding:6px 0;max-height:340px;overflow-y:auto;}
+.field-row{
+  display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:12px;
+  border-bottom:1px solid var(--border);transition:background .12s;
+}
+.field-row:last-child{border-bottom:none;}
+.field-row:hover{background:var(--card-soft);}
+.field-key{width:14px;text-align:center;font-size:11px;flex-shrink:0;}
+.field-name{
+  flex:1;font-family:'SFMono-Regular',Consolas,'Courier New',monospace;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none;border-radius:4px;
+}
+.field-name[contenteditable="true"]{background:var(--card-soft);padding:0 3px;cursor:text;}
+.field-row .field-name.is-nullable{color:var(--text-dim);font-style:italic;}
+.field-meta{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.badge{font-size:8.5px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:.3px;}
+.badge.fk{background:rgba(139,92,246,.22);color:#c4b5fd;}
+.badge.null{background:rgba(148,163,184,.2);color:var(--text-dim);}
+.field-default{font-size:10px;color:var(--text-faint);font-style:italic;}
+
+.resize-handle{
+  position:absolute;right:-4px;bottom:-4px;width:14px;height:14px;
+  border-radius:0 0 8px 0;cursor:nwse-resize;
+  background:linear-gradient(135deg, transparent 50%, var(--accent) 50%);
+  opacity:0;transition:opacity .15s;
+}
+.entity-card:hover .resize-handle,.entity-card.selected .resize-handle{opacity:.85;}
+
+/* Text / Note boxes */
+.free-box{
+  position:absolute;border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;
+  line-height:1.5;min-width:120px;min-height:40px;outline:none;box-shadow:var(--shadow-md);
+  transition:box-shadow .18s,border-color .18s;border:1.5px solid var(--border-strong);
+}
+.free-box.text{background:transparent;border-style:dashed;color:var(--text);}
+.free-box.note{background:#facc15;color:#1a1400;border-color:#eab308;font-weight:500;}
+.free-box.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.28);}
+.free-box[contenteditable="true"]{cursor:text;}
+
+/* Relationship label */
+.rel-label-group{cursor:pointer;pointer-events:all;}
+.rel-label-bg{fill:var(--card);stroke:var(--border-strong);stroke-width:1;}
+.rel-label-text{fill:var(--text-dim);font-size:10.5px;font-weight:700;font-family:inherit;}
+.rel-path{fill:none;stroke:var(--text-faint);stroke-width:2;transition:stroke .15s,stroke-width .15s;pointer-events:all;}
+.rel-hit{fill:none;stroke:transparent;stroke-width:16;pointer-events:all;cursor:pointer;}
+.rel-path.selected{stroke:var(--accent);stroke-width:2.5;}
+.rel-endpoint-text{font-size:10px;font-weight:800;fill:var(--accent2);font-family:inherit;}
+
+/* Selection rectangle */
+.select-rect{
+  position:absolute;border:1.5px solid var(--accent);
+  background:rgba(59,130,246,.14);pointer-events:none;z-index:30;border-radius:3px;
+}
+
+/* Floating zoom/status bar bottom-left of canvas */
+.canvas-hud{
+  position:absolute;left:16px;bottom:16px;display:flex;gap:8px;align-items:center;
+  background:var(--bg-elevated);border:1px solid var(--border);padding:7px 12px;
+  border-radius:999px;font-size:11px;color:var(--text-dim);box-shadow:var(--shadow-md);
+  z-index:20;
+}
+.canvas-hud b{color:var(--text);}
+.canvas-hud .dot{width:5px;height:5px;border-radius:50%;background:var(--success);}
+
+/* =========================================================
+   7. RIGHT SIDEBAR — PROPERTIES
+   ========================================================= */
+.sidebar-right{
+  background:var(--bg-elevated);border-left:1px solid var(--border);
+  overflow-y:auto;overflow-x:hidden;
+  transition:opacity .22s ease, transform .22s ease;
+  transform:translateX(0);
+}
+.main-layout.props-collapsed .sidebar-right{opacity:0;transform:translateX(16px);pointer-events:none;}
+.panel-section{padding:16px;border-bottom:1px solid var(--border);}
+.panel-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text-faint);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.field-group{margin-bottom:12px;}
+.field-group label{display:block;font-size:11.5px;font-weight:600;color:var(--text-dim);margin-bottom:6px;}
+.field-group input[type="text"],.field-group input[type="number"],.field-group select,.field-group textarea{
+  width:100%;background:var(--card-soft);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:8px 10px;font-size:12.5px;color:var(--text);transition:border-color .15s, background .15s;
+}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{outline:none;border-color:var(--accent);}
+.field-group input[type="color"]{width:100%;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-soft);padding:3px;cursor:pointer;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.swatch-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.swatch{width:20px;height:20px;border-radius:50%;border:2px solid var(--border-strong);cursor:pointer;transition:transform .12s;}
+.swatch:hover{transform:scale(1.15);}
+
+.field-editor-row{
+  background:var(--card-soft);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:9px;margin-bottom:8px;
+}
+.field-editor-row .fer-top{display:flex;gap:6px;align-items:center;margin-bottom:7px;}
+.field-editor-row input[type="text"]{background:var(--card);font-size:12px;padding:6px 8px;}
+.fer-del{width:24px;height:24px;flex-shrink:0;border-radius:6px;color:var(--text-faint);transition:background .15s,color .15s;}
+.fer-del:hover{background:rgba(239,68,68,.15);color:var(--danger);}
+.fer-checks{display:flex;gap:12px;flex-wrap:wrap;}
+.chk{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);cursor:pointer;}
+.chk input{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;}
+
+.btn-block{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;
+  border:1.5px dashed var(--border-strong);color:var(--text-dim);transition:all .15s;
+}
+.btn-block:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.08);}
+.btn-danger-block{
+  width:100%;padding:9px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;
+  background:rgba(239,68,68,.12);color:#fca5a5;transition:background .15s;margin-top:4px;
+}
+.btn-danger-block:hover{background:rgba(239,68,68,.22);}
+
+.empty-panel{padding:34px 22px;text-align:center;color:var(--text-faint);}
+.empty-panel .ep-icon{font-size:34px;margin-bottom:10px;opacity:.6;}
+.empty-panel h4{font-size:13px;color:var(--text-dim);margin-bottom:6px;}
+.empty-panel p{font-size:11.5px;line-height:1.6;}
+.stat-row{display:flex;gap:10px;margin-top:16px;}
+.stat-box{flex:1;background:var(--card-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center;}
+.stat-box .sv{font-size:19px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.stat-box .sl{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-faint);margin-top:2px;}
+
+.kbd-tip{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-dim);padding:5px 0;}
+.kbd-tip kbd{background:var(--card-soft);border:1px solid var(--border-strong);border-radius:4px;padding:2px 6px;font-size:10px;font-family:monospace;}
+
+/* =========================================================
+   8. CONTEXT MENU
+   ========================================================= */
+.context-menu{
+  position:fixed;z-index:200;background:var(--bg-elevated);border:1px solid var(--border-strong);
+  border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);padding:6px;min-width:190px;
+  opacity:0;transform:scale(.95);transform-origin:top left;transition:opacity .12s,transform .12s;pointer-events:none;
+}
+.context-menu.open{opacity:1;transform:scale(1);pointer-events:all;}
+.cm-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;font-size:12.5px;color:var(--text);transition:background .12s;width:100%;text-align:left;}
+.cm-item:hover{background:var(--card-soft);}
+.cm-item.danger{color:#fca5a5;}
+.cm-item.danger:hover{background:rgba(239,68,68,.15);}
+.cm-sep{height:1px;background:var(--border);margin:5px 2px;}
+.cm-colors{display:flex;gap:6px;padding:8px 10px;flex-wrap:wrap;}
+
+/* =========================================================
+   9. MODAL / TOASTS
+   ========================================================= */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(2,6,20,.6);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;z-index:300;
+  opacity:0;pointer-events:none;transition:opacity .18s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  width:420px;max-width:92vw;max-height:80vh;overflow-y:auto;background:var(--bg-elevated);
+  border:1px solid var(--border-strong);border-radius:16px;box-shadow:var(--shadow-lg);
+  padding:22px;transform:translateY(14px) scale(.97);transition:transform .18s;
+}
+.modal-overlay.open .modal-box{transform:translateY(0) scale(1);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.modal-head h3{font-size:15px;font-weight:800;}
+.modal-close{width:28px;height:28px;border-radius:8px;color:var(--text-dim);}
+.modal-close:hover{background:var(--card-soft);color:var(--text);}
+
+.toast-stack{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:400;}
+.toast{
+  background:var(--bg-elevated);border:1px solid var(--border-strong);color:var(--text);
+  padding:11px 16px;border-radius:10px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:8px;animation:toastIn .25s ease;
+}
+.toast.success{border-color:rgba(34,197,94,.4);}
+.toast.error{border-color:rgba(239,68,68,.4);}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+.toast.leaving{animation:toastOut .22s ease forwards;}
+@keyframes toastOut{to{opacity:0;transform:translateX(30px);}}
+
+/* small screens toggle for right props panel */
+.props-fab{
+  display:none;position:fixed;right:16px;bottom:64px;width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:18px;
+  align-items:center;justify-content:center;box-shadow:var(--shadow-lg);z-index:60;
+}
+
+/* =========================================================
+   10. RESPONSIVE
+   ========================================================= */
+@media (max-width:980px){
+  .main-layout{grid-template-columns:56px 1fr 0px;}
+  .sidebar-right{
+    position:fixed;top:56px;right:0;bottom:0;width:280px;
+    transform:translateX(100%);transition:transform .25s ease;box-shadow:var(--shadow-lg);z-index:55;
+  }
+  .sidebar-right.open{transform:translateX(0);}
+  .props-fab{display:flex;}
+  #projectName{max-width:120px;min-width:80px;}
+  .search-wrap input{width:110px;}
+  .search-wrap input:focus{width:150px;}
+}
+@media (max-width:640px){
+  .brand-name{display:none;}
+  .nbtn span.lbl{display:none;}
+  .nbtn.icon-only{width:32px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="navbar" id="navbar">
+    <div class="brand">
+      <div class="brand-mark">🗄️</div>
+      <div class="brand-name">Schema<span>Forge</span></div>
+    </div>
+    <div class="project-name-wrap">
+      <input id="projectName" type="text" value="Untitled Diagram" spellcheck="false" title="Project name" />
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-group">
+      <button class="nbtn icon-only" id="btnUndo" data-tip="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)">↶</button>
+      <button class="nbtn icon-only" id="btnRedo" data-tip="Redo (Ctrl+Y)" title="Redo (Ctrl+Y)">↷</button>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-group">
+      <button class="nbtn ghost-accent" id="btnSave" title="Save (Ctrl+S)"><span>💾</span><span class="lbl">Save</span></button>
+      <button class="nbtn ghost-accent" id="btnExportPng" title="Export as PNG image"><span>🖼️</span><span class="lbl">PNG</span></button>
+      <button class="nbtn ghost-accent" id="btnExportJson" title="Export as JSON file"><span>⤓</span><span class="lbl">Export</span></button>
+      <button class="nbtn ghost-accent" id="btnImportJson" title="Import a JSON file"><span>⤒</span><span class="lbl">Import</span></button>
+      <input type="file" id="fileImport" accept="application/json" hidden />
+    </div>
+    <div class="nav-divider"></div>
+    <div class="search-wrap">
+      <span class="si">🔍</span>
+      <input id="searchInput" type="text" placeholder="Search entities…" spellcheck="false" />
+    </div>
+    <div class="spacer"></div>
+    <button class="nbtn icon-only" id="btnAutoArrange" data-tip="Auto arrange" title="Auto arrange entities">🧩</button>
+    <button class="nbtn icon-only" id="btnHelp" data-tip="Keyboard shortcuts (?)" title="Keyboard shortcuts">⌨️</button>
+    <div class="zoom-pill" id="zoomPill">
+      <button id="zoomOut" title="Zoom out (Ctrl + Scroll)">–</button>
+      <span id="zoomLabel" title="Reset to 100%">100%</span>
+      <button id="zoomIn" title="Zoom in (Ctrl + Scroll)">+</button>
+      <div class="zoom-pill-sep"></div>
+      <button class="txt" id="btnActualSize" title="Actual Size (100%)">1:1</button>
+      <button class="txt" id="btnFitScreen" title="Fit to Screen (F)">Fit</button>
+      <button id="btnZoomSettings" title="Zoom sensitivity">⚙️</button>
+      <div class="zoom-settings-pop" id="zoomSettingsPop">
+        <label>Zoom sensitivity <b id="zoomSensVal">1.0×</b></label>
+        <input type="range" id="zoomSensitivitySlider" min="0.4" max="2.2" step="0.1" value="1" />
+      </div>
+    </div>
+    <div class="nav-divider"></div>
+    <button class="switch" id="themeSwitch" title="Toggle dark / light mode">
+      <span class="si-icon si-moon">🌙</span><span class="si-icon si-sun">☀️</span>
+    </button>
+  </header>
+
+  <!-- ============ MAIN LAYOUT ============ -->
+  <div class="main-layout" id="mainLayout">
+
+    <!-- LEFT TOOL SIDEBAR -->
+    <aside class="sidebar-left" id="sidebarLeft">
+      <button class="tool-btn active" data-tool="select" data-tip="Select (V)"><span class="ti">🖱️</span><span class="tl">Select</span></button>
+      <button class="tool-btn" data-tool="hand" data-tip="Hand / Pan (Space)"><span class="ti">✋</span><span class="tl">Hand</span></button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="entity" data-tip="Add Entity (E)"><span class="ti">🗂️</span><span class="tl">Entity</span></button>
+      <button class="tool-btn" data-tool="relationship" data-tip="Draw Relationship (R)"><span class="ti">🔗</span><span class="tl">Relate</span></button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="text" data-tip="Add Text (T)"><span class="ti">🔤</span><span class="tl">Text</span></button>
+      <button class="tool-btn" data-tool="note" data-tip="Sticky Note (N)"><span class="ti">🗒️</span><span class="tl">Note</span></button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="delete" data-tip="Delete Tool (Del)"><span class="ti">🗑️</span><span class="tl">Delete</span></button>
+      <button class="tool-btn sidebar-collapse-btn" id="btnCollapseSidebar" data-tip="Collapse sidebar"><span class="ti">⟨⟨</span></button>
+    </aside>
+
+    <!-- CANVAS -->
+    <main class="canvas-wrapper" id="canvasWrapper">
+      <button class="sidebar-expand-fab" id="sidebarExpandFab" title="Show tools">☰</button>
+      <div id="canvasViewport" class="tool-select">
+        <div id="canvasContent">
+          <svg id="relLayer" width="24000" height="24000"><defs>
+            <marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--text-faint)"></path>
+            </marker>
+          </defs></svg>
+          <div id="entitiesLayer"></div>
+          <div id="textsLayer"></div>
+          <div id="guideLayer"></div>
+        </div>
+      </div>
+      <div class="canvas-hud">
+        <span class="dot"></span>
+        <span><b id="hudEntityCount">0</b> entities</span>
+        <span>·</span>
+        <span><b id="hudRelCount">0</b> relations</span>
+        <span>·</span>
+        <span id="hudTool">Select</span>
+      </div>
+      <button class="props-fab" id="propsFab">⚙️</button>
+    </main>
+
+    <!-- RIGHT PROPERTIES SIDEBAR -->
+    <aside class="sidebar-right" id="sidebarRight"><div id="propertiesPanel"></div></aside>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div class="context-menu" id="contextMenu"></div>
+
+<!-- Keyboard shortcuts modal -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>⌨️ Keyboard Shortcuts</h3><button class="modal-close" id="closeHelp">✕</button></div>
+    <div class="kbd-tip"><span>Undo</span><kbd>Ctrl + Z</kbd></div>
+    <div class="kbd-tip"><span>Redo</span><kbd>Ctrl + Y</kbd></div>
+    <div class="kbd-tip"><span>Save</span><kbd>Ctrl + S</kbd></div>
+    <div class="kbd-tip"><span>Copy selection</span><kbd>Ctrl + C</kbd></div>
+    <div class="kbd-tip"><span>Paste</span><kbd>Ctrl + V</kbd></div>
+    <div class="kbd-tip"><span>Duplicate</span><kbd>Ctrl + D</kbd></div>
+    <div class="kbd-tip"><span>Delete selection</span><kbd>Delete</kbd></div>
+    <div class="kbd-tip"><span>Pan canvas</span><kbd>Space + Drag / Middle-click</kbd></div>
+    <div class="kbd-tip"><span>Zoom to cursor</span><kbd>Ctrl + Scroll</kbd></div>
+    <div class="kbd-tip"><span>Scroll canvas</span><kbd>Scroll / Shift + Scroll</kbd></div>
+    <div class="kbd-tip"><span>Fit to screen</span><kbd>F</kbd></div>
+    <div class="kbd-tip"><span>Actual size (100%)</span><kbd>Ctrl + 0</kbd></div>
+    <div class="kbd-tip"><span>Center on point</span><kbd>Double-click canvas</kbd></div>
+    <div class="kbd-tip"><span>Select tool</span><kbd>V</kbd></div>
+    <div class="kbd-tip"><span>Entity tool</span><kbd>E</kbd></div>
+    <div class="kbd-tip"><span>Relationship tool</span><kbd>R</kbd></div>
+    <div class="kbd-tip"><span>Text / Note tool</span><kbd>T / N</kbd></div>
+    <div class="kbd-tip"><span>Cancel / close menus</span><kbd>Esc</kbd></div>
+    <div class="kbd-tip"><span>This help panel</span><kbd>?</kbd></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let state = {
+  projectName: "Untitled Diagram",
+  entities: [],
+  relationships: [],
+  texts: []
+};
+
+let view = { zoom: 1, panX: 80, panY: 60 };
+let targetView = { zoom: 1, panX: 80, panY: 60 };
+let zoomRafId = null;
+const MIN_ZOOM = 0.25, MAX_ZOOM = 3;
+let zoomSensitivity = 1;
+let sidebarCollapsed = false;
+let tool = "select";
+let selection = { entities: new Set(), relationships: new Set(), texts: new Set() };
+let clipboard = null;
+let recentColors = ["#3B82F6","#8B5CF6","#22C55E","#F59E0B","#EF4444","#06B6D4"];
+let idSeq = 1;
+let spaceDown = false;
+let snapEnabled = true;
+const GRID = 20;
+
+let history = [];
+let historyIndex = -1;
+const MAX_HISTORY = 60;
+
+let pendingRelSource = null;
+
+/* drag/resize/pan runtime */
+let drag = null;      // {type:'entity'|'text', ids:[], start:{x,y}, orig:Map}
+let resize = null;    // {id, startW, startMouseX}
+let panning = null;   // {startX,startY,startPanX,startPanY}
+let marquee = null;   // {startX,startY} screen coords
+
+/* =========================================================
+   DOM REFS
+   ========================================================= */
+const $ = (sel,root) => (root||document).querySelector(sel);
+const $$ = (sel,root) => Array.from((root||document).querySelectorAll(sel));
+
+const el = {
+  viewport: $("#canvasViewport"),
+  content: $("#canvasContent"),
+  entitiesLayer: $("#entitiesLayer"),
+  textsLayer: $("#textsLayer"),
+  relLayer: $("#relLayer"),
+  guideLayer: $("#guideLayer"),
+  propertiesPanel: $("#propertiesPanel"),
+  zoomLabel: $("#zoomLabel"),
+  projectName: $("#projectName"),
+  contextMenu: $("#contextMenu"),
+  toastStack: $("#toastStack"),
+  mainLayout: $("#mainLayout"),
+  sidebarRight: $("#sidebarRight"),
+  hudEntityCount: $("#hudEntityCount"),
+  hudRelCount: $("#hudRelCount"),
+  hudTool: $("#hudTool"),
+  helpModal: $("#helpModal"),
+  searchInput: $("#searchInput"),
+  sidebarLeft: $("#sidebarLeft"),
+  sidebarExpandFab: $("#sidebarExpandFab"),
+  zoomSettingsPop: $("#zoomSettingsPop"),
+  zoomSensitivitySlider: $("#zoomSensitivitySlider"),
+  zoomSensVal: $("#zoomSensVal")
+};
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+function uid(prefix){ return prefix + "_" + (idSeq++) + Math.random().toString(36).slice(2,6); }
+function esc(str){
+  return String(str==null?"":str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function clamp(v,min,max){ return Math.min(max, Math.max(min, v)); }
+function snap(v){ return snapEnabled ? Math.round(v / GRID) * GRID : v; }
+
+function shade(hex, amt){
+  hex = (hex||"#3B82F6").replace("#","");
+  if(hex.length===3) hex = hex.split("").map(c=>c+c).join("");
+  const num = parseInt(hex,16);
+  let r = (num>>16) + amt, g = ((num>>8)&0xff) + amt, b = (num&0xff) + amt;
+  r=clamp(r,0,255); g=clamp(g,0,255); b=clamp(b,0,255);
+  return "#" + ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+
+function showToast(msg, kind){
+  const t = document.createElement("div");
+  t.className = "toast" + (kind ? " "+kind : "");
+  t.innerHTML = (kind==="success"?"✅ ":kind==="error"?"⚠️ ":"ℹ️ ") + esc(msg);
+  el.toastStack.appendChild(t);
+  setTimeout(()=>{ t.classList.add("leaving"); setTimeout(()=>t.remove(), 250); }, 2200);
+}
+
+function addRipple(btn, evt){
+  const rect = btn.getBoundingClientRect();
+  const r = document.createElement("span");
+  r.className = "ripple";
+  const size = Math.max(rect.width, rect.height);
+  r.style.width = r.style.height = size+"px";
+  r.style.left = ((evt.clientX!=null?evt.clientX-rect.left:rect.width/2) - size/2)+"px";
+  r.style.top = ((evt.clientY!=null?evt.clientY-rect.top:rect.height/2) - size/2)+"px";
+  btn.appendChild(r);
+  setTimeout(()=>r.remove(), 500);
+}
+document.addEventListener("click", (e)=>{
+  const btn = e.target.closest(".nbtn, .tool-btn, .zoom-pill button, .switch, .cm-item");
+  if(btn) addRipple(btn, e);
+});
+
+function screenToContent(sx, sy){
+  const rect = el.viewport.getBoundingClientRect();
+  return { x: (sx - rect.left - view.panX) / view.zoom, y: (sy - rect.top - view.panY) / view.zoom };
+}
+
+/* =========================================================
+   HISTORY (UNDO / REDO)
+   ========================================================= */
+function snapshot(){
+  return JSON.stringify({ entities: state.entities, relationships: state.relationships, texts: state.texts, projectName: state.projectName });
+}
+function pushHistory(){
+  history = history.slice(0, historyIndex+1);
+  history.push(snapshot());
+  if(history.length > MAX_HISTORY) history.shift();
+  historyIndex = history.length - 1;
+  updateUndoRedoButtons();
+}
+function applySnapshot(json){
+  const s = JSON.parse(json);
+  state.entities = s.entities; state.relationships = s.relationships; state.texts = s.texts; state.projectName = s.projectName;
+  el.projectName.value = state.projectName;
+  clearSelection();
+  render();
+}
+function undo(){ if(historyIndex<=0) return; historyIndex--; applySnapshot(history[historyIndex]); updateUndoRedoButtons(); }
+function redo(){ if(historyIndex>=history.length-1) return; historyIndex++; applySnapshot(history[historyIndex]); updateUndoRedoButtons(); }
+function updateUndoRedoButtons(){
+  $("#btnUndo").disabled = historyIndex<=0;
+  $("#btnRedo").disabled = historyIndex>=history.length-1;
+}
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
+function clearSelection(){ selection.entities.clear(); selection.relationships.clear(); selection.texts.clear(); }
+function hasSelection(){ return selection.entities.size||selection.relationships.size||selection.texts.size; }
+function selectEntity(id, additive){
+  if(!additive) clearSelection();
+  if(additive && selection.entities.has(id)) selection.entities.delete(id); else selection.entities.add(id);
+}
+function selectRelationship(id, additive){
+  if(!additive) clearSelection();
+  selection.relationships.add(id);
+}
+function selectText(id, additive){
+  if(!additive) clearSelection();
+  if(additive && selection.texts.has(id)) selection.texts.delete(id); else selection.texts.add(id);
+}
+
+/* =========================================================
+   DATA HELPERS
+   ========================================================= */
+function getEntity(id){ return state.entities.find(e=>e.id===id); }
+function getRel(id){ return state.relationships.find(r=>r.id===id); }
+function getText(id){ return state.texts.find(t=>t.id===id); }
+
+function makeEntity(x, y, name){
+  return {
+    id: uid("ent"), x: snap(x), y: snap(y), width: 220, color: recentColors[0] || "#3B82F6",
+    icon: "🗂️", name: name || "NewEntity",
+    fields: [{ id: uid("fld"), name:"id", pk:true, fk:false, nullable:false, default:"" }]
+  };
+}
+
+function deleteEntities(ids){
+  const set = new Set(ids);
+  state.entities = state.entities.filter(e=>!set.has(e.id));
+  state.relationships = state.relationships.filter(r=>!set.has(r.sourceId) && !set.has(r.targetId));
+  ids.forEach(id=>selection.entities.delete(id));
+}
+function deleteRelationships(ids){
+  const set = new Set(ids);
+  state.relationships = state.relationships.filter(r=>!set.has(r.id));
+  ids.forEach(id=>selection.relationships.delete(id));
+}
+function deleteTexts(ids){
+  const set = new Set(ids);
+  state.texts = state.texts.filter(t=>!set.has(t.id));
+  ids.forEach(id=>selection.texts.delete(id));
+}
+function deleteSelection(){
+  if(!hasSelection()) return;
+  deleteEntities(Array.from(selection.entities));
+  deleteRelationships(Array.from(selection.relationships));
+  deleteTexts(Array.from(selection.texts));
+  pushHistory(); render();
+  showToast("Deleted selection");
+}
+
+/* =========================================================
+   RENDER — MASTER
+   ========================================================= */
+function render(){
+  updateTransform();
+  renderEntities();
+  renderTexts();
+  renderRelationships();
+  renderProperties();
+  updateHud();
+}
+
+function updateTransform(){
+  el.content.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
+  el.zoomLabel.textContent = Math.round(view.zoom*100) + "%";
+}
+
+/* ---- Smooth zoom/pan animation (Figma-style easing) ---- */
+function syncTargetToView(){
+  targetView.zoom = view.zoom; targetView.panX = view.panX; targetView.panY = view.panY;
+}
+function stopViewAnimation(){
+  if(zoomRafId){ cancelAnimationFrame(zoomRafId); zoomRafId = null; }
+}
+function animateView(){
+  const ease = 0.24;
+  view.zoom += (targetView.zoom - view.zoom) * ease;
+  view.panX += (targetView.panX - view.panX) * ease;
+  view.panY += (targetView.panY - view.panY) * ease;
+  updateTransform();
+  const done = Math.abs(targetView.zoom-view.zoom) < 0.0006
+    && Math.abs(targetView.panX-view.panX) < 0.06
+    && Math.abs(targetView.panY-view.panY) < 0.06;
+  if(!done){
+    zoomRafId = requestAnimationFrame(animateView);
+  } else {
+    view.zoom = targetView.zoom; view.panX = targetView.panX; view.panY = targetView.panY;
+    updateTransform();
+    zoomRafId = null;
+  }
+}
+function requestViewUpdate(){ if(!zoomRafId) zoomRafId = requestAnimationFrame(animateView); }
+
+/* ---- Zoom towards a screen point (mouse-centered zoom) ---- */
+function zoomAtPoint(clientX, clientY, factor){
+  const rect = el.viewport.getBoundingClientRect();
+  const mx = clientX - rect.left, my = clientY - rect.top;
+  const before = { x:(mx-targetView.panX)/targetView.zoom, y:(my-targetView.panY)/targetView.zoom };
+  const newZoom = clamp(targetView.zoom * factor, MIN_ZOOM, MAX_ZOOM);
+  targetView.zoom = newZoom;
+  targetView.panX = mx - before.x*newZoom;
+  targetView.panY = my - before.y*newZoom;
+  requestViewUpdate();
+}
+function zoomStep(direction){
+  const rect = el.viewport.getBoundingClientRect();
+  zoomAtPoint(rect.left + rect.width/2, rect.top + rect.height/2, direction>0 ? 1.2 : 1/1.2);
+}
+function actualSize(){
+  const rect = el.viewport.getBoundingClientRect();
+  const cx = rect.width/2, cy = rect.height/2;
+  const before = { x:(cx-targetView.panX)/targetView.zoom, y:(cy-targetView.panY)/targetView.zoom };
+  targetView.zoom = 1;
+  targetView.panX = cx - before.x;
+  targetView.panY = cy - before.y;
+  requestViewUpdate();
+}
+function fitToScreen(){
+  const rect = el.viewport.getBoundingClientRect();
+  if(!state.entities.length && !state.texts.length){
+    targetView.zoom = 1; targetView.panX = rect.width/2 - 100; targetView.panY = rect.height/2 - 60;
+    requestViewUpdate(); return;
+  }
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  state.entities.forEach(ent=>{
+    const h = ent.h || 90;
+    minX = Math.min(minX, ent.x); minY = Math.min(minY, ent.y);
+    maxX = Math.max(maxX, ent.x+ent.width); maxY = Math.max(maxY, ent.y+h);
+  });
+  state.texts.forEach(t=>{
+    minX = Math.min(minX, t.x); minY = Math.min(minY, t.y);
+    maxX = Math.max(maxX, t.x+t.width); maxY = Math.max(maxY, t.y+t.height);
+  });
+  const pad = 90;
+  const contentW = Math.max(1, (maxX-minX) + pad*2), contentH = Math.max(1, (maxY-minY) + pad*2);
+  const newZoom = clamp(Math.min(rect.width/contentW, rect.height/contentH), MIN_ZOOM, MAX_ZOOM);
+  targetView.zoom = newZoom;
+  targetView.panX = rect.width/2 - ((minX+maxX)/2)*newZoom;
+  targetView.panY = rect.height/2 - ((minY+maxY)/2)*newZoom;
+  requestViewUpdate();
+}
+function centerViewportOn(clientX, clientY){
+  const rect = el.viewport.getBoundingClientRect();
+  const pt = screenToContent(clientX, clientY);
+  targetView.panX = rect.width/2 - pt.x*targetView.zoom;
+  targetView.panY = rect.height/2 - pt.y*targetView.zoom;
+  requestViewUpdate();
+}
+
+function updateHud(){
+  el.hudEntityCount.textContent = state.entities.length;
+  el.hudRelCount.textContent = state.relationships.length;
+  el.hudTool.textContent = tool.charAt(0).toUpperCase()+tool.slice(1);
+}
+
+function updateLayoutColumns(){
+  const leftW = sidebarCollapsed ? 0 : 52;
+  const rightW = el.mainLayout.classList.contains("props-collapsed") ? 0 : 280;
+  el.mainLayout.style.gridTemplateColumns = `${leftW}px 1fr ${rightW}px`;
+}
+
+/* ---------- Entities ---------- */
+function renderEntities(){
+  el.entitiesLayer.innerHTML = state.entities.map(entityCardHtml).join("");
+  // measure heights for relationship math
+  $$(".entity-card", el.entitiesLayer).forEach(card=>{
+    const ent = getEntity(card.dataset.id);
+    if(ent) ent.h = card.getBoundingClientRect().height / view.zoom;
+  });
+}
+function entityCardHtml(ent){
+  const isSelected = selection.entities.has(ent.id);
+  const isLinking = pendingRelSource === ent.id;
+  const cls = ["entity-card"];
+  if(isSelected) cls.push("selected");
+  if(isLinking) cls.push("linking");
+  return `<div class="${cls.join(' ')}" data-id="${ent.id}" style="left:${ent.x}px;top:${ent.y}px;width:${ent.width}px;">
+    <div class="entity-header" style="background:linear-gradient(135deg, ${ent.color}, ${shade(ent.color,-30)});">
+      <span class="entity-icon">${ent.icon||"🗂️"}</span>
+      <span class="entity-name" data-role="ename" spellcheck="false">${esc(ent.name)}</span>
+      <span class="entity-count">${ent.fields.length}</span>
+    </div>
+    <div class="entity-fields">
+      ${ent.fields.map(f=>fieldRowHtml(f)).join("")}
+    </div>
+    <div class="resize-handle"></div>
+  </div>`;
+}
+function fieldRowHtml(f){
+  return `<div class="field-row" data-field-id="${f.id}">
+    <span class="field-key">${f.pk?"🔑":(f.fk?"🔗":"")}</span>
+    <span class="field-name ${f.nullable?'is-nullable':''}" data-role="fname" spellcheck="false">${esc(f.name)}</span>
+    <span class="field-meta">
+      ${f.fk?'<span class="badge fk">FK</span>':''}
+      ${f.nullable?'<span class="badge null">NULL</span>':''}
+      ${f.default?`<span class="field-default">= ${esc(f.default)}</span>`:''}
+    </span>
+  </div>`;
+}
+
+/* ---------- Texts / Notes ---------- */
+function renderTexts(){
+  el.textsLayer.innerHTML = state.texts.map(t=>{
+    const sel = selection.texts.has(t.id);
+    return `<div class="free-box ${t.type} ${sel?'selected':''}" data-id="${t.id}" style="left:${t.x}px;top:${t.y}px;width:${t.width}px;min-height:${t.height}px;">${esc(t.content)}</div>`;
+  }).join("");
+}
+
+/* ---------- Relationships ---------- */
+function connectionPoints(a, b){
+  const ah = a.h || 90, bh = b.h || 90;
+  const ac = { x:a.x+a.width/2, y:a.y+ah/2 };
+  const bc = { x:b.x+b.width/2, y:b.y+bh/2 };
+  let start, end, horizontal;
+  if(Math.abs(ac.x-bc.x) > Math.abs(ac.y-bc.y)){
+    horizontal = true;
+    if(ac.x < bc.x){ start={x:a.x+a.width, y:ac.y}; end={x:b.x, y:bc.y}; }
+    else { start={x:a.x, y:ac.y}; end={x:b.x+b.width, y:bc.y}; }
+  } else {
+    horizontal = false;
+    if(ac.y < bc.y){ start={x:ac.x, y:a.y+ah}; end={x:bc.x, y:b.y}; }
+    else { start={x:ac.x, y:a.y}; end={x:bc.x, y:b.y+bh}; }
+  }
+  return { start, end, horizontal };
+}
+function bezierPath(start, end, horizontal){
+  let c1, c2;
+  if(horizontal){
+    const mx = start.x + (end.x-start.x)/2;
+    c1 = { x:mx, y:start.y }; c2 = { x:mx, y:end.y };
+  } else {
+    const my = start.y + (end.y-start.y)/2;
+    c1 = { x:start.x, y:my }; c2 = { x:end.x, y:my };
+  }
+  return { d:`M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`, c1, c2 };
+}
+function bezierMid(start,c1,c2,end){
+  return { x:(start.x+3*c1.x+3*c2.x+end.x)/8, y:(start.y+3*c1.y+3*c2.y+end.y)/8 };
+}
+function relEndpointLabel(type, isSource){
+  if(type==="1:1") return "1";
+  if(type==="1:N") return isSource ? "1" : "N";
+  if(type==="N:N") return "N";
+  return "";
+}
+function renderRelationships(){
+  const parts = [`<defs><marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--text-faint)"></path></marker></defs>`];
+  state.relationships.forEach(rel=>{
+    const a = getEntity(rel.sourceId), b = getEntity(rel.targetId);
+    if(!a || !b) return;
+    const { start, end, horizontal } = connectionPoints(a,b);
+    const { d, c1, c2 } = bezierPath(start, end, horizontal);
+    const mid = bezierMid(start,c1,c2,end);
+    const selected = selection.relationships.has(rel.id);
+    const label = rel.label || "";
+    const labelText = label ? `${label}  (${rel.type})` : rel.type;
+    const labelW = Math.max(34, labelText.length*6.4 + 16);
+    parts.push(`<g class="rel-group" data-id="${rel.id}">
+      <path class="rel-path ${selected?'selected':''}" d="${d}" marker-end="url(#arrowHead)"></path>
+      <path class="rel-hit" d="${d}"></path>
+      <text class="rel-endpoint-text" x="${start.x+(horizontal?(start.x<end.x?10:-16):0)}" y="${start.y+(horizontal?4:(start.y<end.y?14:-8))}" text-anchor="middle">${relEndpointLabel(rel.type,true)}</text>
+      <text class="rel-endpoint-text" x="${end.x+(horizontal?(start.x<end.x?-14:12):0)}" y="${end.y+(horizontal?4:(start.y<end.y?-8:14))}" text-anchor="middle">${relEndpointLabel(rel.type,false)}</text>
+      <g class="rel-label-group" transform="translate(${mid.x-labelW/2},${mid.y-11})">
+        <rect class="rel-label-bg" width="${labelW}" height="22" rx="7"></rect>
+        <text class="rel-label-text" x="${labelW/2}" y="15" text-anchor="middle">${esc(labelText)}</text>
+      </g>
+    </g>`);
+  });
+  el.relLayer.innerHTML = parts.join("");
+}
+
+/* =========================================================
+   PROPERTIES PANEL
+   ========================================================= */
+function renderProperties(){
+  const selEntities = Array.from(selection.entities);
+  const selRels = Array.from(selection.relationships);
+  const selTexts = Array.from(selection.texts);
+  const totalSelected = selEntities.length + selRels.length + selTexts.length;
+
+  el.mainLayout.classList.toggle("props-collapsed", totalSelected === 0);
+  updateLayoutColumns();
+
+  if(totalSelected === 0){
+    el.propertiesPanel.innerHTML = emptyPanelHtml();
+    return;
+  }
+  if(totalSelected > 1){
+    el.propertiesPanel.innerHTML = multiPanelHtml(totalSelected);
+    bindMultiPanel();
+    return;
+  }
+  if(selEntities.length === 1){
+    el.propertiesPanel.innerHTML = entityPanelHtml(getEntity(selEntities[0]));
+    bindEntityPanel(selEntities[0]);
+    return;
+  }
+  if(selRels.length === 1){
+    el.propertiesPanel.innerHTML = relPanelHtml(getRel(selRels[0]));
+    bindRelPanel(selRels[0]);
+    return;
+  }
+  if(selTexts.length === 1){
+    el.propertiesPanel.innerHTML = textPanelHtml(getText(selTexts[0]));
+    bindTextPanel(selTexts[0]);
+  }
+}
+
+function emptyPanelHtml(){
+  return `<div class="empty-panel">
+    <div class="ep-icon">🧬</div>
+    <h4>Nothing selected</h4>
+    <p>Select an entity, relationship, or note to edit its properties. Use the left toolbar to add new elements to the canvas.</p>
+    <div class="stat-row">
+      <div class="stat-box"><div class="sv">${state.entities.length}</div><div class="sl">Entities</div></div>
+      <div class="stat-box"><div class="sv">${state.relationships.length}</div><div class="sl">Relations</div></div>
+    </div>
+  </div>`;
+}
+function multiPanelHtml(n){
+  return `<div class="panel-section">
+    <div class="panel-title">Multiple Selected</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">${n} items selected. Drag to move together, or use the actions below.</p>
+    <button class="btn-block" id="btnDupSel">⎘ Duplicate Selection</button>
+    <button class="btn-danger-block" id="btnDelSel">🗑 Delete Selection</button>
+  </div>`;
+}
+function bindMultiPanel(){
+  $("#btnDupSel").onclick = ()=>duplicateSelection();
+  $("#btnDelSel").onclick = ()=>deleteSelection();
+}
+
+function entityPanelHtml(ent){
+  if(!ent) return emptyPanelHtml();
+  return `<div class="panel-section">
+    <div class="panel-title">Entity</div>
+    <div class="field-group"><label>Name</label><input type="text" id="pfName" value="${esc(ent.name)}" /></div>
+    <div class="two-col">
+      <div class="field-group"><label>Icon</label><input type="text" id="pfIcon" maxlength="2" value="${esc(ent.icon)}" /></div>
+      <div class="field-group"><label>Width</label><input type="number" id="pfWidth" min="160" max="600" step="10" value="${ent.width}" /></div>
+    </div>
+    <div class="field-group">
+      <label>Color</label>
+      <input type="color" id="pfColor" value="${toHex(ent.color)}" />
+      <div class="swatch-row">${recentColors.map(c=>`<span class="swatch" style="background:${c}" data-color="${c}"></span>`).join("")}</div>
+    </div>
+  </div>
+  <div class="panel-section">
+    <div class="panel-title">Fields <span style="color:var(--text-dim);font-weight:600;">${ent.fields.length}</span></div>
+    <div id="fieldsEditor">${ent.fields.map(f=>fieldEditorRowHtml(f)).join("")}</div>
+    <button class="btn-block" id="btnAddField">＋ Add Field</button>
+  </div>
+  <div class="panel-section">
+    <button class="btn-danger-block" id="btnDelEntity">🗑 Delete Entity</button>
+  </div>`;
+}
+function toHex(c){
+  if(!c) return "#3B82F6";
+  if(c.startsWith("#") && c.length===7) return c;
+  return "#3B82F6";
+}
+function fieldEditorRowHtml(f){
+  return `<div class="field-editor-row" data-field-id="${f.id}">
+    <div class="fer-top">
+      <input type="text" class="fe-name" value="${esc(f.name)}" placeholder="field_name" />
+      <button class="fer-del" data-del-field="${f.id}" title="Delete field">✕</button>
+    </div>
+    <div class="fer-checks">
+      <label class="chk"><input type="checkbox" class="fe-pk" ${f.pk?"checked":""}/> PK</label>
+      <label class="chk"><input type="checkbox" class="fe-fk" ${f.fk?"checked":""}/> FK</label>
+      <label class="chk"><input type="checkbox" class="fe-null" ${f.nullable?"checked":""}/> Nullable</label>
+    </div>
+    <div class="field-group" style="margin:7px 0 0;"><input type="text" class="fe-default" placeholder="default value" value="${esc(f.default)}" /></div>
+  </div>`;
+}
+function bindEntityPanel(id){
+  const ent = getEntity(id); if(!ent) return;
+  $("#pfName").addEventListener("change", e=>{ ent.name = e.target.value || "Entity"; pushHistory(); render(); });
+  $("#pfIcon").addEventListener("change", e=>{ ent.icon = e.target.value || "🗂️"; pushHistory(); render(); });
+  $("#pfWidth").addEventListener("change", e=>{ ent.width = clamp(parseInt(e.target.value)||220,160,600); pushHistory(); render(); });
+  $("#pfColor").addEventListener("input", e=>{ ent.color = e.target.value; renderEntities(); renderRelationships(); });
+  $("#pfColor").addEventListener("change", e=>{ addRecentColor(e.target.value); pushHistory(); render(); });
+  $$(".swatch", el.propertiesPanel).forEach(sw=>{
+    sw.addEventListener("click", ()=>{ ent.color = sw.dataset.color; pushHistory(); render(); });
+  });
+  $$("#fieldsEditor .field-editor-row").forEach(row=>{
+    const fid = row.dataset.fieldId;
+    const f = ent.fields.find(x=>x.id===fid);
+    if(!f) return;
+    row.querySelector(".fe-name").addEventListener("change", e=>{ f.name = e.target.value || "field"; pushHistory(); render(); });
+    row.querySelector(".fe-default").addEventListener("change", e=>{ f.default = e.target.value; pushHistory(); render(); });
+    row.querySelector(".fe-pk").addEventListener("change", e=>{ f.pk = e.target.checked; pushHistory(); render(); });
+    row.querySelector(".fe-fk").addEventListener("change", e=>{ f.fk = e.target.checked; pushHistory(); render(); });
+    row.querySelector(".fe-null").addEventListener("change", e=>{ f.nullable = e.target.checked; pushHistory(); render(); });
+  });
+  $$("[data-del-field]", el.propertiesPanel).forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      ent.fields = ent.fields.filter(f=>f.id!==btn.dataset.delField);
+      pushHistory(); render();
+    });
+  });
+  $("#btnAddField").addEventListener("click", ()=>{
+    ent.fields.push({ id: uid("fld"), name:"new_field", pk:false, fk:false, nullable:true, default:"" });
+    pushHistory(); render();
+  });
+  $("#btnDelEntity").addEventListener("click", ()=>{ deleteEntities([id]); pushHistory(); render(); showToast("Entity deleted"); });
+}
+function addRecentColor(c){
+  recentColors = [c, ...recentColors.filter(x=>x.toLowerCase()!==c.toLowerCase())].slice(0,8);
+}
+
+function relPanelHtml(rel){
+  if(!rel) return emptyPanelHtml();
+  const a = getEntity(rel.sourceId), b = getEntity(rel.targetId);
+  return `<div class="panel-section">
+    <div class="panel-title">Relationship</div>
+    <div class="field-group"><label>From → To</label>
+      <div style="font-size:12.5px;color:var(--text-dim);background:var(--card-soft);padding:8px 10px;border-radius:8px;border:1px solid var(--border);">
+        ${esc(a?a.name:"?")} → ${esc(b?b.name:"?")}
+      </div>
+    </div>
+    <div class="field-group"><label>Cardinality</label>
+      <select id="pfRelType">
+        <option value="1:1" ${rel.type==="1:1"?"selected":""}>One to One (1:1)</option>
+        <option value="1:N" ${rel.type==="1:N"?"selected":""}>One to Many (1:N)</option>
+        <option value="N:N" ${rel.type==="N:N"?"selected":""}>Many to Many (N:N)</option>
+      </select>
+    </div>
+    <div class="field-group"><label>Label</label><input type="text" id="pfRelLabel" placeholder="e.g. places" value="${esc(rel.label||"")}" /></div>
+    <button class="btn-block" id="btnSwapRel">⇄ Swap Direction</button>
+    <button class="btn-danger-block" id="btnDelRel">🗑 Delete Relationship</button>
+  </div>`;
+}
+function bindRelPanel(id){
+  const rel = getRel(id); if(!rel) return;
+  $("#pfRelType").addEventListener("change", e=>{ rel.type = e.target.value; pushHistory(); render(); });
+  $("#pfRelLabel").addEventListener("change", e=>{ rel.label = e.target.value; pushHistory(); render(); });
+  $("#btnSwapRel").addEventListener("click", ()=>{ const t=rel.sourceId; rel.sourceId=rel.targetId; rel.targetId=t; pushHistory(); render(); });
+  $("#btnDelRel").addEventListener("click", ()=>{ deleteRelationships([id]); pushHistory(); render(); showToast("Relationship deleted"); });
+}
+
+function textPanelHtml(t){
+  if(!t) return emptyPanelHtml();
+  return `<div class="panel-section">
+    <div class="panel-title">${t.type==="note"?"Sticky Note":"Text Block"}</div>
+    <div class="field-group"><label>Content</label><textarea id="pfTextContent" rows="5">${esc(t.content)}</textarea></div>
+    <div class="field-group"><label>Width</label><input type="number" id="pfTextWidth" min="80" max="600" value="${t.width}" /></div>
+    <button class="btn-danger-block" id="btnDelText">🗑 Delete</button>
+  </div>`;
+}
+function bindTextPanel(id){
+  const t = getText(id); if(!t) return;
+  $("#pfTextContent").addEventListener("change", e=>{ t.content = e.target.value; pushHistory(); render(); });
+  $("#pfTextWidth").addEventListener("change", e=>{ t.width = clamp(parseInt(e.target.value)||160,80,600); pushHistory(); render(); });
+  $("#btnDelText").addEventListener("click", ()=>{ deleteTexts([id]); pushHistory(); render(); });
+}
+
+/* =========================================================
+   TOOL SWITCHING
+   ========================================================= */
+function setTool(name){
+  tool = name;
+  pendingRelSource = null;
+  $$(".tool-btn").forEach(b=>b.classList.toggle("active", b.dataset.tool===name));
+  el.viewport.className = "tool-" + name;
+  updateHud();
+  renderEntities();
+}
+$$(".tool-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=> setTool(btn.dataset.tool));
+});
+
+/* =========================================================
+   CANVAS INTERACTION — MOUSE
+   ========================================================= */
+el.viewport.addEventListener("mousedown", onViewportMouseDown);
+document.addEventListener("mousemove", onDocumentMouseMove);
+document.addEventListener("mouseup", onDocumentMouseUp);
+el.viewport.addEventListener("contextmenu", onCanvasContextMenu);
+el.viewport.addEventListener("dblclick", onCanvasDblClick);
+
+function onViewportMouseDown(e){
+  hideContextMenu();
+  const entityCard = e.target.closest(".entity-card");
+  const freeBox = e.target.closest(".free-box");
+  const relGroup = e.target.closest(".rel-group");
+  const isEditable = e.target.isContentEditable;
+  if(isEditable) return;
+
+  // HAND TOOL or SPACE = pan
+  if(tool==="hand" || spaceDown || e.button===1){
+    startPan(e); e.preventDefault(); return;
+  }
+
+  // RELATIONSHIP TOOL
+  if(tool==="relationship"){
+    if(entityCard){
+      const id = entityCard.dataset.id;
+      if(!pendingRelSource){ pendingRelSource = id; renderEntities(); showToast("Now click the target entity"); }
+      else if(pendingRelSource===id){ pendingRelSource = null; renderEntities(); }
+      else {
+        const rel = { id: uid("rel"), sourceId: pendingRelSource, targetId: id, type: "1:N", label: "" };
+        state.relationships.push(rel);
+        pendingRelSource = null;
+        pushHistory();
+        clearSelection(); selection.relationships.add(rel.id);
+        setTool("select");
+        render();
+        showToast("Relationship created", "success");
+      }
+    } else {
+      pendingRelSource = null; renderEntities();
+    }
+    return;
+  }
+
+  // ENTITY TOOL — click empty canvas to add
+  if(tool==="entity"){
+    if(!entityCard){
+      const pt = screenToContent(e.clientX, e.clientY);
+      const ent = makeEntity(pt.x - 100, pt.y - 20);
+      state.entities.push(ent);
+      pushHistory();
+      clearSelection(); selection.entities.add(ent.id);
+      setTool("select");
+      render();
+      showToast("Entity added", "success");
+    }
+    return;
+  }
+
+  // TEXT / NOTE TOOL
+  if(tool==="text" || tool==="note"){
+    if(!freeBox){
+      const pt = screenToContent(e.clientX, e.clientY);
+      const t = { id: uid("txt"), type: tool, x: snap(pt.x), y: snap(pt.y), width: 180, height: 60, content: tool==="note" ? "New note…" : "Text label" };
+      state.texts.push(t);
+      pushHistory();
+      clearSelection(); selection.texts.add(t.id);
+      setTool("select");
+      render();
+    }
+    return;
+  }
+
+  // DELETE TOOL
+  if(tool==="delete"){
+    if(entityCard){ deleteEntities([entityCard.dataset.id]); pushHistory(); render(); showToast("Entity deleted"); return; }
+    if(freeBox){ deleteTexts([freeBox.dataset.id]); pushHistory(); render(); return; }
+    if(relGroup){ deleteRelationships([relGroup.dataset.id]); pushHistory(); render(); showToast("Relationship deleted"); return; }
+    return;
+  }
+
+  // SELECT TOOL (default)
+  if(entityCard){
+    const id = entityCard.dataset.id;
+    const additive = e.shiftKey;
+    if(e.target.closest(".resize-handle")){
+      startResize(id, e);
+      if(!selection.entities.has(id)){ clearSelection(); selection.entities.add(id); renderEntities(); renderProperties(); }
+      return;
+    }
+    if(e.target.dataset.role==="ename" || e.target.dataset.role==="fname") { /* let dblclick handle edit; still select */ }
+    if(!selection.entities.has(id) || !additive){
+      if(!additive) clearSelection();
+      selection.entities.add(id);
+    } else if(additive){
+      selection.entities.delete(id);
+    }
+    renderEntities(); renderProperties();
+    if(selection.entities.has(id)) startEntityDrag(e, id);
+    return;
+  }
+  if(freeBox){
+    const id = freeBox.dataset.id;
+    const additive = e.shiftKey;
+    if(!additive) clearSelection();
+    selection.texts.add(id);
+    renderTexts(); renderProperties();
+    startTextDrag(e, id);
+    return;
+  }
+  if(relGroup){
+    selectRelationship(relGroup.dataset.id, e.shiftKey);
+    renderRelationships(); renderProperties();
+    return;
+  }
+  // empty canvas click — marquee select
+  startMarquee(e);
+  if(!e.shiftKey){ clearSelection(); render(); }
+}
+
+/* ---- Panning ---- */
+function startPan(e){
+  stopViewAnimation();
+  syncTargetToView();
+  panning = { startX:e.clientX, startY:e.clientY, startPanX:view.panX, startPanY:view.panY };
+  el.viewport.classList.add("panning");
+}
+/* ---- Entity dragging ---- */
+function startEntityDrag(e, primaryId){
+  const ids = Array.from(selection.entities);
+  const orig = new Map();
+  ids.forEach(id=>{ const ent=getEntity(id); orig.set(id,{x:ent.x,y:ent.y}); });
+  drag = { type:"entity", ids, orig, startScreen:{x:e.clientX,y:e.clientY}, moved:false };
+}
+function startTextDrag(e, primaryId){
+  const ids = Array.from(selection.texts);
+  const orig = new Map();
+  ids.forEach(id=>{ const t=getText(id); orig.set(id,{x:t.x,y:t.y}); });
+  drag = { type:"text", ids, orig, startScreen:{x:e.clientX,y:e.clientY}, moved:false };
+}
+/* ---- Resizing ---- */
+function startResize(id, e){
+  const ent = getEntity(id);
+  resize = { id, startW: ent.width, startX: e.clientX };
+}
+/* ---- Marquee select ---- */
+function startMarquee(e){
+  const rect = el.viewport.getBoundingClientRect();
+  marquee = { startX:e.clientX-rect.left, startY:e.clientY-rect.top, el:null };
+  const box = document.createElement("div");
+  box.className = "select-rect";
+  el.viewport.appendChild(box);
+  marquee.el = box;
+}
+
+function onDocumentMouseMove(e){
+  if(panning){
+    view.panX = panning.startPanX + (e.clientX - panning.startX);
+    view.panY = panning.startPanY + (e.clientY - panning.startY);
+    targetView.panX = view.panX; targetView.panY = view.panY;
+    updateTransform();
+    return;
+  }
+  if(drag){
+    const dx = (e.clientX - drag.startScreen.x) / view.zoom;
+    const dy = (e.clientY - drag.startScreen.y) / view.zoom;
+    if(Math.abs(dx)>1 || Math.abs(dy)>1) drag.moved = true;
+    clearGuides();
+    let snapDX = dx, snapDY = dy;
+    if(drag.type==="entity" && drag.ids.length===1 && snapEnabled){
+      const id = drag.ids[0];
+      const o = drag.orig.get(id);
+      const ent = getEntity(id);
+      const proposedX = o.x + dx, proposedY = o.y + dy;
+      const g = computeSnapGuides(ent, proposedX, proposedY);
+      snapDX = g.x!=null ? g.x - o.x : Math.round(dx / GRID) * GRID;
+      snapDY = g.y!=null ? g.y - o.y : Math.round(dy / GRID) * GRID;
+      drawGuides(g.lines);
+    }
+    drag.ids.forEach(id=>{
+      const o = drag.orig.get(id);
+      const nx = drag.type==="entity" ? o.x+snapDX : snap(o.x+dx);
+      const ny = drag.type==="entity" ? o.y+snapDY : snap(o.y+dy);
+      if(drag.type==="entity"){
+        const ent = getEntity(id); ent.x = nx; ent.y = ny;
+        const cardEl = el.entitiesLayer.querySelector(`.entity-card[data-id="${id}"]`);
+        if(cardEl){ cardEl.style.left = nx+"px"; cardEl.style.top = ny+"px"; }
+      } else {
+        const t = getText(id); t.x = nx; t.y = ny;
+        const boxEl = el.textsLayer.querySelector(`.free-box[data-id="${id}"]`);
+        if(boxEl){ boxEl.style.left = nx+"px"; boxEl.style.top = ny+"px"; }
+      }
+    });
+    renderRelationships();
+    return;
+  }
+  if(resize){
+    const ent = getEntity(resize.id);
+    const dx = (e.clientX - resize.startX) / view.zoom;
+    ent.width = clamp(snap(resize.startW + dx), 160, 600);
+    const cardEl = el.entitiesLayer.querySelector(`.entity-card[data-id="${resize.id}"]`);
+    if(cardEl) cardEl.style.width = ent.width+"px";
+    renderRelationships();
+    return;
+  }
+  if(marquee){
+    const rect = el.viewport.getBoundingClientRect();
+    const curX = e.clientX-rect.left, curY = e.clientY-rect.top;
+    const x = Math.min(marquee.startX, curX), y = Math.min(marquee.startY, curY);
+    const w = Math.abs(curX-marquee.startX), h = Math.abs(curY-marquee.startY);
+    Object.assign(marquee.el.style, { left:x+"px", top:y+"px", width:w+"px", height:h+"px" });
+  }
+}
+
+function onDocumentMouseUp(e){
+  if(panning){ panning=null; el.viewport.classList.remove("panning"); }
+  if(drag){
+    clearGuides();
+    if(drag.moved) pushHistory();
+    drag = null; render();
+  }
+  if(resize){ pushHistory(); resize=null; render(); }
+  if(marquee){
+    finalizeMarquee(e);
+    if(marquee.el) marquee.el.remove();
+    marquee = null;
+    renderEntities(); renderTexts(); renderProperties();
+  }
+}
+
+function finalizeMarquee(e){
+  const rect = el.viewport.getBoundingClientRect();
+  const curX = e.clientX-rect.left, curY = e.clientY-rect.top;
+  const sx = Math.min(marquee.startX, curX), ex = Math.max(marquee.startX, curX);
+  const sy = Math.min(marquee.startY, curY), ey = Math.max(marquee.startY, curY);
+  if(Math.abs(ex-sx)<4 && Math.abs(ey-sy)<4) return; // treat as simple click, already cleared
+  const c1 = screenToContent(sx+rect.left, sy+rect.top);
+  const c2 = screenToContent(ex+rect.left, ey+rect.top);
+  state.entities.forEach(ent=>{
+    const eh = ent.h || 90;
+    if(ent.x < c2.x && ent.x+ent.width > c1.x && ent.y < c2.y && ent.y+eh > c1.y) selection.entities.add(ent.id);
+  });
+  state.texts.forEach(t=>{
+    if(t.x < c2.x && t.x+t.width > c1.x && t.y < c2.y && t.y+t.height > c1.y) selection.texts.add(t.id);
+  });
+}
+
+/* ---- Snap guide computation ---- */
+function computeSnapGuides(movingEnt, propX, propY){
+  const threshold = 6 / view.zoom;
+  let bestX=null, bestY=null; const lines=[];
+  const mw = movingEnt.width, mh = movingEnt.h || 90;
+  const targets = { left:propX, centerX:propX+mw/2, right:propX+mw, top:propY, centerY:propY+mh/2, bottom:propY+mh };
+  state.entities.forEach(other=>{
+    if(other.id===movingEnt.id) return;
+    const ow = other.width, oh = other.h || 90;
+    const oxs = { left:other.x, centerX:other.x+ow/2, right:other.x+ow };
+    const oys = { top:other.y, centerY:other.y+oh/2, bottom:other.y+oh };
+    Object.entries(oxs).forEach(([k,ov])=>{
+      [["left",0],["centerX",mw/2],["right",mw]].forEach(([mk,off])=>{
+        if(Math.abs(targets[mk]-ov) < threshold){ bestX = ov-off; lines.push({type:"v", x:ov}); }
+      });
+    });
+    Object.entries(oys).forEach(([k,ov])=>{
+      [["top",0],["centerY",mh/2],["bottom",mh]].forEach(([mk,off])=>{
+        if(Math.abs(targets[mk]-ov) < threshold){ bestY = ov-off; lines.push({type:"h", y:ov}); }
+      });
+    });
+  });
+  return { x:bestX, y:bestY, lines };
+}
+function drawGuides(lines){
+  if(!lines || !lines.length) return;
+  el.guideLayer.innerHTML = lines.map(l=>{
+    if(l.type==="v") return `<div class="snap-guide v" style="left:${l.x}px;top:-12000px;height:24000px;"></div>`;
+    return `<div class="snap-guide h" style="top:${l.y}px;left:-12000px;width:24000px;"></div>`;
+  }).join("");
+}
+function clearGuides(){ el.guideLayer.innerHTML = ""; }
+
+/* ---- Wheel: Ctrl/Cmd = zoom to cursor, Shift = horizontal scroll, plain = vertical scroll ---- */
+el.viewport.addEventListener("wheel", (e)=>{
+  e.preventDefault();
+  if(e.ctrlKey || e.metaKey){
+    stopViewAnimation();
+    syncTargetToView();
+    const factor = Math.exp(-e.deltaY * 0.0018 * zoomSensitivity);
+    zoomAtPoint(e.clientX, e.clientY, factor);
+  } else if(e.shiftKey){
+    const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+    view.panX -= delta; targetView.panX = view.panX;
+    updateTransform();
+  } else {
+    view.panY -= e.deltaY; view.panX -= e.deltaX;
+    targetView.panX = view.panX; targetView.panY = view.panY;
+    updateTransform();
+  }
+}, { passive:false });
+
+/* ---- Double click: rename entity / field / edit text ---- */
+function onCanvasDblClick(e){
+  const nameSpan = e.target.closest('[data-role="ename"]');
+  const fieldSpan = e.target.closest('[data-role="fname"]');
+  const freeBox = e.target.closest(".free-box");
+  if(nameSpan){ makeEditable(nameSpan, (val)=>{ const ent=getEntity(nameSpan.closest(".entity-card").dataset.id); ent.name = val||ent.name; pushHistory(); render(); }); return; }
+  if(fieldSpan){ makeEditable(fieldSpan, (val)=>{
+      const card = fieldSpan.closest(".entity-card"); const row = fieldSpan.closest(".field-row");
+      const ent = getEntity(card.dataset.id); const f = ent.fields.find(f=>f.id===row.dataset.fieldId);
+      if(f){ f.name = val||f.name; pushHistory(); render(); }
+    }); return; }
+  if(freeBox){ makeEditableBox(freeBox); return; }
+  // empty canvas double-click: center the viewport on the clicked point
+  if((tool==="select" || tool==="hand") && !e.target.closest(".entity-card") && !e.target.closest(".rel-group")){
+    stopViewAnimation(); syncTargetToView();
+    centerViewportOn(e.clientX, e.clientY);
+  }
+}
+function makeEditable(span, onCommit){
+  span.contentEditable = "true";
+  span.focus();
+  document.execCommand && window.getSelection().selectAllChildren(span);
+  function commit(){
+    span.contentEditable = "false";
+    span.removeEventListener("blur", commit);
+    span.removeEventListener("keydown", onKey);
+    onCommit(span.textContent.trim());
+  }
+  function onKey(e){ if(e.key==="Enter"){ e.preventDefault(); span.blur(); } if(e.key==="Escape"){ e.preventDefault(); span.blur(); } }
+  span.addEventListener("blur", commit);
+  span.addEventListener("keydown", onKey);
+}
+function makeEditableBox(box){
+  box.contentEditable = "true";
+  box.focus();
+  function commit(){
+    box.contentEditable = "false";
+    box.removeEventListener("blur", commit);
+    const t = getText(box.dataset.id);
+    if(t){ t.content = box.textContent.trim(); pushHistory(); render(); }
+  }
+  box.addEventListener("blur", commit);
+}
+
+/* =========================================================
+   CONTEXT MENU
+   ========================================================= */
+function onCanvasContextMenu(e){
+  e.preventDefault();
+  const entityCard = e.target.closest(".entity-card");
+  const freeBox = e.target.closest(".free-box");
+  const relGroup = e.target.closest(".rel-group");
+  let items = [];
+  if(entityCard){
+    const id = entityCard.dataset.id;
+    if(!selection.entities.has(id)){ clearSelection(); selection.entities.add(id); renderEntities(); renderProperties(); }
+    items.push(
+      { label:"⎘ Duplicate", action:()=>duplicateSelection() },
+      { label:"⬆ Bring to Front", action:()=>reorder(id,"front") },
+      { label:"⬇ Send to Back", action:()=>reorder(id,"back") },
+      { sep:true },
+      { colors:true, id },
+      { sep:true },
+      { label:"🗑 Delete", danger:true, action:()=>{ deleteEntities([id]); pushHistory(); render(); } }
+    );
+  } else if(freeBox){
+    const id = freeBox.dataset.id;
+    clearSelection(); selection.texts.add(id); renderTexts(); renderProperties();
+    items.push({ label:"🗑 Delete", danger:true, action:()=>{ deleteTexts([id]); pushHistory(); render(); } });
+  } else if(relGroup){
+    const id = relGroup.dataset.id;
+    clearSelection(); selection.relationships.add(id); renderRelationships(); renderProperties();
+    items.push({ label:"🗑 Delete Relationship", danger:true, action:()=>{ deleteRelationships([id]); pushHistory(); render(); } });
+  } else {
+    items.push(
+      { label:"🧩 Auto Arrange", action: autoArrange },
+      { label:"📋 Paste", action:()=>pasteClipboard(e) , disabled: !clipboard },
+      { label:"☑ Select All", action:()=>{ state.entities.forEach(en=>selection.entities.add(en.id)); render(); } }
+    );
+  }
+  buildContextMenu(items, e.clientX, e.clientY);
+}
+function buildContextMenu(items, x, y){
+  el.contextMenu.innerHTML = items.map(it=>{
+    if(it.sep) return `<div class="cm-sep"></div>`;
+    if(it.colors) return `<div class="cm-colors">${recentColors.map(c=>`<span class="swatch" style="background:${c}" data-cm-color="${c}" data-cm-ent="${it.id}"></span>`).join("")}</div>`;
+    return `<button class="cm-item ${it.danger?'danger':''}" ${it.disabled?'disabled style="opacity:.4;pointer-events:none;"':''}>${it.label}</button>`;
+  }).join("");
+  const btns = $$(".cm-item", el.contextMenu);
+  const actionable = items.filter(it=>!it.sep && !it.colors);
+  btns.forEach((b,i)=>{ b.addEventListener("click", ()=>{ actionable[i].action(); hideContextMenu(); }); });
+  $$("[data-cm-color]", el.contextMenu).forEach(sw=>{
+    sw.addEventListener("click", ()=>{
+      const ent = getEntity(sw.dataset.cmEnt);
+      if(ent){ ent.color = sw.dataset.cmColor; pushHistory(); render(); }
+      hideContextMenu();
+    });
+  });
+  const vw = window.innerWidth, vh = window.innerHeight;
+  el.contextMenu.style.left = Math.min(x, vw-210) + "px";
+  el.contextMenu.style.top = Math.min(y, vh-260) + "px";
+  el.contextMenu.classList.add("open");
+}
+function hideContextMenu(){ el.contextMenu.classList.remove("open"); }
+document.addEventListener("click", (e)=>{ if(!e.target.closest(".context-menu")) hideContextMenu(); });
+
+function reorder(id, dir){
+  const idx = state.entities.findIndex(e=>e.id===id);
+  if(idx<0) return;
+  const [item] = state.entities.splice(idx,1);
+  if(dir==="front") state.entities.push(item); else state.entities.unshift(item);
+  pushHistory(); render();
+}
+
+/* =========================================================
+   COPY / PASTE / DUPLICATE
+   ========================================================= */
+function copySelection(){
+  if(!hasSelection()) return;
+  clipboard = {
+    entities: Array.from(selection.entities).map(id=>JSON.parse(JSON.stringify(getEntity(id)))),
+    texts: Array.from(selection.texts).map(id=>JSON.parse(JSON.stringify(getText(id))))
+  };
+  showToast("Copied to clipboard");
+}
+function pasteClipboard(){
+  if(!clipboard) return;
+  clearSelection();
+  const idMap = {};
+  clipboard.entities.forEach(src=>{
+    const copy = JSON.parse(JSON.stringify(src));
+    const newId = uid("ent"); idMap[src.id]=newId;
+    copy.id = newId; copy.x += 30; copy.y += 30;
+    copy.fields = copy.fields.map(f=>({...f, id:uid("fld")}));
+    state.entities.push(copy);
+    selection.entities.add(newId);
+  });
+  clipboard.texts.forEach(src=>{
+    const copy = JSON.parse(JSON.stringify(src));
+    copy.id = uid("txt"); copy.x += 30; copy.y += 30;
+    state.texts.push(copy);
+    selection.texts.add(copy.id);
+  });
+  pushHistory(); render();
+  showToast("Pasted", "success");
+}
+function duplicateSelection(){
+  copySelection();
+  pasteClipboard();
+}
+
+/* =========================================================
+   AUTO ARRANGE
+   ========================================================= */
+function autoArrange(){
+  if(!state.entities.length) return;
+  const cols = Math.max(1, Math.ceil(Math.sqrt(state.entities.length)));
+  const gapX = 280, gapY = 240;
+  state.entities.forEach((ent, i)=>{
+    ent.x = 80 + (i % cols) * gapX;
+    ent.y = 80 + Math.floor(i / cols) * gapY;
+  });
+  el.entitiesLayer.classList.add("animated-move");
+  pushHistory(); render();
+  setTimeout(()=>el.entitiesLayer.classList.remove("animated-move"), 320);
+  showToast("Entities auto-arranged", "success");
+}
+const styleTag = document.createElement("style");
+styleTag.textContent = `.animated-move .entity-card{transition:left .3s cubic-bezier(.4,0,.2,1), top .3s cubic-bezier(.4,0,.2,1);}`;
+document.head.appendChild(styleTag);
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+el.searchInput.addEventListener("input", (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  $$(".entity-card", el.entitiesLayer).forEach(card=>{
+    const ent = getEntity(card.dataset.id);
+    if(!q){ card.classList.remove("dimmed","match"); return; }
+    const match = ent.name.toLowerCase().includes(q) || ent.fields.some(f=>f.name.toLowerCase().includes(q));
+    card.classList.toggle("match", match);
+    card.classList.toggle("dimmed", !match);
+  });
+});
+
+/* =========================================================
+   NAVBAR ACTIONS
+   ========================================================= */
+$("#btnUndo").addEventListener("click", undo);
+$("#btnRedo").addEventListener("click", redo);
+$("#btnSave").addEventListener("click", ()=>{ pushHistory(); showToast("Project saved", "success"); });
+$("#btnAutoArrange").addEventListener("click", autoArrange);
+$("#btnHelp").addEventListener("click", ()=> el.helpModal.classList.add("open"));
+$("#closeHelp").addEventListener("click", ()=> el.helpModal.classList.remove("open"));
+el.helpModal.addEventListener("click", (e)=>{ if(e.target===el.helpModal) el.helpModal.classList.remove("open"); });
+
+el.projectName.addEventListener("change", (e)=>{ state.projectName = e.target.value || "Untitled Diagram"; pushHistory(); });
+
+$("#zoomIn").addEventListener("click", ()=>{ syncTargetToView(); zoomStep(1); });
+$("#zoomOut").addEventListener("click", ()=>{ syncTargetToView(); zoomStep(-1); });
+$("#zoomLabel").addEventListener("click", ()=>{ syncTargetToView(); actualSize(); });
+$("#btnActualSize").addEventListener("click", ()=>{ syncTargetToView(); actualSize(); });
+$("#btnFitScreen").addEventListener("click", ()=>{ syncTargetToView(); fitToScreen(); });
+$("#btnZoomSettings").addEventListener("click", (e)=>{
+  e.stopPropagation();
+  el.zoomSettingsPop.classList.toggle("open");
+});
+document.addEventListener("click", ()=>{ el.zoomSettingsPop.classList.remove("open"); });
+el.zoomSettingsPop.addEventListener("click", (e)=> e.stopPropagation());
+el.zoomSensitivitySlider.addEventListener("input", (e)=>{
+  zoomSensitivity = parseFloat(e.target.value);
+  el.zoomSensVal.textContent = zoomSensitivity.toFixed(1) + "×";
+});
+
+/* ---- Collapsible left tool sidebar ---- */
+function setSidebarCollapsed(v){
+  sidebarCollapsed = v;
+  el.mainLayout.classList.toggle("sidebar-collapsed", v);
+  el.sidebarExpandFab.classList.toggle("show", v);
+  updateLayoutColumns();
+}
+$("#btnCollapseSidebar").addEventListener("click", ()=> setSidebarCollapsed(true));
+el.sidebarExpandFab.addEventListener("click", ()=> setSidebarCollapsed(false));
+
+$("#themeSwitch").addEventListener("click", ()=>{
+  const html = document.documentElement;
+  const next = html.getAttribute("data-theme")==="dark" ? "light" : "dark";
+  html.setAttribute("data-theme", next);
+  showToast(next==="dark" ? "Dark mode on" : "Light mode on");
+});
+
+$("#propsFab").addEventListener("click", ()=> el.sidebarRight.classList.toggle("open"));
+
+/* ---- Export JSON ---- */
+$("#btnExportJson").addEventListener("click", ()=>{
+  const data = JSON.stringify({ entities:state.entities, relationships:state.relationships, texts:state.texts, projectName:state.projectName }, null, 2);
+  downloadBlob(new Blob([data], {type:"application/json"}), (state.projectName||"diagram").replace(/\s+/g,"_")+".json");
+  showToast("Exported JSON", "success");
+});
+/* ---- Import JSON ---- */
+$("#btnImportJson").addEventListener("click", ()=> $("#fileImport").click());
+$("#fileImport").addEventListener("change", (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      state.entities = Array.isArray(data.entities) ? data.entities : [];
+      state.relationships = Array.isArray(data.relationships) ? data.relationships : [];
+      state.texts = Array.isArray(data.texts) ? data.texts : [];
+      state.projectName = data.projectName || "Imported Diagram";
+      el.projectName.value = state.projectName;
+      clearSelection();
+      history = []; historyIndex = -1;
+      pushHistory(); render();
+      showToast("Project imported", "success");
+    }catch(err){ showToast("Invalid JSON file", "error"); }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+/* ---- Export PNG ---- */
+$("#btnExportPng").addEventListener("click", exportPng);
+function roundRectPath(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function exportPng(){
+  render(); // ensure fresh heights
+  if(!state.entities.length && !state.texts.length){ showToast("Nothing to export", "error"); return; }
+  const pad = 60;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  state.entities.forEach(en=>{ const h=en.h||90; minX=Math.min(minX,en.x); minY=Math.min(minY,en.y); maxX=Math.max(maxX,en.x+en.width); maxY=Math.max(maxY,en.y+h); });
+  state.texts.forEach(t=>{ minX=Math.min(minX,t.x); minY=Math.min(minY,t.y); maxX=Math.max(maxX,t.x+t.width); maxY=Math.max(maxY,t.y+t.height); });
+  if(!isFinite(minX)){ minX=0;minY=0;maxX=400;maxY=300; }
+  const w = (maxX-minX)+pad*2, h = (maxY-minY)+pad*2;
+  const scale = 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = w*scale; canvas.height = h*scale;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale,scale);
+  const css = getComputedStyle(document.documentElement);
+  const bg = css.getPropertyValue("--bg").trim() || "#0F172A";
+  const cardColor = css.getPropertyValue("--card").trim() || "#1E293B";
+  const borderColor = "rgba(255,255,255,.16)";
+  const textColor = css.getPropertyValue("--text").trim() || "#F8FAFC";
+  const dimColor = css.getPropertyValue("--text-dim").trim() || "#94A3B8";
+  const faintColor = css.getPropertyValue("--text-faint").trim() || "#64748B";
+
+  ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+  ctx.save();
+  ctx.translate(-minX+pad, -minY+pad);
+
+  // relationships
+  ctx.lineWidth = 2; ctx.strokeStyle = faintColor;
+  state.relationships.forEach(rel=>{
+    const a = getEntity(rel.sourceId), b = getEntity(rel.targetId);
+    if(!a||!b) return;
+    const { start, end, horizontal } = connectionPoints(a,b);
+    const { d, c1, c2 } = bezierPath(start,end,horizontal);
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.bezierCurveTo(c1.x,c1.y,c2.x,c2.y,end.x,end.y);
+    ctx.stroke();
+    // arrowhead
+    const angle = Math.atan2(end.y-c2.y, end.x-c2.x);
+    ctx.save(); ctx.translate(end.x,end.y); ctx.rotate(angle);
+    ctx.fillStyle = faintColor;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-9,-5); ctx.lineTo(-9,5); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // label
+    const mid = bezierMid(start,c1,c2,end);
+    const labelText = rel.label ? `${rel.label}  (${rel.type})` : rel.type;
+    ctx.font = "700 11px Inter, sans-serif";
+    const tw = ctx.measureText(labelText).width;
+    ctx.fillStyle = cardColor; ctx.strokeStyle = borderColor; ctx.lineWidth = 1;
+    roundRectPath(ctx, mid.x-tw/2-8, mid.y-11, tw+16, 22, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = dimColor; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(labelText, mid.x, mid.y+1);
+  });
+
+  // entities
+  state.entities.forEach(ent=>{
+    const headerH = 40, rowH = 26;
+    const h = headerH + ent.fields.length*rowH + 10;
+    ctx.fillStyle = cardColor; ctx.strokeStyle = borderColor; ctx.lineWidth = 1.5;
+    roundRectPath(ctx, ent.x, ent.y, ent.width, h, 12); ctx.fill(); ctx.stroke();
+    const grad = ctx.createLinearGradient(ent.x,ent.y,ent.x+ent.width,ent.y+headerH);
+    grad.addColorStop(0, ent.color); grad.addColorStop(1, shade(ent.color,-30));
+    ctx.save();
+    roundRectPath(ctx, ent.x, ent.y, ent.width, headerH, 12);
+    ctx.clip();
+    ctx.fillStyle = grad; ctx.fillRect(ent.x, ent.y, ent.width, headerH);
+    ctx.restore();
+    ctx.fillStyle = "#ffffff"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.font = "700 13px Inter, sans-serif";
+    ctx.fillText((ent.icon||"") + "  " + ent.name, ent.x+12, ent.y+headerH/2+1);
+    ent.fields.forEach((f,i)=>{
+      const ry = ent.y+headerH + i*rowH + rowH/2;
+      ctx.fillStyle = textColor; ctx.font = "12px 'SFMono-Regular', Consolas, monospace";
+      const prefix = f.pk ? "🔑 " : (f.fk ? "🔗 " : "    ");
+      ctx.fillText(prefix + f.name, ent.x+12, ry);
+      if(f.fk){ ctx.fillStyle = "#c4b5fd"; ctx.font="800 9px Inter, sans-serif"; ctx.fillText("FK", ent.x+ent.width-30, ry); }
+      if(i < ent.fields.length-1){ ctx.strokeStyle = borderColor; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(ent.x, ent.y+headerH+(i+1)*rowH); ctx.lineTo(ent.x+ent.width, ent.y+headerH+(i+1)*rowH); ctx.stroke(); }
+    });
+  });
+
+  // texts / notes
+  state.texts.forEach(t=>{
+    if(t.type==="note"){ ctx.fillStyle = "#facc15"; ctx.strokeStyle="#eab308"; } else { ctx.fillStyle = "rgba(0,0,0,0)"; ctx.strokeStyle = borderColor; }
+    ctx.lineWidth = 1.5;
+    roundRectPath(ctx, t.x, t.y, t.width, t.height, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = t.type==="note" ? "#1a1400" : textColor;
+    ctx.font = "13px Inter, sans-serif"; ctx.textAlign="left"; ctx.textBaseline="top";
+    wrapText(ctx, t.content, t.x+10, t.y+10, t.width-20, 16);
+  });
+
+  ctx.restore();
+  canvas.toBlob(blob=>{
+    downloadBlob(blob, (state.projectName||"diagram").replace(/\s+/g,"_")+".png");
+    showToast("Exported PNG", "success");
+  }, "image/png");
+}
+function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = String(text).split(" ");
+  let line = "", cy = y;
+  words.forEach(word=>{
+    const test = line ? line+" "+word : word;
+    if(ctx.measureText(test).width > maxWidth && line){ ctx.fillText(line, x, cy); line = word; cy += lineHeight; }
+    else line = test;
+  });
+  if(line) ctx.fillText(line, x, cy);
+}
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+   ========================================================= */
+document.addEventListener("keydown", (e)=>{
+  const typing = e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA" || e.target.isContentEditable;
+  if(e.code==="Space" && !typing){ spaceDown = true; el.viewport.classList.add("spacePan"); }
+
+  if(typing) {
+    if(e.key==="Escape") e.target.blur();
+    return;
+  }
+
+  const mod = e.ctrlKey || e.metaKey;
+  if(mod && e.key.toLowerCase()==="z" && !e.shiftKey){ e.preventDefault(); undo(); return; }
+  if(mod && (e.key.toLowerCase()==="y" || (e.key.toLowerCase()==="z" && e.shiftKey))){ e.preventDefault(); redo(); return; }
+  if(mod && e.key.toLowerCase()==="s"){ e.preventDefault(); pushHistory(); showToast("Project saved","success"); return; }
+  if(mod && e.key.toLowerCase()==="c"){ e.preventDefault(); copySelection(); return; }
+  if(mod && e.key.toLowerCase()==="v"){ e.preventDefault(); pasteClipboard(); return; }
+  if(mod && e.key.toLowerCase()==="d"){ e.preventDefault(); duplicateSelection(); return; }
+  if((e.key==="Delete" || e.key==="Backspace") && hasSelection()){ e.preventDefault(); deleteSelection(); return; }
+  if(e.key==="Escape"){ clearSelection(); pendingRelSource=null; hideContextMenu(); el.helpModal.classList.remove("open"); render(); return; }
+  if(e.key==="?" || (e.shiftKey && e.key==="/")){ el.helpModal.classList.add("open"); return; }
+  if(mod && e.key==="0"){ e.preventDefault(); syncTargetToView(); actualSize(); return; }
+  if(!mod && e.key.toLowerCase()==="f"){ e.preventDefault(); syncTargetToView(); fitToScreen(); return; }
+  if(!mod){
+    const map = { v:"select", h:"hand", e:"entity", r:"relationship", t:"text", n:"note", Delete:"delete" };
+    const k = e.key.toLowerCase();
+    if(map[k]){ setTool(map[k]); }
+  }
+});
+document.addEventListener("keyup", (e)=>{
+  if(e.code==="Space"){ spaceDown = false; el.viewport.classList.remove("spacePan"); }
+});
+
+/* =========================================================
+   INIT — DEMO DATA
+   ========================================================= */
+function seedDemo(){
+  const user = {
+    id: uid("ent"), x: 80, y: 90, width: 230, color:"#3B82F6", icon:"👤", name:"User",
+    fields: [
+      { id: uid("fld"), name:"id", pk:true, fk:false, nullable:false, default:"" },
+      { id: uid("fld"), name:"name", pk:false, fk:false, nullable:false, default:"" },
+      { id: uid("fld"), name:"email", pk:false, fk:false, nullable:false, default:"" },
+      { id: uid("fld"), name:"phone", pk:false, fk:false, nullable:true, default:"" },
+      { id: uid("fld"), name:"address", pk:false, fk:false, nullable:true, default:"" }
+    ]
+  };
+  const order = {
+    id: uid("ent"), x: 470, y: 260, width: 240, color:"#8B5CF6", icon:"🧾", name:"Order",
+    fields: [
+      { id: uid("fld"), name:"id", pk:true, fk:false, nullable:false, default:"" },
+      { id: uid("fld"), name:"user_id", pk:false, fk:true, nullable:false, default:"" },
+      { id: uid("fld"), name:"total", pk:false, fk:false, nullable:false, default:"0.00" },
+      { id: uid("fld"), name:"status", pk:false, fk:false, nullable:false, default:"pending" },
+      { id: uid("fld"), name:"created_at", pk:false, fk:false, nullable:false, default:"now()" }
+    ]
+  };
+  state.entities.push(user, order);
+  state.relationships.push({ id: uid("rel"), sourceId:user.id, targetId:order.id, type:"1:N", label:"places" });
+}
+
+function init(){
+  seedDemo();
+  history = []; historyIndex = -1;
+  pushHistory();
+  render();
+  updateUndoRedoButtons();
+}
+init();
+
+})();
+</script>
+</body>
+</html>

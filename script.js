@@ -111,6 +111,8 @@ const topics = {
       { title: "Creating Databases & Tables", file: "Mysql/module-3-creating-databases-tables" },
       { title: "CRUD Operations", file: "Mysql/module-4-crud-operations" },
       { title: "Operators & Functions", file: "Mysql/module5-operators-functions" },
+      { title: "Aggregate Functions & GROUP BY", file: "Mysql/module-6-aggregate-functions-groupby" },
+      { title: "Constraints & Keys", file: "Mysql/module-7-constraintsandKeys" },
     ],
   },
 };
@@ -121,7 +123,7 @@ const tools = {
     description: "Design interactive entity-relationship (ER) diagrams and generate SQL schemas.",
     icon: "📐",
     color: "#06B6D4",
-    file: "Tools/Schema Desiner.html",
+    file: "Tools/Schema Desiner version 2.html",
     difficulty: "utility"
   }
 };
@@ -350,8 +352,8 @@ function buildSidebarNav() {
   html += `<div class="nav-section-items${expandedSections.tools ? " expanded" : ""}" id="toolsSection">`;
 
   // Interactive Tools
-  const isSchemaActive = activeLink && activeLink.dataset.file === "Tools/Schema Desiner.html";
-  html += `<button class="nav-item${isSchemaActive ? " active" : ""}" data-action="tool" data-file="Tools/Schema Desiner.html" data-title="Schema Designer">
+  const isSchemaActive = activeLink && activeLink.dataset.file === "Tools/Schema Desiner version 2.html";
+  html += `<button class="nav-item${isSchemaActive ? " active" : ""}" data-action="tool" data-file="Tools/Schema Desiner version 2.html" data-title="Schema Designer">
     <span class="nav-item-icon">${icons.schema}</span>
     <span class="nav-item-label">Schema Designer</span>
   </button>`;
@@ -375,7 +377,7 @@ function buildSidebarNav() {
   nav.innerHTML = html;
 
   if (isSchemaActive) {
-    activeLink = nav.querySelector(`[data-file="Tools/Schema Desiner.html"]`);
+    activeLink = nav.querySelector(`[data-file="Tools/Schema Desiner version 2.html"]`);
   }
 
   // Event: Dashboard
@@ -1232,10 +1234,10 @@ function handleHashRoute() {
   const hash = decodeURIComponent(window.location.hash.slice(1));
   if (!hash) return;
 
-  if (hash === "Tools/Schema Desiner" || hash === "Tools/Schema Desiner.html") {
+  if (hash === "Tools/Schema Desiner version 2" || hash === "Tools/Schema Desiner version 2.html") {
     setTimeout(() => {
-      const link = document.querySelector(`.nav-item[data-action="tool"][data-file="Tools/Schema Desiner.html"]`);
-      if (link) loadTopic(link, "Tools", "Schema Designer", "Tools/Schema Desiner.html");
+      const link = document.querySelector(`.nav-item[data-action="tool"][data-file="Tools/Schema Desiner version 2.html"]`);
+      if (link) loadTopic(link, "Tools", "Schema Designer", "Tools/Schema Desiner version 2.html");
     }, 50);
     return;
   }
