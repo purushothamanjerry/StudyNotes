@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 04 — CRUD Operations | MySQL Interview Blueprint</title>
+<style>
+:root{
+  --bg:#080b12;
+  --bg-2:#0c111c;
+  --panel:rgba(255,255,255,0.035);
+  --panel-strong:rgba(255,255,255,0.06);
+  --border:rgba(148,178,224,0.14);
+  --border-strong:rgba(148,178,224,0.28);
+  --grid:rgba(110,231,249,0.05);
+  --text:#e9edf6;
+  --text-dim:#94a1ba;
+  --text-faint:#576079;
+  --ink:#6EE7F9;
+  --ink-2:#A78BFA;
+  --amber:#f0b429;
+  --coral:#fb7185;
+  --mint:#34d399;
+  --code-bg:#0a0e17;
+  --radius:14px;
+  --font-display:'Segoe UI Semibold','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 15% -10%, rgba(110,231,249,0.08), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(167,139,250,0.07), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(90deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.6;
+}
+::selection{background:rgba(110,231,249,0.25);color:#fff;}
+a{color:inherit;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(148,178,224,0.25);border-radius:8px;}
+
+#progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--ink),var(--ink-2));
+  z-index:1000;
+  box-shadow:0 0 12px rgba(110,231,249,0.6);
+  transition:width .08s linear;
+}
+
+#topbar{
+  position:sticky;top:0;z-index:900;
+  display:none;
+  align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  background:rgba(8,11,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{font-family:var(--font-display);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);}
+#menu-toggle{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:8px 10px;cursor:pointer;
+}
+
+#layout{
+  display:grid;
+  grid-template-columns:270px minmax(0,1fr);
+  max-width:1400px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+
+#sidebar{
+  position:sticky;top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 18px 40px 28px;
+  border-right:1px solid var(--border);
+}
+.brand-block{margin-bottom:28px;}
+.brand-eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+  color:var(--ink);text-transform:uppercase;
+}
+.brand-title{
+  font-family:var(--font-display);font-size:19px;margin-top:6px;
+  letter-spacing:.01em;
+}
+.brand-sub{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+
+nav#toc{display:flex;flex-direction:column;gap:2px;}
+.toc-group-label{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;
+  color:var(--text-faint);text-transform:uppercase;
+  margin:16px 0 6px 12px;
+}
+.toc-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:8px;
+  font-size:13.5px;color:var(--text-dim);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.toc-link .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex:none;
+  transition:background .2s ease,box-shadow .2s ease;
+}
+.toc-link:hover{background:var(--panel);color:var(--text);}
+.toc-link.active{
+  background:var(--panel-strong);color:var(--ink);
+  border-left-color:var(--ink);
+}
+.toc-link.active .dot{background:var(--ink);box-shadow:0 0 8px var(--ink);}
+
+#sidebar-footer{
+  margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);
+}
+
+main{padding:0 0 120px 0;min-width:0;}
+.section{
+  padding:90px clamp(20px,4vw,64px) 10px;
+  scroll-margin-top:20px;
+  max-width:920px;
+}
+.section-inner{max-width:820px;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);
+  padding:5px 12px;border:1px solid rgba(110,231,249,0.3);
+  border-radius:999px;background:rgba(110,231,249,0.06);
+  margin-bottom:18px;
+}
+h1.section-title{
+  font-family:var(--font-display);font-size:clamp(28px,4vw,42px);
+  letter-spacing:-0.01em;line-height:1.15;margin-bottom:14px;
+}
+p.section-lede{font-size:16.5px;color:var(--text-dim);max-width:680px;margin-bottom:6px;}
+h2.h2{
+  font-family:var(--font-display);font-size:22px;margin:44px 0 14px;
+  display:flex;align-items:center;gap:10px;
+}
+h2.h2 .idx{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink);
+  border:1px solid var(--border-strong);border-radius:6px;
+  padding:2px 7px;
+}
+h3.h3{font-family:var(--font-display);font-size:16.5px;margin:22px 0 10px;color:var(--text);}
+p{font-size:15px;color:var(--text-dim);margin-bottom:12px;}
+p strong{color:var(--text);font-weight:600;}
+ul.plain-list{margin:8px 0 16px 0;padding-left:0;list-style:none;}
+ul.plain-list li{
+  position:relative;padding-left:20px;margin-bottom:8px;font-size:14.5px;color:var(--text-dim);
+}
+ul.plain-list li::before{
+  content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--ink);
+}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  backdrop-filter:blur(10px);
+  margin:16px 0;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 12px 30px -14px rgba(0,0,0,.6);}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.card-grid{grid-template-columns:1fr;}}
+
+.label-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.label-row svg{flex:none;}
+.label-row .lbl{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+
+.box{
+  border-radius:12px;padding:16px 18px;margin:16px 0;
+  border:1px solid; position:relative; overflow:hidden;
+}
+.box .box-title{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700;
+}
+.box p{margin-bottom:6px;font-size:14px;}
+.box.tip{background:rgba(110,231,249,0.06);border-color:rgba(110,231,249,0.28);}
+.box.tip .box-title{color:var(--ink);}
+.box.mistake{background:rgba(251,113,133,0.07);border-color:rgba(251,113,133,0.3);}
+.box.mistake .box-title{color:var(--coral);}
+.box.warn{background:rgba(240,180,41,0.08);border-color:rgba(240,180,41,0.32);}
+.box.warn .box-title{color:var(--amber);}
+.box.best{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);}
+.box.best .box-title{color:var(--mint);}
+.box.memory{background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(110,231,249,0.06));border-color:rgba(167,139,250,0.32);}
+.box.memory .box-title{color:var(--ink-2);}
+
+.code-block{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin:16px 0;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.code-head .dots{display:flex;gap:6px;}
+.code-head .dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);}
+.code-head .filename{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+.run-btn{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+  background:rgba(110,231,249,0.1);color:var(--ink);
+  border:1px solid rgba(110,231,249,0.35);border-radius:7px;
+  padding:5px 10px;cursor:pointer;transition:background .2s ease;
+}
+.run-btn:hover{background:rgba(110,231,249,0.2);}
+pre.code{
+  padding:16px 18px;font-family:var(--font-mono);font-size:13.2px;
+  overflow-x:auto;color:#c9d3e6;line-height:1.7;
+}
+.k{color:#6EE7F9;font-weight:600;}
+.t{color:#a78bfa;}
+.s{color:#fbbf24;}
+.c{color:#576079;font-style:italic;}
+.f{color:#34d399;}
+.n{color:#fb7185;}
+
+.exec-result{
+  border-top:1px dashed var(--border);
+  padding:14px 18px;font-family:var(--font-mono);font-size:12.5px;
+  color:var(--mint);display:none;
+}
+.exec-result.show{display:block;animation:fadein .4s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.exec-result table{border-collapse:collapse;margin-top:8px;width:100%;}
+.exec-result th,.exec-result td{border:1px solid rgba(52,211,153,0.25);padding:5px 10px;font-size:12px;color:var(--text-dim);}
+.exec-result th{color:var(--mint);text-align:left;}
+
+.tabs{display:flex;gap:6px;margin:16px 0 0;flex-wrap:wrap;}
+.tab-btn{
+  font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:8px 8px 0 0;
+  background:var(--panel);border:1px solid var(--border);border-bottom:none;
+  color:var(--text-faint);cursor:pointer;transition:color .2s,background .2s;
+}
+.tab-btn.active{color:var(--ink);background:var(--panel-strong);}
+.tab-panels{border:1px solid var(--border);border-radius:0 10px 10px 10px;background:var(--panel);padding:18px;margin-bottom:16px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadein .3s ease;}
+
+.accordion-item{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--panel);}
+.accordion-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;cursor:pointer;font-size:14.5px;color:var(--text);font-weight:500;
+}
+.accordion-head .plus{color:var(--ink);font-family:var(--font-mono);transition:transform .3s ease;font-size:16px;}
+.accordion-item.open .plus{transform:rotate(45deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 16px;}
+.accordion-item.open .accordion-body{padding:0 16px 16px;}
+.accordion-body p{font-size:13.8px;}
+.tag{
+  display:inline-block;font-family:var(--font-mono);font-size:10.5px;
+  padding:2px 8px;border-radius:999px;margin-left:8px;
+  background:rgba(167,139,250,0.12);color:var(--ink-2);border:1px solid rgba(167,139,250,0.3);
+}
+.tag.company{background:rgba(240,180,41,0.1);color:var(--amber);border-color:rgba(240,180,41,0.3);}
+.tag.scenario{background:rgba(251,113,133,0.1);color:var(--coral);border-color:rgba(251,113,133,0.3);}
+
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+.cmp-table th,.cmp-table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.cmp-table th{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--border-strong);
+}
+.cmp-table td{color:var(--text-dim);}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+.diagram-wrap{
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  background:radial-gradient(ellipse at top left, rgba(110,231,249,0.05), transparent 60%);
+  margin:18px 0;overflow-x:auto;
+}
+.diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;}
+
+.flow{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+.flow-step{display:flex;gap:16px;position:relative;padding-bottom:26px;}
+.flow-step:last-child{padding-bottom:0;}
+.flow-step::before{
+  content:"";position:absolute;left:15px;top:34px;bottom:0;width:1px;
+  background:linear-gradient(var(--border-strong),transparent);
+}
+.flow-step:last-child::before{display:none;}
+.flow-num{
+  flex:none;width:32px;height:32px;border-radius:50%;
+  background:var(--panel-strong);border:1px solid var(--border-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;color:var(--ink);z-index:1;
+}
+.flow-body{padding-top:4px;}
+.flow-body h4{font-size:14.5px;color:var(--text);margin-bottom:3px;font-weight:600;}
+.flow-body p{font-size:13.5px;margin-bottom:0;}
+
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+.mini-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.mini-card h4{font-size:13.5px;color:var(--ink);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:.04em;}
+.mini-card p{font-size:13px;margin-bottom:0;}
+
+.flash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:18px 0;}
+.flashcard{perspective:1000px;height:170px;cursor:pointer;}
+.flashcard-inner{
+  position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.flash-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:12px;border:1px solid var(--border-strong);
+  padding:18px;display:flex;flex-direction:column;justify-content:center;
+}
+.flash-front{background:linear-gradient(150deg,rgba(110,231,249,0.08),rgba(255,255,255,0.02));}
+.flash-back{background:linear-gradient(150deg,rgba(167,139,250,0.14),rgba(20,25,38,0.9));transform:rotateY(180deg);}
+.flash-face .fc-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.flash-face p{font-size:14px;color:var(--text);margin:0;}
+
+.quiz-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.quiz-q{font-size:15px;color:var(--text);margin-bottom:14px;font-weight:500;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  border:1px solid var(--border);background:var(--panel);border-radius:9px;
+  padding:11px 14px;font-size:13.8px;cursor:pointer;color:var(--text-dim);
+  transition:border-color .2s,background .2s;
+}
+.quiz-opt:hover{border-color:var(--border-strong);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(52,211,153,0.1);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--coral);background:rgba(251,113,133,0.1);color:var(--coral);}
+#quiz-score-bar{
+  position:sticky;top:10px;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,23,0.85);backdrop-filter:blur(10px);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;margin-bottom:20px;font-family:var(--font-mono);font-size:13px;
+}
+#quiz-score-bar .score{color:var(--ink);}
+
+.roadmap{position:relative;margin:26px 0 10px;padding-left:26px;}
+.roadmap::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--ink),var(--ink-2),transparent);}
+.rm-item{position:relative;margin-bottom:26px;}
+.rm-item::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ink);}
+.rm-item h4{font-size:14.5px;color:var(--text);margin-bottom:4px;}
+.rm-item p{font-size:13.5px;margin-bottom:0;}
+
+.hero{
+  min-height:92vh;display:flex;flex-direction:column;justify-content:center;
+  padding:60px clamp(20px,4vw,64px);position:relative;
+}
+.hero-kicker{
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:20px;display:flex;align-items:center;gap:12px;
+}
+.hero-kicker::before{content:"";width:34px;height:1px;background:var(--ink);}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(38px,6vw,72px);line-height:1.03;
+  letter-spacing:-0.02em;max-width:900px;
+  background:linear-gradient(120deg,#fff 30%,var(--ink) 65%,var(--ink-2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.hero-sub{font-size:17px;color:var(--text-dim);max-width:620px;margin:22px 0 30px;}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px;}
+.hero-tag{
+  font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--panel);
+}
+.hero-scroll{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:8px;}
+.hero-scroll svg{animation:bob 1.8s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+.blueprint-hero{margin-top:10px;border:1px solid var(--border);border-radius:16px;padding:22px;background:rgba(255,255,255,0.02);}
+
+footer.page-footer{
+  text-align:center;padding:60px 20px 40px;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;
+  border-top:1px solid var(--border);margin-top:60px;
+}
+
+@media(max-width:980px){
+  #layout{grid-template-columns:1fr;}
+  #sidebar{
+    position:fixed;left:0;top:57px;bottom:0;width:270px;
+    transform:translateX(-100%);transition:transform .3s ease;
+    background:rgba(8,11,18,0.98);z-index:800;height:calc(100vh - 57px);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #topbar{display:flex;}
+  .section{padding-top:56px;}
+  .hero{min-height:auto;padding-top:50px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div id="topbar">
+  <span class="brand">MySQL Blueprint · Mod 04</span>
+  <button id="menu-toggle" aria-label="Toggle menu">☰ Menu</button>
+</div>
+
+<div id="layout">
+  <aside id="sidebar">
+    <div class="brand-block">
+      <div class="brand-eyebrow">Interview Blueprint · Module 04</div>
+      <div class="brand-title">CRUD Operations</div>
+      <div class="brand-sub">MySQL DML/DQL for Java Full Stack fresher interviews</div>
+    </div>
+    <nav id="toc">
+      <a class="toc-link" href="#hero"><span class="dot"></span>Overview</a>
+      <div class="toc-group-label">Core Topics</div>
+      <a class="toc-link" href="#insert"><span class="dot"></span>INSERT</a>
+      <a class="toc-link" href="#select"><span class="dot"></span>SELECT</a>
+      <a class="toc-link" href="#where"><span class="dot"></span>WHERE</a>
+      <a class="toc-link" href="#update"><span class="dot"></span>UPDATE</a>
+      <a class="toc-link" href="#delete"><span class="dot"></span>DELETE</a>
+      <a class="toc-link" href="#orderby"><span class="dot"></span>ORDER BY</a>
+      <a class="toc-link" href="#limit"><span class="dot"></span>LIMIT</a>
+      <a class="toc-link" href="#distinct"><span class="dot"></span>DISTINCT</a>
+      <a class="toc-link" href="#aliases"><span class="dot"></span>Aliases</a>
+      <div class="toc-group-label">Revision</div>
+      <a class="toc-link" href="#cheatsheet"><span class="dot"></span>Cheat Sheet</a>
+      <a class="toc-link" href="#mindmap"><span class="dot"></span>Mind Map</a>
+      <a class="toc-link" href="#flashcards"><span class="dot"></span>Flash Cards</a>
+      <a class="toc-link" href="#quiz"><span class="dot"></span>Quick Quiz</a>
+      <a class="toc-link" href="#top20"><span class="dot"></span>Top 20 Questions</a>
+      <a class="toc-link" href="#roadmap"><span class="dot"></span>Roadmap</a>
+      <a class="toc-link" href="#summary"><span class="dot"></span>Summary</a>
+    </nav>
+    <div id="sidebar-footer">Fresher track · Java + Spring Boot + MySQL<br>Zoho · TCS Digital · Infosys · Accenture · Capgemini · Cognizant · HCL · Wipro</div>
+  </aside>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="hero-kicker">Module 04 / 12 — MySQL Interview Track</div>
+      <h1>CRUD Operations</h1>
+      <p class="hero-sub">The blueprint is built — now it's occupied. CRUD is how every application actually <strong>moves data</strong> through the rooms you designed in Module 03: putting data in, reading it back, updating it, and clearing it out.</p>
+      <div class="hero-tags">
+        <span class="hero-tag">INSERT</span>
+        <span class="hero-tag">SELECT</span>
+        <span class="hero-tag">WHERE</span>
+        <span class="hero-tag">UPDATE</span>
+        <span class="hero-tag">DELETE</span>
+        <span class="hero-tag">ORDER BY</span>
+        <span class="hero-tag">LIMIT</span>
+        <span class="hero-tag">DISTINCT</span>
+        <span class="hero-tag">Aliases</span>
+      </div>
+
+      <div class="blueprint-hero reveal">
+        <div class="label-row"><span class="lbl">Live diagram — the CRUD data flow through a table</span></div>
+        <div class="diagram-wrap" style="margin-top:6px;border:none;padding:0;background:none;">
+          <svg viewBox="0 0 760 210" width="100%">
+            <defs>
+              <marker id="arrowhead-hero4" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#6EE7F9"/>
+              </marker>
+            </defs>
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <rect x="330" y="70" width="120" height="70" rx="10" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="390" y="98" text-anchor="middle" fill="#6EE7F9" font-weight="bold">employees</text>
+              <text x="390" y="118" text-anchor="middle" fill="#94a1ba" font-size="10">table</text>
+
+              <rect x="30" y="20" width="150" height="40" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="105" y="45" text-anchor="middle" fill="#34d399">INSERT (Create)</text>
+              <line x1="180" y1="40" x2="330" y2="90" stroke="#34d399" stroke-width="1.4" marker-end="url(#arrowhead-hero4)"/>
+
+              <rect x="30" y="150" width="150" height="40" rx="8" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="105" y="175" text-anchor="middle" fill="#A78BFA">SELECT (Read)</text>
+              <line x1="330" y1="120" x2="180" y2="165" stroke="#A78BFA" stroke-width="1.4" marker-end="url(#arrowhead-hero4)"/>
+
+              <rect x="580" y="20" width="150" height="40" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+              <text x="655" y="45" text-anchor="middle" fill="#f0b429">UPDATE</text>
+              <line x1="580" y1="40" x2="450" y2="90" stroke="#f0b429" stroke-width="1.4" marker-end="url(#arrowhead-hero4)"/>
+
+              <rect x="580" y="150" width="150" height="40" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+              <text x="655" y="175" text-anchor="middle" fill="#fb7185">DELETE</text>
+              <line x1="580" y1="165" x2="450" y2="120" stroke="#fb7185" stroke-width="1.4" marker-end="url(#arrowhead-hero4)"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-scroll" style="margin-top:26px;">
+        <span>Scroll to begin</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#6EE7F9" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </section>
+
+    <!-- ================= INSERT ================= -->
+    <section class="section" id="insert">
+      <div class="section-inner reveal">
+        <div class="eyebrow">01 · Statement · Create</div>
+        <h1 class="section-title">INSERT</h1>
+        <p class="section-lede">The "C" in CRUD — the only way new rows enter a table.</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Simple</span></div>
+            <p>INSERT adds a new row of data into a table, one occupant moving into a room you already built.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Interview framing</span></div>
+            <p>Interviewers check whether you know the difference between naming columns explicitly (safe) vs relying on column order (fragile), and whether you know multi-row INSERT for performance.</p>
+          </div>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">insert.sql</div><button class="run-btn" data-target="res-ins">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Single row, explicit columns (always prefer this)</span>
+<span class="k">INSERT INTO</span> <span class="f">employees</span> (<span class="f">first_name</span>, <span class="f">email</span>, <span class="f">salary</span>, <span class="f">dept_id</span>)
+<span class="k">VALUES</span> (<span class="s">'Asha'</span>, <span class="s">'asha@corp.com'</span>, <span class="n">55000.00</span>, <span class="n">2</span>);
+
+<span class="c">-- Multi-row insert -- one round trip, much faster than N single inserts</span>
+<span class="k">INSERT INTO</span> <span class="f">employees</span> (<span class="f">first_name</span>, <span class="f">email</span>, <span class="f">salary</span>, <span class="f">dept_id</span>) <span class="k">VALUES</span>
+  (<span class="s">'Ravi'</span>, <span class="s">'ravi@corp.com'</span>, <span class="n">48000.00</span>, <span class="n">1</span>),
+  (<span class="s">'Meera'</span>, <span class="s">'meera@corp.com'</span>, <span class="n">61000.00</span>, <span class="n">2</span>);
+
+<span class="c">-- Insert or update on duplicate key (upsert)</span>
+<span class="k">INSERT INTO</span> <span class="f">employees</span> (<span class="f">id</span>, <span class="f">email</span>) <span class="k">VALUES</span> (<span class="n">1</span>, <span class="s">'new@corp.com'</span>)
+<span class="k">ON DUPLICATE KEY UPDATE</span> <span class="f">email</span> = <span class="k">VALUES</span>(<span class="f">email</span>);</pre>
+          <div class="exec-result" id="res-ins">
+            → 3 rows inserted, 1 upsert applied<br>
+            → Query OK: AUTO_INCREMENT advances even on failed/rolled-back inserts (gaps are normal)
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>How MySQL works internally</h2>
+        <div class="flow">
+          <div class="flow-step reveal"><div class="flow-num">1</div><div class="flow-body"><h4>Constraint validation</h4><p>NOT NULL, UNIQUE, FK, and CHECK constraints are validated before the row is written.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">2</div><div class="flow-body"><h4>Row written to InnoDB buffer pool</h4><p>The row is placed into the clustered index (primary key order) in memory first.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">3</div><div class="flow-body"><h4>Redo log + binlog written</h4><p>InnoDB writes to its redo log for crash recovery; MySQL writes to the binary log for replication.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">4</div><div class="flow-body"><h4>Secondary indexes updated</h4><p>Any indexes on other columns (like email) get new entries pointing back to the primary key.</p></div></div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake</div>
+          <p>Writing <code>INSERT INTO employees VALUES (...)</code> without naming columns. If someone later adds a column, every old INSERT statement silently breaks or inserts into the wrong columns.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best practice</div>
+          <p>Batch multi-row inserts instead of looping single inserts from Java — each round trip has network + transaction overhead. In Spring Data JPA, this maps to <code>saveAll()</code> with batching enabled via <code>spring.jpa.properties.hibernate.jdbc.batch_size</code>.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="ins">
+          <div class="accordion-item"><div class="accordion-head">Why should you always list column names in INSERT?<span class="plus">+</span></div><div class="accordion-body"><p>Because relying on the table's physical column order is fragile — any future ALTER TABLE that adds/reorders columns can silently corrupt data mapping.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Scenario: You need to insert a row only if it doesn't already exist by email, otherwise update the salary. <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>Use <code>INSERT ... ON DUPLICATE KEY UPDATE</code>, provided email has a UNIQUE constraint — this performs an atomic "upsert" in one statement instead of a SELECT-then-INSERT/UPDATE race condition.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SELECT ================= -->
+    <section class="section" id="select">
+      <div class="section-inner reveal">
+        <div class="eyebrow">02 · Statement · Read</div>
+        <h1 class="section-title">SELECT</h1>
+        <p class="section-lede">The most-used statement in all of SQL, and the one MySQL spends the most effort optimizing internally.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">select.sql</div><button class="run-btn" data-target="res-sel">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">id</span>, <span class="f">first_name</span>, <span class="f">salary</span>
+<span class="k">FROM</span> <span class="f">employees</span>
+<span class="k">WHERE</span> <span class="f">dept_id</span> = <span class="n">2</span>
+<span class="k">ORDER BY</span> <span class="f">salary</span> <span class="k">DESC</span>
+<span class="k">LIMIT</span> <span class="n">5</span>;</pre>
+          <div class="exec-result show" id="res-sel">
+            → 5 rows returned in 2ms (using index on dept_id)<br>
+            <table><tr><th>id</th><th>first_name</th><th>salary</th></tr>
+            <tr><td>7</td><td>Meera</td><td>61000.00</td></tr>
+            <tr><td>3</td><td>Asha</td><td>55000.00</td></tr>
+            <tr><td>9</td><td>Kiran</td><td>52000.00</td></tr></table>
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Logical order of execution</h2>
+        <p>This is one of the most valuable things to know cold — SQL is <strong>written</strong> in one order but <strong>executed logically</strong> in another:</p>
+        <div class="flow">
+          <div class="flow-step reveal"><div class="flow-num">1</div><div class="flow-body"><h4>FROM / JOIN</h4><p>Determine the working set of rows across tables.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">2</div><div class="flow-body"><h4>WHERE</h4><p>Filter rows before any grouping happens.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">3</div><div class="flow-body"><h4>GROUP BY</h4><p>Aggregate remaining rows into groups (if used).</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">4</div><div class="flow-body"><h4>HAVING</h4><p>Filter groups (not individual rows).</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">5</div><div class="flow-body"><h4>SELECT</h4><p>Compute the final column list and aliases.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">6</div><div class="flow-body"><h4>ORDER BY</h4><p>Sort the result set.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">7</div><div class="flow-body"><h4>LIMIT</h4><p>Trim to the requested number of rows — applied last.</p></div></div>
+        </div>
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>"Why can't you use a SELECT alias inside a WHERE clause?" — Because WHERE is logically evaluated <strong>before</strong> SELECT computes the alias. You can, however, use an alias in ORDER BY, since sorting happens after SELECT.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Spring Boot relation</h2>
+        <p>Every <code>findBy...()</code> derived query method or <code>@Query</code> annotation in a Spring Data JPA repository ultimately compiles down to a SELECT like this. Understanding the raw SQL underneath makes debugging slow repository methods far easier.</p>
+      </div>
+    </section>
+
+    <!-- ================= WHERE ================= -->
+    <section class="section" id="where">
+      <div class="section-inner reveal">
+        <div class="eyebrow">03 · Clause · Filter</div>
+        <h1 class="section-title">WHERE</h1>
+        <p class="section-lede">Filters rows before they're grouped, sorted, or returned — the difference between reading one row and reading a million.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">where.sql</div><button class="run-btn" data-target="res-where">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">employees</span>
+<span class="k">WHERE</span> <span class="f">salary</span> <span class="k">BETWEEN</span> <span class="n">40000</span> <span class="k">AND</span> <span class="n">60000</span>
+  <span class="k">AND</span> <span class="f">dept_id</span> <span class="k">IN</span> (<span class="n">1</span>, <span class="n">2</span>)
+  <span class="k">AND</span> <span class="f">email</span> <span class="k">LIKE</span> <span class="s">'%corp.com'</span>
+  <span class="k">AND</span> <span class="f">phone</span> <span class="k">IS NOT NULL</span>;</pre>
+          <div class="exec-result" id="res-where">
+            → 4 rows matched all conditions<br>
+            → LIKE '%corp.com' cannot use a B+Tree index (leading wildcard) — full scan on that predicate
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Operators cheat table</h2>
+        <table class="cmp-table">
+          <tr><th>Operator</th><th>Meaning</th><th>Note</th></tr>
+          <tr><td>=, !=, &lt;&gt;</td><td>Equality / inequality</td><td>Index-friendly</td></tr>
+          <tr><td>BETWEEN a AND b</td><td>Inclusive range</td><td>Index-friendly on the ranged column</td></tr>
+          <tr><td>IN (...)</td><td>Match any in a list</td><td>Index-friendly, like multiple ORs</td></tr>
+          <tr><td>LIKE '%x'</td><td>Pattern match, leading wildcard</td><td>Cannot use index — full scan</td></tr>
+          <tr><td>LIKE 'x%'</td><td>Pattern match, trailing wildcard</td><td>Can use index (range scan)</td></tr>
+          <tr><td>IS NULL / IS NOT NULL</td><td>Null checks</td><td>Never use = NULL, it always evaluates unknown</td></tr>
+        </table>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Common mistake</div>
+          <p>Writing <code>WHERE deleted_flag = NULL</code>. In SQL, <code>NULL = NULL</code> is unknown, not true — you must use <code>IS NULL</code>.</p>
+        </div>
+        <div class="box warn reveal">
+          <div class="box-title">Performance note</div>
+          <p>Applying a function to an indexed column in WHERE (e.g. <code>WHERE YEAR(created_at) = 2026</code>) prevents MySQL from using the index on <code>created_at</code>. Rewrite as a range: <code>WHERE created_at >= '2026-01-01' AND created_at < '2027-01-01'</code>.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="where">
+          <div class="accordion-item"><div class="accordion-head">Why does WHERE email = NULL never return rows?<span class="plus">+</span></div><div class="accordion-body"><p>SQL's three-valued logic means any comparison with NULL evaluates to UNKNOWN, not TRUE, so the row is excluded. Use <code>IS NULL</code> instead.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Asked at Capgemini: Why is a leading-wildcard LIKE query slow on a large table? <span class="tag company">Capgemini</span><span class="plus">+</span></div><div class="accordion-body"><p>A B+Tree index is sorted left-to-right by the column's value, so it can only efficiently jump to values matching a known prefix. A pattern like <code>'%corp.com'</code> has no fixed prefix, forcing a full table scan.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= UPDATE ================= -->
+    <section class="section" id="update">
+      <div class="section-inner reveal">
+        <div class="eyebrow">04 · Statement · Update</div>
+        <h1 class="section-title">UPDATE</h1>
+        <p class="section-lede">The "U" in CRUD — modifies existing rows in place. The most dangerous statement to run without a WHERE clause.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">update.sql</div><button class="run-btn" data-target="res-upd">▶ Run</button></div>
+          <pre class="code"><span class="k">UPDATE</span> <span class="f">employees</span>
+<span class="k">SET</span> <span class="f">salary</span> = <span class="f">salary</span> * <span class="n">1.10</span>
+<span class="k">WHERE</span> <span class="f">dept_id</span> = <span class="n">2</span> <span class="k">AND</span> <span class="f">salary</span> &lt; <span class="n">60000</span>;
+
+<span class="c">-- multi-column update</span>
+<span class="k">UPDATE</span> <span class="f">employees</span>
+<span class="k">SET</span> <span class="f">email</span> = <span class="s">'asha.k@corp.com'</span>, <span class="f">updated_at</span> = <span class="k">NOW</span>()
+<span class="k">WHERE</span> <span class="f">id</span> = <span class="n">3</span>;</pre>
+          <div class="exec-result" id="res-upd">
+            → 6 rows matched, 6 rows changed<br>
+            → Row-level locks held on matched rows until COMMIT (InnoDB)
+          </div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>MySQL Workbench's "Safe Updates" mode blocks UPDATE/DELETE without a key-based WHERE clause by default — this is a client-side safety net, not a MySQL server feature, and won't save you when running scripts directly.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best practice</div>
+          <p>Before running an UPDATE with a complex WHERE, run the same WHERE inside a SELECT first to confirm exactly which rows will be affected.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="upd">
+          <div class="accordion-item"><div class="accordion-head">Scenario: You ran UPDATE employees SET salary = 0; by mistake and haven't committed. What now? <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>If autocommit is off and you're inside a transaction, run <code>ROLLBACK;</code> immediately to undo it before it's committed. This is exactly why running destructive statements inside an explicit transaction, and checking the affected row count first, matters.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Can you UPDATE a column using its own current value?<span class="plus">+</span></div><div class="accordion-body"><p>Yes — <code>SET salary = salary * 1.10</code> reads the current row value during the update; MySQL evaluates the right-hand side per row before writing the new value.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= DELETE ================= -->
+    <section class="section" id="delete">
+      <div class="section-inner reveal">
+        <div class="eyebrow">05 · Statement · Delete</div>
+        <h1 class="section-title">DELETE</h1>
+        <p class="section-lede">The "D" in CRUD — removes rows, one at a time under the hood, respecting triggers, foreign keys, and transactions.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">delete.sql</div><button class="run-btn" data-target="res-del">▶ Run</button></div>
+          <pre class="code"><span class="k">DELETE FROM</span> <span class="f">employees</span>
+<span class="k">WHERE</span> <span class="f">dept_id</span> = <span class="n">4</span> <span class="k">AND</span> <span class="f">created_at</span> &lt; <span class="s">'2020-01-01'</span>
+<span class="k">ORDER BY</span> <span class="f">id</span>
+<span class="k">LIMIT</span> <span class="n">100</span>; <span class="c">-- delete in safe batches on large tables</span></pre>
+          <div class="exec-result" id="res-del">
+            → 100 rows deleted (batch 1)<br>
+            → Re-run until 0 rows affected — avoids one giant table-locking transaction
+          </div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>This module already covered <strong>DROP vs TRUNCATE vs DELETE</strong> in depth in Module 03 — for CRUD purposes, remember DELETE is the only one of the three that is DML, supports WHERE, and can be rolled back before commit.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best practice</div>
+          <p>On large tables, delete in small batches with LIMIT in a loop rather than one massive DELETE — this avoids long-held locks and huge undo-log growth that can stall other transactions.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ORDER BY ================= -->
+    <section class="section" id="orderby">
+      <div class="section-inner reveal">
+        <div class="eyebrow">06 · Clause · Sort</div>
+        <h1 class="section-title">ORDER BY</h1>
+        <p class="section-lede">Sorts the final result set — applied after SELECT, so column aliases are valid here.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">order_by.sql</div><button class="run-btn" data-target="res-ord">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">first_name</span>, <span class="f">salary</span> * <span class="n">12</span> <span class="k">AS</span> <span class="f">annual_pay</span>
+<span class="k">FROM</span> <span class="f">employees</span>
+<span class="k">ORDER BY</span> <span class="f">annual_pay</span> <span class="k">DESC</span>, <span class="f">first_name</span> <span class="k">ASC</span>;</pre>
+          <div class="exec-result" id="res-ord">
+            → Sorted by annual_pay descending, ties broken by first_name ascending<br>
+            → Alias "annual_pay" is valid here because ORDER BY runs after SELECT
+          </div>
+        </div>
+
+        <div class="box memory reveal">
+          <div class="box-title">Memory trick</div>
+          <p><strong>"ORDER BY comes last, so it can use what SELECT just made."</strong> That's why aliases work in ORDER BY but not in WHERE.</p>
+        </div>
+        <div class="box warn reveal">
+          <div class="box-title">Performance note</div>
+          <p>ORDER BY on a column with a matching index can avoid MySQL's expensive "filesort" step entirely. Check with <code>EXPLAIN</code> — "Using filesort" in the output means MySQL is sorting in memory/disk rather than reading an already-sorted index.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LIMIT ================= -->
+    <section class="section" id="limit">
+      <div class="section-inner reveal">
+        <div class="eyebrow">07 · Clause · Pagination</div>
+        <h1 class="section-title">LIMIT</h1>
+        <p class="section-lede">Caps the number of rows returned — the backbone of pagination in every REST API.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">limit.sql</div><button class="run-btn" data-target="res-lim">▶ Run</button></div>
+          <pre class="code"><span class="c">-- page 1: rows 1-10</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">employees</span> <span class="k">ORDER BY</span> <span class="f">id</span> <span class="k">LIMIT</span> <span class="n">10</span>;
+
+<span class="c">-- page 3 (10 rows per page): OFFSET skips the first 20</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">employees</span> <span class="k">ORDER BY</span> <span class="f">id</span> <span class="k">LIMIT</span> <span class="n">10</span> <span class="k">OFFSET</span> <span class="n">20</span>;
+<span class="c">-- equivalent shorthand</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">employees</span> <span class="k">ORDER BY</span> <span class="f">id</span> <span class="k">LIMIT</span> <span class="n">20</span>, <span class="n">10</span>;</pre>
+          <div class="exec-result" id="res-lim">
+            → LIMIT 10 OFFSET 20 returns rows 21-30<br>
+            → Note: MySQL still scans and discards the first 20 rows internally
+          </div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>Deep pagination like <code>LIMIT 10 OFFSET 1000000</code> is slow because MySQL still has to read and discard a million rows before returning the page. The fix used in production: <strong>keyset pagination</strong> — <code>WHERE id > last_seen_id ORDER BY id LIMIT 10</code> — which jumps straight to the right spot using the index.</p>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Spring Boot relation</div>
+          <p>Spring Data JPA's <code>Pageable</code>/<code>PageRequest</code> compiles down to exactly this LIMIT/OFFSET pattern by default. For very large datasets, teams often switch to <code>Slice</code> with keyset-based queries instead of offset pagination.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= DISTINCT ================= -->
+    <section class="section" id="distinct">
+      <div class="section-inner reveal">
+        <div class="eyebrow">08 · Clause · Dedupe</div>
+        <h1 class="section-title">DISTINCT</h1>
+        <p class="section-lede">Removes duplicate rows from a result set — applied across the full selected column list, not just one column.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">distinct.sql</div><button class="run-btn" data-target="res-dist">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT DISTINCT</span> <span class="f">dept_id</span> <span class="k">FROM</span> <span class="f">employees</span>;
+
+<span class="c">-- DISTINCT applies to the whole row of selected columns, not each individually</span>
+<span class="k">SELECT DISTINCT</span> <span class="f">dept_id</span>, <span class="f">first_name</span> <span class="k">FROM</span> <span class="f">employees</span>;</pre>
+          <div class="exec-result" id="res-dist">
+            → First query: unique dept_id values only, e.g. 1, 2, 4<br>
+            → Second query: unique (dept_id, first_name) pairs — two Ashas in different depts both appear
+          </div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Common mistake</div>
+          <p>Assuming <code>SELECT DISTINCT a, b</code> deduplicates on column <code>a</code> alone. It actually deduplicates on the combination of <em>every</em> selected column.</p>
+        </div>
+        <div class="box warn reveal">
+          <div class="box-title">Performance note</div>
+          <p>DISTINCT often requires MySQL to sort or hash the result set internally to detect duplicates — on large unindexed result sets this can be as costly as an ORDER BY. Prefer GROUP BY when you also need aggregates, since the optimizer can plan for both together.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="dist">
+          <div class="accordion-item"><div class="accordion-head">Does DISTINCT ignore NULLs?<span class="plus">+</span></div><div class="accordion-body"><p>No — DISTINCT treats all NULLs in a column as equal to each other for de-duplication purposes, so a column with five NULLs and DISTINCT applied returns just one NULL row.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ALIASES ================= -->
+    <section class="section" id="aliases">
+      <div class="section-inner reveal">
+        <div class="eyebrow">09 · Syntax · Naming</div>
+        <h1 class="section-title">Aliases</h1>
+        <p class="section-lede">Temporary names for columns, expressions, and tables within a single query — pure readability and reuse, no effect on the underlying schema.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">aliases.sql</div><button class="run-btn" data-target="res-alias">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Column alias</span>
+<span class="k">SELECT</span> <span class="f">first_name</span> <span class="k">AS</span> <span class="f">name</span>, <span class="f">salary</span> * <span class="n">12</span> <span class="k">AS</span> <span class="f">annual_salary</span>
+<span class="k">FROM</span> <span class="f">employees</span>;
+
+<span class="c">-- Table alias, essential for joins and self-joins</span>
+<span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>;
+
+<span class="c">-- Self-join needs aliases to disambiguate the same table twice</span>
+<span class="k">SELECT</span> <span class="f">emp</span>.<span class="f">first_name</span> <span class="k">AS</span> <span class="f">employee</span>, <span class="f">mgr</span>.<span class="f">first_name</span> <span class="k">AS</span> <span class="f">manager</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">emp</span>
+<span class="k">JOIN</span> <span class="f">employees</span> <span class="f">mgr</span> <span class="k">ON</span> <span class="f">emp</span>.<span class="f">manager_id</span> = <span class="f">mgr</span>.<span class="f">id</span>;</pre>
+          <div class="exec-result" id="res-alias">
+            → AS is optional in MySQL for column aliases ("first_name name" also works) but recommended for clarity<br>
+            → Table aliases are mandatory for self-joins — the parser can't otherwise tell the two references apart
+          </div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>Explain WHY aliases matter beyond shorter typing: they make multi-table JOINs unambiguous, enable self-joins, and give computed/aggregated columns a clean name for the client (Java DTO field, JSON key) to map onto.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="alias">
+          <div class="accordion-item"><div class="accordion-head">Why can't you use a SELECT alias in the WHERE clause?<span class="plus">+</span></div><div class="accordion-body"><p>Because of SQL's logical execution order, WHERE is evaluated before SELECT computes the alias — the alias simply doesn't exist yet at that stage. It's valid in ORDER BY and HAVING, which run afterward.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Why are table aliases required for a self-join?<span class="plus">+</span></div><div class="accordion-body"><p>A self-join references the same table twice in one FROM clause. Without aliases, MySQL cannot distinguish which occurrence a column reference belongs to.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHEAT SHEET ================= -->
+    <section class="section" id="cheatsheet">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Cheat Sheet</h1>
+        <p class="section-lede">Every syntax pattern from this module, in one scannable block.</p>
+        <div class="code-block">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">cheatsheet.sql</div></div>
+          <pre class="code"><span class="c">-- Create</span>
+<span class="k">INSERT INTO</span> <span class="f">t</span> (<span class="f">c1</span>, <span class="f">c2</span>) <span class="k">VALUES</span> (<span class="n">1</span>, <span class="s">'x'</span>);
+<span class="k">INSERT INTO</span> <span class="f">t</span> (<span class="f">id</span>,<span class="f">c1</span>) <span class="k">VALUES</span>(<span class="n">1</span>,<span class="s">'x'</span>) <span class="k">ON DUPLICATE KEY UPDATE</span> <span class="f">c1</span>=<span class="k">VALUES</span>(<span class="f">c1</span>);
+
+<span class="c">-- Read</span>
+<span class="k">SELECT</span> <span class="f">c1</span>, <span class="f">c2</span> <span class="k">FROM</span> <span class="f">t</span> <span class="k">WHERE</span> <span class="f">c1</span> = <span class="n">1</span> <span class="k">ORDER BY</span> <span class="f">c2</span> <span class="k">DESC</span> <span class="k">LIMIT</span> <span class="n">10</span>;
+<span class="k">SELECT DISTINCT</span> <span class="f">c1</span> <span class="k">FROM</span> <span class="f">t</span>;
+
+<span class="c">-- Update</span>
+<span class="k">UPDATE</span> <span class="f">t</span> <span class="k">SET</span> <span class="f">c1</span> = <span class="f">c1</span> + <span class="n">1</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">1</span>;
+
+<span class="c">-- Delete</span>
+<span class="k">DELETE FROM</span> <span class="f">t</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">1</span> <span class="k">LIMIT</span> <span class="n">1</span>;
+
+<span class="c">-- Aliases</span>
+<span class="k">SELECT</span> <span class="f">c1</span> <span class="k">AS</span> <span class="f">value</span> <span class="k">FROM</span> <span class="f">t</span> <span class="f">t1</span> <span class="k">JOIN</span> <span class="f">t</span> <span class="f">t2</span> <span class="k">ON</span> <span class="f">t1</span>.<span class="f">id</span> = <span class="f">t2</span>.<span class="f">parent_id</span>;</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MIND MAP ================= -->
+    <section class="section" id="mindmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Mind Map</h1>
+        <p class="section-lede">How every CRUD concept branches from a single root.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 800 420" width="100%">
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <circle cx="400" cy="210" r="52" fill="rgba(110,231,249,0.1)" stroke="#6EE7F9"/>
+              <text x="400" y="206" text-anchor="middle" fill="#6EE7F9" font-weight="bold">CRUD</text>
+              <text x="400" y="222" text-anchor="middle" fill="#6EE7F9" font-weight="bold">Ops</text>
+
+              <g stroke="#576079" stroke-width="1">
+                <line x1="400" y1="158" x2="400" y2="70"/>
+                <line x1="356" y1="180" x2="140" y2="100"/>
+                <line x1="356" y1="240" x2="140" y2="320"/>
+                <line x1="444" y1="180" x2="660" y2="100"/>
+                <line x1="444" y1="240" x2="660" y2="320"/>
+                <line x1="400" y1="262" x2="400" y2="360"/>
+              </g>
+              <rect x="330" y="28" width="140" height="42" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="400" y="54" text-anchor="middle" fill="#34d399">INSERT</text>
+
+              <rect x="40" y="70" width="200" height="42" rx="8" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="140" y="96" text-anchor="middle" fill="#A78BFA">SELECT + WHERE</text>
+
+              <rect x="40" y="300" width="200" height="42" rx="8" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="140" y="326" text-anchor="middle" fill="#6EE7F9">DISTINCT + Aliases</text>
+
+              <rect x="560" y="70" width="200" height="42" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+              <text x="660" y="96" text-anchor="middle" fill="#f0b429">UPDATE</text>
+
+              <rect x="560" y="300" width="200" height="42" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+              <text x="660" y="326" text-anchor="middle" fill="#fb7185">DELETE</text>
+
+              <rect x="330" y="340" width="140" height="42" rx="8" fill="rgba(255,255,255,0.04)" stroke="#94a1ba"/>
+              <text x="400" y="366" text-anchor="middle" fill="#94a1ba">ORDER BY + LIMIT</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FLASHCARDS ================= -->
+    <section class="section" id="flashcards">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Flash Cards</h1>
+        <p class="section-lede">Click any card to flip it.</p>
+        <div class="flash-grid" id="flash-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= QUIZ ================= -->
+    <section class="section" id="quiz">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Quick Quiz</h1>
+        <p class="section-lede">Pick an answer for each question — instant feedback, no submit button needed.</p>
+        <div id="quiz-score-bar">Score <span class="score" id="quiz-score">0 / 0</span></div>
+        <div id="quiz-container"></div>
+      </div>
+    </section>
+
+    <!-- ================= TOP 20 ================= -->
+    <section class="section" id="top20">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Top 20 Interview Questions</h1>
+        <p class="section-lede">Click to reveal the expected answer.</p>
+        <div class="accordion" id="top20-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ROADMAP ================= -->
+    <section class="section" id="roadmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Where to go next</div>
+        <h1 class="section-title">Learning Roadmap</h1>
+        <div class="roadmap">
+          <div class="rm-item"><h4>1. Master this module (CRUD)</h4><p>INSERT, SELECT, WHERE, UPDATE, DELETE, ORDER BY, LIMIT, DISTINCT, Aliases — write each from memory.</p></div>
+          <div class="rm-item"><h4>2. Joins</h4><p>INNER, LEFT, RIGHT, self-joins, and how they build on the aliasing you just learned.</p></div>
+          <div class="rm-item"><h4>3. Aggregation</h4><p>GROUP BY, HAVING, COUNT/SUM/AVG/MIN/MAX.</p></div>
+          <div class="rm-item"><h4>4. Subqueries &amp; CTEs</h4><p>Correlated subqueries, WITH clauses, window functions.</p></div>
+          <div class="rm-item"><h4>5. Indexing &amp; Query Performance</h4><p>EXPLAIN, filesort, covering indexes, keyset pagination.</p></div>
+          <div class="rm-item"><h4>6. Transactions</h4><p>COMMIT/ROLLBACK, isolation levels, and how Spring's @Transactional wraps this.</p></div>
+        </div>
+        <h2 class="h2"><span class="idx">→</span>Further topics to explore</h2>
+        <ul class="plain-list">
+          <li>Batch INSERT tuning and Hibernate batching configuration</li>
+          <li>Keyset (seek) pagination vs OFFSET pagination at scale</li>
+          <li>EXPLAIN output: type, key, rows, Extra column meaning</li>
+          <li>Optimistic vs pessimistic locking during UPDATE in concurrent systems</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+    <section class="section" id="summary">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Wrap-up</div>
+        <h1 class="section-title">Summary &amp; Revision Notes</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>INSERT</h4><p>Always name columns explicitly; batch multi-row inserts for performance.</p></div>
+          <div class="mini-card"><h4>SELECT + WHERE</h4><p>WHERE runs before SELECT logically — aliases aren't visible there yet.</p></div>
+          <div class="mini-card"><h4>UPDATE / DELETE</h4><p>Always test the WHERE clause with a SELECT first; never run without WHERE on a live table.</p></div>
+          <div class="mini-card"><h4>ORDER BY + LIMIT</h4><p>ORDER BY sorts, LIMIT trims — both run near the very end of logical execution.</p></div>
+          <div class="mini-card"><h4>DISTINCT</h4><p>Deduplicates on the full combination of selected columns, not just one.</p></div>
+          <div class="mini-card"><h4>Aliases</h4><p>Required for self-joins, essential for readable multi-table queries and clean API field names.</p></div>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Before your interview</div>
+          <p>Be ready to explain SQL's logical execution order out loud, write a paginated + sorted + filtered SELECT from scratch, and justify why you'd never run UPDATE or DELETE without a tested WHERE clause.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">MySQL Interview Blueprint · Module 04 of 12 · Built for Java Full Stack fresher interview prep</footer>
+  </main>
+</div>
+
+<script>
+const progressBar = document.getElementById('progress-bar');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+const sections = document.querySelectorAll('main section[id], .hero[id]');
+const links = document.querySelectorAll('.toc-link');
+function spy(){
+  let current = sections[0] ? sections[0].id : '';
+  sections.forEach(sec=>{
+    const rect = sec.getBoundingClientRect();
+    if(rect.top <= 140) current = sec.id;
+  });
+  links.forEach(l=>{
+    l.classList.toggle('active', l.getAttribute('href') === '#'+current);
+  });
+}
+document.addEventListener('scroll', spy, {passive:true});
+spy();
+
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+});
+links.forEach(l=>l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+document.querySelectorAll('.run-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    if(!target) return;
+    btn.textContent = '⏳ Running...';
+    setTimeout(()=>{
+      target.classList.add('show');
+      btn.textContent = '✓ Executed';
+      setTimeout(()=>{ btn.textContent = '▶ Run'; }, 1600);
+    }, 500);
+  });
+});
+
+document.addEventListener('click', (e)=>{
+  const head = e.target.closest('.accordion-head');
+  if(!head) return;
+  const item = head.closest('.accordion-item');
+  const body = item.querySelector('.accordion-body');
+  const wasOpen = item.classList.contains('open');
+  item.classList.toggle('open');
+  body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
+});
+
+const flashcards = [
+  {q:"Why should you always name columns explicitly in INSERT?", a:"Relying on physical column order breaks silently if the table structure changes later."},
+  {q:"What does WHERE deleted_at = NULL always return, and why?", a:"Zero rows — NULL comparisons are UNKNOWN, not true. Use IS NULL instead."},
+  {q:"Which LIKE pattern can still use an index — '%x' or 'x%'?", a:"'x%' — a trailing wildcard keeps a usable prefix for the B+Tree index; a leading wildcard forces a full scan."},
+  {q:"Why is deep OFFSET pagination slow?", a:"MySQL must still read and discard every skipped row before returning the page; keyset pagination avoids this."},
+  {q:"Does SELECT DISTINCT a, b dedupe on column a alone?", a:"No — it dedupes on the full combination of every selected column together."},
+  {q:"Can you use a SELECT alias inside WHERE?", a:"No — WHERE is logically evaluated before SELECT computes the alias. It works in ORDER BY though."},
+  {q:"Why are table aliases required in a self-join?", a:"The same table appears twice in FROM; aliases are the only way to disambiguate which occurrence a column belongs to."},
+  {q:"What clause runs last in SQL's logical execution order?", a:"LIMIT — after FROM, WHERE, GROUP BY, HAVING, SELECT, and ORDER BY."},
+  {q:"What statement performs an atomic insert-or-update?", a:"INSERT ... ON DUPLICATE KEY UPDATE."},
+  {q:"Why batch multi-row INSERTs instead of looping single inserts?", a:"Each round trip has network and transaction overhead; batching reduces that overhead dramatically."}
+];
+const flashGrid = document.getElementById('flash-grid');
+flashcards.forEach((c,i)=>{
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.innerHTML = `
+    <div class="flashcard-inner">
+      <div class="flash-face flash-front"><div class="fc-lbl">Question ${i+1}</div><p>${c.q}</p></div>
+      <div class="flash-face flash-back"><div class="fc-lbl">Answer</div><p>${c.a}</p></div>
+    </div>`;
+  card.addEventListener('click', ()=> card.classList.toggle('flipped'));
+  flashGrid.appendChild(card);
+});
+
+const quizData = [
+  {q:"Which clause is evaluated first in SQL's logical execution order?", opts:["SELECT","WHERE","ORDER BY","LIMIT"], correct:1},
+  {q:"Which comparison correctly checks for a NULL value?", opts:["= NULL","IS NULL","== NULL","LIKE NULL"], correct:1},
+  {q:"Which LIKE pattern can use an index?", opts:["'%abc'","'%abc%'","'abc%'","None of these"], correct:2},
+  {q:"SELECT DISTINCT a, b deduplicates based on:", opts:["Column a only","Column b only","The combination of a and b","Neither column"], correct:2},
+  {q:"Where can a SELECT column alias be legally reused?", opts:["WHERE","GROUP BY key list only","ORDER BY","HAVING before aggregation"], correct:2},
+  {q:"Which statement inserts a row or updates it if the key already exists?", opts:["INSERT IGNORE","REPLACE INTO only","INSERT ... ON DUPLICATE KEY UPDATE","MERGE"], correct:2},
+  {q:"Why is LIMIT 10 OFFSET 1000000 slow on a huge table?", opts:["LIMIT is always slow","MySQL still scans and discards the skipped rows","OFFSET rebuilds the index","It ignores ORDER BY"], correct:1},
+  {q:"Table aliases are required for:", opts:["Every SELECT","Self-joins","Only UPDATE statements","INSERT statements"], correct:1}
+];
+const quizContainer = document.getElementById('quiz-container');
+let quizAnswered = 0, quizCorrect = 0;
+const scoreEl = document.getElementById('quiz-score');
+function updateScore(){ scoreEl.textContent = quizCorrect + ' / ' + quizAnswered; }
+
+quizData.forEach((q,qi)=>{
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  const optsHtml = q.opts.map((o,oi)=>`<div class="quiz-opt" data-idx="${oi}">${o}</div>`).join('');
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${q.q}</div><div class="quiz-opts">${optsHtml}</div>`;
+  quizContainer.appendChild(card);
+
+  let locked = false;
+  card.querySelectorAll('.quiz-opt').forEach(optEl=>{
+    optEl.addEventListener('click', ()=>{
+      if(locked) return;
+      locked = true;
+      quizAnswered++;
+      const chosen = parseInt(optEl.dataset.idx,10);
+      if(chosen === q.correct){ quizCorrect++; optEl.classList.add('correct'); }
+      else{
+        optEl.classList.add('wrong');
+        card.querySelectorAll('.quiz-opt')[q.correct].classList.add('correct');
+      }
+      updateScore();
+    });
+  });
+});
+
+const top20 = [
+  ["What is the logical order of execution in a SELECT query?","FROM/JOIN, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT — written order and execution order differ."],
+  ["Why should columns always be named explicitly in INSERT?","Relying on physical column order breaks silently if the schema changes later."],
+  ["What does INSERT ... ON DUPLICATE KEY UPDATE do?","Atomically inserts a new row, or updates the existing row if a unique/primary key conflict occurs — avoiding a race-prone SELECT-then-INSERT pattern."],
+  ["Why does WHERE x = NULL never match anything?","SQL uses three-valued logic; any comparison with NULL evaluates to UNKNOWN rather than TRUE. Use IS NULL / IS NOT NULL."],
+  ["Why is a leading-wildcard LIKE query slow?","B+Tree indexes are sorted left-to-right by value; without a fixed prefix, MySQL can't jump directly to matching rows and must scan the whole table."],
+  ["Can a SELECT alias be used in WHERE?","No, because WHERE is logically evaluated before SELECT computes the alias. It can be used in ORDER BY, which runs after SELECT."],
+  ["Why are table aliases required for self-joins?","The same table is referenced twice in FROM; aliases are the only way MySQL can tell which occurrence a column belongs to."],
+  ["What's the safest way to test an UPDATE or DELETE before running it?","Run the same WHERE clause inside a SELECT first to confirm exactly which rows will be affected."],
+  ["Why is deep OFFSET pagination slow at scale?","MySQL must still read and discard every skipped row before returning the requested page; keyset (seek) pagination avoids this by filtering with WHERE id > last_seen_id."],
+  ["What does SELECT DISTINCT deduplicate on when multiple columns are selected?","The full combination of all selected columns together, not any single column alone."],
+  ["Does DISTINCT treat multiple NULLs as duplicates?","Yes — all NULLs in a column are treated as equal for deduplication purposes, collapsing to a single NULL row."],
+  ["What's the difference between LIMIT 10 OFFSET 20 and LIMIT 20,10?","They're equivalent shorthand in MySQL — both skip 20 rows and return the next 10."],
+  ["Why batch multi-row INSERTs instead of looping single-row inserts from Java?","Each round trip carries network and transaction overhead; batching drastically reduces total time for bulk writes."],
+  ["What's the danger of running UPDATE/DELETE without a WHERE clause?","It affects every row in the table — the single most common catastrophic mistake in production database work."],
+  ["Why prefer deleting in small batches with LIMIT on huge tables?","It avoids one massive transaction holding long locks and generating a huge undo log, which can stall other queries."],
+  ["What does 'Using filesort' in an EXPLAIN output mean?","MySQL couldn't use an index to satisfy ORDER BY and had to sort the result set separately in memory or on disk."],
+  ["How does Spring Data JPA's Pageable typically translate to SQL?","Into a LIMIT/OFFSET query under the hood, unless a keyset-based Slice query is explicitly used instead."],
+  ["Why does applying a function to a column in WHERE hurt performance?","It prevents MySQL from using an index on that column, e.g. WHERE YEAR(col)=2026 forces a full scan instead of a range scan on col."],
+  ["What's the difference between BETWEEN and IN in WHERE?","BETWEEN checks an inclusive range on one column; IN checks membership against an explicit list of values."],
+  ["When would you choose GROUP BY over DISTINCT?","When you also need aggregate values (COUNT, SUM, AVG) alongside deduplication, since GROUP BY combines both in one optimizer plan."]
+];
+const top20List = document.getElementById('top20-list');
+top20.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'accordion-item';
+  div.innerHTML = `<div class="accordion-head">${i+1}. ${item[0]}<span class="plus">+</span></div><div class="accordion-body"><p>${item[1]}</p></div>`;
+  top20List.appendChild(div);
+});
+</script>
+</body>
+</html>

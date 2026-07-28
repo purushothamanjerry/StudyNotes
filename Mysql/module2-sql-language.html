@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 1 · SQL Language — MySQL Interview Mastery</title>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --bg-2:#0d1220;
+  --surface:rgba(255,255,255,0.035);
+  --surface-hover:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.09);
+  --border-soft:rgba(255,255,255,0.05);
+  --text:#e9edf5;
+  --text-dim:#93a0b8;
+  --text-faint:#5c6a84;
+  --violet:#7c6cf6;
+  --violet-soft:rgba(124,108,246,0.14);
+  --cyan:#22d3ee;
+  --cyan-soft:rgba(34,211,238,0.12);
+  --amber:#f5a623;
+  --amber-soft:rgba(245,166,35,0.12);
+  --rose:#fb5a7e;
+  --rose-soft:rgba(251,90,126,0.12);
+  --emerald:#34d399;
+  --emerald-soft:rgba(52,211,153,0.12);
+  --grad: linear-gradient(135deg,#7c6cf6,#22d3ee);
+  --radius:16px;
+  --radius-sm:10px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 900px 600px at 15% -5%, rgba(124,108,246,0.16), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 100% 10%, rgba(34,211,238,0.10), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+
+/* ---------- scrollbar ---------- */
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12); border-radius:10px;}
+
+/* ---------- progress bar ---------- */
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:var(--grad); z-index:1000; transition:width .1s ease-out;
+  box-shadow:0 0 12px rgba(124,108,246,0.7);
+}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:fixed; top:0; left:0; right:0; height:60px; z-index:900;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px 0 20px;
+  background:rgba(10,14,26,0.7); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border-soft);
+}
+.topbar .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-0.02em; font-size:15px;}
+.topbar .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--grad); box-shadow:0 0 10px var(--cyan);}
+.topbar .brand small{color:var(--text-faint); font-weight:500; font-size:11px; margin-left:6px;}
+#menu-toggle{display:none; background:var(--surface); border:1px solid var(--border); color:var(--text); width:38px; height:38px; border-radius:10px; cursor:pointer; align-items:center; justify-content:center;}
+.module-pill{
+  font-size:11px; padding:6px 12px; border-radius:100px; background:var(--violet-soft); color:#c9c0ff;
+  border:1px solid rgba(124,108,246,0.3); font-weight:600; letter-spacing:0.02em;
+}
+
+/* ---------- layout ---------- */
+.layout{display:flex; padding-top:60px; min-height:100vh;}
+.sidebar{
+  width:270px; flex-shrink:0; position:fixed; top:60px; left:0; bottom:0;
+  border-right:1px solid var(--border-soft); overflow-y:auto; padding:22px 14px 40px;
+  background:rgba(255,255,255,0.012);
+}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar h4{font-size:10.5px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-faint); margin:18px 10px 8px; font-weight:700;}
+.sidebar h4:first-child{margin-top:4px;}
+.nav-link{
+  display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; color:var(--text-dim);
+  text-decoration:none; font-size:13.5px; font-weight:500; transition:all .18s ease; position:relative;
+}
+.nav-link .idx{font-family:var(--mono); font-size:10px; color:var(--text-faint); width:16px;}
+.nav-link:hover{background:var(--surface-hover); color:var(--text);}
+.nav-link.active{background:var(--violet-soft); color:#cfc7ff;}
+.nav-link.active .idx{color:var(--cyan);}
+
+main{flex:1; margin-left:270px; padding:0; max-width:100%;}
+.content-wrap{max-width:920px; margin:0 auto; padding:0 32px 120px;}
+
+@media (max-width:980px){
+  .sidebar{transform:translateX(-100%); transition:transform .25s ease; z-index:950; background:#0a0e1a; width:82%; max-width:300px;}
+  .sidebar.open{transform:translateX(0); box-shadow:20px 0 60px rgba(0,0,0,0.5);}
+  main{margin-left:0;}
+  #menu-toggle{display:flex;}
+  .content-wrap{padding:0 18px 100px;}
+}
+
+/* ---------- hero ---------- */
+.hero{
+  padding:150px 0 70px; position:relative;
+}
+.hero .eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--cyan); background:var(--cyan-soft); padding:7px 14px; border-radius:100px;
+  border:1px solid rgba(34,211,238,0.25); margin-bottom:22px;
+}
+.hero h1{
+  font-size:clamp(2.4rem, 6vw, 4.2rem); font-weight:800; letter-spacing:-0.035em; line-height:1.04;
+  background:linear-gradient(180deg, #fff, #b8c2d9 140%); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero h1 span{
+  background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero p.lead{margin-top:22px; font-size:17px; color:var(--text-dim); max-width:640px;}
+.hero-stats{display:flex; gap:14px; margin-top:36px; flex-wrap:wrap;}
+.stat-chip{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; min-width:120px;
+}
+.stat-chip b{display:block; font-size:20px; font-weight:800; background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.stat-chip span{font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;}
+
+/* ---------- section base ---------- */
+section.block{padding:64px 0; border-top:1px solid var(--border-soft); scroll-margin-top:80px;}
+section.block:first-of-type{border-top:none;}
+.block-head{display:flex; align-items:baseline; gap:14px; margin-bottom:28px;}
+.block-head .num{font-family:var(--mono); font-size:13px; color:var(--text-faint); border:1px solid var(--border); padding:4px 9px; border-radius:7px;}
+.block-head h2{font-size:clamp(1.5rem,3vw,2.05rem); font-weight:800; letter-spacing:-0.025em;}
+.block-sub{color:var(--text-dim); font-size:15px; margin-bottom:26px; max-width:680px;}
+
+/* reveal on scroll — visible by default (works with JS disabled/blocked);
+   JS opts sections into the pre-hidden state only when it can also guarantee revealing them. */
+.reveal{opacity:1; transform:none; transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal.pre{opacity:0; transform:translateY(24px);}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+/* ---------- glass card ---------- */
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px;
+  backdrop-filter:blur(10px);
+}
+.card + .card{margin-top:16px;}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:760px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+/* callout boxes */
+.box{border-radius:var(--radius-sm); padding:16px 18px; border:1px solid; margin:16px 0; display:flex; gap:12px;}
+.box .box-icon{flex-shrink:0; width:26px; height:26px; margin-top:1px;}
+.box b.box-title{display:block; font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;}
+.box p{font-size:14px; color:var(--text-dim);}
+.box.tip{background:var(--emerald-soft); border-color:rgba(52,211,153,0.3);}
+.box.tip b{color:var(--emerald);}
+.box.warn{background:var(--amber-soft); border-color:rgba(245,166,35,0.3);}
+.box.warn b{color:var(--amber);}
+.box.mistake{background:var(--rose-soft); border-color:rgba(251,90,126,0.3);}
+.box.mistake b{color:var(--rose);}
+.box.interview{background:var(--violet-soft); border-color:rgba(124,108,246,0.3);}
+.box.interview b{color:#a99bff;}
+
+/* code block */
+.code{
+  background:#080b13; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; margin:14px 0;
+}
+.code .code-head{display:flex; justify-content:space-between; align-items:center; padding:9px 14px; border-bottom:1px solid var(--border-soft); background:rgba(255,255,255,0.02);}
+.code .code-head span{font-size:11px; color:var(--text-faint); font-family:var(--mono); letter-spacing:0.03em;}
+.code .dots{display:flex; gap:6px;}
+.code .dots i{width:9px;height:9px;border-radius:50%;display:block;}
+.code .dots i:nth-child(1){background:#fb5a7e55;}
+.code .dots i:nth-child(2){background:#f5a62355;}
+.code .dots i:nth-child(3){background:#34d39955;}
+.code pre{padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.7;}
+.kw{color:#7c6cf6; font-weight:600;} .fn{color:#22d3ee;} .str{color:#f5a623;} .num{color:#34d399;} .cm{color:#5c6a84; font-style:italic;} .id{color:#e9edf5;}
+
+/* run button + terminal animation */
+.run-btn{
+  display:inline-flex; align-items:center; gap:7px; background:var(--grad); color:#0a0e1a; font-weight:700; font-size:12.5px;
+  padding:8px 15px; border-radius:100px; border:none; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;
+}
+.run-btn:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(124,108,246,0.35);}
+.run-output{
+  margin-top:12px; border-radius:var(--radius-sm); border:1px solid var(--border); overflow:hidden; max-height:0; opacity:0;
+  transition:max-height .4s ease, opacity .4s ease;
+}
+.run-output.show{max-height:400px; opacity:1;}
+.run-output table{width:100%; border-collapse:collapse; font-size:12.5px; font-family:var(--mono);}
+.run-output th{background:rgba(124,108,246,0.12); color:#c9c0ff; text-align:left; padding:8px 12px; font-weight:700;}
+.run-output td{padding:7px 12px; border-top:1px solid var(--border-soft); color:var(--text-dim);}
+.run-output .ok-line{padding:8px 12px; font-size:12px; color:var(--emerald); font-family:var(--mono); background:rgba(52,211,153,0.06);}
+
+/* accordion */
+.acc-item{border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; overflow:hidden; background:var(--surface);}
+.acc-head{display:flex; justify-content:space-between; align-items:center; padding:15px 18px; cursor:pointer; font-weight:600; font-size:14.5px;}
+.acc-head:hover{background:var(--surface-hover);}
+.acc-head .chev{transition:transform .25s ease; color:var(--text-faint); flex-shrink:0;}
+.acc-item.open .acc-head .chev{transform:rotate(180deg); color:var(--cyan);}
+.acc-body{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+.acc-body-inner{padding:0 18px 18px; color:var(--text-dim); font-size:14px;}
+.tag{display:inline-block; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:100px; margin-left:8px; letter-spacing:0.03em;}
+.tag.company{background:rgba(124,108,246,0.15); color:#b7adff; border:1px solid rgba(124,108,246,0.3);}
+.tag.hard{background:var(--rose-soft); color:var(--rose);}
+.tag.med{background:var(--amber-soft); color:var(--amber);}
+.tag.easy{background:var(--emerald-soft); color:var(--emerald);}
+
+/* tabs */
+.tabs{display:flex; gap:6px; border-bottom:1px solid var(--border); margin-bottom:18px; flex-wrap:wrap;}
+.tab-btn{background:none; border:none; color:var(--text-faint); font-weight:600; font-size:13.5px; padding:9px 14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;}
+.tab-btn.active{color:var(--text); border-color:var(--cyan);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* comparison table */
+.table-wrap{overflow-x:auto; border-radius:var(--radius-sm); border:1px solid var(--border);}
+table.cmp{width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px;}
+table.cmp th{background:rgba(255,255,255,0.04); text-align:left; padding:12px 16px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint);}
+table.cmp td{padding:12px 16px; border-top:1px solid var(--border-soft); color:var(--text-dim);}
+table.cmp tr:hover td{background:rgba(255,255,255,0.02); color:var(--text);}
+
+/* pipeline diagram (signature element) */
+.pipeline{
+  display:flex; flex-wrap:wrap; gap:10px; margin:26px 0 8px; position:relative;
+}
+.pipe-stage{
+  flex:1; min-width:118px; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:14px 12px; text-align:center; cursor:pointer; position:relative; transition:all .2s ease;
+}
+.pipe-stage .stage-no{font-family:var(--mono); font-size:10px; color:var(--text-faint);}
+.pipe-stage .stage-name{font-weight:700; font-size:13.5px; margin-top:4px;}
+.pipe-stage:hover{border-color:rgba(124,108,246,0.4); transform:translateY(-3px);}
+.pipe-stage.active{background:var(--violet-soft); border-color:var(--violet); box-shadow:0 0 24px rgba(124,108,246,0.25);}
+.pipe-stage.active .stage-name{color:#cfc7ff;}
+.pipe-stage .pulse-dot{
+  position:absolute; width:8px; height:8px; border-radius:50%; background:var(--cyan); top:8px; right:8px; opacity:0;
+}
+.pipe-stage.active .pulse-dot{opacity:1; animation:pulse 1.2s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,211,238,0.6);}70%{box-shadow:0 0 0 8px rgba(34,211,238,0);}100%{box-shadow:0 0 0 0 rgba(34,211,238,0);}}
+.pipe-detail{
+  margin-top:18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px;
+  min-height:90px;
+}
+.pipe-detail h4{font-size:14px; color:var(--cyan); margin-bottom:8px;}
+.pipe-detail p{font-size:13.5px; color:var(--text-dim);}
+.pipe-arrow{display:flex; align-items:center; justify-content:center; color:var(--text-faint); font-size:14px;}
+@media (max-width:760px){.pipe-arrow{display:none;} .pipeline{flex-direction:column;}}
+
+/* flip flashcards */
+.fc-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px; margin-top:10px;}
+.fc{perspective:1200px; height:150px; cursor:pointer;}
+.fc-inner{position:relative; width:100%; height:100%; transition:transform .6s cubic-bezier(.16,1,.3,1); transform-style:preserve-3d;}
+.fc.flip .fc-inner{transform:rotateY(180deg);}
+.fc-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-sm); border:1px solid var(--border); padding:16px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13.5px;}
+.fc-front{background:var(--surface); font-weight:700;}
+.fc-back{background:var(--violet-soft); transform:rotateY(180deg); color:#dcd6ff; font-size:12.5px;}
+.fc-front small{position:absolute; bottom:10px; left:0; right:0; color:var(--text-faint); font-weight:400; font-size:10.5px;}
+
+/* quiz */
+.quiz-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; margin-bottom:16px;}
+.quiz-q{font-weight:600; font-size:14.5px; margin-bottom:14px;}
+.quiz-opt{display:block; width:100%; text-align:left; background:rgba(255,255,255,0.02); border:1px solid var(--border); color:var(--text-dim); padding:11px 14px; border-radius:9px; margin-bottom:8px; cursor:pointer; font-size:13.5px; transition:all .15s ease;}
+.quiz-opt:hover{border-color:rgba(124,108,246,0.4);}
+.quiz-opt.correct{background:var(--emerald-soft); border-color:var(--emerald); color:var(--emerald);}
+.quiz-opt.wrong{background:var(--rose-soft); border-color:var(--rose); color:var(--rose);}
+.quiz-score{font-size:13px; color:var(--text-faint); margin-top:6px;}
+
+/* timeline / roadmap */
+.timeline{position:relative; padding-left:26px; margin-top:20px;}
+.timeline::before{content:''; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--violet),var(--cyan));}
+.tl-item{position:relative; padding-bottom:26px;}
+.tl-item::before{content:''; position:absolute; left:-26px; top:3px; width:12px; height:12px; border-radius:50%; background:var(--bg); border:2px solid var(--cyan);}
+.tl-item h4{font-size:14.5px; font-weight:700;}
+.tl-item p{font-size:13.5px; color:var(--text-dim); margin-top:4px;}
+
+/* mind map */
+.mindmap{display:flex; flex-direction:column; align-items:center; gap:0; margin-top:20px;}
+.mm-root{background:var(--grad); color:#0a0e1a; font-weight:800; padding:12px 26px; border-radius:12px; font-size:15px;}
+.mm-branches{display:flex; gap:14px; margin-top:26px; flex-wrap:wrap; justify-content:center; position:relative;}
+.mm-branches::before{content:none;}
+.mm-node{background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:12px 16px; text-align:center; min-width:120px;}
+.mm-node b{font-size:13px; display:block; margin-bottom:4px; color:var(--cyan);}
+.mm-node span{font-size:11px; color:var(--text-faint);}
+
+/* cheat sheet */
+.cheat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+@media (max-width:700px){.cheat-grid{grid-template-columns:1fr;}}
+.cheat-item{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px;}
+.cheat-item code{font-family:var(--mono); color:var(--cyan); font-size:13px;}
+.cheat-item p{font-size:12.5px; color:var(--text-faint); margin-top:4px;}
+
+/* footer */
+footer{padding:60px 0 40px; text-align:center; color:var(--text-faint); font-size:13px; border-top:1px solid var(--border-soft); margin-top:40px;}
+
+/* back to top */
+#toTop{position:fixed; bottom:24px; right:24px; width:44px; height:44px; border-radius:50%; background:var(--surface); border:1px solid var(--border); backdrop-filter:blur(10px); color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; pointer-events:none; transition:opacity .3s ease; z-index:800;}
+#toTop.show{opacity:1; pointer-events:auto;}
+
+.two-col{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;}
+@media (max-width:760px){.two-col{grid-template-columns:1fr;}}
+h3.sub-h{font-size:17px; font-weight:700; margin:22px 0 10px; letter-spacing:-0.01em;}
+p.body-p{font-size:14.5px; color:var(--text-dim); margin-bottom:10px;}
+ul.plain{padding-left:20px; font-size:14.5px; color:var(--text-dim); margin:10px 0;}
+ul.plain li{margin-bottom:6px;}
+.badge-row{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0;}
+.small-badge{font-size:11px; background:var(--surface); border:1px solid var(--border); padding:4px 10px; border-radius:100px; color:var(--text-dim);}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button id="menu-toggle" aria-label="Toggle navigation">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="brand"><span class="dot"></span> MySQL Interview Deck <small>· Java Full Stack Track</small></div>
+  </div>
+  <div class="module-pill">Module 01 / SQL Language</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <h4>Foundations</h4>
+    <a class="nav-link" href="#intro"><span class="idx">00</span>Introduction</a>
+    <a class="nav-link" href="#overview"><span class="idx">01</span>SQL Overview</a>
+    <a class="nav-link" href="#sublanguages"><span class="idx">02</span>The 5 Sub-Languages</a>
+    <h4>Core Commands</h4>
+    <a class="nav-link" href="#ddl"><span class="idx">03</span>DDL</a>
+    <a class="nav-link" href="#dml"><span class="idx">04</span>DML</a>
+    <a class="nav-link" href="#dql"><span class="idx">05</span>DQL</a>
+    <a class="nav-link" href="#dcl"><span class="idx">06</span>DCL</a>
+    <a class="nav-link" href="#tcl"><span class="idx">07</span>TCL</a>
+    <a class="nav-link" href="#exec-order"><span class="idx">08</span>Execution Order</a>
+    <h4>Interview Prep</h4>
+    <a class="nav-link" href="#mistakes"><span class="idx">09</span>Common Mistakes</a>
+    <a class="nav-link" href="#springboot"><span class="idx">10</span>Spring Boot Relation</a>
+    <a class="nav-link" href="#tradeoffs"><span class="idx">11</span>Pros / Cons / When</a>
+    <a class="nav-link" href="#memory"><span class="idx">12</span>Memory Tricks</a>
+    <a class="nav-link" href="#top20"><span class="idx">13</span>Top 20 Questions</a>
+    <a class="nav-link" href="#flashcards"><span class="idx">14</span>Flash Cards</a>
+    <a class="nav-link" href="#quiz"><span class="idx">15</span>Quick Quiz</a>
+    <a class="nav-link" href="#practice"><span class="idx">16</span>SQL Practice</a>
+    <h4>Wrap Up</h4>
+    <a class="nav-link" href="#cheatsheet"><span class="idx">17</span>Cheat Sheet</a>
+    <a class="nav-link" href="#mindmap"><span class="idx">18</span>Mind Map</a>
+    <a class="nav-link" href="#roadmap"><span class="idx">19</span>Roadmap & Next</a>
+  </nav>
+
+  <main>
+    <div class="content-wrap">
+
+      <section class="hero" id="intro">
+        <div class="eyebrow">Module 01 · Fresher-to-Product-Company Track</div>
+        <h1>SQL Language, <span>decoded for interviews.</span></h1>
+        <p class="lead">DDL, DML, DQL, DCL, TCL — five letters recruiters throw at every Java Full Stack fresher. This module builds each one from zero: what it is, why MySQL needs it, how it runs internally, and exactly how it gets asked in Zoho, TCS Digital, Infosys, and product-company rounds.</p>
+        <div class="hero-stats">
+          <div class="stat-chip"><b>5</b><span>Sub-languages</span></div>
+          <div class="stat-chip"><b>20</b><span>Interview Qs</span></div>
+          <div class="stat-chip"><b>12</b><span>Flash cards</span></div>
+          <div class="stat-chip"><b>1</b><span>Execution pipeline</span></div>
+        </div>
+      </section>
+
+      <!-- ================= OVERVIEW ================= -->
+      <section class="block reveal" id="overview">
+        <div class="block-head"><span class="num">01</span><h2>SQL Overview</h2></div>
+        <p class="block-sub">Before memorising syntax, an interviewer wants to know you understand <em>why</em> SQL exists at all.</p>
+
+        <h3 class="sub-h">Why this topic exists</h3>
+        <p class="body-p">Applications need to store data that outlives the running process — user accounts, orders, inventory. Early on, every application invented its own file format to do this, which was slow, unsafe under concurrent access, and impossible to query flexibly. Relational databases standardised storage into <b>tables</b>, and SQL (Structured Query Language) became the single language to define, change, query, secure, and commit that data — regardless of which vendor's database you use underneath.</p>
+
+        <h3 class="sub-h">Problem it solves</h3>
+        <ul class="plain">
+          <li>Gives a declarative way to ask "what data I want" without writing the retrieval algorithm yourself.</li>
+          <li>Provides ACID guarantees so concurrent users don't corrupt each other's data.</li>
+          <li>Separates structure (schema) from data (rows), so both can evolve independently.</li>
+          <li>Works identically in spirit across MySQL, PostgreSQL, Oracle, SQL Server — one skill, many databases.</li>
+        </ul>
+
+        <h3 class="sub-h">Real-world example</h3>
+        <p class="body-p">Think of a bank. The <b>schema</b> is the printed passbook format (columns: date, description, amount, balance) — that's DDL. Writing a new transaction into the passbook is DML. Reading last month's transactions is DQL. Deciding which teller is allowed to edit vs only view is DCL. And the bank finalising a batch of transactions atomically at day-end (either the whole batch posts, or none of it does) is TCL.</p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="sub-h" style="margin-top:0;">Simple Explanation</h3>
+            <p class="body-p" style="margin-bottom:0;">SQL is a set of commands to create tables, put data in them, read data out, control who can touch them, and save/undo changes.</p>
+          </div>
+          <div class="card">
+            <h3 class="sub-h" style="margin-top:0;">Interview Explanation</h3>
+            <p class="body-p" style="margin-bottom:0;">"SQL is divided into sub-languages by responsibility — DDL for structure, DML for data, DQL for retrieval, DCL for permissions, TCL for transaction control. MySQL implements all five on top of the InnoDB storage engine by default."</p>
+          </div>
+        </div>
+
+        <div class="box interview">
+          <div class="box-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <div><b class="box-title">Interview Tip</b><p>If asked "Is SQL a programming language?" — answer: it's a <b>declarative</b> language (you describe the result, not the steps), not a procedural/general-purpose language. MySQL adds procedural extensions on top for stored procedures.</p></div>
+        </div>
+      </section>
+
+      <!-- ================= SUB-LANGUAGES ================= -->
+      <section class="block reveal" id="sublanguages">
+        <div class="block-head"><span class="num">02</span><h2>The 5 Sub-Languages</h2></div>
+        <p class="block-sub">Every SQL statement you'll ever write belongs to exactly one of these five families.</p>
+
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>Category</th><th>Full Form</th><th>Purpose</th><th>Key Commands</th><th>Auto-commits?</th></tr></thead>
+            <tbody>
+              <tr><td><b style="color:#c9c0ff">DDL</b></td><td>Data Definition Language</td><td>Defines / alters structure</td><td>CREATE, ALTER, DROP, TRUNCATE, RENAME</td><td>Yes (implicit)</td></tr>
+              <tr><td><b style="color:#22d3ee">DML</b></td><td>Data Manipulation Language</td><td>Modifies data inside tables</td><td>INSERT, UPDATE, DELETE</td><td>No — needs COMMIT</td></tr>
+              <tr><td><b style="color:#f5a623">DQL</b></td><td>Data Query Language</td><td>Reads / retrieves data</td><td>SELECT</td><td>N/A (read-only)</td></tr>
+              <tr><td><b style="color:#fb5a7e">DCL</b></td><td>Data Control Language</td><td>Manages access & permissions</td><td>GRANT, REVOKE</td><td>Yes (implicit)</td></tr>
+              <tr><td><b style="color:#34d399">TCL</b></td><td>Transaction Control Language</td><td>Manages transaction lifecycle</td><td>COMMIT, ROLLBACK, SAVEPOINT, SET TRANSACTION</td><td>Controls commits</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box tip">
+          <div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6"/></svg></div>
+          <div><b class="box-title">Memory Trick</b><p>Say it as a sentence: "<b>D</b>efine it, <b>M</b>anipulate it, <b>Q</b>uery it, <b>C</b>ontrol it, <b>T</b>ransact it." Order matches the natural lifecycle of a table.</p></div>
+        </div>
+      </section>
+
+      <!-- ================= DDL ================= -->
+      <section class="block reveal" id="ddl">
+        <div class="block-head"><span class="num">03</span><h2>DDL — Data Definition Language</h2></div>
+        <p class="block-sub">Commands that define, change, or remove the <em>structure</em> of database objects — tables, schemas, indexes, views.</p>
+
+        <h3 class="sub-h">How MySQL internally works</h3>
+        <p class="body-p">Every DDL statement updates MySQL's <b>data dictionary</b> (in modern MySQL 8+, stored in transactional InnoDB tables instead of old <code style="font-family:var(--mono)">.frm</code> files). Because structural changes historically couldn't be rolled back safely, MySQL issues an <b>implicit COMMIT</b> before and after most DDL statements — this is why DDL is said to "auto-commit," even inside an open transaction.</p>
+
+        <div class="code">
+          <div class="code-head"><span>ddl_examples.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">CREATE TABLE</span> <span class="id">employee</span> (
+  <span class="id">id</span> <span class="fn">INT</span> <span class="kw">PRIMARY KEY</span> <span class="kw">AUTO_INCREMENT</span>,
+  <span class="id">name</span> <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+  <span class="id">salary</span> <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>)
+);
+
+<span class="kw">ALTER TABLE</span> <span class="id">employee</span> <span class="kw">ADD</span> <span class="id">email</span> <span class="fn">VARCHAR</span>(<span class="num">150</span>);
+<span class="kw">ALTER TABLE</span> <span class="id">employee</span> <span class="kw">MODIFY</span> <span class="id">salary</span> <span class="fn">DECIMAL</span>(<span class="num">12</span>,<span class="num">2</span>);
+
+<span class="kw">TRUNCATE TABLE</span> <span class="id">employee</span>;   <span class="cm">-- wipes rows, keeps structure</span>
+<span class="kw">DROP TABLE</span> <span class="id">employee</span>;      <span class="cm">-- removes structure + data</span></pre>
+        </div>
+
+        <div class="grid-2">
+          <div class="box mistake"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#fb5a7e" stroke-width="1.5"/></svg></div><div><b class="box-title">Common Mistake</b><p>Confusing DROP with TRUNCATE, or TRUNCATE with DELETE. DROP removes the table entirely (schema gone); TRUNCATE keeps schema but resets identity/auto-increment; DELETE (DML) keeps schema, keeps auto-increment counter, and can be rolled back.</p></div></div>
+          <div class="box tip"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6"/></svg></div><div><b class="box-title">Best Practice</b><p>Never run destructive DDL (DROP/TRUNCATE) directly against production. Use migration tools (Flyway/Liquibase in Spring Boot projects) so schema changes are versioned and reviewable.</p></div></div>
+        </div>
+
+        <h3 class="sub-h">Comparison: DROP vs TRUNCATE vs DELETE</h3>
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>Aspect</th><th>DROP</th><th>TRUNCATE</th><th>DELETE</th></tr></thead>
+            <tbody>
+              <tr><td>Category</td><td>DDL</td><td>DDL</td><td>DML</td></tr>
+              <tr><td>Removes structure?</td><td>Yes</td><td>No</td><td>No</td></tr>
+              <tr><td>WHERE clause?</td><td>No</td><td>No</td><td>Yes</td></tr>
+              <tr><td>Rollback (in txn)?</td><td>No*</td><td>No*</td><td>Yes</td></tr>
+              <tr><td>Resets AUTO_INCREMENT?</td><td>N/A</td><td>Yes</td><td>No</td></tr>
+              <tr><td>Fires triggers?</td><td>No</td><td>No</td><td>Yes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:12px;color:var(--text-faint);margin-top:8px;">*InnoDB with certain configs can mitigate this, but treat both as non-transactional by default in interviews.</p>
+      </section>
+
+      <!-- ================= DML ================= -->
+      <section class="block reveal" id="dml">
+        <div class="block-head"><span class="num">04</span><h2>DML — Data Manipulation Language</h2></div>
+        <p class="block-sub">Commands that add, change, or remove <em>rows</em> — the structure stays untouched.</p>
+
+        <div class="code">
+          <div class="code-head"><span>dml_examples.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">INSERT INTO</span> <span class="id">employee</span> (<span class="id">name</span>, <span class="id">salary</span>) <span class="kw">VALUES</span> (<span class="str">'Asha'</span>, <span class="num">55000</span>);
+
+<span class="kw">UPDATE</span> <span class="id">employee</span>
+<span class="kw">SET</span> <span class="id">salary</span> = <span class="id">salary</span> * <span class="num">1.1</span>
+<span class="kw">WHERE</span> <span class="id">id</span> = <span class="num">4</span>;
+
+<span class="kw">DELETE FROM</span> <span class="id">employee</span> <span class="kw">WHERE</span> <span class="id">salary</span> &lt; <span class="num">20000</span>;</pre>
+        </div>
+        <button class="run-btn" onclick="runDemo('dml')">▶ Run visually</button>
+        <div class="run-output" id="out-dml">
+          <div class="ok-line">✓ 1 row inserted → Query OK, 1 row affected (0.01 sec)</div>
+          <table><thead><tr><th>id</th><th>name</th><th>salary</th></tr></thead>
+          <tbody><tr><td>4</td><td>Asha</td><td>60500.00</td></tr></tbody></table>
+        </div>
+
+        <h3 class="sub-h">Deep explanation</h3>
+        <p class="body-p">DML statements are logged in InnoDB's transaction log and are <b>not</b> permanent until a COMMIT happens (or autocommit mode — MySQL's default — commits each statement automatically). This is exactly why understanding TCL alongside DML matters: without an explicit transaction, every INSERT/UPDATE/DELETE commits itself immediately in default MySQL config.</p>
+
+        <div class="box warn"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#f5a623" stroke-width="1.5"/></svg></div><div><b class="box-title">Warning</b><p>An UPDATE or DELETE without a WHERE clause applies to <b>every row in the table</b>. This is one of the most common production incidents fresher engineers cause — always run the equivalent SELECT with the same WHERE first.</p></div></div>
+      </section>
+
+      <!-- ================= DQL ================= -->
+      <section class="block reveal" id="dql">
+        <div class="block-head"><span class="num">05</span><h2>DQL — Data Query Language</h2></div>
+        <p class="block-sub">Technically just one keyword — <b>SELECT</b> — but it is the most interviewed statement in all of SQL.</p>
+
+        <div class="code">
+          <div class="code-head"><span>dql_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> <span class="id">department</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="id">headcount</span>
+<span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">salary</span> &gt; <span class="num">30000</span>
+<span class="kw">GROUP BY</span> <span class="id">department</span>
+<span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) &gt; <span class="num">2</span>
+<span class="kw">ORDER BY</span> <span class="id">headcount</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">5</span>;</pre>
+        </div>
+        <button class="run-btn" onclick="runDemo('dql')">▶ Run visually</button>
+        <div class="run-output" id="out-dql">
+          <table><thead><tr><th>department</th><th>headcount</th></tr></thead>
+          <tbody><tr><td>Engineering</td><td>14</td></tr><tr><td>Sales</td><td>9</td></tr><tr><td>Support</td><td>3</td></tr></tbody></table>
+        </div>
+
+        <p class="body-p" style="margin-top:16px;">This exact query is also our launchpad for the next section — <b>every clause above runs in a different order than it's written.</b> That mismatch between written order and execution order is one of the most-asked MySQL fundamentals in interviews.</p>
+      </section>
+
+      <!-- ================= DCL ================= -->
+      <section class="block reveal" id="dcl">
+        <div class="block-head"><span class="num">06</span><h2>DCL — Data Control Language</h2></div>
+        <p class="block-sub">Controls <em>who</em> can do <em>what</em> — the security layer of SQL.</p>
+        <div class="code">
+          <div class="code-head"><span>dcl_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">GRANT SELECT</span>, <span class="kw">INSERT</span> <span class="kw">ON</span> <span class="id">company.employee</span> <span class="kw">TO</span> <span class="str">'app_user'</span>@<span class="str">'%'</span>;
+<span class="kw">REVOKE INSERT</span> <span class="kw">ON</span> <span class="id">company.employee</span> <span class="kw">FROM</span> <span class="str">'app_user'</span>@<span class="str">'%'</span>;
+<span class="kw">FLUSH PRIVILEGES</span>;</pre>
+        </div>
+        <p class="body-p">Real-world analogy: DCL is the bank manager deciding which teller role can view balances vs. authorise withdrawals. In production, a Spring Boot application typically connects using a dedicated MySQL user with only the exact privileges its service needs — never the root account.</p>
+        <div class="box mistake"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#fb5a7e" stroke-width="1.5"/></svg></div><div><b class="box-title">Beginner Mistake</b><p>Using the root MySQL user in an application's <code style="font-family:var(--mono)">application.properties</code>. If credentials leak, the attacker gets full DDL+DML+DCL power instead of a scoped subset.</p></div></div>
+      </section>
+
+      <!-- ================= TCL ================= -->
+      <section class="block reveal" id="tcl">
+        <div class="block-head"><span class="num">07</span><h2>TCL — Transaction Control Language</h2></div>
+        <p class="block-sub">Groups multiple DML statements into one atomic unit of work — the backbone of ACID.</p>
+        <div class="code">
+          <div class="code-head"><span>tcl_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">START TRANSACTION</span>;
+
+<span class="kw">UPDATE</span> <span class="id">account</span> <span class="kw">SET</span> <span class="id">balance</span> = <span class="id">balance</span> - <span class="num">500</span> <span class="kw">WHERE</span> <span class="id">id</span> = <span class="num">1</span>;
+<span class="kw">SAVEPOINT</span> <span class="id">before_credit</span>;
+<span class="kw">UPDATE</span> <span class="id">account</span> <span class="kw">SET</span> <span class="id">balance</span> = <span class="id">balance</span> + <span class="num">500</span> <span class="kw">WHERE</span> <span class="id">id</span> = <span class="num">2</span>;
+
+<span class="cm">-- if anything looks wrong:</span>
+<span class="kw">ROLLBACK TO</span> <span class="id">before_credit</span>;
+
+<span class="kw">COMMIT</span>;</pre>
+        </div>
+        <p class="body-p">Real-world example: a bank transfer of ₹500 must debit one account and credit another together. If the credit step fails after the debit succeeded, TCL lets you <b>ROLLBACK</b> the whole unit so money isn't lost mid-transfer. This maps directly to Spring's <code style="font-family:var(--mono)">@Transactional</code> annotation, which under the hood issues these exact COMMIT/ROLLBACK calls through JDBC.</p>
+        <div class="box interview"><div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8" stroke-linecap="round"/></svg></div><div><b class="box-title">Interview Tip</b><p>Be ready to state the 4 ACID properties from memory: <b>Atomicity, Consistency, Isolation, Durability</b> — and that TCL is how MySQL exposes Atomicity to the developer.</p></div></div>
+      </section>
+
+      <!-- ================= EXECUTION ORDER (signature interactive) ================= -->
+      <section class="block reveal" id="exec-order">
+        <div class="block-head"><span class="num">08</span><h2>Query Execution Order</h2></div>
+        <p class="block-sub">Click each stage to see what MySQL actually does with the <code style="font-family:var(--mono)">SELECT department, COUNT(*) ... GROUP BY ... HAVING ... ORDER BY ... LIMIT</code> query from Section 05 — in the order the engine really processes it.</p>
+
+        <div class="pipeline" id="pipeline">
+          <div class="pipe-stage" data-i="0"><div class="pulse-dot"></div><div class="stage-no">STAGE 1</div><div class="stage-name">FROM</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="1"><div class="pulse-dot"></div><div class="stage-no">STAGE 2</div><div class="stage-name">WHERE</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="2"><div class="pulse-dot"></div><div class="stage-no">STAGE 3</div><div class="stage-name">GROUP BY</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="3"><div class="pulse-dot"></div><div class="stage-no">STAGE 4</div><div class="stage-name">HAVING</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="4"><div class="pulse-dot"></div><div class="stage-no">STAGE 5</div><div class="stage-name">SELECT</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="5"><div class="pulse-dot"></div><div class="stage-no">STAGE 6</div><div class="stage-name">ORDER BY</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="6"><div class="pulse-dot"></div><div class="stage-no">STAGE 7</div><div class="stage-name">LIMIT</div></div>
+        </div>
+        <div class="pipe-detail" id="pipe-detail">
+          <h4>Click a stage above</h4>
+          <p>The pipeline animates automatically once — then explore any stage on your own.</p>
+        </div>
+
+        <div class="box warn" style="margin-top:22px;"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#f5a623" stroke-width="1.5"/></svg></div><div><b class="box-title">Why This Trips Up Freshers</b><p>Column aliases defined in SELECT (e.g. <code style="font-family:var(--mono)">AS headcount</code>) can be used in ORDER BY and LIMIT (later stages) but <b>not</b> in WHERE or GROUP BY, because those run before SELECT is evaluated.</p></div></div>
+      </section>
+
+      <!-- ================= COMMON MISTAKES ================= -->
+      <section class="block reveal" id="mistakes">
+        <div class="block-head"><span class="num">09</span><h2>Common Mistakes &amp; Performance Notes</h2></div>
+        <p class="block-sub">Click to expand each pitfall.</p>
+
+        <div id="acc-mistakes">
+          <div class="acc-item">
+            <div class="acc-head">Forgetting WHERE on UPDATE/DELETE <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Updates/deletes every row in the table. Always test the WHERE clause with a SELECT first, and consider enabling MySQL's Safe Update Mode during development.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">Using SELECT * in production code <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Pulls unnecessary columns, breaks when schema changes, and prevents MySQL from using a covering index. Always name the columns you need.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">Mixing DDL inside a transaction expecting rollback <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">DDL implicitly commits, so a ROLLBACK after a CREATE/ALTER/DROP won't undo it — only the DML around it.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">No index on foreign key / WHERE columns <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Causes full table scans. Use <code style="font-family:var(--mono)">EXPLAIN</code> to check if MySQL's optimizer is using an index, and add one on columns used in WHERE, JOIN, and ORDER BY frequently.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">Confusing HAVING with WHERE <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">WHERE filters rows before grouping; HAVING filters groups after aggregation. You cannot use an aggregate function like COUNT() inside WHERE.</div></div>
+          </div>
+        </div>
+
+        <h3 class="sub-h">Performance Notes</h3>
+        <ul class="plain">
+          <li>Index columns used in WHERE, JOIN, GROUP BY and ORDER BY — but don't over-index; every index slows down INSERT/UPDATE.</li>
+          <li>Prefer batch INSERTs (multi-row VALUES) over one INSERT per row from application code.</li>
+          <li>Use <code style="font-family:var(--mono)">EXPLAIN</code> before assuming a query is slow because of the database rather than the query itself.</li>
+        </ul>
+        <h3 class="sub-h">Security Notes</h3>
+        <ul class="plain">
+          <li>Always use parameterised queries / PreparedStatement (JDBC) to prevent SQL injection — never string-concatenate user input into SQL.</li>
+          <li>Grant least-privilege access via DCL; avoid using the root account from an application.</li>
+        </ul>
+      </section>
+
+      <!-- ================= SPRING BOOT RELATION ================= -->
+      <section class="block reveal" id="springboot">
+        <div class="block-head"><span class="num">10</span><h2>Spring Boot Relation</h2></div>
+        <p class="block-sub">How these five SQL categories map onto everyday Spring Boot + JPA/Hibernate code.</p>
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>SQL Category</th><th>Spring Boot Equivalent</th></tr></thead>
+            <tbody>
+              <tr><td>DDL</td><td><code style="font-family:var(--mono)">spring.jpa.hibernate.ddl-auto</code> (update/create), or Flyway/Liquibase migration scripts</td></tr>
+              <tr><td>DML</td><td><code style="font-family:var(--mono)">JpaRepository.save()</code>, <code style="font-family:var(--mono)">deleteById()</code>, custom <code style="font-family:var(--mono)">@Modifying</code> queries</td></tr>
+              <tr><td>DQL</td><td><code style="font-family:var(--mono)">findBy...</code> derived queries, <code style="font-family:var(--mono)">@Query</code>, JPQL/Criteria API</td></tr>
+              <tr><td>DCL</td><td>Configured at the datasource/DBA level, not typically inside application code</td></tr>
+              <tr><td>TCL</td><td><code style="font-family:var(--mono)">@Transactional</code> annotation — Spring manages COMMIT/ROLLBACK for you</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="box interview"><div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8" stroke-linecap="round"/></svg></div><div><b class="box-title">Interview Tip</b><p>A very common fresher question: "What happens if an exception is thrown inside a <code style="font-family:var(--mono)">@Transactional</code> method?" Answer: Spring rolls back the transaction automatically for unchecked (RuntimeException) exceptions by default — this is TCL happening under the hood.</p></div></div>
+      </section>
+
+      <!-- ================= TRADEOFFS ================= -->
+      <section class="block reveal" id="tradeoffs">
+        <div class="block-head"><span class="num">11</span><h2>Advantages, Disadvantages &amp; When to Use</h2></div>
+        <div class="tabs" id="tradeoff-tabs">
+          <button class="tab-btn active" data-tab="adv">Advantages</button>
+          <button class="tab-btn" data-tab="dis">Disadvantages</button>
+          <button class="tab-btn" data-tab="use">When to Use</button>
+          <button class="tab-btn" data-tab="notuse">When NOT to Use</button>
+        </div>
+        <div class="tab-panel active" data-panel="adv">
+          <ul class="plain"><li>Declarative — you describe the "what," MySQL's optimizer figures out the "how."</li><li>Strong ACID guarantees for critical, structured, relational data.</li><li>Mature tooling, huge community, first-class Spring Data JPA support.</li></ul>
+        </div>
+        <div class="tab-panel" data-panel="dis">
+          <ul class="plain"><li>Rigid schema — changing structure at scale needs careful migration planning.</li><li>Vertical scaling is easier than horizontal scaling compared to some NoSQL stores.</li><li>Complex joins across many tables can become a performance bottleneck if unindexed.</li></ul>
+        </div>
+        <div class="tab-panel" data-panel="use">
+          <ul class="plain"><li>Structured, relational data with clear entities and relationships (orders, users, payments).</li><li>Applications needing strong consistency and transactions (banking, inventory, bookings).</li></ul>
+        </div>
+        <div class="tab-panel" data-panel="notuse">
+          <ul class="plain"><li>Highly unstructured or rapidly changing schemas (consider document stores like MongoDB).</li><li>Massive horizontal write scaling needs where eventual consistency is acceptable.</li></ul>
+        </div>
+      </section>
+
+      <!-- ================= MEMORY TRICKS ================= -->
+      <section class="block reveal" id="memory">
+        <div class="block-head"><span class="num">12</span><h2>Memory Tricks</h2></div>
+        <div class="grid-3">
+          <div class="card"><b style="color:var(--cyan);font-size:13px;">DDL Order</b><p class="body-p" style="margin-top:8px;">"CAD-TR" → Create, Alter, Drop, Truncate, Rename — structure verbs, all auto-commit.</p></div>
+          <div class="card"><b style="color:var(--cyan);font-size:13px;">Execution Order</b><p class="body-p" style="margin-top:8px;">"Five Waiters Give Hot Snacks, Order Limited" → FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT.</p></div>
+          <div class="card"><b style="color:var(--cyan);font-size:13px;">ACID</b><p class="body-p" style="margin-top:8px;">"A Cat Ignores Dogs" → Atomicity, Consistency, Isolation, Durability.</p></div>
+        </div>
+      </section>
+
+      <!-- ================= TOP 20 ================= -->
+      <section class="block reveal" id="top20">
+        <div class="block-head"><span class="num">13</span><h2>Top 20 Interview Questions</h2></div>
+        <p class="block-sub">Tagged with the companies where this style of question is commonly reported.</p>
+        <div id="acc-top20"></div>
+      </section>
+
+      <!-- ================= FLASHCARDS ================= -->
+      <section class="block reveal" id="flashcards">
+        <div class="block-head"><span class="num">14</span><h2>Flash Cards</h2></div>
+        <p class="block-sub">Tap a card to flip it.</p>
+        <div class="fc-grid" id="fc-grid"></div>
+      </section>
+
+      <!-- ================= QUIZ ================= -->
+      <section class="block reveal" id="quiz">
+        <div class="block-head"><span class="num">15</span><h2>Quick Quiz</h2></div>
+        <p class="block-sub">Pick an answer — instant feedback, no page reload.</p>
+        <div id="quiz-container"></div>
+        <div class="quiz-score" id="quiz-score">Score: 0 / 0</div>
+      </section>
+
+      <!-- ================= SQL PRACTICE ================= -->
+      <section class="block reveal" id="practice">
+        <div class="block-head"><span class="num">16</span><h2>SQL Practice Questions</h2></div>
+        <div id="acc-practice">
+          <div class="acc-item">
+            <div class="acc-head">Write a query to find the 2nd highest salary in <code style="font-family:var(--mono)">employee</code> <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">
+              <p style="margin-bottom:8px;"><b>Expected Answer:</b></p>
+              <div class="code" style="margin:0;"><pre><span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="id">salary</span>)
+<span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">salary</span> &lt; (<span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="id">salary</span>) <span class="kw">FROM</span> <span class="id">employee</span>);</pre></div>
+              <p style="margin-top:8px;">Alternative: <code style="font-family:var(--mono)">SELECT DISTINCT salary FROM employee ORDER BY salary DESC LIMIT 1 OFFSET 1;</code></p>
+            </div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">Delete duplicate rows keeping the lowest id <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">
+              <div class="code" style="margin:0;"><pre><span class="kw">DELETE</span> e1 <span class="kw">FROM</span> <span class="id">employee</span> e1
+<span class="kw">JOIN</span> <span class="id">employee</span> e2
+  <span class="kw">ON</span> e1.<span class="id">email</span> = e2.<span class="id">email</span> <span class="kw">AND</span> e1.<span class="id">id</span> &gt; e2.<span class="id">id</span>;</pre></div>
+            </div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">Get department-wise average salary above company average <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">
+              <div class="code" style="margin:0;"><pre><span class="kw">SELECT</span> <span class="id">department</span>, <span class="fn">AVG</span>(<span class="id">salary</span>) <span class="kw">AS</span> <span class="id">avg_sal</span>
+<span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">GROUP BY</span> <span class="id">department</span>
+<span class="kw">HAVING</span> <span class="fn">AVG</span>(<span class="id">salary</span>) &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="id">salary</span>) <span class="kw">FROM</span> <span class="id">employee</span>);</pre></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CHEAT SHEET ================= -->
+      <section class="block reveal" id="cheatsheet">
+        <div class="block-head"><span class="num">17</span><h2>Cheat Sheet</h2></div>
+        <div class="cheat-grid">
+          <div class="cheat-item"><code>CREATE / ALTER / DROP / TRUNCATE / RENAME</code><p>DDL — structure, implicit commit</p></div>
+          <div class="cheat-item"><code>INSERT / UPDATE / DELETE</code><p>DML — data, needs COMMIT</p></div>
+          <div class="cheat-item"><code>SELECT</code><p>DQL — retrieval only</p></div>
+          <div class="cheat-item"><code>GRANT / REVOKE</code><p>DCL — permissions</p></div>
+          <div class="cheat-item"><code>COMMIT / ROLLBACK / SAVEPOINT</code><p>TCL — transaction control</p></div>
+          <div class="cheat-item"><code>FROM→WHERE→GROUP BY→HAVING→SELECT→ORDER BY→LIMIT</code><p>Real execution order</p></div>
+        </div>
+      </section>
+
+      <!-- ================= MIND MAP ================= -->
+      <section class="block reveal" id="mindmap">
+        <div class="block-head"><span class="num">18</span><h2>Mind Map</h2></div>
+        <div class="mindmap">
+          <div class="mm-root">SQL Language</div>
+          <div class="mm-branches">
+            <div class="mm-node"><b>DDL</b><span>CREATE·ALTER·DROP</span></div>
+            <div class="mm-node"><b>DML</b><span>INSERT·UPDATE·DELETE</span></div>
+            <div class="mm-node"><b>DQL</b><span>SELECT</span></div>
+            <div class="mm-node"><b>DCL</b><span>GRANT·REVOKE</span></div>
+            <div class="mm-node"><b>TCL</b><span>COMMIT·ROLLBACK</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ROADMAP ================= -->
+      <section class="block reveal" id="roadmap">
+        <div class="block-head"><span class="num">19</span><h2>Learning Roadmap &amp; Further Topics</h2></div>
+        <div class="timeline">
+          <div class="tl-item"><h4>Module 1 — SQL Language ✓ (you are here)</h4><p>DDL, DML, DQL, DCL, TCL, execution order.</p></div>
+          <div class="tl-item"><h4>Module 2 — Joins &amp; Subqueries</h4><p>INNER/LEFT/RIGHT/FULL joins, correlated vs non-correlated subqueries, set operations.</p></div>
+          <div class="tl-item"><h4>Module 3 — Indexing &amp; Query Optimization</h4><p>B-Tree indexes, EXPLAIN plans, covering indexes, composite index order.</p></div>
+          <div class="tl-item"><h4>Module 4 — Normalization &amp; Schema Design</h4><p>1NF–BCNF, denormalization trade-offs, ER modelling.</p></div>
+          <div class="tl-item"><h4>Module 5 — Transactions, Locking &amp; Isolation Levels</h4><p>READ COMMITTED vs REPEATABLE READ, deadlocks, MVCC in InnoDB.</p></div>
+          <div class="tl-item"><h4>Module 6 — MySQL with Spring Boot in Depth</h4><p>Connection pooling (HikariCP), JPA/Hibernate mapping strategies, N+1 problem.</p></div>
+        </div>
+        <h3 class="sub-h">Summary</h3>
+        <p class="body-p">SQL splits into five responsibility-driven families. DDL shapes tables and auto-commits; DML changes rows and needs an explicit or automatic commit; DQL (SELECT) reads data and runs FROM→WHERE→GROUP BY→HAVING→SELECT→ORDER BY→LIMIT internally, not top-to-bottom as written; DCL secures access; TCL wraps DML into atomic, all-or-nothing units. Spring Boot leans on JPA/Hibernate and <code style="font-family:var(--mono)">@Transactional</code> to generate most of this SQL for you — but every interviewer expects you to know what's happening underneath.</p>
+      </section>
+
+      <footer>Module 1 of the MySQL Interview Mastery series · Built for Java Full Stack fresher interviews</footer>
+    </div>
+  </main>
+</div>
+
+<div id="toTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+/* ---------------- progress bar + back to top + active nav ---------------- */
+const progressBar = document.getElementById('progress-bar');
+const toTop = document.getElementById('toTop');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+  toTop.classList.toggle('show', h.scrollTop > 600);
+});
+
+/* reveal on scroll — progressive enhancement only.
+   Sections are visible by CSS default; here we opt each one into a hidden
+   start state and immediately schedule it to reveal, so a slow/failed
+   IntersectionObserver never leaves content permanently invisible. */
+const revealEls = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window) {
+  revealEls.forEach(el => el.classList.add('pre'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:0.12});
+  revealEls.forEach(el => io.observe(el));
+  // Safety net: if anything is still hidden 4s after load (observer missed it), force it visible.
+  setTimeout(() => revealEls.forEach(el => el.classList.add('in')), 4000);
+}
+
+/* active sidebar link on scroll */
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = [...document.querySelectorAll('section[id]')];
+const navObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const link = document.querySelector('.nav-link[href="#'+entry.target.id+'"]');
+      if(link) link.classList.add('active');
+    }
+  });
+},{rootMargin:'-30% 0px -60% 0px'});
+sections.forEach(s=>navObserver.observe(s));
+
+/* mobile sidebar toggle */
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=> sidebar.classList.toggle('open'));
+navLinks.forEach(l => l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+/* ---------------- run demo output ---------------- */
+function runDemo(id){
+  const el = document.getElementById('out-'+id);
+  el.classList.toggle('show');
+}
+
+/* ---------------- accordion generic ---------------- */
+function wireAccordions(root){
+  root.querySelectorAll('.acc-head').forEach(head=>{
+    head.addEventListener('click', ()=>{
+      const item = head.parentElement;
+      const body = item.querySelector('.acc-body');
+      const isOpen = item.classList.contains('open');
+      item.classList.toggle('open', !isOpen);
+      body.style.maxHeight = isOpen ? null : body.scrollHeight + 'px';
+    });
+  });
+}
+wireAccordions(document.getElementById('acc-mistakes'));
+wireAccordions(document.getElementById('acc-practice'));
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll('#tradeoff-tabs .tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tradeoff-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector('.tab-panel[data-panel="'+btn.dataset.tab+'"]').classList.add('active');
+  });
+});
+
+/* ---------------- pipeline (execution order) ---------------- */
+const pipeDetails = [
+  {name:'FROM', text:'MySQL first resolves the base table(s): reads employee, and joins if any are specified. This is the raw dataset the rest of the query works on.'},
+  {name:'WHERE', text:'Filters individual rows before any grouping happens — here, rows with salary > 30000 survive. Aggregate functions cannot be used here.'},
+  {name:'GROUP BY', text:'Buckets the remaining rows into groups by department. Each group will become one output row after aggregation.'},
+  {name:'HAVING', text:'Filters entire groups using aggregate results — here, COUNT(*) > 2. This is the group-level equivalent of WHERE.'},
+  {name:'SELECT', text:'Only now are the output expressions evaluated — department, COUNT(*) AS headcount. This is why column aliases don\\'t exist yet during WHERE/GROUP BY.'},
+  {name:'ORDER BY', text:'Sorts the final result set — can reference the headcount alias because SELECT has already run.'},
+  {name:'LIMIT', text:'Trims the sorted result down to the requested number of rows — 5 in this example. Always the very last step.'}
+];
+const stages = document.querySelectorAll('.pipe-stage');
+const pipeDetail = document.getElementById('pipe-detail');
+function activateStage(i){
+  stages.forEach(s=>s.classList.remove('active'));
+  stages[i].classList.add('active');
+  pipeDetail.innerHTML = '<h4>Stage '+(i+1)+' · '+pipeDetails[i].name+'</h4><p>'+pipeDetails[i].text+'</p>';
+}
+stages.forEach(s=>{
+  s.addEventListener('click', ()=> activateStage(parseInt(s.dataset.i)));
+});
+// auto-play once when pipeline enters view
+let autoPlayed = false;
+const pipeIO = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting && !autoPlayed){
+      autoPlayed = true;
+      let i = 0;
+      const iv = setInterval(()=>{
+        activateStage(i);
+        i++;
+        if(i >= stages.length){ clearInterval(iv); }
+      }, 900);
+    }
+  });
+},{threshold:0.5});
+pipeIO.observe(document.getElementById('pipeline'));
+
+/* ---------------- Top 20 interview questions ---------------- */
+const top20 = [
+  {q:'What are the 5 sub-languages of SQL?', a:'DDL, DML, DQL, DCL, TCL — grouped by responsibility: define structure, manipulate data, query data, control access, control transactions.', co:'TCS Digital', diff:'easy'},
+  {q:'Difference between DROP, TRUNCATE and DELETE?', a:'DROP removes the table and its structure. TRUNCATE removes all rows but keeps structure and resets AUTO_INCREMENT, and cannot be rolled back. DELETE removes rows conditionally, can be rolled back, and does not reset AUTO_INCREMENT.', co:'Infosys', diff:'med'},
+  {q:'Why is DDL said to auto-commit?', a:'MySQL implicitly commits before and after DDL statements because structural changes historically weren\\'t safe to roll back — so a ROLLBACK cannot undo a CREATE/ALTER/DROP even inside an open transaction.', co:'Zoho', diff:'hard'},
+  {q:'What is the actual execution order of a SELECT query?', a:'FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT — different from the order it is written in.', co:'Accenture', diff:'med'},
+  {q:'Difference between WHERE and HAVING?', a:'WHERE filters individual rows before grouping and cannot use aggregate functions. HAVING filters grouped results after aggregation and can use aggregate functions like COUNT/SUM.', co:'Capgemini', diff:'easy'},
+  {q:'What does COMMIT do internally in MySQL/InnoDB?', a:'It flushes the transaction\\'s changes to the redo log and makes them permanent and visible to other transactions, ending the current transaction scope.', co:'Cognizant', diff:'med'},
+  {q:'What is a SAVEPOINT and when would you use one?', a:'A named point inside a transaction you can roll back to without undoing the entire transaction — useful for partial recovery in multi-step operations like a fund transfer with several steps.', co:'HCL', diff:'med'},
+  {q:'Can you use an aggregate function inside a WHERE clause?', a:'No — WHERE executes before GROUP BY/aggregation happens. Use HAVING instead, which executes after aggregation.', co:'Wipro', diff:'easy'},
+  {q:'What privileges does GRANT control, and how does it map to Spring Boot deployments?', a:'GRANT controls table/column/procedure level permissions per MySQL user; in Spring Boot deployments the application typically connects with a scoped, least-privilege user rather than root.', co:'Zoho', diff:'med'},
+  {q:'How does @Transactional in Spring Boot relate to TCL?', a:'Spring wraps the annotated method in a transaction, issuing the JDBC equivalent of START TRANSACTION / COMMIT, and automatically ROLLBACK on unchecked exceptions.', co:'Product Companies', diff:'hard'},
+  {q:'Is SQL a procedural or declarative language?', a:'Declarative — you specify the desired result (what data you want), and MySQL\\'s query optimizer decides how to retrieve it.', co:'TCS Digital', diff:'easy'},
+  {q:'What happens if you run DELETE without a WHERE clause?', a:'Every row in the table gets deleted (but the table structure remains, unlike TRUNCATE/DROP) — this can be rolled back if inside an open transaction.', co:'Infosys', diff:'easy'},
+  {q:'Difference between ALTER and UPDATE?', a:'ALTER (DDL) changes table structure, e.g. adding/removing columns. UPDATE (DML) changes existing row values — completely different categories despite sounding similar.', co:'Capgemini', diff:'easy'},
+  {q:'Explain ACID in the context of TCL.', a:'Atomicity (all-or-nothing), Consistency (valid state to valid state), Isolation (concurrent transactions don\\'t interfere), Durability (committed data survives crashes) — TCL commands are how these are exposed to developers.', co:'Zoho', diff:'med'},
+  {q:'What is the difference between RENAME and ALTER TABLE ... RENAME COLUMN?', a:'RENAME TABLE changes a table\\'s name; ALTER TABLE ... RENAME COLUMN changes a column\\'s name within the same table — both are DDL.', co:'Wipro', diff:'easy'},
+  {q:'Why should SELECT * be avoided in production Spring Boot repositories?', a:'It fetches unnecessary columns, can silently break mappings when the schema changes, increases network payload, and prevents the optimizer from using a covering index.', co:'Product Companies', diff:'med'},
+  {q:'What is the difference between REVOKE and DROP USER?', a:'REVOKE removes specific privileges but keeps the user account; DROP USER removes the account entirely along with all its privileges.', co:'HCL', diff:'med'},
+  {q:'Can a single SQL statement belong to more than one category?', a:'No — each statement belongs to exactly one category by its verb (CREATE=DDL, INSERT=DML, SELECT=DQL, GRANT=DCL, COMMIT=TCL), though a full business operation often combines several.', co:'Cognizant', diff:'easy'},
+  {q:'What is the risk of using TRUNCATE inside application code triggered by user action?', a:'It cannot be rolled back and resets identity columns, so an accidental call wipes all data irreversibly — DELETE with a WHERE clause is safer for user-triggered removal.', co:'Accenture', diff:'hard'},
+  {q:'How would you explain the difference between DQL and DML in one line to a non-technical interviewer?', a:'DML changes what\\'s stored (write), DQL only looks at what\\'s stored (read) — SELECT never modifies data.', co:'TCS Digital', diff:'easy'}
+];
+const top20Container = document.getElementById('acc-top20');
+top20.forEach((item,idx)=>{
+  const div = document.createElement('div');
+  div.className='acc-item';
+  div.innerHTML = `<div class="acc-head"><span>${idx+1}. ${item.q} <span class="tag company">${item.co}</span><span class="tag ${item.diff}">${item.diff}</span></span><span class="chev">▾</span></div>
+  <div class="acc-body"><div class="acc-body-inner">${item.a}</div></div>`;
+  top20Container.appendChild(div);
+});
+wireAccordions(top20Container);
+
+/* ---------------- flash cards ---------------- */
+const flashcards = [
+  {f:'DDL', b:'Data Definition Language — CREATE, ALTER, DROP, TRUNCATE, RENAME. Auto-commits.'},
+  {f:'DML', b:'Data Manipulation Language — INSERT, UPDATE, DELETE. Needs COMMIT.'},
+  {f:'DQL', b:'Data Query Language — SELECT only. Read-only.'},
+  {f:'DCL', b:'Data Control Language — GRANT, REVOKE. Manages permissions.'},
+  {f:'TCL', b:'Transaction Control Language — COMMIT, ROLLBACK, SAVEPOINT.'},
+  {f:'Execution Order', b:'FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT'},
+  {f:'DROP vs TRUNCATE', b:'DROP removes structure + data. TRUNCATE removes data only, keeps structure.'},
+  {f:'WHERE vs HAVING', b:'WHERE filters rows before grouping. HAVING filters groups after aggregation.'},
+  {f:'ACID', b:'Atomicity, Consistency, Isolation, Durability.'},
+  {f:'@Transactional', b:'Spring Boot annotation that maps to TCL — auto COMMIT/ROLLBACK.'},
+  {f:'AUTO_INCREMENT reset', b:'Reset by TRUNCATE, not by DELETE.'},
+  {f:'Least privilege', b:'Applications should connect via a scoped MySQL user via DCL, never root.'}
+];
+const fcGrid = document.getElementById('fc-grid');
+flashcards.forEach(c=>{
+  const div = document.createElement('div');
+  div.className='fc';
+  div.innerHTML = `<div class="fc-inner">
+    <div class="fc-face fc-front">${c.f}<small>Tap to flip</small></div>
+    <div class="fc-face fc-back">${c.b}</div>
+  </div>`;
+  div.addEventListener('click', ()=> div.classList.toggle('flip'));
+  fcGrid.appendChild(div);
+});
+
+/* ---------------- quiz ---------------- */
+const quizData = [
+  {q:'Which category does TRUNCATE belong to?', opts:['DML','DDL','DQL','TCL'], correct:1},
+  {q:'Which clause runs first in a SELECT query\\'s actual execution?', opts:['SELECT','ORDER BY','FROM','HAVING'], correct:2},
+  {q:'Which command permanently saves a transaction\\'s changes?', opts:['SAVEPOINT','ROLLBACK','COMMIT','GRANT'], correct:2},
+  {q:'What does @Transactional in Spring Boot map to?', opts:['DDL','DQL','DCL','TCL'], correct:3},
+  {q:'Which clause can filter using COUNT() or SUM()?', opts:['WHERE','HAVING','FROM','LIMIT'], correct:1}
+];
+let score=0, answered=0;
+const quizContainer = document.getElementById('quiz-container');
+quizData.forEach((item,qi)=>{
+  const card = document.createElement('div');
+  card.className='quiz-card';
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${item.q}</div>` +
+    item.opts.map((o,oi)=>`<button class="quiz-opt" data-q="${qi}" data-o="${oi}">${o}</button>`).join('');
+  quizContainer.appendChild(card);
+});
+quizContainer.addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('quiz-opt')) return;
+  const btn = e.target;
+  if(btn.disabled) return;
+  const qi = btn.dataset.q, item = quizData[qi];
+  const allBtns = quizContainer.querySelectorAll(`[data-q="${qi}"]`);
+  allBtns.forEach(b=>b.disabled=true);
+  const oi = parseInt(btn.dataset.o);
+  if(oi === item.correct){ btn.classList.add('correct'); score++; }
+  else {
+    btn.classList.add('wrong');
+    allBtns[item.correct].classList.add('correct');
+  }
+  answered++;
+  document.getElementById('quiz-score').textContent = `Score: ${score} / ${answered}`;
+});
+</script>
+</body>
+</html>

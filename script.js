@@ -104,9 +104,13 @@ const topics = {
     color: "#00758F",
     icon: "🐬",
     difficulty: "intermediate",
-    duration: "10h",
+    duration: "25h",
     items: [
       { title: "Introduction to MySQL", file: "Mysql/introduction" },
+      { title: "SQL Language", file: "Mysql/module2-sql-language" },
+      { title: "Creating Databases & Tables", file: "Mysql/module-3-creating-databases-tables" },
+      { title: "CRUD Operations", file: "Mysql/module-4-crud-operations" },
+      { title: "Operators & Functions", file: "Mysql/module5-operators-functions" },
     ],
   },
 };

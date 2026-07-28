@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 03 — Creating Databases &amp; Tables | MySQL Interview Blueprint</title>
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#080b12;
+  --bg-2:#0c111c;
+  --panel:rgba(255,255,255,0.035);
+  --panel-strong:rgba(255,255,255,0.06);
+  --border:rgba(148,178,224,0.14);
+  --border-strong:rgba(148,178,224,0.28);
+  --grid:rgba(110,231,249,0.05);
+  --text:#e9edf6;
+  --text-dim:#94a1ba;
+  --text-faint:#576079;
+  --ink:#6EE7F9;
+  --ink-2:#A78BFA;
+  --amber:#f0b429;
+  --coral:#fb7185;
+  --mint:#34d399;
+  --code-bg:#0a0e17;
+  --radius:14px;
+  --font-display:'Segoe UI Semibold','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 15% -10%, rgba(110,231,249,0.08), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(167,139,250,0.07), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(90deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.6;
+}
+::selection{background:rgba(110,231,249,0.25);color:#fff;}
+a{color:inherit;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(148,178,224,0.25);border-radius:8px;}
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+#progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--ink),var(--ink-2));
+  z-index:1000;
+  box-shadow:0 0 12px rgba(110,231,249,0.6);
+  transition:width .08s linear;
+}
+
+/* ============================================================
+   TOP BAR (mobile)
+   ============================================================ */
+#topbar{
+  position:sticky;top:0;z-index:900;
+  display:none;
+  align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  background:rgba(8,11,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{font-family:var(--font-display);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);}
+#menu-toggle{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:8px 10px;cursor:pointer;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+#layout{
+  display:grid;
+  grid-template-columns:270px minmax(0,1fr);
+  max-width:1400px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+
+/* ---------- SIDEBAR ---------- */
+#sidebar{
+  position:sticky;top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 18px 40px 28px;
+  border-right:1px solid var(--border);
+}
+.brand-block{margin-bottom:28px;}
+.brand-eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+  color:var(--ink);text-transform:uppercase;
+}
+.brand-title{
+  font-family:var(--font-display);font-size:19px;margin-top:6px;
+  letter-spacing:.01em;
+}
+.brand-sub{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+
+nav#toc{display:flex;flex-direction:column;gap:2px;}
+.toc-group-label{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;
+  color:var(--text-faint);text-transform:uppercase;
+  margin:16px 0 6px 12px;
+}
+.toc-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:8px;
+  font-size:13.5px;color:var(--text-dim);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.toc-link .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex:none;
+  transition:background .2s ease,box-shadow .2s ease;
+}
+.toc-link:hover{background:var(--panel);color:var(--text);}
+.toc-link.active{
+  background:var(--panel-strong);color:var(--ink);
+  border-left-color:var(--ink);
+}
+.toc-link.active .dot{background:var(--ink);box-shadow:0 0 8px var(--ink);}
+
+#sidebar-footer{
+  margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);
+}
+
+/* ---------- MAIN ---------- */
+main{padding:0 0 120px 0;min-width:0;}
+.section{
+  padding:90px clamp(20px,4vw,64px) 10px;
+  scroll-margin-top:20px;
+  max-width:920px;
+}
+.section-inner{max-width:820px;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);
+  padding:5px 12px;border:1px solid rgba(110,231,249,0.3);
+  border-radius:999px;background:rgba(110,231,249,0.06);
+  margin-bottom:18px;
+}
+h1.section-title{
+  font-family:var(--font-display);font-size:clamp(28px,4vw,42px);
+  letter-spacing:-0.01em;line-height:1.15;margin-bottom:14px;
+}
+p.section-lede{font-size:16.5px;color:var(--text-dim);max-width:680px;margin-bottom:6px;}
+h2.h2{
+  font-family:var(--font-display);font-size:22px;margin:44px 0 14px;
+  display:flex;align-items:center;gap:10px;
+}
+h2.h2 .idx{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink);
+  border:1px solid var(--border-strong);border-radius:6px;
+  padding:2px 7px;
+}
+h3.h3{font-family:var(--font-display);font-size:16.5px;margin:22px 0 10px;color:var(--text);}
+p{font-size:15px;color:var(--text-dim);margin-bottom:12px;}
+p strong{color:var(--text);font-weight:600;}
+ul.plain-list{margin:8px 0 16px 0;padding-left:0;list-style:none;}
+ul.plain-list li{
+  position:relative;padding-left:20px;margin-bottom:8px;font-size:14.5px;color:var(--text-dim);
+}
+ul.plain-list li::before{
+  content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--ink);
+}
+
+/* ---------- reveal on scroll ---------- */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+/* ---------- GLASS CARD ---------- */
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  backdrop-filter:blur(10px);
+  margin:16px 0;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 12px 30px -14px rgba(0,0,0,.6);}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.card-grid{grid-template-columns:1fr;}}
+
+.label-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.label-row svg{flex:none;}
+.label-row .lbl{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+
+/* callout boxes */
+.box{
+  border-radius:12px;padding:16px 18px;margin:16px 0;
+  border:1px solid; position:relative; overflow:hidden;
+}
+.box .box-title{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700;
+}
+.box p{margin-bottom:6px;font-size:14px;}
+.box.tip{background:rgba(110,231,249,0.06);border-color:rgba(110,231,249,0.28);}
+.box.tip .box-title{color:var(--ink);}
+.box.mistake{background:rgba(251,113,133,0.07);border-color:rgba(251,113,133,0.3);}
+.box.mistake .box-title{color:var(--coral);}
+.box.warn{background:rgba(240,180,41,0.08);border-color:rgba(240,180,41,0.32);}
+.box.warn .box-title{color:var(--amber);}
+.box.best{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);}
+.box.best .box-title{color:var(--mint);}
+.box.memory{background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(110,231,249,0.06));border-color:rgba(167,139,250,0.32);}
+.box.memory .box-title{color:var(--ink-2);}
+
+/* ---------- code block ---------- */
+.code-block{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin:16px 0;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.code-head .dots{display:flex;gap:6px;}
+.code-head .dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);}
+.code-head .filename{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+.run-btn{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+  background:rgba(110,231,249,0.1);color:var(--ink);
+  border:1px solid rgba(110,231,249,0.35);border-radius:7px;
+  padding:5px 10px;cursor:pointer;transition:background .2s ease;
+}
+.run-btn:hover{background:rgba(110,231,249,0.2);}
+pre.code{
+  padding:16px 18px;font-family:var(--font-mono);font-size:13.2px;
+  overflow-x:auto;color:#c9d3e6;line-height:1.7;
+}
+.k{color:#6EE7F9;font-weight:600;} /* keyword */
+.t{color:#a78bfa;} /* type */
+.s{color:#fbbf24;} /* string */
+.c{color:#576079;font-style:italic;} /* comment */
+.f{color:#34d399;} /* function/identifier */
+.n{color:#fb7185;} /* number */
+
+.exec-result{
+  border-top:1px dashed var(--border);
+  padding:14px 18px;font-family:var(--font-mono);font-size:12.5px;
+  color:var(--mint);display:none;
+}
+.exec-result.show{display:block;animation:fadein .4s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.exec-result table{border-collapse:collapse;margin-top:8px;width:100%;}
+.exec-result th,.exec-result td{border:1px solid rgba(52,211,153,0.25);padding:5px 10px;font-size:12px;color:var(--text-dim);}
+.exec-result th{color:var(--mint);text-align:left;}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;margin:16px 0 0;flex-wrap:wrap;}
+.tab-btn{
+  font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:8px 8px 0 0;
+  background:var(--panel);border:1px solid var(--border);border-bottom:none;
+  color:var(--text-faint);cursor:pointer;transition:color .2s,background .2s;
+}
+.tab-btn.active{color:var(--ink);background:var(--panel-strong);}
+.tab-panels{border:1px solid var(--border);border-radius:0 10px 10px 10px;background:var(--panel);padding:18px;margin-bottom:16px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadein .3s ease;}
+
+/* ---------- accordion ---------- */
+.accordion-item{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--panel);}
+.accordion-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;cursor:pointer;font-size:14.5px;color:var(--text);font-weight:500;
+}
+.accordion-head .plus{color:var(--ink);font-family:var(--font-mono);transition:transform .3s ease;font-size:16px;}
+.accordion-item.open .plus{transform:rotate(45deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 16px;}
+.accordion-item.open .accordion-body{padding:0 16px 16px;}
+.accordion-body p{font-size:13.8px;}
+.tag{
+  display:inline-block;font-family:var(--font-mono);font-size:10.5px;
+  padding:2px 8px;border-radius:999px;margin-left:8px;
+  background:rgba(167,139,250,0.12);color:var(--ink-2);border:1px solid rgba(167,139,250,0.3);
+}
+.tag.company{background:rgba(240,180,41,0.1);color:var(--amber);border-color:rgba(240,180,41,0.3);}
+.tag.scenario{background:rgba(251,113,133,0.1);color:var(--coral);border-color:rgba(251,113,133,0.3);}
+
+/* ---------- comparison table ---------- */
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+.cmp-table th,.cmp-table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.cmp-table th{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--border-strong);
+}
+.cmp-table td{color:var(--text-dim);}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+/* ---------- diagram wrap ---------- */
+.diagram-wrap{
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  background:radial-gradient(ellipse at top left, rgba(110,231,249,0.05), transparent 60%);
+  margin:18px 0;overflow-x:auto;
+}
+.diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;}
+
+/* ---------- flow steps ---------- */
+.flow{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+.flow-step{display:flex;gap:16px;position:relative;padding-bottom:26px;}
+.flow-step:last-child{padding-bottom:0;}
+.flow-step::before{
+  content:"";position:absolute;left:15px;top:34px;bottom:0;width:1px;
+  background:linear-gradient(var(--border-strong),transparent);
+}
+.flow-step:last-child::before{display:none;}
+.flow-num{
+  flex:none;width:32px;height:32px;border-radius:50%;
+  background:var(--panel-strong);border:1px solid var(--border-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;color:var(--ink);z-index:1;
+}
+.flow-body{padding-top:4px;}
+.flow-body h4{font-size:14.5px;color:var(--text);margin-bottom:3px;font-weight:600;}
+.flow-body p{font-size:13.5px;margin-bottom:0;}
+
+/* ---------- summary / cheat sheet cards ---------- */
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+.mini-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.mini-card h4{font-size:13.5px;color:var(--ink);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:.04em;}
+.mini-card p{font-size:13px;margin-bottom:0;}
+
+/* ---------- flashcards ---------- */
+.flash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:18px 0;}
+.flashcard{
+  perspective:1000px;height:170px;cursor:pointer;
+}
+.flashcard-inner{
+  position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.flash-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:12px;border:1px solid var(--border-strong);
+  padding:18px;display:flex;flex-direction:column;justify-content:center;
+}
+.flash-front{background:linear-gradient(150deg,rgba(110,231,249,0.08),rgba(255,255,255,0.02));}
+.flash-back{background:linear-gradient(150deg,rgba(167,139,250,0.14),rgba(20,25,38,0.9));transform:rotateY(180deg);}
+.flash-face .fc-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.flash-face p{font-size:14px;color:var(--text);margin:0;}
+
+/* ---------- quiz ---------- */
+.quiz-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.quiz-q{font-size:15px;color:var(--text);margin-bottom:14px;font-weight:500;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  border:1px solid var(--border);background:var(--panel);border-radius:9px;
+  padding:11px 14px;font-size:13.8px;cursor:pointer;color:var(--text-dim);
+  transition:border-color .2s,background .2s;
+}
+.quiz-opt:hover{border-color:var(--border-strong);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(52,211,153,0.1);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--coral);background:rgba(251,113,133,0.1);color:var(--coral);}
+#quiz-score-bar{
+  position:sticky;top:10px;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,23,0.85);backdrop-filter:blur(10px);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;margin-bottom:20px;font-family:var(--font-mono);font-size:13px;
+}
+#quiz-score-bar .score{color:var(--ink);}
+
+/* ---------- roadmap timeline ---------- */
+.roadmap{position:relative;margin:26px 0 10px;padding-left:26px;}
+.roadmap::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--ink),var(--ink-2),transparent);}
+.rm-item{position:relative;margin-bottom:26px;}
+.rm-item::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ink);}
+.rm-item h4{font-size:14.5px;color:var(--text);margin-bottom:4px;}
+.rm-item p{font-size:13.5px;margin-bottom:0;}
+
+/* ---------- footer / hero ---------- */
+.hero{
+  min-height:92vh;display:flex;flex-direction:column;justify-content:center;
+  padding:60px clamp(20px,4vw,64px);position:relative;
+}
+.hero-kicker{
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:20px;display:flex;align-items:center;gap:12px;
+}
+.hero-kicker::before{content:"";width:34px;height:1px;background:var(--ink);}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(38px,6vw,72px);line-height:1.03;
+  letter-spacing:-0.02em;max-width:900px;
+  background:linear-gradient(120deg,#fff 30%,var(--ink) 65%,var(--ink-2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.hero-sub{font-size:17px;color:var(--text-dim);max-width:620px;margin:22px 0 30px;}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px;}
+.hero-tag{
+  font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--panel);
+}
+.hero-scroll{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:8px;}
+.hero-scroll svg{animation:bob 1.8s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+/* blueprint hero diagram */
+.blueprint-hero{margin-top:10px;border:1px solid var(--border);border-radius:16px;padding:22px;background:rgba(255,255,255,0.02);}
+
+footer.page-footer{
+  text-align:center;padding:60px 20px 40px;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;
+  border-top:1px solid var(--border);margin-top:60px;
+}
+
+@media(max-width:980px){
+  #layout{grid-template-columns:1fr;}
+  #sidebar{
+    position:fixed;left:0;top:57px;bottom:0;width:270px;
+    transform:translateX(-100%);transition:transform .3s ease;
+    background:rgba(8,11,18,0.98);z-index:800;height:calc(100vh - 57px);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #topbar{display:flex;}
+  .section{padding-top:56px;}
+  .hero{min-height:auto;padding-top:50px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div id="topbar">
+  <span class="brand">MySQL Blueprint · Mod 03</span>
+  <button id="menu-toggle" aria-label="Toggle menu">☰ Menu</button>
+</div>
+
+<div id="layout">
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar">
+    <div class="brand-block">
+      <div class="brand-eyebrow">Interview Blueprint · Module 03</div>
+      <div class="brand-title">Creating Databases &amp; Tables</div>
+      <div class="brand-sub">MySQL DDL for Java Full Stack fresher interviews</div>
+    </div>
+    <nav id="toc">
+      <a class="toc-link" href="#hero"><span class="dot"></span>Overview</a>
+      <div class="toc-group-label">Core Topics</div>
+      <a class="toc-link" href="#create-database"><span class="dot"></span>CREATE DATABASE</a>
+      <a class="toc-link" href="#create-table"><span class="dot"></span>CREATE TABLE</a>
+      <a class="toc-link" href="#data-types"><span class="dot"></span>Data Types</a>
+      <a class="toc-link" href="#alter"><span class="dot"></span>ALTER TABLE</a>
+      <a class="toc-link" href="#drop-truncate"><span class="dot"></span>DROP vs TRUNCATE</a>
+      <a class="toc-link" href="#rename"><span class="dot"></span>RENAME</a>
+      <a class="toc-link" href="#naming"><span class="dot"></span>Naming Conventions</a>
+      <div class="toc-group-label">Revision</div>
+      <a class="toc-link" href="#cheatsheet"><span class="dot"></span>Cheat Sheet</a>
+      <a class="toc-link" href="#mindmap"><span class="dot"></span>Mind Map</a>
+      <a class="toc-link" href="#flashcards"><span class="dot"></span>Flash Cards</a>
+      <a class="toc-link" href="#quiz"><span class="dot"></span>Quick Quiz</a>
+      <a class="toc-link" href="#top20"><span class="dot"></span>Top 20 Questions</a>
+      <a class="toc-link" href="#roadmap"><span class="dot"></span>Roadmap</a>
+      <a class="toc-link" href="#summary"><span class="dot"></span>Summary</a>
+    </nav>
+    <div id="sidebar-footer">Fresher track · Java + Spring Boot + MySQL<br>Zoho · TCS Digital · Infosys · Accenture · Capgemini · Cognizant · HCL · Wipro</div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="hero-kicker">Module 03 / 12 — MySQL Interview Track</div>
+      <h1>Creating Databases &amp; Tables</h1>
+      <p class="hero-sub">Every backend system starts with a blueprint before it becomes a building. In MySQL, that blueprint is DDL — <strong>CREATE, ALTER, DROP, TRUNCATE, RENAME</strong>. This module makes you interview-ready on how schemas are actually laid down, stored, and evolved in production.</p>
+      <div class="hero-tags">
+        <span class="hero-tag">CREATE DATABASE</span>
+        <span class="hero-tag">CREATE TABLE</span>
+        <span class="hero-tag">Data Types</span>
+        <span class="hero-tag">ALTER</span>
+        <span class="hero-tag">DROP / TRUNCATE</span>
+        <span class="hero-tag">RENAME</span>
+        <span class="hero-tag">Naming Conventions</span>
+      </div>
+
+      <div class="blueprint-hero reveal">
+        <div class="label-row"><span class="lbl">Live blueprint — CREATE TABLE, drawn like an architect's plan</span></div>
+        <div class="diagram-wrap" style="margin-top:6px;border:none;padding:0;background:none;">
+          <svg viewBox="0 0 760 230" width="100%">
+            <defs>
+              <marker id="arrowhead-hero" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#6EE7F9"/>
+              </marker>
+            </defs>
+            <rect x="30" y="20" width="700" height="170" rx="10" fill="none" stroke="#6EE7F9" stroke-opacity="0.5" stroke-dasharray="4 4"/>
+            <text x="42" y="12" font-family="ui-monospace,monospace" font-size="11" fill="#6EE7F9">TABLE: employees</text>
+
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <rect x="46" y="36" width="180" height="34" rx="6" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="56" y="57" fill="#e9edf6">id</text>
+              <text x="150" y="57" fill="#A78BFA">INT PK</text>
+
+              <rect x="46" y="80" width="180" height="34" rx="6" fill="rgba(255,255,255,0.03)" stroke="#576079"/>
+              <text x="56" y="101" fill="#e9edf6">first_name</text>
+              <text x="150" y="101" fill="#94a1ba">VARCHAR(50)</text>
+
+              <rect x="46" y="124" width="180" height="34" rx="6" fill="rgba(255,255,255,0.03)" stroke="#576079"/>
+              <text x="56" y="145" fill="#e9edf6">email</text>
+              <text x="150" y="145" fill="#94a1ba">VARCHAR(120)</text>
+
+              <rect x="46" y="168" width="180" height="34" rx="6" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="56" y="189" fill="#e9edf6">dept_id</text>
+              <text x="150" y="189" fill="#34d399">FK → depts</text>
+
+              <line x1="226" y1="185" x2="470" y2="185" stroke="#34d399" stroke-width="1.4" marker-end="url(#arrowhead-hero)"/>
+              <rect x="470" y="150" width="220" height="60" rx="8" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-dasharray="3 3"/>
+              <text x="484" y="175" fill="#e9edf6">TABLE: departments</text>
+              <text x="484" y="195" fill="#94a1ba">id INT PK (referenced)</text>
+
+              <line x1="226" y1="53" x2="440" y2="53" stroke="#6EE7F9" stroke-width="1.4" marker-end="url(#arrowhead-hero)"/>
+              <text x="450" y="50" fill="#6EE7F9" font-size="11">AUTO_INCREMENT</text>
+              <text x="450" y="65" fill="#576079" font-size="10">engine: InnoDB</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-scroll" style="margin-top:26px;">
+        <span>Scroll to begin</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#6EE7F9" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </section>
+
+    <!-- ================= INTRO ================= -->
+    <section class="section" id="intro">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Why this module exists</div>
+        <h1 class="section-title">Before any query runs, someone had to build the room</h1>
+        <p class="section-lede">SELECT, JOIN, and INDEX questions get all the attention — but almost every fresher interview opens with a DDL question, because it reveals whether you actually understand how a schema is designed, not just how to query one.</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Problem it solves</span></div>
+            <p>Without DDL, there is no structure for data to live in. DDL (<strong>Data Definition Language</strong>) is how you tell MySQL: "here is the shape of my data, here are the rules it must obey." It defines databases, tables, columns, types, and constraints — the container before the content.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Real-world analogy</span></div>
+            <p>A database is a building site. <code>CREATE DATABASE</code> pours the foundation. <code>CREATE TABLE</code> builds a room with labeled compartments (columns) of fixed shape (data types). <code>ALTER</code> renovates the room without demolishing it. <code>DROP</code> demolishes it. <code>TRUNCATE</code> empties the room but keeps its walls.</p>
+          </div>
+        </div>
+
+        <div class="box tip">
+          <div class="box-title">Interview framing</div>
+          <p>Interviewers use DDL questions as a filter question early on. If you can clearly explain DROP vs TRUNCATE vs DELETE, or CHAR vs VARCHAR, it signals you've actually used MySQL — not just memorized SELECT syntax from a tutorial.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CREATE DATABASE ================= -->
+    <section class="section" id="create-database">
+      <div class="section-inner reveal">
+        <div class="eyebrow">01 · Statement</div>
+        <h1 class="section-title">CREATE DATABASE</h1>
+        <p class="section-lede">The first command in any MySQL system's life — it allocates a named namespace where every table, view, and stored procedure for a project will live.</p>
+
+        <h2 class="h2"><span class="idx">01</span>Explanation, three ways</h2>
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Simple</span></div>
+            <p>A database is a folder that groups related tables together. <code>CREATE DATABASE</code> makes that folder.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Technical</span></div>
+            <p>MySQL creates a schema entry and, on disk, a directory under the data directory (e.g. <code>/var/lib/mysql/company_db</code>). Since MySQL 8, table metadata lives in a transactional <strong>data dictionary</strong> instead of loose <code>.frm</code> files.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Interview</span></div>
+            <p>Say this: "In MySQL, <strong>DATABASE and SCHEMA are synonyms</strong> — unlike Oracle or PostgreSQL where a schema is a namespace inside a database." This one line is asked constantly.</p>
+          </div>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="filename">create_database.sql</div>
+            <button class="run-btn" data-target="res-db">▶ Run</button>
+          </div>
+          <pre class="code"><span class="k">CREATE DATABASE</span> <span class="k">IF NOT EXISTS</span> <span class="f">company_db</span>
+  <span class="k">CHARACTER SET</span> <span class="s">utf8mb4</span>
+  <span class="k">COLLATE</span> <span class="s">utf8mb4_unicode_ci</span>;
+
+<span class="k">SHOW DATABASES</span>;
+<span class="k">USE</span> <span class="f">company_db</span>;</pre>
+          <div class="exec-result" id="res-db">
+            → Query OK, 1 row affected<br>
+            → Database <strong>company_db</strong> created on disk at <code>/var/lib/mysql/company_db</code><br>
+            → Default character set: utf8mb4 (full Unicode incl. emoji, 4 bytes/char)
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>How MySQL works internally</h2>
+        <div class="flow">
+          <div class="flow-step reveal">
+            <div class="flow-num">1</div>
+            <div class="flow-body"><h4>Parser validates syntax</h4><p>MySQL checks the statement is valid SQL and the database name doesn't collide with a reserved system schema.</p></div>
+          </div>
+          <div class="flow-step reveal">
+            <div class="flow-num">2</div>
+            <div class="flow-body"><h4>Directory created on disk</h4><p>A physical directory is created under the data directory to hold future table files.</p></div>
+          </div>
+          <div class="flow-step reveal">
+            <div class="flow-num">3</div>
+            <div class="flow-body"><h4>Entry added to data dictionary</h4><p>MySQL 8+ records the schema, its default charset and collation in the internal data dictionary tables.</p></div>
+          </div>
+          <div class="flow-step reveal">
+            <div class="flow-num">4</div>
+            <div class="flow-body"><h4>Available via USE / fully-qualified names</h4><p>You can now switch context with <code>USE company_db;</code> or reference tables as <code>company_db.employees</code>.</p></div>
+          </div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Common Mistake</div>
+          <p>Forgetting <code>IF NOT EXISTS</code> in scripts that may re-run (CI/CD, seed scripts) — this throws <strong>Error 1007: database exists</strong> and breaks idempotent deployment scripts.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best Practice</div>
+          <p>Always set an explicit charset/collation (<code>utf8mb4</code>) at creation time. Relying on the server default risks storing 3-byte UTF-8 that silently breaks on emoji or certain Asian scripts.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">03</span>Interview questions</h2>
+        <div class="accordion" data-group="db">
+          <div class="accordion-item">
+            <div class="accordion-head">Is there a difference between DATABASE and SCHEMA in MySQL?<span class="plus">+</span></div>
+            <div class="accordion-body"><p>No — MySQL treats them as synonyms. <code>CREATE SCHEMA</code> and <code>CREATE DATABASE</code> do exactly the same thing. This differs from PostgreSQL/Oracle, where a schema is a sub-namespace inside a database.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">What happens if you CREATE DATABASE without IF NOT EXISTS on an existing name?<span class="plus">+</span></div>
+            <div class="accordion-body"><p>MySQL throws <code>ERROR 1007 (HY000): Can't create database 'x'; database exists</code>. Using <code>IF NOT EXISTS</code> suppresses the error and makes the script safely re-runnable.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">Scenario: Your Spring Boot app fails to start with "Unknown database". What's the fix? <span class="tag scenario">Scenario</span><span class="plus">+</span></div>
+            <div class="accordion-body"><p>The database referenced in <code>spring.datasource.url</code> doesn't exist yet. Either run <code>CREATE DATABASE</code> manually before startup, or add <code>createDatabaseIfNotExist=true</code> to the JDBC URL for local/dev environments (never in production).</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CREATE TABLE ================= -->
+    <section class="section" id="create-table">
+      <div class="section-inner reveal">
+        <div class="eyebrow">02 · Statement</div>
+        <h1 class="section-title">CREATE TABLE</h1>
+        <p class="section-lede">The single most-asked DDL topic in fresher interviews — because it packs constraints, keys, engines, and data types into one statement.</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Real-world analogy</span></div>
+            <p>A table is a spreadsheet with strict rules: every row must have the same columns, every column has a fixed data type, and some columns (like a primary key) must be unique and never blank — like a passport number field that can't be duplicated or empty.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Problem it solves</span></div>
+            <p>Without a defined structure, nothing stops inconsistent or invalid data from entering the system. Constraints at table-creation time push validation down to the database layer, as a last line of defense beneath your Java service layer.</p>
+          </div>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="filename">create_table.sql</div>
+            <button class="run-btn" data-target="res-tbl">▶ Run</button>
+          </div>
+          <pre class="code"><span class="k">CREATE TABLE</span> <span class="f">employees</span> (
+  <span class="f">id</span>          <span class="t">INT</span> <span class="k">AUTO_INCREMENT</span> <span class="k">PRIMARY KEY</span>,
+  <span class="f">first_name</span>  <span class="t">VARCHAR</span>(<span class="n">50</span>)  <span class="k">NOT NULL</span>,
+  <span class="f">email</span>       <span class="t">VARCHAR</span>(<span class="n">120</span>) <span class="k">UNIQUE</span> <span class="k">NOT NULL</span>,
+  <span class="f">salary</span>      <span class="t">DECIMAL</span>(<span class="n">10</span>,<span class="n">2</span>) <span class="k">DEFAULT</span> <span class="n">0.00</span>,
+  <span class="f">dept_id</span>     <span class="t">INT</span>,
+  <span class="f">created_at</span>  <span class="t">TIMESTAMP</span> <span class="k">DEFAULT</span> <span class="k">CURRENT_TIMESTAMP</span>,
+  <span class="k">CONSTRAINT</span> <span class="f">fk_emp_dept</span>
+    <span class="k">FOREIGN KEY</span> (<span class="f">dept_id</span>) <span class="k">REFERENCES</span> <span class="f">departments</span>(<span class="f">id</span>)
+) <span class="k">ENGINE</span>=<span class="f">InnoDB</span> <span class="k">DEFAULT CHARSET</span>=<span class="f">utf8mb4</span>;</pre>
+          <div class="exec-result" id="res-tbl">
+            → Query OK, 0 rows affected<br>
+            → Table <strong>employees</strong> created with 1 primary key, 1 unique key, 1 foreign key<br>
+            → Storage engine: InnoDB (supports transactions + FK enforcement)
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>ER-style blueprint</h2>
+        <div class="diagram-wrap reveal">
+          <svg viewBox="0 0 700 220" width="100%">
+            <defs>
+              <marker id="arrowhead-ct" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#A78BFA"/>
+              </marker>
+            </defs>
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <rect x="30" y="20" width="220" height="170" rx="10" fill="rgba(110,231,249,0.05)" stroke="#6EE7F9"/>
+              <text x="46" y="42" fill="#6EE7F9" font-weight="bold">employees</text>
+              <line x1="30" y1="52" x2="250" y2="52" stroke="#6EE7F9" stroke-opacity="0.4"/>
+              <text x="46" y="72" fill="#e9edf6">id (PK)</text>
+              <text x="46" y="94" fill="#94a1ba">first_name</text>
+              <text x="46" y="116" fill="#94a1ba">email (UQ)</text>
+              <text x="46" y="138" fill="#94a1ba">salary</text>
+              <text x="46" y="160" fill="#34d399">dept_id (FK)</text>
+              <text x="46" y="182" fill="#94a1ba">created_at</text>
+
+              <rect x="450" y="60" width="220" height="90" rx="10" fill="rgba(167,139,250,0.06)" stroke="#A78BFA"/>
+              <text x="466" y="82" fill="#A78BFA" font-weight="bold">departments</text>
+              <line x1="450" y1="92" x2="670" y2="92" stroke="#A78BFA" stroke-opacity="0.4"/>
+              <text x="466" y="112" fill="#e9edf6">id (PK)</text>
+              <text x="466" y="134" fill="#94a1ba">dept_name</text>
+
+              <line x1="250" y1="160" x2="450" y2="105" stroke="#A78BFA" stroke-width="1.4" marker-end="url(#arrowhead-ct)"/>
+              <text x="300" y="140" fill="#576079" font-size="10">MANY : 1</text>
+            </g>
+          </svg>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Constraint types</h2>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>PRIMARY KEY</h4><p>Uniquely identifies each row. Implies NOT NULL + UNIQUE. Only one per table (can be composite).</p></div>
+          <div class="mini-card"><h4>FOREIGN KEY</h4><p>Enforces referential integrity — value must exist in the referenced table's key column.</p></div>
+          <div class="mini-card"><h4>UNIQUE</h4><p>No duplicate values, but unlike PK, allows one NULL (InnoDB allows multiple NULLs actually).</p></div>
+          <div class="mini-card"><h4>NOT NULL</h4><p>Column must always have a value — the most common validation constraint.</p></div>
+          <div class="mini-card"><h4>DEFAULT</h4><p>Auto-fills a value when none is supplied on INSERT.</p></div>
+          <div class="mini-card"><h4>CHECK (MySQL 8.0.16+)</h4><p>Validates a boolean condition, e.g. <code>CHECK (salary &gt;= 0)</code>. Ignored silently before 8.0.16.</p></div>
+        </div>
+
+        <h2 class="h2"><span class="idx">03</span>How MySQL works internally</h2>
+        <p>On <code>CREATE TABLE</code>, InnoDB allocates a tablespace (by default one <code>.ibd</code> file per table, controlled by <code>innodb_file_per_table</code>), writes table metadata to the data dictionary, builds a clustered index on the primary key (InnoDB physically stores rows in primary-key order), and registers any foreign keys for constraint checking on every DML.</p>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>"InnoDB stores data in the leaf nodes of the primary key's B+Tree — this is called a <strong>clustered index</strong>." If a table has no explicit primary key, InnoDB picks the first UNIQUE NOT NULL key, or silently creates a hidden 6-byte row ID.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">04</span>CREATE TABLE ... LIKE vs ... AS SELECT</h2>
+        <table class="cmp-table">
+          <tr><th>Aspect</th><th>CREATE TABLE ... LIKE</th><th>CREATE TABLE ... AS SELECT (CTAS)</th></tr>
+          <tr><td>Copies structure</td><td>Yes — including keys, indexes, defaults</td><td>Only column names + inferred types</td></tr>
+          <tr><td>Copies data</td><td>No</td><td>Yes (unless WHERE 1=0)</td></tr>
+          <tr><td>Copies constraints/keys</td><td>Yes</td><td>No — PK, FK, indexes are lost</td></tr>
+          <tr><td>Typical use</td><td>Cloning schema for staging/test</td><td>Quick data snapshot / reporting table</td></tr>
+        </table>
+
+        <h2 class="h2"><span class="idx">05</span>Spring Boot relation</h2>
+        <p>In JPA/Hibernate, a <code>@Entity</code> class maps to a table created by this exact DDL shape. <code>spring.jpa.hibernate.ddl-auto=update</code> can auto-generate tables from entities in dev — but in production, teams almost always set it to <code>validate</code> or <code>none</code> and manage schema via versioned migration tools like <strong>Flyway</strong> or <strong>Liquibase</strong> instead.</p>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake</div>
+          <p>Using <code>ddl-auto=update</code> in production. It can silently alter live tables in ways that don't match your intended migration history, and it never drops or renames columns safely.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">06</span>Interview questions</h2>
+        <div class="accordion" data-group="tbl">
+          <div class="accordion-item">
+            <div class="accordion-head">What is the difference between PRIMARY KEY and UNIQUE KEY?<span class="plus">+</span></div>
+            <div class="accordion-body"><p>A table can have only one PRIMARY KEY but multiple UNIQUE keys. PRIMARY KEY never allows NULL; UNIQUE technically allows NULLs (InnoDB permits multiple NULLs since NULL ≠ NULL in comparison). PK also defines InnoDB's physical clustered storage order.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">Can a table have a composite primary key?<span class="plus">+</span></div>
+            <div class="accordion-body"><p>Yes — <code>PRIMARY KEY (order_id, product_id)</code> is common in junction/mapping tables representing many-to-many relationships.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">Scenario: You need a temporary table just for a report that disappears after the session. What do you use? <span class="tag scenario">Scenario</span><span class="plus">+</span></div>
+            <div class="accordion-body"><p><code>CREATE TEMPORARY TABLE</code> — visible only to the current session/connection and automatically dropped when the session ends. Useful for staging intermediate report data without polluting the schema.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">Asked at Zoho: What storage engine does MySQL use by default and why does it matter? <span class="tag company">Zoho</span><span class="plus">+</span></div>
+            <div class="accordion-body"><p>InnoDB, default since MySQL 5.5. It matters because InnoDB supports transactions (ACID), row-level locking, and foreign keys — while the older MyISAM engine doesn't support transactions or FK constraints and uses table-level locking.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= DATA TYPES ================= -->
+    <section class="section" id="data-types">
+      <div class="section-inner reveal">
+        <div class="eyebrow">03 · Reference</div>
+        <h1 class="section-title">Data Types</h1>
+        <p class="section-lede">Picking the right type is a performance and correctness decision, not a formality — and it's one of the most common "gotcha" interview areas.</p>
+
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="t-num">Numeric</button>
+          <button class="tab-btn" data-tab="t-str">String</button>
+          <button class="tab-btn" data-tab="t-date">Date &amp; Time</button>
+          <button class="tab-btn" data-tab="t-other">Other</button>
+        </div>
+        <div class="tab-panels">
+          <div class="tab-panel active" id="t-num">
+            <ul class="plain-list">
+              <li><strong>INT</strong> — 4 bytes, ~±2.1 billion. Standard choice for IDs and counts.</li>
+              <li><strong>BIGINT</strong> — 8 bytes, used when INT could overflow (e.g. global row counters).</li>
+              <li><strong>DECIMAL(p,s)</strong> — exact fixed-point. <strong>Always use for money.</strong></li>
+              <li><strong>FLOAT / DOUBLE</strong> — approximate, fast, but rounding errors make them unsafe for currency.</li>
+              <li><strong>TINYINT(1)</strong> — commonly used to represent BOOLEAN (MySQL has no native boolean type).</li>
+            </ul>
+          </div>
+          <div class="tab-panel" id="t-str">
+            <ul class="plain-list">
+              <li><strong>CHAR(n)</strong> — fixed length, right-padded with spaces, faster for uniform-length data (e.g. country codes).</li>
+              <li><strong>VARCHAR(n)</strong> — variable length, stores only what's needed + 1-2 length bytes. Default choice for names, emails.</li>
+              <li><strong>TEXT / MEDIUMTEXT / LONGTEXT</strong> — for large text blocks (articles, descriptions) beyond VARCHAR's 65,535-byte row limit practicality.</li>
+              <li><strong>ENUM</strong> — a fixed list of allowed string values, stored internally as integers for efficiency.</li>
+            </ul>
+          </div>
+          <div class="tab-panel" id="t-date">
+            <ul class="plain-list">
+              <li><strong>DATE</strong> — YYYY-MM-DD only.</li>
+              <li><strong>DATETIME</strong> — date + time, range 1000–9999, timezone-independent, 8 bytes (5 in modern MySQL with fractional precision support).</li>
+              <li><strong>TIMESTAMP</strong> — date + time, stored as UTC internally, range only 1970–2038, auto-converts on read per session timezone, can auto-update on row change with <code>ON UPDATE CURRENT_TIMESTAMP</code>.</li>
+              <li><strong>YEAR</strong> — 1-byte year-only value.</li>
+            </ul>
+          </div>
+          <div class="tab-panel" id="t-other">
+            <ul class="plain-list">
+              <li><strong>JSON</strong> (5.7+) — validates and stores JSON documents natively, queryable with <code>-&gt;</code> and <code>-&gt;&gt;</code> operators.</li>
+              <li><strong>BLOB</strong> — binary large object for files/images (though storing files outside the DB is usually preferred).</li>
+              <li><strong>SET</strong> — like ENUM but allows multiple selected values from a fixed list, stored as a bitmap.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Comparison tables</h2>
+        <table class="cmp-table">
+          <tr><th>CHAR vs VARCHAR</th><th>CHAR(n)</th><th>VARCHAR(n)</th></tr>
+          <tr><td>Storage</td><td>Always n bytes, space-padded</td><td>Actual length + 1-2 bytes</td></tr>
+          <tr><td>Speed</td><td>Marginally faster for fixed data</td><td>More space-efficient</td></tr>
+          <tr><td>Best for</td><td>Country codes, fixed hashes (MD5)</td><td>Names, emails, addresses</td></tr>
+        </table>
+        <table class="cmp-table">
+          <tr><th>DATETIME vs TIMESTAMP</th><th>DATETIME</th><th>TIMESTAMP</th></tr>
+          <tr><td>Range</td><td>1000–9999</td><td>1970–2038 (extended in 8.0.28+)</td></tr>
+          <tr><td>Timezone</td><td>Stored as-is, no conversion</td><td>Stored as UTC, converted per session TZ</td></tr>
+          <tr><td>Storage</td><td>8 bytes (5 base)</td><td>4 bytes</td></tr>
+          <tr><td>Auto-update</td><td>No</td><td>Supports ON UPDATE CURRENT_TIMESTAMP</td></tr>
+        </table>
+
+        <div class="box warn reveal">
+          <div class="box-title">Classic interview trap</div>
+          <p>"Why not use FLOAT for a price column?" — Answer: FLOAT/DOUBLE are binary approximations and can produce rounding errors like <code>0.1 + 0.2 ≠ 0.3</code>. Always use <code>DECIMAL(p,s)</code> for currency, which stores exact digits.</p>
+        </div>
+        <div class="box memory reveal">
+          <div class="box-title">Memory trick</div>
+          <p><strong>"CHAR is a Chair — fixed size, doesn't stretch. VARCHAR VARies — grows to fit."</strong> DECIMAL = Dollar-safe. FLOAT = Fuzzy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ALTER ================= -->
+    <section class="section" id="alter">
+      <div class="section-inner reveal">
+        <div class="eyebrow">04 · Statement</div>
+        <h1 class="section-title">ALTER TABLE</h1>
+        <p class="section-lede">Renovating a live building without knocking it down — ALTER changes structure while (ideally) preserving existing data.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">alter_table.sql</div><button class="run-btn" data-target="res-alter">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Add a column</span>
+<span class="k">ALTER TABLE</span> <span class="f">employees</span> <span class="k">ADD COLUMN</span> <span class="f">phone</span> <span class="t">VARCHAR</span>(<span class="n">15</span>);
+
+<span class="c">-- Change type only (keeps name)</span>
+<span class="k">ALTER TABLE</span> <span class="f">employees</span> <span class="k">MODIFY COLUMN</span> <span class="f">phone</span> <span class="t">VARCHAR</span>(<span class="n">20</span>);
+
+<span class="c">-- Rename AND retype (old syntax)</span>
+<span class="k">ALTER TABLE</span> <span class="f">employees</span>
+  <span class="k">CHANGE COLUMN</span> <span class="f">phone</span> <span class="f">contact_number</span> <span class="t">VARCHAR</span>(<span class="n">20</span>);
+
+<span class="c">-- Rename only (MySQL 8+)</span>
+<span class="k">ALTER TABLE</span> <span class="f">employees</span> <span class="k">RENAME COLUMN</span> <span class="f">contact_number</span> <span class="k">TO</span> <span class="f">phone</span>;
+
+<span class="c">-- Drop a column</span>
+<span class="k">ALTER TABLE</span> <span class="f">employees</span> <span class="k">DROP COLUMN</span> <span class="f">phone</span>;</pre>
+          <div class="exec-result" id="res-alter">
+            → 4 ALTER operations queued<br>
+            → MySQL 8: ADD COLUMN at end uses <strong>ALGORITHM=INSTANT</strong> (near-zero downtime)<br>
+            → MODIFY/CHANGE with type change may trigger a full table rebuild
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>MODIFY vs CHANGE</h2>
+        <table class="cmp-table">
+          <tr><th>Aspect</th><th>MODIFY COLUMN</th><th>CHANGE COLUMN</th></tr>
+          <tr><td>Rename column</td><td>No</td><td>Yes</td></tr>
+          <tr><td>Change data type</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Syntax needs old + new name</td><td>Only current name</td><td>Both old and new name</td></tr>
+          <tr><td>MySQL-specific?</td><td>Yes</td><td>Yes (non-standard SQL)</td></tr>
+        </table>
+
+        <h2 class="h2"><span class="idx">02</span>How MySQL works internally</h2>
+        <p>Historically, most ALTER operations rebuilt the entire table: copy all rows into a new tablespace with the new structure, then swap. Since MySQL 5.6+, <strong>Online DDL</strong> allows many operations (like adding a secondary index) to run with the table still readable/writable. MySQL 8.0 introduced <strong>Instant DDL</strong> (<code>ALGORITHM=INSTANT</code>) for operations like adding a nullable column at the end of a table — metadata-only change, no table rewrite, no long lock.</p>
+
+        <div class="box warn reveal">
+          <div class="box-title">Performance note</div>
+          <p>On a multi-million-row table, an ALTER that forces a full rebuild (e.g. changing a column's data type) can lock the table for minutes and stall production traffic. Real teams use tools like <strong>gh-ost</strong> or <strong>pt-online-schema-change</strong> to perform the migration on a shadow table and cut over with minimal locking.</p>
+        </div>
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake</div>
+          <p>Running large ALTERs directly against production during peak hours without checking whether it's an instant, in-place, or full-table-copy operation (visible via <code>ALTER TABLE ... ALGORITHM=INPLACE, LOCK=NONE</code> hints or EXPLAIN-like tooling).</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">03</span>Interview questions</h2>
+        <div class="accordion" data-group="alter">
+          <div class="accordion-item">
+            <div class="accordion-head">How do you rename just a column without changing its type in MySQL 8?<span class="plus">+</span></div>
+            <div class="accordion-body"><p><code>ALTER TABLE t RENAME COLUMN old_name TO new_name;</code> — added in MySQL 8.0, cleaner than the older CHANGE COLUMN syntax which forced you to restate the type.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">How do you add a column at a specific position?<span class="plus">+</span></div>
+            <div class="accordion-body"><p>Use <code>AFTER column_name</code>, e.g. <code>ALTER TABLE employees ADD COLUMN age INT AFTER first_name;</code>. Without it, new columns append at the end. Note: positioned adds are not eligible for instant DDL.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">Scenario: You need to add a NOT NULL column to a table with 50 million existing rows with zero downtime. What's your approach? <span class="tag scenario">Scenario</span><span class="plus">+</span></div>
+            <div class="accordion-body"><p>Add the column as nullable first (instant in MySQL 8), backfill values in small batches, then add a NOT NULL constraint once every row has a value — or use an online schema-change tool to avoid long metadata locks on a live table.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= DROP vs TRUNCATE ================= -->
+    <section class="section" id="drop-truncate">
+      <div class="section-inner reveal">
+        <div class="eyebrow">05 · Comparison</div>
+        <h1 class="section-title">DROP vs TRUNCATE vs DELETE</h1>
+        <p class="section-lede">The single most-asked comparison question in MySQL interviews. Get this table memorized cold.</p>
+
+        <table class="cmp-table">
+          <tr><th>Aspect</th><th>DROP TABLE</th><th>TRUNCATE TABLE</th><th>DELETE FROM</th></tr>
+          <tr><td>Type</td><td>DDL</td><td>DDL</td><td>DML</td></tr>
+          <tr><td>Removes</td><td>Structure + data</td><td>All rows only</td><td>Rows (optionally filtered)</td></tr>
+          <tr><td>WHERE clause</td><td>Not applicable</td><td>Not allowed</td><td>Allowed</td></tr>
+          <tr><td>Rollback (in transaction)</td><td>No (auto-commits)</td><td>No (auto-commits)</td><td>Yes, before COMMIT</td></tr>
+          <tr><td>Triggers fired</td><td>No</td><td>No</td><td>Yes (row-level)</td></tr>
+          <tr><td>AUTO_INCREMENT counter</td><td>Removed with table</td><td>Reset to start value</td><td>Unchanged</td></tr>
+          <tr><td>Speed on large tables</td><td>Fast</td><td>Fast (deallocates pages)</td><td>Slow (row-by-row + logging)</td></tr>
+          <tr><td>Foreign key referenced by others</td><td>Blocked unless FK dropped/CASCADE</td><td>Blocked if FK references it</td><td>Allowed (respects FK checks)</td></tr>
+        </table>
+
+        <div class="box warn reveal">
+          <div class="box-title">Security note</div>
+          <p>DROP and TRUNCATE both require elevated privileges (<code>DROP</code> privilege) and are irreversible in normal operation. Production databases typically restrict these privileges to DBAs/admin roles and require them to run through reviewed migration scripts, not ad-hoc connections.</p>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">drop_truncate.sql</div><button class="run-btn" data-target="res-dt">▶ Run</button></div>
+          <pre class="code"><span class="k">TRUNCATE TABLE</span> <span class="f">audit_logs</span>;    <span class="c">-- resets AUTO_INCREMENT, keeps structure</span>
+<span class="k">DROP TABLE</span> <span class="k">IF EXISTS</span> <span class="f">audit_logs</span>;  <span class="c">-- removes structure entirely</span>
+<span class="k">DELETE FROM</span> <span class="f">audit_logs</span> <span class="k">WHERE</span> <span class="f">created_at</span> &lt; <span class="s">'2025-01-01'</span>;</pre>
+          <div class="exec-result" id="res-dt">
+            → TRUNCATE: table emptied, storage reallocated, id counter reset to 1<br>
+            → DROP: table + metadata removed permanently<br>
+            → DELETE: only matching rows removed, transaction-safe, triggers fired
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="dt">
+          <div class="accordion-item">
+            <div class="accordion-head">Why can't you rollback a TRUNCATE inside a transaction?<span class="plus">+</span></div>
+            <div class="accordion-body"><p>TRUNCATE is DDL. DDL statements in MySQL implicitly commit any open transaction before and after execution, so there's nothing to roll back once it runs.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">Asked at Infosys: A table referenced by a foreign key won't TRUNCATE — why, and how do you fix it? <span class="tag company">Infosys</span><span class="plus">+</span></div>
+            <div class="accordion-body"><p>InnoDB blocks TRUNCATE on a parent table if a child table has an active foreign key referencing it, to protect referential integrity. Fix: temporarily <code>SET FOREIGN_KEY_CHECKS=0;</code>, truncate, then re-enable — or drop/recreate the FK, or truncate child tables first.</p></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-head">Scenario: You accidentally ran DELETE without WHERE on a 10M row table in a transaction that hasn't committed yet. Can you recover? <span class="tag scenario">Scenario</span><span class="plus">+</span></div>
+            <div class="accordion-body"><p>Yes — since DELETE is DML, you can issue <code>ROLLBACK;</code> before COMMIT to undo it. This is exactly why DELETE, despite being slower, is the safer choice for destructive operations you might need to reverse.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RENAME ================= -->
+    <section class="section" id="rename">
+      <div class="section-inner reveal">
+        <div class="eyebrow">06 · Statement</div>
+        <h1 class="section-title">RENAME TABLE</h1>
+        <p class="section-lede">A small statement with a surprisingly popular production trick: atomic, zero-downtime table swaps.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">rename.sql</div><button class="run-btn" data-target="res-ren">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Simple rename</span>
+<span class="k">RENAME TABLE</span> <span class="f">employees</span> <span class="k">TO</span> <span class="f">staff</span>;
+<span class="c">-- Equivalent</span>
+<span class="k">ALTER TABLE</span> <span class="f">employees</span> <span class="k">RENAME TO</span> <span class="f">staff</span>;
+
+<span class="c">-- Atomic zero-downtime swap (classic production trick)</span>
+<span class="k">RENAME TABLE</span>
+  <span class="f">staff</span> <span class="k">TO</span> <span class="f">staff_old</span>,
+  <span class="f">staff_new</span> <span class="k">TO</span> <span class="f">staff</span>;</pre>
+          <div class="exec-result" id="res-ren">
+            → RENAME TABLE is atomic even across multiple tables in one statement<br>
+            → No readers ever see a missing "staff" table during the swap
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Why the multi-table swap matters</h2>
+        <p>If you were to <code>DROP staff; RENAME staff_new TO staff;</code> as two separate statements, there'd be a brief window where <code>staff</code> doesn't exist and live queries would fail. A single multi-table <code>RENAME TABLE</code> statement executes as one atomic operation, so the table is never momentarily missing — a technique used for zero-downtime schema migrations (build a shadow table, backfill it, then swap it in).</p>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>Mention this swap trick specifically — it signals production experience far beyond fresher-level tutorials.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= NAMING CONVENTIONS ================= -->
+    <section class="section" id="naming">
+      <div class="section-inner reveal">
+        <div class="eyebrow">07 · Standards</div>
+        <h1 class="section-title">Naming Conventions</h1>
+        <p class="section-lede">Not enforced by MySQL, but enforced by every code review. Interviewers use this to judge whether you'll write maintainable schema code on a real team.</p>
+
+        <div class="grid-cards">
+          <div class="mini-card"><h4>Tables</h4><p>lower_snake_case, usually plural: <code>employees</code>, <code>order_items</code>.</p></div>
+          <div class="mini-card"><h4>Columns</h4><p>lower_snake_case, singular: <code>first_name</code>, <code>created_at</code>.</p></div>
+          <div class="mini-card"><h4>Primary keys</h4><p>Simply <code>id</code>, or <code>employee_id</code> if you prefer explicit FK-matching names.</p></div>
+          <div class="mini-card"><h4>Foreign keys</h4><p><code>&lt;referenced_table_singular&gt;_id</code>, e.g. <code>dept_id</code>. Constraint name: <code>fk_child_parent</code>.</p></div>
+          <div class="mini-card"><h4>Indexes</h4><p><code>idx_table_column</code>, e.g. <code>idx_employees_email</code>.</p></div>
+          <div class="mini-card"><h4>Booleans</h4><p>Prefix with <code>is_</code> / <code>has_</code>: <code>is_active</code>, <code>has_verified_email</code>.</p></div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Case sensitivity gotcha</div>
+          <p>Table name case-sensitivity depends on the OS and the <code>lower_case_table_names</code> system variable — Linux MySQL is case-sensitive for table names by default, Windows/macOS often isn't. A team developing on Windows and deploying on Linux can hit "table not found" bugs purely from casing mismatches. Convention: always use lowercase.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Spring Boot / JPA relation</h2>
+        <p>Hibernate's default <code>SpringPhysicalNamingStrategy</code> automatically converts a Java camelCase field like <code>firstName</code> into the snake_case column <code>first_name</code>, and a class <code>EmployeeRecord</code> into table <code>employee_record</code> — so following snake_case convention in the database keeps your entities mapping cleanly without needing explicit <code>@Column(name=...)</code> overrides everywhere.</p>
+
+        <div class="box memory reveal">
+          <div class="box-title">Memory trick</div>
+          <p><strong>"Tables are Teams (plural), Columns are Characteristics (singular)."</strong> A table holds many rows, so name it plural; a column describes one attribute per row, so name it singular.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHEAT SHEET ================= -->
+    <section class="section" id="cheatsheet">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Cheat Sheet</h1>
+        <p class="section-lede">Every syntax pattern from this module, in one scannable block.</p>
+        <div class="code-block">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">cheatsheet.sql</div></div>
+          <pre class="code"><span class="c">-- Database</span>
+<span class="k">CREATE DATABASE IF NOT EXISTS</span> <span class="f">db</span> <span class="k">CHARACTER SET</span> <span class="s">utf8mb4</span>;
+<span class="k">DROP DATABASE IF EXISTS</span> <span class="f">db</span>;
+<span class="k">SHOW DATABASES</span>; <span class="k">USE</span> <span class="f">db</span>;
+
+<span class="c">-- Table</span>
+<span class="k">CREATE TABLE</span> <span class="f">t</span> (<span class="f">id</span> <span class="t">INT</span> <span class="k">AUTO_INCREMENT PRIMARY KEY</span>, <span class="f">name</span> <span class="t">VARCHAR</span>(<span class="n">50</span>) <span class="k">NOT NULL</span>);
+<span class="k">CREATE TABLE</span> <span class="f">t2</span> <span class="k">LIKE</span> <span class="f">t</span>;          <span class="c">-- clone structure</span>
+<span class="k">CREATE TABLE</span> <span class="f">t3</span> <span class="k">AS SELECT</span> * <span class="k">FROM</span> <span class="f">t</span>;   <span class="c">-- clone data, no keys</span>
+
+<span class="c">-- Alter</span>
+<span class="k">ALTER TABLE</span> <span class="f">t</span> <span class="k">ADD COLUMN</span> <span class="f">c</span> <span class="t">INT</span>;
+<span class="k">ALTER TABLE</span> <span class="f">t</span> <span class="k">MODIFY COLUMN</span> <span class="f">c</span> <span class="t">BIGINT</span>;
+<span class="k">ALTER TABLE</span> <span class="f">t</span> <span class="k">CHANGE COLUMN</span> <span class="f">c</span> <span class="f">c2</span> <span class="t">BIGINT</span>;
+<span class="k">ALTER TABLE</span> <span class="f">t</span> <span class="k">RENAME COLUMN</span> <span class="f">c2</span> <span class="k">TO</span> <span class="f">c3</span>;
+<span class="k">ALTER TABLE</span> <span class="f">t</span> <span class="k">DROP COLUMN</span> <span class="f">c3</span>;
+
+<span class="c">-- Drop / Truncate / Delete</span>
+<span class="k">DROP TABLE IF EXISTS</span> <span class="f">t</span>;
+<span class="k">TRUNCATE TABLE</span> <span class="f">t</span>;
+<span class="k">DELETE FROM</span> <span class="f">t</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">1</span>;
+
+<span class="c">-- Rename</span>
+<span class="k">RENAME TABLE</span> <span class="f">a</span> <span class="k">TO</span> <span class="f">a_old</span>, <span class="f">a_new</span> <span class="k">TO</span> <span class="f">a</span>;</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MIND MAP ================= -->
+    <section class="section" id="mindmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Mind Map</h1>
+        <p class="section-lede">How every DDL concept in this module branches from a single root.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 800 400" width="100%">
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <circle cx="400" cy="200" r="52" fill="rgba(110,231,249,0.1)" stroke="#6EE7F9"/>
+              <text x="400" y="196" text-anchor="middle" fill="#6EE7F9" font-weight="bold">MySQL</text>
+              <text x="400" y="212" text-anchor="middle" fill="#6EE7F9" font-weight="bold">DDL</text>
+
+              <g stroke="#576079" stroke-width="1">
+                <line x1="400" y1="148" x2="400" y2="60"/>
+                <line x1="356" y1="170" x2="150" y2="90"/>
+                <line x1="356" y1="230" x2="150" y2="310"/>
+                <line x1="444" y1="170" x2="650" y2="90"/>
+                <line x1="444" y1="230" x2="650" y2="310"/>
+                <line x1="400" y1="252" x2="400" y2="350"/>
+              </g>
+
+              <g>
+                <rect x="330" y="18" width="140" height="42" rx="8" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+                <text x="400" y="44" text-anchor="middle" fill="#A78BFA">CREATE DATABASE</text>
+
+                <rect x="60" y="60" width="180" height="42" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+                <text x="150" y="86" text-anchor="middle" fill="#34d399">CREATE TABLE + Types</text>
+
+                <rect x="60" y="288" width="180" height="42" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+                <text x="150" y="314" text-anchor="middle" fill="#f0b429">Naming Conventions</text>
+
+                <rect x="560" y="60" width="180" height="42" rx="8" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+                <text x="650" y="86" text-anchor="middle" fill="#6EE7F9">ALTER TABLE</text>
+
+                <rect x="560" y="288" width="180" height="42" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+                <text x="650" y="314" text-anchor="middle" fill="#fb7185">DROP / TRUNCATE</text>
+
+                <rect x="330" y="330" width="140" height="42" rx="8" fill="rgba(255,255,255,0.04)" stroke="#94a1ba"/>
+                <text x="400" y="356" text-anchor="middle" fill="#94a1ba">RENAME TABLE</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FLASHCARDS ================= -->
+    <section class="section" id="flashcards">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Flash Cards</h1>
+        <p class="section-lede">Click any card to flip it.</p>
+        <div class="flash-grid" id="flash-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= QUIZ ================= -->
+    <section class="section" id="quiz">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Quick Quiz</h1>
+        <p class="section-lede">Pick an answer for each question — instant feedback, no submit button needed.</p>
+        <div id="quiz-score-bar">Score <span class="score" id="quiz-score">0 / 0</span></div>
+        <div id="quiz-container"></div>
+      </div>
+    </section>
+
+    <!-- ================= TOP 20 ================= -->
+    <section class="section" id="top20">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Top 20 Interview Questions</h1>
+        <p class="section-lede">The exact questions most likely to appear across fresher Java backend + MySQL rounds. Click to reveal the expected answer.</p>
+        <div class="accordion" id="top20-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ROADMAP ================= -->
+    <section class="section" id="roadmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Where to go next</div>
+        <h1 class="section-title">Learning Roadmap</h1>
+        <div class="roadmap">
+          <div class="rm-item"><h4>1. Master this module (DDL)</h4><p>CREATE, ALTER, DROP, TRUNCATE, RENAME, data types, naming — solid enough to explain out loud, not just recognize.</p></div>
+          <div class="rm-item"><h4>2. Constraints &amp; Keys deep dive</h4><p>Composite keys, ON DELETE CASCADE/SET NULL, self-referencing FKs.</p></div>
+          <div class="rm-item"><h4>3. Querying (DML + DQL)</h4><p>SELECT, JOIN types, subqueries, GROUP BY, HAVING, window functions.</p></div>
+          <div class="rm-item"><h4>4. Indexing &amp; Query Performance</h4><p>B+Tree indexes, EXPLAIN, composite index ordering, covering indexes.</p></div>
+          <div class="rm-item"><h4>5. Transactions &amp; Locking</h4><p>ACID, isolation levels, deadlocks, InnoDB row locking.</p></div>
+          <div class="rm-item"><h4>6. Spring Boot + JPA integration</h4><p>Entity mapping, repositories, Flyway/Liquibase migrations, connection pooling (HikariCP).</p></div>
+        </div>
+        <h2 class="h2"><span class="idx">→</span>Further topics to explore</h2>
+        <ul class="plain-list">
+          <li>Normalization (1NF, 2NF, 3NF, BCNF) and denormalization trade-offs</li>
+          <li>Indexes: B+Tree vs Hash, clustered vs secondary index lookups</li>
+          <li>Transaction isolation levels and the phantom-read problem</li>
+          <li>Replication (master-replica) and basic sharding concepts</li>
+          <li>Query optimization using EXPLAIN and the slow query log</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+    <section class="section" id="summary">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Wrap-up</div>
+        <h1 class="section-title">Summary &amp; Revision Notes</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>Database = Schema</h4><p>MySQL treats them as synonyms — a namespace holding tables.</p></div>
+          <div class="mini-card"><h4>CREATE TABLE</h4><p>Defines columns, types, and constraints (PK, FK, UNIQUE, NOT NULL, DEFAULT, CHECK).</p></div>
+          <div class="mini-card"><h4>DECIMAL for money</h4><p>Never FLOAT/DOUBLE — rounding errors break financial correctness.</p></div>
+          <div class="mini-card"><h4>ALTER is evolving, not destructive</h4><p>ADD, MODIFY, CHANGE, RENAME COLUMN, DROP COLUMN — know when each applies.</p></div>
+          <div class="mini-card"><h4>DROP ≠ TRUNCATE ≠ DELETE</h4><p>DDL vs DML, rollback capability, WHERE support, trigger firing — this table is asked everywhere.</p></div>
+          <div class="mini-card"><h4>RENAME TABLE is atomic</h4><p>Multi-table swaps enable zero-downtime schema cutovers.</p></div>
+          <div class="mini-card"><h4>Naming conventions aren't optional</h4><p>snake_case, plural tables, singular columns — Hibernate expects this by default.</p></div>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Before your interview</div>
+          <p>Be ready to write CREATE TABLE with constraints on a whiteboard from memory, explain DROP vs TRUNCATE vs DELETE without hesitating, and justify VARCHAR vs CHAR and DECIMAL vs FLOAT with a one-line reason each.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">MySQL Interview Blueprint · Module 03 of 12 · Built for Java Full Stack fresher interview prep</footer>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   SCROLL PROGRESS + SCROLLSPY
+   ============================================================ */
+const progressBar = document.getElementById('progress-bar');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+const sections = document.querySelectorAll('main section[id], .hero[id]');
+const links = document.querySelectorAll('.toc-link');
+function spy(){
+  let current = sections[0] ? sections[0].id : '';
+  sections.forEach(sec=>{
+    const rect = sec.getBoundingClientRect();
+    if(rect.top <= 140) current = sec.id;
+  });
+  links.forEach(l=>{
+    l.classList.toggle('active', l.getAttribute('href') === '#'+current);
+  });
+}
+document.addEventListener('scroll', spy, {passive:true});
+spy();
+
+/* ============================================================
+   REVEAL ON SCROLL
+   ============================================================ */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ============================================================
+   MOBILE MENU
+   ============================================================ */
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+});
+links.forEach(l=>l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+/* ============================================================
+   SQL "EXECUTION" ANIMATION
+   ============================================================ */
+document.querySelectorAll('.run-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    if(!target) return;
+    btn.textContent = '⏳ Running...';
+    setTimeout(()=>{
+      target.classList.add('show');
+      btn.textContent = '✓ Executed';
+      setTimeout(()=>{ btn.textContent = '▶ Run'; }, 1600);
+    }, 500);
+  });
+});
+
+/* ============================================================
+   TABS
+   ============================================================ */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const wrap = btn.closest('div').parentElement;
+    wrap.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const panelsWrap = wrap.querySelector('.tab-panels');
+    panelsWrap.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============================================================
+   ACCORDIONS
+   ============================================================ */
+document.addEventListener('click', (e)=>{
+  const head = e.target.closest('.accordion-head');
+  if(!head) return;
+  const item = head.closest('.accordion-item');
+  const body = item.querySelector('.accordion-body');
+  const wasOpen = item.classList.contains('open');
+  item.classList.toggle('open');
+  body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
+});
+
+/* ============================================================
+   FLASHCARDS DATA + RENDER
+   ============================================================ */
+const flashcards = [
+  {q:"DATABASE vs SCHEMA in MySQL?", a:"Synonyms — MySQL has no separate schema-inside-database concept like Oracle/Postgres."},
+  {q:"Which key implies both UNIQUE and NOT NULL?", a:"PRIMARY KEY."},
+  {q:"DDL statement that resets AUTO_INCREMENT but keeps structure?", a:"TRUNCATE TABLE."},
+  {q:"Type-safe way to store money?", a:"DECIMAL(p,s) — never FLOAT/DOUBLE."},
+  {q:"Rename a column without changing type (MySQL 8+)?", a:"ALTER TABLE t RENAME COLUMN old TO new;"},
+  {q:"Which storage engine is MySQL's default since 5.5?", a:"InnoDB — supports transactions, row locks, foreign keys."},
+  {q:"CHAR or VARCHAR for a fixed 2-letter country code?", a:"CHAR(2) — fixed length data fits CHAR efficiently."},
+  {q:"Statement to atomically swap two live tables?", a:"RENAME TABLE a TO a_old, b TO a; — single atomic statement."},
+  {q:"Difference: DROP TABLE vs DELETE FROM table?", a:"DROP removes structure + data (DDL, no rollback); DELETE removes rows only (DML, rollback possible)."},
+  {q:"Recommended table naming convention?", a:"lower_snake_case, plural — e.g. order_items."}
+];
+const flashGrid = document.getElementById('flash-grid');
+flashcards.forEach((c,i)=>{
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.innerHTML = `
+    <div class="flashcard-inner">
+      <div class="flash-face flash-front"><div class="fc-lbl">Question ${i+1}</div><p>${c.q}</p></div>
+      <div class="flash-face flash-back"><div class="fc-lbl">Answer</div><p>${c.a}</p></div>
+    </div>`;
+  card.addEventListener('click', ()=> card.classList.toggle('flipped'));
+  flashGrid.appendChild(card);
+});
+
+/* ============================================================
+   QUIZ DATA + RENDER
+   ============================================================ */
+const quizData = [
+  {q:"Which command removes both the table structure and its data?", opts:["DELETE","TRUNCATE","DROP","ALTER"], correct:2},
+  {q:"Which data type should you use for storing currency values?", opts:["FLOAT","DOUBLE","DECIMAL","VARCHAR"], correct:2},
+  {q:"CHANGE COLUMN differs from MODIFY COLUMN because it can also:", opts:["Add an index","Rename the column","Drop a constraint","Change the engine"], correct:1},
+  {q:"TRUNCATE TABLE is classified as:", opts:["DML","DDL","DCL","TCL"], correct:1},
+  {q:"What does RENAME TABLE a TO tmp, b TO a, tmp TO b achieve?", opts:["Deletes both tables","Merges two tables","Atomically swaps two tables","Copies data from a to b"], correct:2},
+  {q:"Which constraint automatically implies NOT NULL and UNIQUE?", opts:["FOREIGN KEY","CHECK","PRIMARY KEY","DEFAULT"], correct:2},
+  {q:"MySQL's default storage engine since version 5.5 is:", opts:["MyISAM","InnoDB","MEMORY","ARCHIVE"], correct:1},
+  {q:"Which naming convention does Hibernate's default naming strategy expect for columns?", opts:["camelCase","PascalCase","lower_snake_case","kebab-case"], correct:2}
+];
+const quizContainer = document.getElementById('quiz-container');
+let quizAnswered = 0, quizCorrect = 0;
+const scoreEl = document.getElementById('quiz-score');
+function updateScore(){ scoreEl.textContent = quizCorrect + ' / ' + quizAnswered; }
+
+quizData.forEach((q,qi)=>{
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  const optsHtml = q.opts.map((o,oi)=>`<div class="quiz-opt" data-idx="${oi}">${o}</div>`).join('');
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${q.q}</div><div class="quiz-opts">${optsHtml}</div>`;
+  quizContainer.appendChild(card);
+
+  let locked = false;
+  card.querySelectorAll('.quiz-opt').forEach(optEl=>{
+    optEl.addEventListener('click', ()=>{
+      if(locked) return;
+      locked = true;
+      quizAnswered++;
+      const chosen = parseInt(optEl.dataset.idx,10);
+      if(chosen === q.correct){ quizCorrect++; optEl.classList.add('correct'); }
+      else{
+        optEl.classList.add('wrong');
+        card.querySelectorAll('.quiz-opt')[q.correct].classList.add('correct');
+      }
+      updateScore();
+    });
+  });
+});
+
+/* ============================================================
+   TOP 20 QUESTIONS
+   ============================================================ */
+const top20 = [
+  ["What's the difference between DATABASE and SCHEMA in MySQL?","They're synonyms in MySQL — CREATE DATABASE and CREATE SCHEMA do the same thing."],
+  ["What's the default storage engine and why does it matter?","InnoDB — supports ACID transactions, row-level locking, and foreign key constraints, unlike MyISAM."],
+  ["Difference between PRIMARY KEY and UNIQUE KEY?","Only one PRIMARY KEY per table, never NULL, defines InnoDB's clustered storage order. UNIQUE allows multiple keys and permits NULLs."],
+  ["Difference between CHAR and VARCHAR?","CHAR is fixed-length and space-padded; VARCHAR is variable-length and stores only what's needed plus length bytes."],
+  ["Why avoid FLOAT/DOUBLE for money columns?","They're binary approximations prone to rounding errors; DECIMAL stores exact fixed-point values."],
+  ["Difference between DROP, TRUNCATE, and DELETE?","DROP removes structure+data (DDL); TRUNCATE empties rows fast and resets AUTO_INCREMENT (DDL); DELETE removes rows selectively and is transaction-safe (DML)."],
+  ["Can TRUNCATE be rolled back inside a transaction?","No — it's DDL and causes an implicit commit, so there's nothing left to roll back."],
+  ["How do you rename a column in MySQL 8 without changing its type?","ALTER TABLE t RENAME COLUMN old_name TO new_name;"],
+  ["Difference between MODIFY COLUMN and CHANGE COLUMN?","MODIFY changes type/attributes only; CHANGE can rename the column and change its type in one statement."],
+  ["What is CREATE TABLE ... LIKE used for?","Cloning a table's full structure (columns, keys, indexes) without copying any data."],
+  ["What does CREATE TABLE ... AS SELECT copy, and what does it lose?","Copies column names, inferred types, and data — but loses primary keys, foreign keys, and indexes."],
+  ["Why does TRUNCATE fail on a table referenced by a foreign key?","InnoDB blocks it to protect referential integrity in the child table; disable FK checks or drop the FK first."],
+  ["What is a composite primary key?","A primary key made of two or more columns together, common in junction tables for many-to-many relationships."],
+  ["What is the RENAME TABLE atomic swap trick used for?","Swapping a live table with a rebuilt shadow table in one atomic statement, enabling zero-downtime schema migrations."],
+  ["DATETIME vs TIMESTAMP — key differences?","TIMESTAMP is stored as UTC, converts per session timezone, and has a 1970–2038 range; DATETIME stores the literal value with a wider 1000–9999 range and no timezone conversion."],
+  ["What is Instant DDL in MySQL 8?","A metadata-only ALTER (e.g. adding a nullable column at the end) that avoids rebuilding the whole table, minimizing lock time."],
+  ["What naming convention does Spring Boot/Hibernate expect by default?","lower_snake_case column and table names, since SpringPhysicalNamingStrategy converts Java camelCase automatically."],
+  ["Should you use ddl-auto=update in production?","No — it can silently and unpredictably alter live schemas; use versioned migration tools like Flyway or Liquibase instead."],
+  ["What happens internally when you CREATE DATABASE?","MySQL validates the name, creates a directory on disk, and registers the schema (charset/collation) in the data dictionary."],
+  ["How would you safely add a NOT NULL column to a huge production table?","Add it as nullable first (often instant), backfill data in batches, then apply the NOT NULL constraint once fully populated."]
+];
+const top20List = document.getElementById('top20-list');
+top20.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'accordion-item';
+  div.innerHTML = `<div class="accordion-head">${i+1}. ${item[0]}<span class="plus">+</span></div><div class="accordion-body"><p>${item[1]}</p></div>`;
+  top20List.appendChild(div);
+});
+</script>
+</body>
+</html>

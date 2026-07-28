@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 5 · Operators &amp; Built-in Functions — MySQL Interview Mastery</title>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --bg-2:#0d1220;
+  --surface:rgba(255,255,255,0.035);
+  --surface-hover:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.09);
+  --border-soft:rgba(255,255,255,0.05);
+  --text:#e9edf5;
+  --text-dim:#93a0b8;
+  --text-faint:#5c6a84;
+  --violet:#7c6cf6;
+  --violet-soft:rgba(124,108,246,0.14);
+  --cyan:#22d3ee;
+  --cyan-soft:rgba(34,211,238,0.12);
+  --amber:#f5a623;
+  --amber-soft:rgba(245,166,35,0.12);
+  --rose:#fb5a7e;
+  --rose-soft:rgba(251,90,126,0.12);
+  --emerald:#34d399;
+  --emerald-soft:rgba(52,211,153,0.12);
+  --grad: linear-gradient(135deg,#7c6cf6,#22d3ee);
+  --radius:16px;
+  --radius-sm:10px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 900px 600px at 15% -5%, rgba(124,108,246,0.16), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 100% 10%, rgba(34,211,238,0.10), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12); border-radius:10px;}
+
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:var(--grad); z-index:1000; transition:width .1s ease-out;
+  box-shadow:0 0 12px rgba(124,108,246,0.7);
+}
+.topbar{
+  position:fixed; top:0; left:0; right:0; height:60px; z-index:900;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px 0 20px;
+  background:rgba(10,14,26,0.7); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border-soft);
+}
+.topbar .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-0.02em; font-size:15px;}
+.topbar .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--grad); box-shadow:0 0 10px var(--cyan);}
+.topbar .brand small{color:var(--text-faint); font-weight:500; font-size:11px; margin-left:6px;}
+#menu-toggle{display:none; background:var(--surface); border:1px solid var(--border); color:var(--text); width:38px; height:38px; border-radius:10px; cursor:pointer; align-items:center; justify-content:center;}
+.module-pill{
+  font-size:11px; padding:6px 12px; border-radius:100px; background:var(--violet-soft); color:#c9c0ff;
+  border:1px solid rgba(124,108,246,0.3); font-weight:600; letter-spacing:0.02em;
+}
+
+.layout{display:flex; padding-top:60px; min-height:100vh;}
+.sidebar{
+  width:270px; flex-shrink:0; position:fixed; top:60px; left:0; bottom:0;
+  border-right:1px solid var(--border-soft); overflow-y:auto; padding:22px 14px 40px;
+  background:rgba(255,255,255,0.012);
+}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar h4{font-size:10.5px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-faint); margin:18px 10px 8px; font-weight:700;}
+.sidebar h4:first-child{margin-top:4px;}
+.nav-link{
+  display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; color:var(--text-dim);
+  text-decoration:none; font-size:13.5px; font-weight:500; transition:all .18s ease; position:relative;
+}
+.nav-link .idx{font-family:var(--mono); font-size:10px; color:var(--text-faint); width:16px;}
+.nav-link:hover{background:var(--surface-hover); color:var(--text);}
+.nav-link.active{background:var(--violet-soft); color:#cfc7ff;}
+.nav-link.active .idx{color:var(--cyan);}
+
+main{flex:1; margin-left:270px; padding:0; max-width:100%;}
+.content-wrap{max-width:920px; margin:0 auto; padding:0 32px 120px;}
+
+@media (max-width:980px){
+  .sidebar{transform:translateX(-100%); transition:transform .25s ease; z-index:950; background:#0a0e1a; width:82%; max-width:300px;}
+  .sidebar.open{transform:translateX(0); box-shadow:20px 0 60px rgba(0,0,0,0.5);}
+  main{margin-left:0;}
+  #menu-toggle{display:flex;}
+  .content-wrap{padding:0 18px 100px;}
+}
+
+.hero{padding:150px 0 70px; position:relative;}
+.hero .eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--cyan); background:var(--cyan-soft); padding:7px 14px; border-radius:100px;
+  border:1px solid rgba(34,211,238,0.25); margin-bottom:22px;
+}
+.hero h1{
+  font-size:clamp(2.4rem, 6vw, 4.2rem); font-weight:800; letter-spacing:-0.035em; line-height:1.04;
+  background:linear-gradient(180deg, #fff, #b8c2d9 140%); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero h1 span{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.hero p.lead{margin-top:22px; font-size:17px; color:var(--text-dim); max-width:640px;}
+.hero-stats{display:flex; gap:14px; margin-top:36px; flex-wrap:wrap;}
+.stat-chip{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; min-width:120px;}
+.stat-chip b{display:block; font-size:20px; font-weight:800; background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.stat-chip span{font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;}
+
+section.block{padding:64px 0; border-top:1px solid var(--border-soft); scroll-margin-top:80px;}
+section.block:first-of-type{border-top:none;}
+.block-head{display:flex; align-items:baseline; gap:14px; margin-bottom:28px;}
+.block-head .num{font-family:var(--mono); font-size:13px; color:var(--text-faint); border:1px solid var(--border); padding:4px 9px; border-radius:7px;}
+.block-head h2{font-size:clamp(1.5rem,3vw,2.05rem); font-weight:800; letter-spacing:-0.025em;}
+.block-sub{color:var(--text-dim); font-size:15px; margin-bottom:26px; max-width:680px;}
+
+/* reveal on scroll — visible by default (works with JS disabled/blocked);
+   JS opts sections into the pre-hidden state only when it can also guarantee revealing them. */
+.reveal{opacity:1; transform:none; transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal.pre{opacity:0; transform:translateY(24px);}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; backdrop-filter:blur(10px);}
+.card + .card{margin-top:16px;}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+.grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media (max-width:760px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+.box{border-radius:var(--radius-sm); padding:16px 18px; border:1px solid; margin:16px 0; display:flex; gap:12px;}
+.box .box-icon{flex-shrink:0; width:26px; height:26px; margin-top:1px;}
+.box b.box-title{display:block; font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;}
+.box p{font-size:14px; color:var(--text-dim);}
+.box.tip{background:var(--emerald-soft); border-color:rgba(52,211,153,0.3);}
+.box.tip b{color:var(--emerald);}
+.box.warn{background:var(--amber-soft); border-color:rgba(245,166,35,0.3);}
+.box.warn b{color:var(--amber);}
+.box.mistake{background:var(--rose-soft); border-color:rgba(251,90,126,0.3);}
+.box.mistake b{color:var(--rose);}
+.box.interview{background:var(--violet-soft); border-color:rgba(124,108,246,0.3);}
+.box.interview b{color:#a99bff;}
+
+.code{background:#080b13; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; margin:14px 0;}
+.code .code-head{display:flex; justify-content:space-between; align-items:center; padding:9px 14px; border-bottom:1px solid var(--border-soft); background:rgba(255,255,255,0.02);}
+.code .code-head span{font-size:11px; color:var(--text-faint); font-family:var(--mono); letter-spacing:0.03em;}
+.code .dots{display:flex; gap:6px;}
+.code .dots i{width:9px;height:9px;border-radius:50%;display:block;}
+.code .dots i:nth-child(1){background:#fb5a7e55;}
+.code .dots i:nth-child(2){background:#f5a62355;}
+.code .dots i:nth-child(3){background:#34d39955;}
+.code pre{padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.7;}
+.kw{color:#7c6cf6; font-weight:600;} .fn{color:#22d3ee;} .str{color:#f5a623;} .num{color:#34d399;} .cm{color:#5c6a84; font-style:italic;} .id{color:#e9edf5;}
+
+.run-btn{display:inline-flex; align-items:center; gap:7px; background:var(--grad); color:#0a0e1a; font-weight:700; font-size:12.5px; padding:8px 15px; border-radius:100px; border:none; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;}
+.run-btn:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(124,108,246,0.35);}
+.run-output{margin-top:12px; border-radius:var(--radius-sm); border:1px solid var(--border); overflow:hidden; max-height:0; opacity:0; transition:max-height .4s ease, opacity .4s ease;}
+.run-output.show{max-height:400px; opacity:1;}
+.run-output table{width:100%; border-collapse:collapse; font-size:12.5px; font-family:var(--mono);}
+.run-output th{background:rgba(124,108,246,0.12); color:#c9c0ff; text-align:left; padding:8px 12px; font-weight:700;}
+.run-output td{padding:7px 12px; border-top:1px solid var(--border-soft); color:var(--text-dim);}
+.run-output .ok-line{padding:8px 12px; font-size:12px; color:var(--emerald); font-family:var(--mono); background:rgba(52,211,153,0.06);}
+
+.acc-item{border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; overflow:hidden; background:var(--surface);}
+.acc-head{display:flex; justify-content:space-between; align-items:center; padding:15px 18px; cursor:pointer; font-weight:600; font-size:14.5px;}
+.acc-head:hover{background:var(--surface-hover);}
+.acc-head .chev{transition:transform .25s ease; color:var(--text-faint); flex-shrink:0;}
+.acc-item.open .acc-head .chev{transform:rotate(180deg); color:var(--cyan);}
+.acc-body{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+.acc-body-inner{padding:0 18px 18px; color:var(--text-dim); font-size:14px;}
+.tag{display:inline-block; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:100px; margin-left:8px; letter-spacing:0.03em;}
+.tag.company{background:rgba(124,108,246,0.15); color:#b7adff; border:1px solid rgba(124,108,246,0.3);}
+.tag.hard{background:var(--rose-soft); color:var(--rose);}
+.tag.med{background:var(--amber-soft); color:var(--amber);}
+.tag.easy{background:var(--emerald-soft); color:var(--emerald);}
+
+.tabs{display:flex; gap:6px; border-bottom:1px solid var(--border); margin-bottom:18px; flex-wrap:wrap;}
+.tab-btn{background:none; border:none; color:var(--text-faint); font-weight:600; font-size:13.5px; padding:9px 14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;}
+.tab-btn.active{color:var(--text); border-color:var(--cyan);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.table-wrap{overflow-x:auto; border-radius:var(--radius-sm); border:1px solid var(--border);}
+table.cmp{width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px;}
+table.cmp th{background:rgba(255,255,255,0.04); text-align:left; padding:12px 16px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint);}
+table.cmp td{padding:12px 16px; border-top:1px solid var(--border-soft); color:var(--text-dim);}
+table.cmp tr:hover td{background:rgba(255,255,255,0.02); color:var(--text);}
+
+/* precedence pipeline (signature element) */
+.pipeline{display:flex; flex-wrap:wrap; gap:10px; margin:26px 0 8px; position:relative;}
+.pipe-stage{flex:1; min-width:118px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 12px; text-align:center; cursor:pointer; position:relative; transition:all .2s ease;}
+.pipe-stage .stage-no{font-family:var(--mono); font-size:10px; color:var(--text-faint);}
+.pipe-stage .stage-name{font-weight:700; font-size:13.5px; margin-top:4px;}
+.pipe-stage:hover{border-color:rgba(124,108,246,0.4); transform:translateY(-3px);}
+.pipe-stage.active{background:var(--violet-soft); border-color:var(--violet); box-shadow:0 0 24px rgba(124,108,246,0.25);}
+.pipe-stage.active .stage-name{color:#cfc7ff;}
+.pipe-stage .pulse-dot{position:absolute; width:8px; height:8px; border-radius:50%; background:var(--cyan); top:8px; right:8px; opacity:0;}
+.pipe-stage.active .pulse-dot{opacity:1; animation:pulse 1.2s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,211,238,0.6);}70%{box-shadow:0 0 0 8px rgba(34,211,238,0);}100%{box-shadow:0 0 0 0 rgba(34,211,238,0);}}
+.pipe-detail{margin-top:18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; min-height:90px;}
+.pipe-detail h4{font-size:14px; color:var(--cyan); margin-bottom:8px;}
+.pipe-detail p{font-size:13.5px; color:var(--text-dim);}
+.pipe-arrow{display:flex; align-items:center; justify-content:center; color:var(--text-faint); font-size:14px;}
+@media (max-width:760px){.pipe-arrow{display:none;} .pipeline{flex-direction:column;}}
+
+.fc-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px; margin-top:10px;}
+.fc{perspective:1200px; height:150px; cursor:pointer;}
+.fc-inner{position:relative; width:100%; height:100%; transition:transform .6s cubic-bezier(.16,1,.3,1); transform-style:preserve-3d;}
+.fc.flip .fc-inner{transform:rotateY(180deg);}
+.fc-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-sm); border:1px solid var(--border); padding:16px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13.5px;}
+.fc-front{background:var(--surface); font-weight:700;}
+.fc-back{background:var(--violet-soft); transform:rotateY(180deg); color:#dcd6ff; font-size:12.5px;}
+.fc-front small{position:absolute; bottom:10px; left:0; right:0; color:var(--text-faint); font-weight:400; font-size:10.5px;}
+
+.quiz-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; margin-bottom:16px;}
+.quiz-q{font-weight:600; font-size:14.5px; margin-bottom:14px;}
+.quiz-opt{display:block; width:100%; text-align:left; background:rgba(255,255,255,0.02); border:1px solid var(--border); color:var(--text-dim); padding:11px 14px; border-radius:9px; margin-bottom:8px; cursor:pointer; font-size:13.5px; transition:all .15s ease;}
+.quiz-opt:hover{border-color:rgba(124,108,246,0.4);}
+.quiz-opt.correct{background:var(--emerald-soft); border-color:var(--emerald); color:var(--emerald);}
+.quiz-opt.wrong{background:var(--rose-soft); border-color:var(--rose); color:var(--rose);}
+.quiz-score{font-size:13px; color:var(--text-faint); margin-top:6px;}
+
+.timeline{position:relative; padding-left:26px; margin-top:20px;}
+.timeline::before{content:''; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--violet),var(--cyan));}
+.tl-item{position:relative; padding-bottom:26px;}
+.tl-item::before{content:''; position:absolute; left:-26px; top:3px; width:12px; height:12px; border-radius:50%; background:var(--bg); border:2px solid var(--cyan);}
+.tl-item h4{font-size:14.5px; font-weight:700;}
+.tl-item p{font-size:13.5px; color:var(--text-dim); margin-top:4px;}
+
+.mindmap{display:flex; flex-direction:column; align-items:center; gap:0; margin-top:20px;}
+.mm-root{background:var(--grad); color:#0a0e1a; font-weight:800; padding:12px 26px; border-radius:12px; font-size:15px; text-align:center;}
+.mm-branches{display:flex; gap:14px; margin-top:26px; flex-wrap:wrap; justify-content:center;}
+.mm-node{background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:12px 16px; text-align:center; min-width:120px;}
+.mm-node b{font-size:13px; display:block; margin-bottom:4px; color:var(--cyan);}
+.mm-node span{font-size:11px; color:var(--text-faint);}
+
+.cheat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+@media (max-width:700px){.cheat-grid{grid-template-columns:1fr;}}
+.cheat-item{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px;}
+.cheat-item code{font-family:var(--mono); color:var(--cyan); font-size:13px;}
+.cheat-item p{font-size:12.5px; color:var(--text-faint); margin-top:4px;}
+
+footer{padding:60px 0 40px; text-align:center; color:var(--text-faint); font-size:13px; border-top:1px solid var(--border-soft); margin-top:40px;}
+
+#toTop{position:fixed; bottom:24px; right:24px; width:44px; height:44px; border-radius:50%; background:var(--surface); border:1px solid var(--border); backdrop-filter:blur(10px); color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; pointer-events:none; transition:opacity .3s ease; z-index:800;}
+#toTop.show{opacity:1; pointer-events:auto;}
+
+.two-col{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;}
+@media (max-width:760px){.two-col{grid-template-columns:1fr;}}
+h3.sub-h{font-size:17px; font-weight:700; margin:22px 0 10px; letter-spacing:-0.01em;}
+p.body-p{font-size:14.5px; color:var(--text-dim); margin-bottom:10px;}
+ul.plain{padding-left:20px; font-size:14.5px; color:var(--text-dim); margin:10px 0;}
+ul.plain li{margin-bottom:6px;}
+.badge-row{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0;}
+.small-badge{font-size:11px; background:var(--surface); border:1px solid var(--border); padding:4px 10px; border-radius:100px; color:var(--text-dim);}
+
+/* truth table */
+table.truth{width:100%; border-collapse:collapse; font-size:13px; font-family:var(--mono);}
+table.truth th, table.truth td{padding:9px 14px; text-align:center; border:1px solid var(--border-soft);}
+table.truth th{background:rgba(255,255,255,0.04); color:var(--text-faint); font-family:var(--sans); font-size:11px; text-transform:uppercase;}
+table.truth td.t{color:var(--emerald); font-weight:700;}
+table.truth td.f{color:var(--rose); font-weight:700;}
+table.truth td.n{color:var(--amber); font-weight:700;}
+
+/* function pill grid */
+.fn-pill-grid{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0;}
+.fn-pill{font-family:var(--mono); font-size:12px; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.25); color:var(--cyan); padding:6px 12px; border-radius:8px;}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button id="menu-toggle" aria-label="Toggle navigation">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="brand"><span class="dot"></span> MySQL Interview Deck <small>· Java Full Stack Track</small></div>
+  </div>
+  <div class="module-pill">Module 05 / Operators &amp; Functions</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <h4>Foundations</h4>
+    <a class="nav-link" href="#intro"><span class="idx">00</span>Introduction</a>
+    <a class="nav-link" href="#overview"><span class="idx">01</span>Why Operators Exist</a>
+    <h4>Operators</h4>
+    <a class="nav-link" href="#arithmetic"><span class="idx">02</span>Arithmetic</a>
+    <a class="nav-link" href="#comparison"><span class="idx">03</span>Comparison</a>
+    <a class="nav-link" href="#logical"><span class="idx">04</span>Logical</a>
+    <a class="nav-link" href="#precedence"><span class="idx">05</span>Operator Precedence</a>
+    <h4>Pattern &amp; Membership</h4>
+    <a class="nav-link" href="#like"><span class="idx">06</span>LIKE</a>
+    <a class="nav-link" href="#between"><span class="idx">07</span>BETWEEN</a>
+    <a class="nav-link" href="#in"><span class="idx">08</span>IN</a>
+    <a class="nav-link" href="#exists"><span class="idx">09</span>EXISTS</a>
+    <h4>Built-in Functions</h4>
+    <a class="nav-link" href="#string-fns"><span class="idx">10</span>String Functions</a>
+    <a class="nav-link" href="#date-fns"><span class="idx">11</span>Date Functions</a>
+    <a class="nav-link" href="#null-fns"><span class="idx">12</span>NULL Functions</a>
+    <h4>Interview Prep</h4>
+    <a class="nav-link" href="#mistakes"><span class="idx">13</span>Common Mistakes</a>
+    <a class="nav-link" href="#springboot"><span class="idx">14</span>Spring Boot Relation</a>
+    <a class="nav-link" href="#tradeoffs"><span class="idx">15</span>IN vs EXISTS vs JOIN</a>
+    <a class="nav-link" href="#memory"><span class="idx">16</span>Memory Tricks</a>
+    <a class="nav-link" href="#top20"><span class="idx">17</span>Top 20 Questions</a>
+    <a class="nav-link" href="#flashcards"><span class="idx">18</span>Flash Cards</a>
+    <a class="nav-link" href="#quiz"><span class="idx">19</span>Quick Quiz</a>
+    <a class="nav-link" href="#practice"><span class="idx">20</span>SQL Practice</a>
+    <h4>Wrap Up</h4>
+    <a class="nav-link" href="#cheatsheet"><span class="idx">21</span>Cheat Sheet</a>
+    <a class="nav-link" href="#mindmap"><span class="idx">22</span>Mind Map</a>
+    <a class="nav-link" href="#roadmap"><span class="idx">23</span>Roadmap &amp; Next</a>
+  </nav>
+
+  <main>
+    <div class="content-wrap">
+
+      <section class="hero" id="intro">
+        <div class="eyebrow">Module 05 · Fresher-to-Product-Company Track</div>
+        <h1>Operators &amp; Functions, <span>the toolkit interviewers probe hardest.</span></h1>
+        <p class="lead">Arithmetic, comparison, and logical operators; LIKE, BETWEEN, IN, EXISTS; and the string, date, and NULL-handling functions you'll use in nearly every real query. This module builds each from zero and drills the exact traps that show up in fresher SQL rounds.</p>
+        <div class="hero-stats">
+          <div class="stat-chip"><b>10</b><span>Core Topics</span></div>
+          <div class="stat-chip"><b>20</b><span>Interview Qs</span></div>
+          <div class="stat-chip"><b>12</b><span>Flash cards</span></div>
+          <div class="stat-chip"><b>1</b><span>Precedence chain</span></div>
+        </div>
+      </section>
+
+      <!-- ================= OVERVIEW ================= -->
+      <section class="block reveal" id="overview">
+        <div class="block-head"><span class="num">01</span><h2>Why Operators &amp; Functions Exist</h2></div>
+        <p class="block-sub">SELECT and WHERE give you the skeleton of a query. Operators and functions are what let you actually compute, compare, and reshape data instead of just fetching it raw.</p>
+
+        <h3 class="sub-h">Problem it solves</h3>
+        <ul class="plain">
+          <li>Raw column values are rarely exactly what the application needs — operators let you compute new values (salary * 1.1) and functions let you transform them (UPPER(name)).</li>
+          <li>Conditions in WHERE need more than plain equality — comparison and logical operators combine multiple conditions; LIKE/BETWEEN/IN/EXISTS express "fuzzy" or set-based conditions naturally.</li>
+          <li>Real data is messy — NULLs, inconsistent casing, unformatted dates — and built-in functions are MySQL's way of cleaning that up inside the query itself instead of in application code.</li>
+        </ul>
+
+        <h3 class="sub-h">Real-world example</h3>
+        <p class="body-p">An e-commerce "search products" feature might combine all of this in one query: <code style="font-family:var(--mono)">price BETWEEN 500 AND 2000</code>, <code style="font-family:var(--mono)">name LIKE '%phone%'</code>, <code style="font-family:var(--mono)">category IN ('Electronics','Accessories')</code>, and <code style="font-family:var(--mono)">discount IS NOT NULL</code> — four different operator families working together in a single WHERE clause.</p>
+
+        <div class="box interview">
+          <div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          <div><b class="box-title">Interview Tip</b><p>Interviewers love asking you to rewrite one operator using another — e.g. "rewrite BETWEEN using comparison operators," or "rewrite IN using OR." Being able to do this on the spot shows you understand what's happening underneath, not just the syntax.</p></div>
+        </div>
+      </section>
+
+      <!-- ================= ARITHMETIC ================= -->
+      <section class="block reveal" id="arithmetic">
+        <div class="block-head"><span class="num">02</span><h2>Arithmetic Operators</h2></div>
+        <p class="block-sub">The five operators that compute numeric values directly inside SQL: <code style="font-family:var(--mono)">+ − * / %</code>.</p>
+
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>Operator</th><th>Meaning</th><th>Example</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td><code style="font-family:var(--mono)">+</code></td><td>Addition</td><td>SELECT 10 + 5;</td><td>15</td></tr>
+              <tr><td><code style="font-family:var(--mono)">-</code></td><td>Subtraction</td><td>SELECT 10 - 5;</td><td>5</td></tr>
+              <tr><td><code style="font-family:var(--mono)">*</code></td><td>Multiplication</td><td>SELECT salary * 12;</td><td>Annual salary</td></tr>
+              <tr><td><code style="font-family:var(--mono)">/</code></td><td>Division (always float)</td><td>SELECT 10 / 4;</td><td>2.5000</td></tr>
+              <tr><td><code style="font-family:var(--mono)">%</code> or <code style="font-family:var(--mono)">MOD</code></td><td>Remainder</td><td>SELECT 10 % 3;</td><td>1</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code">
+          <div class="code-head"><span>arithmetic_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> <span class="id">name</span>, <span class="id">salary</span>, <span class="id">salary</span> * <span class="num">12</span> <span class="kw">AS</span> <span class="id">annual_salary</span>
+<span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">salary</span> % <span class="num">1000</span> = <span class="num">0</span>;  <span class="cm">-- salaries that are exact multiples of 1000</span></pre>
+        </div>
+        <button class="run-btn" onclick="runDemo('arith')">▶ Run visually</button>
+        <div class="run-output" id="out-arith">
+          <table><thead><tr><th>name</th><th>salary</th><th>annual_salary</th></tr></thead>
+          <tbody><tr><td>Asha</td><td>60000</td><td>720000</td></tr><tr><td>Ravi</td><td>45000</td><td>540000</td></tr></tbody></table>
+        </div>
+
+        <div class="box mistake" style="margin-top:20px;"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#fb5a7e" stroke-width="1.5"/></svg></div><div><b class="box-title">Common Mistake</b><p>Assuming <code style="font-family:var(--mono)">/</code> does integer division like in Java. In MySQL, <code style="font-family:var(--mono)">10 / 4</code> returns <code style="font-family:var(--mono)">2.5000</code>, not <code style="font-family:var(--mono)">2</code>. If you need integer division, use <code style="font-family:var(--mono)">DIV</code>: <code style="font-family:var(--mono)">10 DIV 4</code> → <code style="font-family:var(--mono)">2</code>.</p></div></div>
+        <div class="box warn"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#f5a623" stroke-width="1.5"/></svg></div><div><b class="box-title">Warning</b><p>Division by zero in MySQL returns <code style="font-family:var(--mono)">NULL</code> by default, not an error and not infinity — a very common trick question.</p></div></div>
+      </section>
+
+      <!-- ================= COMPARISON ================= -->
+      <section class="block reveal" id="comparison">
+        <div class="block-head"><span class="num">03</span><h2>Comparison Operators</h2></div>
+        <p class="block-sub">Used to compare two values and always evaluate to TRUE, FALSE, or — critically — <b>UNKNOWN</b> when NULL is involved.</p>
+
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>Operator</th><th>Meaning</th><th>NULL-safe?</th></tr></thead>
+            <tbody>
+              <tr><td><code style="font-family:var(--mono)">=</code></td><td>Equal to</td><td>No</td></tr>
+              <tr><td><code style="font-family:var(--mono)">!=</code> / <code style="font-family:var(--mono)">&lt;&gt;</code></td><td>Not equal to</td><td>No</td></tr>
+              <tr><td><code style="font-family:var(--mono)">&gt;</code>, <code style="font-family:var(--mono)">&lt;</code></td><td>Greater / less than</td><td>No</td></tr>
+              <tr><td><code style="font-family:var(--mono)">&gt;=</code>, <code style="font-family:var(--mono)">&lt;=</code></td><td>Greater/less than or equal</td><td>No</td></tr>
+              <tr><td><code style="font-family:var(--mono)">&lt;=&gt;</code></td><td>NULL-safe equal (MySQL-specific)</td><td><b style="color:var(--emerald)">Yes</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box interview"><div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8" stroke-linecap="round"/></svg></div><div><b class="box-title">Interview Tip</b><p><code style="font-family:var(--mono)">NULL = NULL</code> evaluates to <code style="font-family:var(--mono)">NULL</code> (not TRUE!) because NULL means "unknown," and unknown compared to unknown is still unknown. Only <code style="font-family:var(--mono)">IS NULL</code> or the NULL-safe operator <code style="font-family:var(--mono)">&lt;=&gt;</code> can correctly test for NULL.</p></div></div>
+      </section>
+
+      <!-- ================= LOGICAL ================= -->
+      <section class="block reveal" id="logical">
+        <div class="block-head"><span class="num">04</span><h2>Logical Operators</h2></div>
+        <p class="block-sub">Combine multiple conditions: <code style="font-family:var(--mono)">AND</code>, <code style="font-family:var(--mono)">OR</code>, <code style="font-family:var(--mono)">NOT</code>, and MySQL's <code style="font-family:var(--mono)">XOR</code>.</p>
+
+        <div class="code">
+          <div class="code-head"><span>logical_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">department</span> = <span class="str">'Engineering'</span> <span class="kw">AND</span> <span class="id">salary</span> &gt; <span class="num">50000</span>;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="kw">NOT</span> (<span class="id">department</span> = <span class="str">'Sales'</span>);</pre>
+        </div>
+
+        <h3 class="sub-h">Truth Table — Three-Valued Logic</h3>
+        <p class="body-p">MySQL logic isn't just TRUE/FALSE — NULL introduces a third state, UNKNOWN, which behaves specially in AND/OR.</p>
+        <div class="table-wrap">
+          <table class="truth">
+            <thead><tr><th>A</th><th>B</th><th>A AND B</th><th>A OR B</th></tr></thead>
+            <tbody>
+              <tr><td>TRUE</td><td>NULL</td><td class="n">NULL</td><td class="t">TRUE</td></tr>
+              <tr><td>FALSE</td><td>NULL</td><td class="f">FALSE</td><td class="n">NULL</td></tr>
+              <tr><td>NULL</td><td>NULL</td><td class="n">NULL</td><td class="n">NULL</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="box warn"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#f5a623" stroke-width="1.5"/></svg></div><div><b class="box-title">Why This Matters</b><p>A WHERE clause only keeps rows where the condition is TRUE — rows that evaluate to FALSE <i>or</i> UNKNOWN are both excluded. This is why filters silently drop NULL-containing rows even when your logic "looks" correct.</p></div></div>
+      </section>
+
+      <!-- ================= PRECEDENCE (signature interactive) ================= -->
+      <section class="block reveal" id="precedence">
+        <div class="block-head"><span class="num">05</span><h2>Operator Precedence Chain</h2></div>
+        <p class="block-sub">MySQL evaluates operators in a fixed priority order — highest precedence first. Click each link to see how it resolves for <code style="font-family:var(--mono)">10 + 5 * 2 > 15 AND NOT FALSE</code>.</p>
+
+        <div class="pipeline" id="pipeline">
+          <div class="pipe-stage" data-i="0"><div class="pulse-dot"></div><div class="stage-no">HIGHEST</div><div class="stage-name">* / % DIV</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="1"><div class="pulse-dot"></div><div class="stage-no">STEP 2</div><div class="stage-name">+ −</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="2"><div class="pulse-dot"></div><div class="stage-no">STEP 3</div><div class="stage-name">= &lt; &gt; &lt;= &gt;= &lt;&gt;</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="3"><div class="pulse-dot"></div><div class="stage-no">STEP 4</div><div class="stage-name">NOT</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="4"><div class="pulse-dot"></div><div class="stage-no">STEP 5</div><div class="stage-name">AND</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage" data-i="5"><div class="pulse-dot"></div><div class="stage-no">LOWEST</div><div class="stage-name">OR / XOR</div></div>
+        </div>
+        <div class="pipe-detail" id="pipe-detail">
+          <h4>Click a link above</h4>
+          <p>The chain animates automatically once — then explore any stage on your own.</p>
+        </div>
+
+        <div class="box tip" style="margin-top:22px;"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6"/></svg></div><div><b class="box-title">Best Practice</b><p>Never rely on memorised precedence in production code — wrap conditions in parentheses. It costs nothing and removes all ambiguity for the next developer (and for you, in six months).</p></div></div>
+      </section>
+
+      <!-- ================= LIKE ================= -->
+      <section class="block reveal" id="like">
+        <div class="block-head"><span class="num">06</span><h2>LIKE — Pattern Matching</h2></div>
+        <p class="block-sub">Matches strings against a pattern using two wildcards: <code style="font-family:var(--mono)">%</code> (zero or more characters) and <code style="font-family:var(--mono)">_</code> (exactly one character).</p>
+        <div class="code">
+          <div class="code-head"><span>like_examples.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span> <span class="kw">WHERE</span> <span class="id">name</span> <span class="kw">LIKE</span> <span class="str">'A%'</span>;      <span class="cm">-- starts with A</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span> <span class="kw">WHERE</span> <span class="id">name</span> <span class="kw">LIKE</span> <span class="str">'%a'</span>;      <span class="cm">-- ends with a</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span> <span class="kw">WHERE</span> <span class="id">name</span> <span class="kw">LIKE</span> <span class="str">'%an%'</span>;    <span class="cm">-- contains 'an'</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span> <span class="kw">WHERE</span> <span class="id">name</span> <span class="kw">LIKE</span> <span class="str">'_sha'</span>;    <span class="cm">-- exactly 1 char + 'sha'</span></pre>
+        </div>
+        <div class="box mistake"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#fb5a7e" stroke-width="1.5"/></svg></div><div><b class="box-title">Performance Note</b><p>A leading wildcard, e.g. <code style="font-family:var(--mono)">LIKE '%an'</code>, prevents MySQL from using a standard B-Tree index and forces a full table scan. <code style="font-family:var(--mono)">LIKE 'A%'</code> (leading fixed text) can still use an index.</p></div></div>
+      </section>
+
+      <!-- ================= BETWEEN ================= -->
+      <section class="block reveal" id="between">
+        <div class="block-head"><span class="num">07</span><h2>BETWEEN — Range Checks</h2></div>
+        <p class="block-sub">A shorthand for a <b>closed, inclusive</b> range check.</p>
+        <div class="code">
+          <div class="code-head"><span>between_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span> <span class="kw">WHERE</span> <span class="id">salary</span> <span class="kw">BETWEEN</span> <span class="num">30000</span> <span class="kw">AND</span> <span class="num">60000</span>;
+
+<span class="cm">-- exactly equivalent to:</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span> <span class="kw">WHERE</span> <span class="id">salary</span> &gt;= <span class="num">30000</span> <span class="kw">AND</span> <span class="id">salary</span> &lt;= <span class="num">60000</span>;</pre>
+        </div>
+        <div class="box interview"><div class="box-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#a99bff" stroke-width="1.6"/><path d="M12 16v-4M12 8h.01" stroke="#a99bff" stroke-width="1.8" stroke-linecap="round"/></svg></div><div><b class="box-title">Interview Tip</b><p>BETWEEN is <b>inclusive</b> on both ends — a very common gotcha question is whether 30000 and 60000 themselves are included (yes, both are).</p></div></div>
+      </section>
+
+      <!-- ================= IN ================= -->
+      <section class="block reveal" id="in">
+        <div class="block-head"><span class="num">08</span><h2>IN — Set Membership</h2></div>
+        <p class="block-sub">Checks whether a value matches any value in a list or the result of a subquery.</p>
+        <div class="code">
+          <div class="code-head"><span>in_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">department</span> <span class="kw">IN</span> (<span class="str">'Engineering'</span>, <span class="str">'Sales'</span>, <span class="str">'HR'</span>);
+
+<span class="cm">-- with a subquery</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">department_id</span> <span class="kw">IN</span> (<span class="kw">SELECT</span> <span class="id">id</span> <span class="kw">FROM</span> <span class="id">department</span> <span class="kw">WHERE</span> <span class="id">active</span> = <span class="num">1</span>);</pre>
+        </div>
+        <div class="box warn"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#f5a623" stroke-width="1.5"/></svg></div><div><b class="box-title">Warning</b><p><code style="font-family:var(--mono)">NOT IN</code> with a list or subquery that can contain <code style="font-family:var(--mono)">NULL</code> returns an empty result set — a classic silent bug. Prefer <code style="font-family:var(--mono)">NOT EXISTS</code> when NULLs might be present.</p></div></div>
+      </section>
+
+      <!-- ================= EXISTS ================= -->
+      <section class="block reveal" id="exists">
+        <div class="block-head"><span class="num">09</span><h2>EXISTS — Subquery Presence Check</h2></div>
+        <p class="block-sub">Returns TRUE if a correlated subquery returns at least one row — MySQL stops scanning as soon as it finds one match.</p>
+        <div class="code">
+          <div class="code-head"><span>exists_example.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> d.<span class="id">name</span>
+<span class="kw">FROM</span> <span class="id">department</span> d
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (
+  <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="id">employee</span> e <span class="kw">WHERE</span> e.<span class="id">department_id</span> = d.<span class="id">id</span>
+);</pre>
+        </div>
+        <h3 class="sub-h">Comparison: IN vs EXISTS</h3>
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>Aspect</th><th>IN</th><th>EXISTS</th></tr></thead>
+            <tbody>
+              <tr><td>Subquery type</td><td>Usually non-correlated</td><td>Correlated (references outer query)</td></tr>
+              <tr><td>Stops early?</td><td>Materialises full list first</td><td>Short-circuits on first match</td></tr>
+              <tr><td>NULL safety</td><td>Unsafe with NOT IN + NULLs</td><td>Safe — no NULL surprises</td></tr>
+              <tr><td>Best for</td><td>Small, static lists</td><td>Large tables, existence checks</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= STRING FUNCTIONS ================= -->
+      <section class="block reveal" id="string-fns">
+        <div class="block-head"><span class="num">10</span><h2>String Functions</h2></div>
+        <p class="block-sub">MySQL's most-used text manipulation toolkit.</p>
+        <div class="fn-pill-grid">
+          <span class="fn-pill">CONCAT()</span><span class="fn-pill">LENGTH()</span><span class="fn-pill">UPPER() / LOWER()</span>
+          <span class="fn-pill">SUBSTRING()</span><span class="fn-pill">TRIM()</span><span class="fn-pill">REPLACE()</span>
+          <span class="fn-pill">LEFT() / RIGHT()</span><span class="fn-pill">LOCATE()</span><span class="fn-pill">LPAD() / RPAD()</span>
+        </div>
+        <div class="code">
+          <div class="code-head"><span>string_functions.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> <span class="fn">CONCAT</span>(<span class="id">first_name</span>, <span class="str">' '</span>, <span class="id">last_name</span>) <span class="kw">AS</span> <span class="id">full_name</span>,
+       <span class="fn">UPPER</span>(<span class="id">email</span>) <span class="kw">AS</span> <span class="id">email_upper</span>,
+       <span class="fn">LENGTH</span>(<span class="id">name</span>) <span class="kw">AS</span> <span class="id">name_len</span>,
+       <span class="fn">SUBSTRING</span>(<span class="id">phone</span>, <span class="num">1</span>, <span class="num">3</span>) <span class="kw">AS</span> <span class="id">area_code</span>,
+       <span class="fn">TRIM</span>(<span class="str">'  Asha  '</span>) <span class="kw">AS</span> <span class="id">clean_name</span>
+<span class="kw">FROM</span> <span class="id">employee</span>;</pre>
+        </div>
+        <button class="run-btn" onclick="runDemo('str')">▶ Run visually</button>
+        <div class="run-output" id="out-str">
+          <table><thead><tr><th>full_name</th><th>email_upper</th><th>name_len</th><th>area_code</th></tr></thead>
+          <tbody><tr><td>Asha Rao</td><td>ASHA.RAO@MAIL.COM</td><td>8</td><td>044</td></tr></tbody></table>
+        </div>
+        <div class="box mistake"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round"/><path d="M10.3 3.9L2.5 18a1.8 1.8 0 001.5 2.7h16a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z" stroke="#fb5a7e" stroke-width="1.5"/></svg></div><div><b class="box-title">Common Mistake</b><p>MySQL's <code style="font-family:var(--mono)">SUBSTRING</code> is <b>1-indexed</b>, not 0-indexed like Java's <code style="font-family:var(--mono)">substring()</code> — <code style="font-family:var(--mono)">SUBSTRING('Hello', 1, 2)</code> returns <code style="font-family:var(--mono)">'He'</code>, starting from position 1.</p></div></div>
+      </section>
+
+      <!-- ================= DATE FUNCTIONS ================= -->
+      <section class="block reveal" id="date-fns">
+        <div class="block-head"><span class="num">11</span><h2>Date Functions</h2></div>
+        <p class="block-sub">Extract, compute, and format date/time values — essential for reports, audit logs, and scheduling logic.</p>
+        <div class="fn-pill-grid">
+          <span class="fn-pill">NOW() / CURDATE()</span><span class="fn-pill">DATEDIFF()</span><span class="fn-pill">DATE_ADD() / DATE_SUB()</span>
+          <span class="fn-pill">DATE_FORMAT()</span><span class="fn-pill">YEAR() / MONTH() / DAY()</span><span class="fn-pill">TIMESTAMPDIFF()</span>
+        </div>
+        <div class="code">
+          <div class="code-head"><span>date_functions.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> <span class="id">name</span>,
+       <span class="fn">DATEDIFF</span>(<span class="fn">CURDATE</span>(), <span class="id">joining_date</span>) <span class="kw">AS</span> <span class="id">days_employed</span>,
+       <span class="fn">DATE_FORMAT</span>(<span class="id">joining_date</span>, <span class="str">'%d-%b-%Y'</span>) <span class="kw">AS</span> <span class="id">pretty_date</span>,
+       <span class="fn">DATE_ADD</span>(<span class="id">joining_date</span>, <span class="kw">INTERVAL</span> <span class="num">1</span> <span class="kw">YEAR</span>) <span class="kw">AS</span> <span class="id">first_anniversary</span>
+<span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="fn">YEAR</span>(<span class="id">joining_date</span>) = <span class="num">2023</span>;</pre>
+        </div>
+        <div class="box tip"><div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#34d399" stroke-width="1.6"/></svg></div><div><b class="box-title">Best Practice</b><p>Avoid wrapping an indexed date column in a function inside WHERE (e.g. <code style="font-family:var(--mono)">YEAR(joining_date) = 2023</code>) in performance-critical queries — it disables index usage. Prefer a range: <code style="font-family:var(--mono)">joining_date BETWEEN '2023-01-01' AND '2023-12-31'</code>.</p></div></div>
+      </section>
+
+      <!-- ================= NULL FUNCTIONS ================= -->
+      <section class="block reveal" id="null-fns">
+        <div class="block-head"><span class="num">12</span><h2>NULL-Handling Functions</h2></div>
+        <p class="block-sub">NULL means "unknown" — these functions are how MySQL lets you handle that gracefully instead of writing verbose CASE logic everywhere.</p>
+        <div class="code">
+          <div class="code-head"><span>null_functions.sql</span><div class="dots"><i></i><i></i><i></i></div></div>
+          <pre><span class="kw">SELECT</span> <span class="id">name</span>,
+       <span class="fn">IFNULL</span>(<span class="id">commission</span>, <span class="num">0</span>) <span class="kw">AS</span> <span class="id">commission_safe</span>,
+       <span class="fn">COALESCE</span>(<span class="id">phone</span>, <span class="id">alt_phone</span>, <span class="str">'N/A'</span>) <span class="kw">AS</span> <span class="id">contact</span>,
+       <span class="fn">NULLIF</span>(<span class="id">discount</span>, <span class="num">0</span>) <span class="kw">AS</span> <span class="id">real_discount</span>
+<span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">manager_id</span> <span class="kw">IS NOT NULL</span>;</pre>
+        </div>
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>Function</th><th>Behaviour</th></tr></thead>
+            <tbody>
+              <tr><td><code style="font-family:var(--mono)">IS NULL</code> / <code style="font-family:var(--mono)">IS NOT NULL</code></td><td>The only correct way to test for NULL — <code style="font-family:var(--mono)">= NULL</code> never works</td></tr>
+              <tr><td><code style="font-family:var(--mono)">IFNULL(a, b)</code></td><td>Returns <code style="font-family:var(--mono)">b</code> if <code style="font-family:var(--mono)">a</code> is NULL, else <code style="font-family:var(--mono)">a</code> (MySQL-specific, 2 args)</td></tr>
+              <tr><td><code style="font-family:var(--mono)">COALESCE(a, b, c...)</code></td><td>Returns the first non-NULL value in the list — standard SQL, any number of args</td></tr>
+              <tr><td><code style="font-family:var(--mono)">NULLIF(a, b)</code></td><td>Returns NULL if <code style="font-family:var(--mono)">a = b</code>, else returns <code style="font-family:var(--mono)">a</code> — useful for avoiding divide-by-zero</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= COMMON MISTAKES ================= -->
+      <section class="block reveal" id="mistakes">
+        <div class="block-head"><span class="num">13</span><h2>Common Mistakes &amp; Performance Notes</h2></div>
+        <div id="acc-mistakes">
+          <div class="acc-item"><div class="acc-head">Using <code style="font-family:var(--mono)">= NULL</code> instead of <code style="font-family:var(--mono)">IS NULL</code> <span class="chev">▾</span></div><div class="acc-body"><div class="acc-body-inner">Always evaluates to UNKNOWN, so the row is never matched — one of the single most common fresher bugs in WHERE clauses.</div></div></div>
+          <div class="acc-item"><div class="acc-head">Leading-wildcard LIKE on large tables <span class="chev">▾</span></div><div class="acc-body"><div class="acc-body-inner"><code style="font-family:var(--mono)">LIKE '%term'</code> can't use a standard index — for real search, consider MySQL full-text indexes instead.</div></div></div>
+          <div class="acc-item"><div class="acc-head">NOT IN with a NULL-containing subquery <span class="chev">▾</span></div><div class="acc-body"><div class="acc-body-inner">Silently returns zero rows instead of erroring, because comparing anything to NULL with NOT IN produces UNKNOWN for every row.</div></div></div>
+          <div class="acc-item"><div class="acc-head">Wrapping indexed columns in functions inside WHERE <span class="chev">▾</span></div><div class="acc-body"><div class="acc-body-inner">e.g. <code style="font-family:var(--mono)">WHERE YEAR(created_at) = 2024</code> forces a full scan. Use a range comparison on the raw column instead.</div></div></div>
+          <div class="acc-item"><div class="acc-head">Forgetting that string comparisons can be case-insensitive by default <span class="chev">▾</span></div><div class="acc-body"><div class="acc-body-inner">MySQL's default collation is often case-insensitive, so <code style="font-family:var(--mono)">'Asha' = 'asha'</code> may return TRUE unless the column uses a case-sensitive (<code style="font-family:var(--mono)">_bin</code> or <code style="font-family:var(--mono)">_cs</code>) collation.</div></div></div>
+        </div>
+      </section>
+
+      <!-- ================= SPRING BOOT RELATION ================= -->
+      <section class="block reveal" id="springboot">
+        <div class="block-head"><span class="num">14</span><h2>Spring Boot Relation</h2></div>
+        <p class="block-sub">How these operators and functions surface in Spring Data JPA and JPQL.</p>
+        <div class="table-wrap">
+          <table class="cmp">
+            <thead><tr><th>SQL Concept</th><th>Spring Boot / JPA Equivalent</th></tr></thead>
+            <tbody>
+              <tr><td>LIKE</td><td><code style="font-family:var(--mono)">findByNameContaining()</code>, <code style="font-family:var(--mono)">findByNameStartingWith()</code> derived queries</td></tr>
+              <tr><td>BETWEEN</td><td><code style="font-family:var(--mono)">findBySalaryBetween(min, max)</code></td></tr>
+              <tr><td>IN</td><td><code style="font-family:var(--mono)">findByDepartmentIn(List&lt;String&gt;)</code></td></tr>
+              <tr><td>EXISTS</td><td><code style="font-family:var(--mono)">existsBy...()</code> repository methods</td></tr>
+              <tr><td>IS NULL / COALESCE</td><td><code style="font-family:var(--mono)">findByManagerIsNull()</code>, or <code style="font-family:var(--mono)">@Query</code> with JPQL COALESCE</td></tr>
+              <tr><td>String/Date functions</td><td>Usually done in Java after fetching, or via native <code style="font-family:var(--mono)">@Query(nativeQuery = true)</code> when it must happen in SQL</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= TRADEOFFS ================= -->
+      <section class="block reveal" id="tradeoffs">
+        <div class="block-head"><span class="num">15</span><h2>IN vs EXISTS vs JOIN</h2></div>
+        <div class="tabs" id="tradeoff-tabs">
+          <button class="tab-btn active" data-tab="in">Use IN</button>
+          <button class="tab-btn" data-tab="exists">Use EXISTS</button>
+          <button class="tab-btn" data-tab="join">Use JOIN</button>
+        </div>
+        <div class="tab-panel active" data-panel="in"><ul class="plain"><li>You have a small, fixed, known list of literal values.</li><li>Readability matters more than micro-optimisation for a tiny table.</li></ul></div>
+        <div class="tab-panel" data-panel="exists"><ul class="plain"><li>You only need to know whether related rows exist — not their actual data.</li><li>The subquery may contain NULLs, where NOT IN would be unsafe.</li><li>The inner table is large — EXISTS can short-circuit on first match.</li></ul></div>
+        <div class="tab-panel" data-panel="join"><ul class="plain"><li>You actually need columns from both tables in the result set.</li><li>You're aggregating across the relationship (COUNT, SUM per group).</li></ul></div>
+      </section>
+
+      <!-- ================= MEMORY TRICKS ================= -->
+      <section class="block reveal" id="memory">
+        <div class="block-head"><span class="num">16</span><h2>Memory Tricks</h2></div>
+        <div class="grid-3">
+          <div class="card"><b style="color:var(--cyan);font-size:13px;">Precedence</b><p class="body-p" style="margin-top:8px;">"My Aunt Called, Not Angry, Or" → * (Multiply) → + (Add) → Comparison → NOT → AND → OR.</p></div>
+          <div class="card"><b style="color:var(--cyan);font-size:13px;">LIKE Wildcards</b><p class="body-p" style="margin-top:8px;">"% is many, _ is uno" → % = zero-or-more characters, _ = exactly one character.</p></div>
+          <div class="card"><b style="color:var(--cyan);font-size:13px;">NULL Functions</b><p class="body-p" style="margin-top:8px;">"COALESCE Collects, NULLIF Nullifies" → COALESCE picks first non-null; NULLIF turns a match into NULL.</p></div>
+        </div>
+      </section>
+
+      <!-- ================= TOP 20 ================= -->
+      <section class="block reveal" id="top20">
+        <div class="block-head"><span class="num">17</span><h2>Top 20 Interview Questions</h2></div>
+        <p class="block-sub">Tagged with the companies where this style of question is commonly reported.</p>
+        <div id="acc-top20"></div>
+      </section>
+
+      <!-- ================= FLASHCARDS ================= -->
+      <section class="block reveal" id="flashcards">
+        <div class="block-head"><span class="num">18</span><h2>Flash Cards</h2></div>
+        <p class="block-sub">Tap a card to flip it.</p>
+        <div class="fc-grid" id="fc-grid"></div>
+      </section>
+
+      <!-- ================= QUIZ ================= -->
+      <section class="block reveal" id="quiz">
+        <div class="block-head"><span class="num">19</span><h2>Quick Quiz</h2></div>
+        <p class="block-sub">Pick an answer — instant feedback, no page reload.</p>
+        <div id="quiz-container"></div>
+        <div class="quiz-score" id="quiz-score">Score: 0 / 0</div>
+      </section>
+
+      <!-- ================= SQL PRACTICE ================= -->
+      <section class="block reveal" id="practice">
+        <div class="block-head"><span class="num">20</span><h2>SQL Practice Questions</h2></div>
+        <div id="acc-practice">
+          <div class="acc-item">
+            <div class="acc-head">Find employees whose name starts with 'S' and ends with 'a' <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">
+              <div class="code" style="margin:0;"><pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="id">employee</span>
+<span class="kw">WHERE</span> <span class="id">name</span> <span class="kw">LIKE</span> <span class="str">'S%a'</span>;</pre></div>
+            </div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">Find departments that have zero employees, using EXISTS <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">
+              <div class="code" style="margin:0;"><pre><span class="kw">SELECT</span> d.<span class="id">name</span> <span class="kw">FROM</span> <span class="id">department</span> d
+<span class="kw">WHERE NOT EXISTS</span> (
+  <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="id">employee</span> e <span class="kw">WHERE</span> e.<span class="id">department_id</span> = d.<span class="id">id</span>
+);</pre></div>
+            </div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-head">Replace NULL commissions with 0 and compute total pay <span class="chev">▾</span></div>
+            <div class="acc-body"><div class="acc-body-inner">
+              <div class="code" style="margin:0;"><pre><span class="kw">SELECT</span> <span class="id">name</span>, <span class="id">salary</span> + <span class="fn">IFNULL</span>(<span class="id">commission</span>, <span class="num">0</span>) <span class="kw">AS</span> <span class="id">total_pay</span>
+<span class="kw">FROM</span> <span class="id">employee</span>;</pre></div>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CHEAT SHEET ================= -->
+      <section class="block reveal" id="cheatsheet">
+        <div class="block-head"><span class="num">21</span><h2>Cheat Sheet</h2></div>
+        <div class="cheat-grid">
+          <div class="cheat-item"><code>+ − * / % DIV</code><p>Arithmetic — division always returns a float</p></div>
+          <div class="cheat-item"><code>= != &lt;&gt; &lt; &gt; &lt;= &gt;= &lt;=&gt;</code><p>Comparison — &lt;=&gt; is MySQL's NULL-safe equals</p></div>
+          <div class="cheat-item"><code>AND OR NOT XOR</code><p>Logical — NULL introduces 3-valued logic</p></div>
+          <div class="cheat-item"><code>LIKE '%x%' / '_x'</code><p>% = many chars, _ = one char</p></div>
+          <div class="cheat-item"><code>BETWEEN a AND b</code><p>Inclusive on both ends</p></div>
+          <div class="cheat-item"><code>IN (...) / NOT IN (...)</code><p>Avoid NOT IN with nullable subqueries</p></div>
+          <div class="cheat-item"><code>EXISTS (...)</code><p>Short-circuits, NULL-safe, use for large tables</p></div>
+          <div class="cheat-item"><code>IFNULL / COALESCE / NULLIF</code><p>The three NULL-handling workhorses</p></div>
+        </div>
+      </section>
+
+      <!-- ================= MIND MAP ================= -->
+      <section class="block reveal" id="mindmap">
+        <div class="block-head"><span class="num">22</span><h2>Mind Map</h2></div>
+        <div class="mindmap">
+          <div class="mm-root">Operators &amp; Functions</div>
+          <div class="mm-branches">
+            <div class="mm-node"><b>Operators</b><span>Arithmetic·Comparison·Logical</span></div>
+            <div class="mm-node"><b>Pattern &amp; Set</b><span>LIKE·BETWEEN·IN·EXISTS</span></div>
+            <div class="mm-node"><b>String Fns</b><span>CONCAT·SUBSTRING·TRIM</span></div>
+            <div class="mm-node"><b>Date Fns</b><span>NOW·DATEDIFF·DATE_FORMAT</span></div>
+            <div class="mm-node"><b>NULL Fns</b><span>IFNULL·COALESCE·NULLIF</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ROADMAP ================= -->
+      <section class="block reveal" id="roadmap">
+        <div class="block-head"><span class="num">23</span><h2>Learning Roadmap &amp; Further Topics</h2></div>
+        <div class="timeline">
+          <div class="tl-item"><h4>Module 5 — Operators &amp; Built-in Functions ✓ (you are here)</h4><p>Arithmetic, comparison, logical operators; LIKE, BETWEEN, IN, EXISTS; string, date, NULL functions.</p></div>
+          <div class="tl-item"><h4>Module 6 — Aggregate Functions &amp; GROUP BY</h4><p>COUNT, SUM, AVG, MIN, MAX, GROUP BY with multiple columns, ROLLUP.</p></div>
+          <div class="tl-item"><h4>Module 7 — Joins Deep Dive</h4><p>INNER/LEFT/RIGHT/FULL joins, self-joins, join performance.</p></div>
+          <div class="tl-item"><h4>Module 8 — Subqueries &amp; Set Operations</h4><p>Correlated subqueries, UNION, UNION ALL, INTERSECT patterns.</p></div>
+          <div class="tl-item"><h4>Module 9 — Indexing &amp; Query Optimization</h4><p>EXPLAIN plans, covering indexes, when functions defeat indexes.</p></div>
+        </div>
+        <h3 class="sub-h">Summary</h3>
+        <p class="body-p">Arithmetic operators compute; comparison and logical operators filter, with NULL introducing three-valued logic that trips up most freshers. LIKE, BETWEEN, IN, and EXISTS each express a different shape of condition — pattern, range, list, and existence — and choosing the right one is both a readability and a performance decision. String, date, and NULL functions round out the toolkit MySQL gives you to clean and reshape data without leaving the database. Spring Boot mirrors almost all of this through derived query method names and JPQL, but native SQL is still the fallback whenever a function needs to run inside the database itself.</p>
+      </section>
+
+      <footer>Module 5 of the MySQL Interview Mastery series · Built for Java Full Stack fresher interviews</footer>
+    </div>
+  </main>
+</div>
+
+<div id="toTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+/* ---------------- progress bar + back to top + active nav ---------------- */
+const progressBar = document.getElementById('progress-bar');
+const toTop = document.getElementById('toTop');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+  toTop.classList.toggle('show', h.scrollTop > 600);
+});
+
+/* reveal on scroll — progressive enhancement only.
+   Sections are visible by CSS default; here we opt each one into a hidden
+   start state and immediately schedule it to reveal, so a slow/failed
+   IntersectionObserver never leaves content permanently invisible. */
+const revealEls = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window) {
+  revealEls.forEach(el => el.classList.add('pre'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:0.12});
+  revealEls.forEach(el => io.observe(el));
+  setTimeout(() => revealEls.forEach(el => el.classList.add('in')), 4000);
+}
+
+/* active sidebar link on scroll */
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = [...document.querySelectorAll('section[id]')];
+const navObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const link = document.querySelector('.nav-link[href="#'+entry.target.id+'"]');
+      if(link) link.classList.add('active');
+    }
+  });
+},{rootMargin:'-30% 0px -60% 0px'});
+sections.forEach(s=>navObserver.observe(s));
+
+/* mobile sidebar toggle */
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=> sidebar.classList.toggle('open'));
+navLinks.forEach(l => l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+/* ---------------- run demo output ---------------- */
+function runDemo(id){
+  const el = document.getElementById('out-'+id);
+  el.classList.toggle('show');
+}
+
+/* ---------------- accordion generic ---------------- */
+function wireAccordions(root){
+  root.querySelectorAll('.acc-head').forEach(head=>{
+    head.addEventListener('click', ()=>{
+      const item = head.parentElement;
+      const body = item.querySelector('.acc-body');
+      const isOpen = item.classList.contains('open');
+      item.classList.toggle('open', !isOpen);
+      body.style.maxHeight = isOpen ? null : body.scrollHeight + 'px';
+    });
+  });
+}
+wireAccordions(document.getElementById('acc-mistakes'));
+wireAccordions(document.getElementById('acc-practice'));
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll('#tradeoff-tabs .tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tradeoff-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector('.tab-panel[data-panel="'+btn.dataset.tab+'"]').classList.add('active');
+  });
+});
+
+/* ---------------- precedence pipeline ---------------- */
+const pipeDetails = [
+  {name:'* / % DIV', text:'Multiplicative operators bind tightest. In 10 + 5 * 2, the 5 * 2 = 10 is computed first, before the addition.'},
+  {name:'+ −', text:'Additive operators run next: 10 + 10 (from the previous step) = 20.'},
+  {name:'Comparison', text:'Now the comparison runs: 20 > 15 evaluates to TRUE.'},
+  {name:'NOT', text:'NOT FALSE evaluates to TRUE — NOT binds tighter than AND/OR, flipping only the value right next to it.'},
+  {name:'AND', text:'TRUE AND TRUE (from the comparison and the NOT step) evaluates to TRUE.'},
+  {name:'OR / XOR', text:'OR and XOR have the lowest precedence of all — they combine whatever AND has already resolved. Not used in this example, but always evaluated last.'}
+];
+const stages = document.querySelectorAll('.pipe-stage');
+const pipeDetail = document.getElementById('pipe-detail');
+function activateStage(i){
+  stages.forEach(s=>s.classList.remove('active'));
+  stages[i].classList.add('active');
+  pipeDetail.innerHTML = '<h4>'+pipeDetails[i].name+'</h4><p>'+pipeDetails[i].text+'</p>';
+}
+stages.forEach(s=>{
+  s.addEventListener('click', ()=> activateStage(parseInt(s.dataset.i)));
+});
+let autoPlayed = false;
+const pipeIO = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting && !autoPlayed){
+      autoPlayed = true;
+      let i = 0;
+      const iv = setInterval(()=>{
+        activateStage(i);
+        i++;
+        if(i >= stages.length){ clearInterval(iv); }
+      }, 900);
+    }
+  });
+},{threshold:0.5});
+pipeIO.observe(document.getElementById('pipeline'));
+
+/* ---------------- Top 20 interview questions ---------------- */
+const top20 = [
+  {q:'What does MySQL return for 10 / 0?', a:'NULL — division by zero does not raise an error in MySQL by default, it silently returns NULL.', co:'Zoho', diff:'med'},
+  {q:'Why does WHERE column = NULL never return any rows?', a:'Comparing anything to NULL with = produces UNKNOWN, not TRUE, because NULL represents an unknown value. Use IS NULL instead.', co:'TCS Digital', diff:'easy'},
+  {q:'What is the MySQL-specific NULL-safe equality operator?', a:'<=> — it returns TRUE, FALSE, but never NULL, even when comparing NULL to NULL (returns TRUE) or NULL to a value (returns FALSE).', co:'Infosys', diff:'med'},
+  {q:'Difference between % and _ in LIKE patterns?', a:'% matches zero or more characters of any kind; _ matches exactly one character.', co:'Wipro', diff:'easy'},
+  {q:'Why can NOT IN silently return zero rows?', a:'If the list or subquery contains even one NULL, every comparison becomes UNKNOWN, so NOT IN can never be satisfied for any row.', co:'Zoho', diff:'hard'},
+  {q:'When would you choose EXISTS over IN?', a:'When the subquery is correlated, may contain NULLs, or scans a large table — EXISTS short-circuits on the first match and is NULL-safe.', co:'Product Companies', diff:'hard'},
+  {q:'Is BETWEEN inclusive or exclusive of its boundary values?', a:'Inclusive on both ends — BETWEEN 10 AND 20 includes both 10 and 20.', co:'Accenture', diff:'easy'},
+  {q:'What is the difference between IFNULL and COALESCE?', a:'IFNULL is MySQL-specific and takes exactly two arguments. COALESCE is standard SQL and accepts any number of arguments, returning the first non-NULL one.', co:'Capgemini', diff:'med'},
+  {q:'What does NULLIF(a, b) do and when is it useful?', a:'Returns NULL if a equals b, otherwise returns a — commonly used to avoid divide-by-zero errors, e.g. total / NULLIF(count, 0).', co:'Cognizant', diff:'med'},
+  {q:'Why does wrapping a column in a function inside WHERE hurt performance?', a:'It prevents MySQL\\'s optimizer from using an index on that column, forcing a full table scan since the function must be evaluated per-row before comparison.', co:'HCL', diff:'hard'},
+  {q:'Explain the operator precedence between AND and OR.', a:'AND has higher precedence than OR, similar to multiplication over addition in arithmetic — A OR B AND C evaluates as A OR (B AND C).', co:'Zoho', diff:'med'},
+  {q:'What are the three possible outcomes of a comparison involving NULL?', a:'A comparison can only ever be TRUE, FALSE, or UNKNOWN — any comparison involving NULL evaluates to UNKNOWN.', co:'TCS Digital', diff:'med'},
+  {q:'Rewrite BETWEEN 10 AND 20 using comparison operators.', a:'value >= 10 AND value <= 20.', co:'Infosys', diff:'easy'},
+  {q:'What does MySQL\\'s SUBSTRING indexing start at?', a:'Position 1, not 0 — unlike many programming languages including Java.', co:'Wipro', diff:'easy'},
+  {q:'How would you safely compute an average that might divide by zero in SQL?', a:'Use NULLIF on the denominator: total / NULLIF(count, 0), which returns NULL instead of erroring when count is 0.', co:'Product Companies', diff:'hard'},
+  {q:'Why might a case-sensitive string comparison unexpectedly succeed or fail?', a:'MySQL\\'s default collation is often case-insensitive (e.g. utf8mb4_general_ci), so \\'Asha\\' = \\'asha\\' may be TRUE unless the column explicitly uses a case-sensitive or binary collation.', co:'Capgemini', diff:'hard'},
+  {q:'What is the effect of a leading wildcard in LIKE on index usage?', a:'LIKE \\'%term\\' cannot use a standard B-Tree index because the engine cannot know where a match might start; LIKE \\'term%\\' can still use one.', co:'Cognizant', diff:'med'},
+  {q:'What does XOR return when both operands are TRUE?', a:'FALSE — XOR (exclusive OR) is TRUE only when exactly one operand is TRUE, not when both or neither are.', co:'Accenture', diff:'med'},
+  {q:'How do you combine a string and a NULL with CONCAT in MySQL?', a:'CONCAT() returns NULL if any argument is NULL; use CONCAT_WS() or wrap arguments with IFNULL/COALESCE to avoid losing the whole string.', co:'HCL', diff:'hard'},
+  {q:'What\\'s the safest way to test set membership when the list might include NULL?', a:'Avoid NOT IN with a nullable list; use NOT EXISTS with a correlated subquery, or explicitly filter out NULLs first.', co:'Zoho', diff:'hard'}
+];
+const top20Container = document.getElementById('acc-top20');
+top20.forEach((item,idx)=>{
+  const div = document.createElement('div');
+  div.className='acc-item';
+  div.innerHTML = `<div class="acc-head"><span>${idx+1}. ${item.q} <span class="tag company">${item.co}</span><span class="tag ${item.diff}">${item.diff}</span></span><span class="chev">▾</span></div>
+  <div class="acc-body"><div class="acc-body-inner">${item.a}</div></div>`;
+  top20Container.appendChild(div);
+});
+wireAccordions(top20Container);
+
+/* ---------------- flash cards ---------------- */
+const flashcards = [
+  {f:'10 / 0 in MySQL', b:'Returns NULL — no error, no infinity.'},
+  {f:'NULL = NULL', b:'Evaluates to NULL (UNKNOWN), never TRUE. Use IS NULL to test.'},
+  {f:'<=>', b:'MySQL\\'s NULL-safe equality operator — never returns NULL itself.'},
+  {f:'% vs _', b:'% = zero or more characters. _ = exactly one character.'},
+  {f:'BETWEEN', b:'Inclusive on both boundary values.'},
+  {f:'NOT IN + NULL', b:'Silently returns zero rows if the list contains a NULL.'},
+  {f:'EXISTS', b:'Short-circuits on first match, NULL-safe, ideal for large correlated checks.'},
+  {f:'IFNULL vs COALESCE', b:'IFNULL: 2 args, MySQL-only. COALESCE: N args, standard SQL.'},
+  {f:'NULLIF(a,b)', b:'Returns NULL if a=b, else a — classic divide-by-zero guard.'},
+  {f:'Operator precedence', b:'* / % → + − → comparisons → NOT → AND → OR/XOR.'},
+  {f:'SUBSTRING indexing', b:'1-indexed in MySQL, not 0-indexed.'},
+  {f:'Function-wrapped WHERE column', b:'Disables index usage — prefer range comparisons on raw columns.'}
+];
+const fcGrid = document.getElementById('fc-grid');
+flashcards.forEach(c=>{
+  const div = document.createElement('div');
+  div.className='fc';
+  div.innerHTML = `<div class="fc-inner">
+    <div class="fc-face fc-front">${c.f}<small>Tap to flip</small></div>
+    <div class="fc-face fc-back">${c.b}</div>
+  </div>`;
+  div.addEventListener('click', ()=> div.classList.toggle('flip'));
+  fcGrid.appendChild(div);
+});
+
+/* ---------------- quiz ---------------- */
+const quizData = [
+  {q:'What does 10 / 0 return in MySQL?', opts:['Error','Infinity','NULL','0'], correct:2},
+  {q:'Which operator has the lowest precedence?', opts:['*','AND','OR','NOT'], correct:2},
+  {q:'Which LIKE pattern matches exactly one character?', opts:['%','_','?','#'], correct:1},
+  {q:'Which is NULL-safe: IN or EXISTS?', opts:['IN','EXISTS','Both','Neither'], correct:1},
+  {q:'Which function returns the first non-NULL value from a list?', opts:['IFNULL','NULLIF','COALESCE','ISNULL'], correct:2}
+];
+let score=0, answered=0;
+const quizContainer = document.getElementById('quiz-container');
+quizData.forEach((item,qi)=>{
+  const card = document.createElement('div');
+  card.className='quiz-card';
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${item.q}</div>` +
+    item.opts.map((o,oi)=>`<button class="quiz-opt" data-q="${qi}" data-o="${oi}">${o}</button>`).join('');
+  quizContainer.appendChild(card);
+});
+quizContainer.addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('quiz-opt')) return;
+  const btn = e.target;
+  if(btn.disabled) return;
+  const qi = btn.dataset.q, item = quizData[qi];
+  const allBtns = quizContainer.querySelectorAll(`[data-q="${qi}"]`);
+  allBtns.forEach(b=>b.disabled=true);
+  const oi = parseInt(btn.dataset.o);
+  if(oi === item.correct){ btn.classList.add('correct'); score++; }
+  else {
+    btn.classList.add('wrong');
+    allBtns[item.correct].classList.add('correct');
+  }
+  answered++;
+  document.getElementById('quiz-score').textContent = `Score: ${score} / ${answered}`;
+});
+</script>
+</body>
+</html>
