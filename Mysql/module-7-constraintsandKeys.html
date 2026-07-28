@@ -1649,7 +1649,8 @@
                         <code style="font-family:var(--mono)">{id}</code> is a super key. So is <code
                             style="font-family:var(--mono)">{id, first_name}</code> — it's still unique because <code
                             style="font-family:var(--mono)">id</code> alone already guarantees that — but it's <b>not
-                            minimal</b>, so it's not a candidate key.</p>
+                            minimal</b>, so it's not a candidate key.
+                    </p>
                     <div class="box mistake">
                         <div class="box-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <path d="M12 9v4M12 17h.01" stroke="#fb5a7e" stroke-width="2" stroke-linecap="round" />
@@ -1676,7 +1677,8 @@
                             style="font-family:var(--mono)">email</code> — still perfectly valid unique identifiers —
                         become alternate keys. In MySQL you enforce them with a <code
                             style="font-family:var(--mono)">UNIQUE</code> constraint, since the PRIMARY KEY slot is
-                        already taken.</p>
+                        already taken.
+                    </p>
                     <div class="code">
                         <div class="code-head"><span>alternate_key.sql</span>
                             <div class="dots"><i></i><i></i><i></i></div>
@@ -2184,19 +2186,19 @@
             { q: 'Why do product companies prefer surrogate keys over natural keys?', a: 'Surrogate keys never change and carry no business meaning, avoiding cascading updates when a natural value like an email changes, and they are typically smaller and faster to index.', co: 'Product Companies', diff: 'hard' },
             { q: 'From which MySQL version is CHECK actually enforced?', a: 'MySQL 8.0.16 — earlier versions accept CHECK syntax but silently ignore it.', co: 'Cognizant', diff: 'hard' },
             {
-                q: 'What happens on ON DELETE CASCADE vs ON DELETE SET NULL?', a: 'CASCADE automatically deletes matching child rows when the parent is deleted; SET NULL instead sets the child\\'s foreign key column to NULL, keeping the child row.', co:'HCL', diff:'med'},
+                q: 'What happens on ON DELETE CASCADE vs ON DELETE SET NULL?', a: 'CASCADE automatically deletes matching child rows when the parent is deleted; SET NULL instead sets the child\'s foreign key column to NULL, keeping the child row.', co:'HCL', diff:'med'},
   { q: 'Is NOT NULL the same as a CHECK constraint?', a: 'No — NOT NULL only ensures a column always has a value; CHECK can enforce arbitrary boolean conditions across one or more columns.', co: 'Wipro', diff: 'easy' },
   { q: 'How does InnoDB physically use the PRIMARY KEY?', a: 'InnoDB stores table rows in a clustered index ordered by the primary key, and every secondary index stores the primary key value internally to fetch full rows.', co: 'Zoho', diff: 'hard' },
             { q: 'What is the default action if a FOREIGN KEY has no ON DELETE clause?', a: 'RESTRICT (or NO ACTION) — MySQL blocks the delete on the parent if matching child rows exist.', co: 'TCS Digital', diff: 'med' },
             {
-                q: 'Can a column be both PRIMARY KEY and FOREIGN KEY at the same time?', a: 'Yes — common in a one-to-one relationship, where the child table\\'s primary key is also a foreign key referencing the parent.', co:'Infosys', diff:'med'},
+                q: 'Can a column be both PRIMARY KEY and FOREIGN KEY at the same time?', a: 'Yes — common in a one-to-one relationship, where the child table\'s primary key is also a foreign key referencing the parent.', co:'Infosys', diff:'med'},
   { q: 'What is the minimality property of a candidate key?', a: 'No column can be removed from the key without losing its ability to uniquely identify rows — this is what separates a candidate key from a merely-unique super key.', co: 'Accenture', diff: 'hard' },
-  { q: 'Why might using email as a PRIMARY KEY be risky?', a: 'Users can change their email; since foreign keys reference the primary key, that change would need to cascade everywhere it\\'s referenced — expensive and error- prone compared to a stable surrogate ID.', co:'Product Companies', diff:'hard'},
+  { q: 'Why might using email as a PRIMARY KEY be risky?', a: 'Users can change their email; since foreign keys reference the primary key, that change would need to cascade everywhere it\'s referenced — expensive and error-prone compared to a stable surrogate ID.', co:'Product Companies', diff:'hard'},
   {
-                q: 'What\\'s the difference between DEFAULT and NOT NULL?', a:'DEFAULT supplies an automatic value when none is given; NOT NULL just rejects any attempt to leave the column empty — they are often used together.', co:'Capgemini', diff:'easy'},
+                q: 'What\'s the difference between DEFAULT and NOT NULL?', a:'DEFAULT supplies an automatic value when none is given; NOT NULL just rejects any attempt to leave the column empty — they are often used together.', co:'Capgemini', diff:'easy'},
   { q: 'Does adding a UNIQUE constraint automatically create an index?', a: 'Yes — MySQL creates a unique index behind every UNIQUE constraint (and every PRIMARY KEY), which is why over-adding them can slow down writes.', co: 'Cognizant', diff: 'med' },
   { q: 'What is a super key that is also minimal called?', a: 'A candidate key — minimality is exactly the property that promotes a super key to candidate status.', co: 'Wipro', diff: 'easy' },
-            { q: 'Explain referential integrity in one sentence.', a: 'It\\'s the guarantee that a foreign key value always matches an existing value in the referenced table\\'s primary/unique key, or is NULL if allowed.', co: 'HCL', diff: 'med' },
+            { q: 'Explain referential integrity in one sentence.', a: 'It\'s the guarantee that a foreign key value always matches an existing value in the referenced table\'s primary/unique key, or is NULL if allowed.', co: 'HCL', diff: 'med' },
             { q: 'Why does adding too many FOREIGN KEY / UNIQUE constraints slow down writes?', a: 'Each one typically backs an index that MySQL must check and update on every INSERT/UPDATE/DELETE, trading write performance for stronger guarantees and faster reads.', co: 'Zoho', diff: 'hard' }
         ];
         const top20Container = document.getElementById('acc-top20');
@@ -2212,8 +2214,8 @@
         /* ---------------- flash cards ---------------- */
         const flashcards = [
             {
-                f: 'PRIMARY KEY', b: 'Unique + NOT NULL, one per table, drives InnoDB\\'s clustered storage order.'},
-  { f: 'FOREIGN KEY', b: 'References another table\\'s PK/ UNIQUE key — needs InnoDB to be enforced.'},
+                f: 'PRIMARY KEY', b: 'Unique + NOT NULL, one per table, drives InnoDB\'s clustered storage order.'},
+  { f: 'FOREIGN KEY', b: 'References another table\'s PK/ UNIQUE key — needs InnoDB to be enforced.'},
   { f: 'UNIQUE', b: 'No duplicate values, but multiple NULLs allowed in MySQL.' },
   { f: 'CHECK', b: 'Enforces a boolean condition — only real from MySQL 8.0.16+.' },
             { f: 'DEFAULT', b: 'Auto-fills a value when INSERT omits the column.' },
