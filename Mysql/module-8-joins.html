@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 08 — Joins | MySQL Interview Blueprint</title>
+<style>
+:root{
+  --bg:#080b12;
+  --bg-2:#0c111c;
+  --panel:rgba(255,255,255,0.035);
+  --panel-strong:rgba(255,255,255,0.06);
+  --border:rgba(148,178,224,0.14);
+  --border-strong:rgba(148,178,224,0.28);
+  --grid:rgba(110,231,249,0.05);
+  --text:#e9edf6;
+  --text-dim:#94a1ba;
+  --text-faint:#576079;
+  --ink:#6EE7F9;
+  --ink-2:#A78BFA;
+  --amber:#f0b429;
+  --coral:#fb7185;
+  --mint:#34d399;
+  --code-bg:#0a0e17;
+  --radius:14px;
+  --font-display:'Segoe UI Semibold','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 15% -10%, rgba(110,231,249,0.08), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(167,139,250,0.07), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(90deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.6;
+}
+::selection{background:rgba(110,231,249,0.25);color:#fff;}
+a{color:inherit;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(148,178,224,0.25);border-radius:8px;}
+
+#progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--ink),var(--ink-2));
+  z-index:1000;
+  box-shadow:0 0 12px rgba(110,231,249,0.6);
+  transition:width .08s linear;
+}
+
+#topbar{
+  position:sticky;top:0;z-index:900;
+  display:none;
+  align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  background:rgba(8,11,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{font-family:var(--font-display);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);}
+#menu-toggle{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:8px 10px;cursor:pointer;
+}
+
+#layout{
+  display:grid;
+  grid-template-columns:270px minmax(0,1fr);
+  max-width:1400px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+
+#sidebar{
+  position:sticky;top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 18px 40px 28px;
+  border-right:1px solid var(--border);
+}
+.brand-block{margin-bottom:28px;}
+.brand-eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+  color:var(--ink);text-transform:uppercase;
+}
+.brand-title{
+  font-family:var(--font-display);font-size:19px;margin-top:6px;
+  letter-spacing:.01em;
+}
+.brand-sub{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+
+nav#toc{display:flex;flex-direction:column;gap:2px;}
+.toc-group-label{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;
+  color:var(--text-faint);text-transform:uppercase;
+  margin:16px 0 6px 12px;
+}
+.toc-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:8px;
+  font-size:13.5px;color:var(--text-dim);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.toc-link .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex:none;
+  transition:background .2s ease,box-shadow .2s ease;
+}
+.toc-link:hover{background:var(--panel);color:var(--text);}
+.toc-link.active{
+  background:var(--panel-strong);color:var(--ink);
+  border-left-color:var(--ink);
+}
+.toc-link.active .dot{background:var(--ink);box-shadow:0 0 8px var(--ink);}
+
+#sidebar-footer{
+  margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);
+}
+
+main{padding:0 0 120px 0;min-width:0;}
+.section{
+  padding:90px clamp(20px,4vw,64px) 10px;
+  scroll-margin-top:20px;
+  max-width:920px;
+}
+.section-inner{max-width:820px;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);
+  padding:5px 12px;border:1px solid rgba(110,231,249,0.3);
+  border-radius:999px;background:rgba(110,231,249,0.06);
+  margin-bottom:18px;
+}
+h1.section-title{
+  font-family:var(--font-display);font-size:clamp(28px,4vw,42px);
+  letter-spacing:-0.01em;line-height:1.15;margin-bottom:14px;
+}
+p.section-lede{font-size:16.5px;color:var(--text-dim);max-width:680px;margin-bottom:6px;}
+h2.h2{
+  font-family:var(--font-display);font-size:22px;margin:44px 0 14px;
+  display:flex;align-items:center;gap:10px;
+}
+h2.h2 .idx{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink);
+  border:1px solid var(--border-strong);border-radius:6px;
+  padding:2px 7px;
+}
+h3.h3{font-family:var(--font-display);font-size:16.5px;margin:22px 0 10px;color:var(--text);}
+p{font-size:15px;color:var(--text-dim);margin-bottom:12px;}
+p strong{color:var(--text);font-weight:600;}
+ul.plain-list{margin:8px 0 16px 0;padding-left:0;list-style:none;}
+ul.plain-list li{
+  position:relative;padding-left:20px;margin-bottom:8px;font-size:14.5px;color:var(--text-dim);
+}
+ul.plain-list li::before{
+  content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--ink);
+}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  backdrop-filter:blur(10px);
+  margin:16px 0;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 12px 30px -14px rgba(0,0,0,.6);}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.card-grid{grid-template-columns:1fr;}}
+
+.label-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.label-row svg{flex:none;}
+.label-row .lbl{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+
+.box{
+  border-radius:12px;padding:16px 18px;margin:16px 0;
+  border:1px solid; position:relative; overflow:hidden;
+}
+.box .box-title{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700;
+}
+.box p{margin-bottom:6px;font-size:14px;}
+.box.tip{background:rgba(110,231,249,0.06);border-color:rgba(110,231,249,0.28);}
+.box.tip .box-title{color:var(--ink);}
+.box.mistake{background:rgba(251,113,133,0.07);border-color:rgba(251,113,133,0.3);}
+.box.mistake .box-title{color:var(--coral);}
+.box.warn{background:rgba(240,180,41,0.08);border-color:rgba(240,180,41,0.32);}
+.box.warn .box-title{color:var(--amber);}
+.box.best{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);}
+.box.best .box-title{color:var(--mint);}
+.box.memory{background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(110,231,249,0.06));border-color:rgba(167,139,250,0.32);}
+.box.memory .box-title{color:var(--ink-2);}
+
+.code-block{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin:16px 0;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.code-head .dots{display:flex;gap:6px;}
+.code-head .dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);}
+.code-head .filename{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+.run-btn{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+  background:rgba(110,231,249,0.1);color:var(--ink);
+  border:1px solid rgba(110,231,249,0.35);border-radius:7px;
+  padding:5px 10px;cursor:pointer;transition:background .2s ease;
+}
+.run-btn:hover{background:rgba(110,231,249,0.2);}
+pre.code{
+  padding:16px 18px;font-family:var(--font-mono);font-size:13.2px;
+  overflow-x:auto;color:#c9d3e6;line-height:1.7;
+}
+.k{color:#6EE7F9;font-weight:600;}
+.t{color:#a78bfa;}
+.s{color:#fbbf24;}
+.c{color:#576079;font-style:italic;}
+.f{color:#34d399;}
+.n{color:#fb7185;}
+
+.exec-result{
+  border-top:1px dashed var(--border);
+  padding:14px 18px;font-family:var(--font-mono);font-size:12.5px;
+  color:var(--mint);display:none;
+}
+.exec-result.show{display:block;animation:fadein .4s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.exec-result table{border-collapse:collapse;margin-top:8px;width:100%;}
+.exec-result th,.exec-result td{border:1px solid rgba(52,211,153,0.25);padding:5px 10px;font-size:12px;color:var(--text-dim);}
+.exec-result th{color:var(--mint);text-align:left;}
+
+.tabs{display:flex;gap:6px;margin:16px 0 0;flex-wrap:wrap;}
+.tab-btn{
+  font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:8px 8px 0 0;
+  background:var(--panel);border:1px solid var(--border);border-bottom:none;
+  color:var(--text-faint);cursor:pointer;transition:color .2s,background .2s;
+}
+.tab-btn.active{color:var(--ink);background:var(--panel-strong);}
+.tab-panels{border:1px solid var(--border);border-radius:0 10px 10px 10px;background:var(--panel);padding:18px;margin-bottom:16px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadein .3s ease;}
+
+.accordion-item{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--panel);}
+.accordion-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;cursor:pointer;font-size:14.5px;color:var(--text);font-weight:500;
+}
+.accordion-head .plus{color:var(--ink);font-family:var(--font-mono);transition:transform .3s ease;font-size:16px;}
+.accordion-item.open .plus{transform:rotate(45deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 16px;}
+.accordion-item.open .accordion-body{padding:0 16px 16px;}
+.accordion-body p{font-size:13.8px;}
+.tag{
+  display:inline-block;font-family:var(--font-mono);font-size:10.5px;
+  padding:2px 8px;border-radius:999px;margin-left:8px;
+  background:rgba(167,139,250,0.12);color:var(--ink-2);border:1px solid rgba(167,139,250,0.3);
+}
+.tag.company{background:rgba(240,180,41,0.1);color:var(--amber);border-color:rgba(240,180,41,0.3);}
+.tag.scenario{background:rgba(251,113,133,0.1);color:var(--coral);border-color:rgba(251,113,133,0.3);}
+
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+.cmp-table th,.cmp-table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.cmp-table th{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--border-strong);
+}
+.cmp-table td{color:var(--text-dim);}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+.diagram-wrap{
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  background:radial-gradient(ellipse at top left, rgba(110,231,249,0.05), transparent 60%);
+  margin:18px 0;overflow-x:auto;
+}
+.diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;}
+
+.flow{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+.flow-step{display:flex;gap:16px;position:relative;padding-bottom:26px;}
+.flow-step:last-child{padding-bottom:0;}
+.flow-step::before{
+  content:"";position:absolute;left:15px;top:34px;bottom:0;width:1px;
+  background:linear-gradient(var(--border-strong),transparent);
+}
+.flow-step:last-child::before{display:none;}
+.flow-num{
+  flex:none;width:32px;height:32px;border-radius:50%;
+  background:var(--panel-strong);border:1px solid var(--border-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;color:var(--ink);z-index:1;
+}
+.flow-body{padding-top:4px;}
+.flow-body h4{font-size:14.5px;color:var(--text);margin-bottom:3px;font-weight:600;}
+.flow-body p{font-size:13.5px;margin-bottom:0;}
+
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+.mini-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.mini-card h4{font-size:13.5px;color:var(--ink);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:.04em;}
+.mini-card p{font-size:13px;margin-bottom:0;}
+
+.flash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:18px 0;}
+.flashcard{perspective:1000px;height:170px;cursor:pointer;}
+.flashcard-inner{
+  position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.flash-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:12px;border:1px solid var(--border-strong);
+  padding:18px;display:flex;flex-direction:column;justify-content:center;
+}
+.flash-front{background:linear-gradient(150deg,rgba(110,231,249,0.08),rgba(255,255,255,0.02));}
+.flash-back{background:linear-gradient(150deg,rgba(167,139,250,0.14),rgba(20,25,38,0.9));transform:rotateY(180deg);}
+.flash-face .fc-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.flash-face p{font-size:14px;color:var(--text);margin:0;}
+
+.quiz-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.quiz-q{font-size:15px;color:var(--text);margin-bottom:14px;font-weight:500;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  border:1px solid var(--border);background:var(--panel);border-radius:9px;
+  padding:11px 14px;font-size:13.8px;cursor:pointer;color:var(--text-dim);
+  transition:border-color .2s,background .2s;
+}
+.quiz-opt:hover{border-color:var(--border-strong);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(52,211,153,0.1);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--coral);background:rgba(251,113,133,0.1);color:var(--coral);}
+#quiz-score-bar{
+  position:sticky;top:10px;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,23,0.85);backdrop-filter:blur(10px);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;margin-bottom:20px;font-family:var(--font-mono);font-size:13px;
+}
+#quiz-score-bar .score{color:var(--ink);}
+
+.roadmap{position:relative;margin:26px 0 10px;padding-left:26px;}
+.roadmap::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--ink),var(--ink-2),transparent);}
+.rm-item{position:relative;margin-bottom:26px;}
+.rm-item::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ink);}
+.rm-item h4{font-size:14.5px;color:var(--text);margin-bottom:4px;}
+.rm-item p{font-size:13.5px;margin-bottom:0;}
+
+.hero{
+  min-height:92vh;display:flex;flex-direction:column;justify-content:center;
+  padding:60px clamp(20px,4vw,64px);position:relative;
+}
+.hero-kicker{
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:20px;display:flex;align-items:center;gap:12px;
+}
+.hero-kicker::before{content:"";width:34px;height:1px;background:var(--ink);}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(38px,6vw,72px);line-height:1.03;
+  letter-spacing:-0.02em;max-width:900px;
+  background:linear-gradient(120deg,#fff 30%,var(--ink) 65%,var(--ink-2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.hero-sub{font-size:17px;color:var(--text-dim);max-width:620px;margin:22px 0 30px;}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px;}
+.hero-tag{
+  font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--panel);
+}
+.hero-scroll{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:8px;}
+.hero-scroll svg{animation:bob 1.8s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+.blueprint-hero{margin-top:10px;border:1px solid var(--border);border-radius:16px;padding:22px;background:rgba(255,255,255,0.02);}
+
+footer.page-footer{
+  text-align:center;padding:60px 20px 40px;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;
+  border-top:1px solid var(--border);margin-top:60px;
+}
+
+/* venn-style join visual container */
+.join-visual{display:flex;align-items:center;justify-content:center;gap:0;margin:6px 0 18px;}
+
+@media(max-width:980px){
+  #layout{grid-template-columns:1fr;}
+  #sidebar{
+    position:fixed;left:0;top:57px;bottom:0;width:270px;
+    transform:translateX(-100%);transition:transform .3s ease;
+    background:rgba(8,11,18,0.98);z-index:800;height:calc(100vh - 57px);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #topbar{display:flex;}
+  .section{padding-top:56px;}
+  .hero{min-height:auto;padding-top:50px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div id="topbar">
+  <span class="brand">MySQL Blueprint · Mod 08</span>
+  <button id="menu-toggle" aria-label="Toggle menu">☰ Menu</button>
+</div>
+
+<div id="layout">
+  <aside id="sidebar">
+    <div class="brand-block">
+      <div class="brand-eyebrow">Interview Blueprint · Module 08</div>
+      <div class="brand-title">Joins</div>
+      <div class="brand-sub">MySQL multi-table querying for Java Full Stack fresher interviews</div>
+    </div>
+    <nav id="toc">
+      <a class="toc-link" href="#hero"><span class="dot"></span>Overview</a>
+      <div class="toc-group-label">Core Topics</div>
+      <a class="toc-link" href="#inner"><span class="dot"></span>INNER JOIN</a>
+      <a class="toc-link" href="#left"><span class="dot"></span>LEFT JOIN</a>
+      <a class="toc-link" href="#right"><span class="dot"></span>RIGHT JOIN</a>
+      <a class="toc-link" href="#full"><span class="dot"></span>FULL (concept)</a>
+      <a class="toc-link" href="#cross"><span class="dot"></span>CROSS JOIN</a>
+      <a class="toc-link" href="#self"><span class="dot"></span>SELF JOIN</a>
+      <a class="toc-link" href="#execution"><span class="dot"></span>Join Execution</a>
+      <a class="toc-link" href="#performance"><span class="dot"></span>Performance</a>
+      <div class="toc-group-label">Revision</div>
+      <a class="toc-link" href="#cheatsheet"><span class="dot"></span>Cheat Sheet</a>
+      <a class="toc-link" href="#mindmap"><span class="dot"></span>Mind Map</a>
+      <a class="toc-link" href="#flashcards"><span class="dot"></span>Flash Cards</a>
+      <a class="toc-link" href="#quiz"><span class="dot"></span>Quick Quiz</a>
+      <a class="toc-link" href="#top20"><span class="dot"></span>Top 20 Questions</a>
+      <a class="toc-link" href="#roadmap"><span class="dot"></span>Roadmap</a>
+      <a class="toc-link" href="#summary"><span class="dot"></span>Summary</a>
+    </nav>
+    <div id="sidebar-footer">Fresher track · Java + Spring Boot + MySQL<br>Zoho · TCS Digital · Infosys · Accenture · Capgemini · Cognizant · HCL · Wipro</div>
+  </aside>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="hero-kicker">Module 08 / 12 — MySQL Interview Track</div>
+      <h1>Joins</h1>
+      <p class="hero-sub">Real data never lives in one table. A JOIN is the bridge between rooms in your blueprint — connecting <code>employees</code> to <code>departments</code>, <code>orders</code> to <code>customers</code> — and it's the single topic that separates "knows SELECT" from "can actually query a real schema."</p>
+      <div class="hero-tags">
+        <span class="hero-tag">INNER JOIN</span>
+        <span class="hero-tag">LEFT JOIN</span>
+        <span class="hero-tag">RIGHT JOIN</span>
+        <span class="hero-tag">FULL (concept)</span>
+        <span class="hero-tag">CROSS JOIN</span>
+        <span class="hero-tag">SELF JOIN</span>
+        <span class="hero-tag">Join Execution</span>
+        <span class="hero-tag">Performance</span>
+      </div>
+
+      <div class="blueprint-hero reveal">
+        <div class="label-row"><span class="lbl">Live diagram — two tables bridged by a foreign key</span></div>
+        <div class="diagram-wrap" style="margin-top:6px;border:none;padding:0;background:none;">
+          <svg viewBox="0 0 760 210" width="100%">
+            <defs>
+              <marker id="arrowhead-hero8" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#6EE7F9"/>
+              </marker>
+            </defs>
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <rect x="30" y="30" width="220" height="150" rx="10" fill="rgba(110,231,249,0.06)" stroke="#6EE7F9"/>
+              <text x="46" y="52" fill="#6EE7F9" font-weight="bold">employees</text>
+              <text x="46" y="76" fill="#e9edf6">id 1 · Asha</text>
+              <text x="46" y="98" fill="#e9edf6">id 2 · Ravi</text>
+              <text x="46" y="120" fill="#e9edf6">id 3 · Meera</text>
+              <text x="46" y="142" fill="#94a1ba">dept_id → 2,1,NULL</text>
+
+              <rect x="510" y="60" width="220" height="90" rx="10" fill="rgba(167,139,250,0.06)" stroke="#A78BFA"/>
+              <text x="526" y="82" fill="#A78BFA" font-weight="bold">departments</text>
+              <text x="526" y="104" fill="#e9edf6">id 1 · IT</text>
+              <text x="526" y="126" fill="#e9edf6">id 2 · Sales</text>
+
+              <line x1="250" y1="70" x2="510" y2="90" stroke="#34d399" stroke-width="1.4" marker-end="url(#arrowhead-hero8)"/>
+              <line x1="250" y1="95" x2="510" y2="105" stroke="#34d399" stroke-width="1.4" marker-end="url(#arrowhead-hero8)"/>
+              <line x1="250" y1="118" x2="400" y2="118" stroke="#fb7185" stroke-width="1.4" stroke-dasharray="4 3"/>
+              <text x="270" y="182" fill="#576079" font-size="10">Meera has no dept — LEFT JOIN keeps her row with NULLs on the right side</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-scroll" style="margin-top:26px;">
+        <span>Scroll to begin</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#6EE7F9" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </section>
+
+    <!-- ================= INTRO ================= -->
+    <section class="section" id="intro">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Why this module exists</div>
+        <h1 class="section-title">Normalization creates the need for joins</h1>
+        <p class="section-lede">We split data into separate tables (Module 3's naming conventions, Module 3's foreign keys) precisely to avoid duplication — but that means reassembling related data at query time is unavoidable. JOIN is that reassembly.</p>
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Real-world analogy</span></div>
+            <p>Think of two spreadsheets — one of employees, one of departments. A JOIN is like using VLOOKUP for every row simultaneously, matching employees to their department by a shared key (dept_id ↔ id).</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Interview framing</span></div>
+            <p>Interviewers almost always ask you to draw or describe Venn-diagram-style overlaps for INNER/LEFT/RIGHT/FULL — being able to sketch this instantly is worth more than memorized definitions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= INNER JOIN ================= -->
+    <section class="section" id="inner">
+      <div class="section-inner reveal">
+        <div class="eyebrow">01 · Join Type</div>
+        <h1 class="section-title">INNER JOIN</h1>
+        <p class="section-lede">Returns only rows that have a match in both tables — the intersection.</p>
+
+        <div class="diagram-wrap reveal">
+          <svg viewBox="0 0 400 160" width="100%">
+            <circle cx="160" cy="80" r="65" fill="rgba(110,231,249,0.12)" stroke="#6EE7F9"/>
+            <circle cx="240" cy="80" r="65" fill="rgba(167,139,250,0.12)" stroke="#A78BFA"/>
+            <text x="110" y="85" fill="#6EE7F9" font-family="ui-monospace,monospace" font-size="12">employees</text>
+            <text x="255" y="85" fill="#A78BFA" font-family="ui-monospace,monospace" font-size="12">departments</text>
+            <text x="200" y="85" text-anchor="middle" fill="#0a0e17" font-weight="bold" font-family="ui-monospace,monospace" font-size="11">MATCH</text>
+          </svg>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">inner_join.sql</div><button class="run-btn" data-target="res-inner">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">INNER JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>;</pre>
+          <div class="exec-result" id="res-inner">
+            → Only employees WITH a valid, matching dept_id are returned<br>
+            → Meera (dept_id = NULL) is silently excluded
+          </div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>In MySQL, <code>JOIN</code> and <code>INNER JOIN</code> are exactly the same keyword — INNER is optional and purely for readability.</p>
+        </div>
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake</div>
+          <p>Forgetting the ON condition and accidentally writing a CROSS JOIN (every row × every row) — always double check the ON clause exists and references the correct foreign key relationship.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LEFT JOIN ================= -->
+    <section class="section" id="left">
+      <div class="section-inner reveal">
+        <div class="eyebrow">02 · Join Type</div>
+        <h1 class="section-title">LEFT JOIN</h1>
+        <p class="section-lede">Every row from the left table, plus matches from the right — unmatched right-side columns come back as NULL.</p>
+
+        <div class="diagram-wrap reveal">
+          <svg viewBox="0 0 400 160" width="100%">
+            <circle cx="160" cy="80" r="65" fill="rgba(110,231,249,0.28)" stroke="#6EE7F9"/>
+            <circle cx="240" cy="80" r="65" fill="rgba(167,139,250,0.1)" stroke="#A78BFA"/>
+            <text x="105" y="45" fill="#6EE7F9" font-family="ui-monospace,monospace" font-size="12">employees (ALL)</text>
+            <text x="255" y="85" fill="#A78BFA" font-family="ui-monospace,monospace" font-size="12">departments</text>
+          </svg>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">left_join.sql</div><button class="run-btn" data-target="res-left">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">LEFT JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>;</pre>
+          <div class="exec-result show" id="res-left">
+            <table><tr><th>first_name</th><th>dept_name</th></tr>
+            <tr><td>Asha</td><td>Sales</td></tr>
+            <tr><td>Ravi</td><td>IT</td></tr>
+            <tr><td>Meera</td><td>NULL</td></tr></table>
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>The classic LEFT JOIN "find unmatched" pattern</h2>
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">find_unmatched.sql</div><button class="run-btn" data-target="res-orphan">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Employees with no department assigned</span>
+<span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">LEFT JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>
+<span class="k">WHERE</span> <span class="f">d</span>.<span class="f">id</span> <span class="k">IS NULL</span>;</pre>
+          <div class="exec-result" id="res-orphan">→ Returns only Meera — this "anti-join" pattern finds orphaned/unmatched left-side rows and is asked constantly in interviews.</div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>Putting a right-table condition in WHERE instead of ON silently turns your LEFT JOIN back into an INNER JOIN. <code>WHERE d.dept_name = 'Sales'</code> after a LEFT JOIN filters out all the NULL rows LEFT JOIN was supposed to preserve — the condition belongs in the ON clause if you want to keep unmatched rows.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="left">
+          <div class="accordion-item"><div class="accordion-head">Asked at Wipro: Find all customers who have never placed an order. <span class="tag company">Wipro</span><span class="plus">+</span></div><div class="accordion-body"><p><code>SELECT c.* FROM customers c LEFT JOIN orders o ON c.id = o.customer_id WHERE o.id IS NULL;</code> — the anti-join pattern.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RIGHT JOIN ================= -->
+    <section class="section" id="right">
+      <div class="section-inner reveal">
+        <div class="eyebrow">03 · Join Type</div>
+        <h1 class="section-title">RIGHT JOIN</h1>
+        <p class="section-lede">The mirror image of LEFT JOIN — every row from the right table, plus matches from the left.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">right_join.sql</div><button class="run-btn" data-target="res-right">▶ Run</button></div>
+          <pre class="code"><span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">RIGHT JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>;
+
+<span class="c">-- Equivalent, rewritten as LEFT JOIN by swapping table order</span>
+<span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">departments</span> <span class="f">d</span>
+<span class="k">LEFT JOIN</span> <span class="f">employees</span> <span class="f">e</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>;</pre>
+          <div class="exec-result" id="res-right">→ Every department appears, even "Marketing" with zero employees — the empty-department row shows NULL for first_name</div>
+        </div>
+
+        <div class="box memory reveal">
+          <div class="box-title">Memory trick</div>
+          <p><strong>"RIGHT JOIN is just a LEFT JOIN with the tables swapped."</strong> Most engineers avoid RIGHT JOIN entirely in real code, always rewriting as LEFT JOIN for consistency and readability — but you must recognize RIGHT JOIN instantly when reading someone else's query.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FULL (concept) ================= -->
+    <section class="section" id="full">
+      <div class="section-inner reveal">
+        <div class="eyebrow">04 · Concept</div>
+        <h1 class="section-title">FULL JOIN (concept)</h1>
+        <p class="section-lede">Everything from both tables — matched and unmatched on either side. Standard SQL, but <strong>MySQL has no native FULL JOIN syntax</strong>, which is exactly why interviewers love asking about it.</p>
+
+        <div class="diagram-wrap reveal">
+          <svg viewBox="0 0 400 160" width="100%">
+            <circle cx="160" cy="80" r="65" fill="rgba(110,231,249,0.22)" stroke="#6EE7F9"/>
+            <circle cx="240" cy="80" r="65" fill="rgba(167,139,250,0.22)" stroke="#A78BFA"/>
+            <text x="105" y="45" fill="#6EE7F9" font-family="ui-monospace,monospace" font-size="12">employees (ALL)</text>
+            <text x="230" y="45" fill="#A78BFA" font-family="ui-monospace,monospace" font-size="12">departments (ALL)</text>
+          </svg>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">full_join_simulation.sql</div><button class="run-btn" data-target="res-full">▶ Run</button></div>
+          <pre class="code"><span class="c">-- MySQL simulates FULL JOIN using LEFT JOIN UNION RIGHT JOIN</span>
+<span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">LEFT JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>
+
+<span class="k">UNION</span>
+
+<span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">RIGHT JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>;</pre>
+          <div class="exec-result" id="res-full">
+            → UNION (not UNION ALL) automatically de-duplicates the overlapping matched rows counted by both sides<br>
+            → Result: every employee (matched or not) + every department (matched or not)
+          </div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap — asked at almost every company</div>
+          <p>"Does MySQL support FULL JOIN?" — <strong>No.</strong> PostgreSQL, SQL Server, and Oracle do; MySQL requires simulating it with <code>LEFT JOIN ... UNION ... RIGHT JOIN</code>. Saying this confidently is a strong signal.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="full">
+          <div class="accordion-item"><div class="accordion-head">Why must you use UNION (not UNION ALL) when simulating FULL JOIN?<span class="plus">+</span></div><div class="accordion-body"><p>Rows that match on both sides would otherwise be returned twice — once from the LEFT JOIN half and once from the RIGHT JOIN half. UNION deduplicates identical result rows; UNION ALL would not.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CROSS JOIN ================= -->
+    <section class="section" id="cross">
+      <div class="section-inner reveal">
+        <div class="eyebrow">05 · Join Type</div>
+        <h1 class="section-title">CROSS JOIN</h1>
+        <p class="section-lede">The Cartesian product — every row of table A paired with every row of table B. No ON clause, no matching logic.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">cross_join.sql</div><button class="run-btn" data-target="res-cross">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Generate every possible (size, color) combination for a product catalog</span>
+<span class="k">SELECT</span> <span class="f">s</span>.<span class="f">size_label</span>, <span class="f">c</span>.<span class="f">color_name</span>
+<span class="k">FROM</span> <span class="f">sizes</span> <span class="f">s</span>
+<span class="k">CROSS JOIN</span> <span class="f">colors</span> <span class="f">c</span>;</pre>
+          <div class="exec-result" id="res-cross">→ 4 sizes × 6 colors = 24 rows — every combination, no filtering</div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Performance note</div>
+          <p>A CROSS JOIN between two large tables explodes combinatorially — 10,000 rows × 10,000 rows = 100 million rows. Accidentally writing a join without an ON clause is one of the most common causes of a "hung query" for freshers.</p>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Legitimate use case</div>
+          <p>Generating combinations deliberately — product variants (size × color), a calendar of every date × every store for a report template, or test data generation.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SELF JOIN ================= -->
+    <section class="section" id="self">
+      <div class="section-inner reveal">
+        <div class="eyebrow">06 · Join Type</div>
+        <h1 class="section-title">SELF JOIN</h1>
+        <p class="section-lede">Not a distinct keyword — just a regular join where a table is joined to itself, always requiring aliases (Module 4).</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">self_join.sql</div><button class="run-btn" data-target="res-self">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Each employee's manager, from the same employees table</span>
+<span class="k">SELECT</span> <span class="f">emp</span>.<span class="f">first_name</span> <span class="k">AS</span> <span class="f">employee</span>,
+       <span class="f">mgr</span>.<span class="f">first_name</span> <span class="k">AS</span> <span class="f">manager</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">emp</span>
+<span class="k">LEFT JOIN</span> <span class="f">employees</span> <span class="f">mgr</span> <span class="k">ON</span> <span class="f">emp</span>.<span class="f">manager_id</span> = <span class="f">mgr</span>.<span class="f">id</span>;</pre>
+          <div class="exec-result" id="res-self">
+            → LEFT JOIN used because the top-level CEO has manager_id = NULL and should still appear<br>
+            → Aliases (emp / mgr) are mandatory — MySQL can't otherwise tell the two references apart
+          </div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Common use cases</div>
+          <p>Employee/manager hierarchies, category/parent-category trees, "find employees in the same department" comparisons, comparing consecutive rows (e.g. this month vs last month within one table).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= JOIN EXECUTION ================= -->
+    <section class="section" id="execution">
+      <div class="section-inner reveal">
+        <div class="eyebrow">07 · Internals</div>
+        <h1 class="section-title">Join Execution</h1>
+        <p class="section-lede">How MySQL actually computes a join under the hood — this is where fresher interviews start to separate strong candidates.</p>
+
+        <h2 class="h2"><span class="idx">01</span>Nested Loop Join — MySQL's default algorithm</h2>
+        <div class="flow">
+          <div class="flow-step reveal"><div class="flow-num">1</div><div class="flow-body"><h4>Pick a driving (outer) table</h4><p>The optimizer chooses which table to scan first, usually the one it estimates will produce the fewest rows after WHERE filtering.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">2</div><div class="flow-body"><h4>For each row in the outer table...</h4><p>MySQL takes the join column's value and looks it up in the inner (second) table.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">3</div><div class="flow-body"><h4>...use an index to find matches fast</h4><p>If the inner table has an index on the join column, this lookup is a fast B+Tree seek. Without one, MySQL must scan the entire inner table for every single outer row.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">4</div><div class="flow-body"><h4>Combine matched rows into the result</h4><p>Matched (and, for outer joins, unmatched-with-NULLs) row pairs are streamed into the result set.</p></div></div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>This is called <strong>Nested Loop Join (NLJ)</strong> — the standard MySQL join algorithm. Since MySQL 8.0.18, MySQL can also use <strong>Hash Join</strong> for certain equality joins without a usable index, which is often faster than NLJ for large unindexed joins.</p>
+        </div>
+
+        <table class="cmp-table">
+          <tr><th>Algorithm</th><th>When used</th><th>Cost characteristic</th></tr>
+          <tr><td>Nested Loop Join</td><td>Default; efficient when the inner table's join column is indexed</td><td>~O(outer rows × index lookup cost)</td></tr>
+          <tr><td>Block Nested Loop</td><td>No usable index — batches outer rows in memory to reduce inner scans</td><td>Still expensive on large tables</td></tr>
+          <tr><td>Hash Join (8.0.18+)</td><td>Equality joins without a usable index</td><td>Builds an in-memory hash table on the smaller input; often much faster than BNL</td></tr>
+        </table>
+
+        <h2 class="h2"><span class="idx">02</span>Reading EXPLAIN for a join</h2>
+        <p>Run <code>EXPLAIN</code> before your SELECT. Key columns to check: <strong>type</strong> (ref/eq_ref is good, ALL means full scan), <strong>key</strong> (which index, if any, was actually used), and <strong>rows</strong> (estimated rows examined — a strong proxy for query cost).</p>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>Say this line and you'll stand out: "MySQL always joins using an outer/inner loop structure — that's why the join column on the inner table needs an index, otherwise every outer row triggers a full scan of the inner table."</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PERFORMANCE ================= -->
+    <section class="section" id="performance">
+      <div class="section-inner reveal">
+        <div class="eyebrow">08 · Optimization</div>
+        <h1 class="section-title">Performance</h1>
+        <p class="section-lede">Where join queries actually go wrong in production, and the fixes interviewers expect you to name.</p>
+
+        <div class="grid-cards">
+          <div class="mini-card"><h4>Index the join column</h4><p>Always index foreign key columns used in ON clauses — MySQL doesn't do this automatically just because a FOREIGN KEY constraint exists on some engines/setups; verify with EXPLAIN.</p></div>
+          <div class="mini-card"><h4>Filter before joining</h4><p>Apply WHERE conditions that reduce row count early — the optimizer often pushes them down, but writing them clearly helps the planner and helps readers.</p></div>
+          <div class="mini-card"><h4>Select only needed columns</h4><p>Avoid SELECT * across joined tables — wider rows mean more data copied through every stage of the join.</p></div>
+          <div class="mini-card"><h4>Beware join column type mismatches</h4><p>Joining an INT column to a VARCHAR column (implicit type conversion) can silently disable index usage entirely.</p></div>
+          <div class="mini-card"><h4>Watch row multiplication</h4><p>Joining a "one" table to a "many" table before aggregating can inflate SUM/COUNT results — aggregate first in a subquery, or use DISTINCT carefully.</p></div>
+          <div class="mini-card"><h4>Prefer JOIN over correlated subquery</h4><p>A correlated subquery in SELECT often re-executes per outer row; a JOIN (or a well-indexed EXISTS) is usually more efficient at scale.</p></div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>The classic row-multiplication bug</h2>
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">row_multiplication.sql</div><button class="run-btn" data-target="res-mult">▶ Run</button></div>
+          <pre class="code"><span class="c">-- BUG: joining orders (many) to order_items (many) before SUM inflates totals</span>
+<span class="k">SELECT</span> <span class="f">c</span>.<span class="f">id</span>, <span class="k">SUM</span>(<span class="f">o</span>.<span class="f">amount</span>) <span class="c">-- wrong! amount repeats per item row</span>
+<span class="k">FROM</span> <span class="f">customers</span> <span class="f">c</span>
+<span class="k">JOIN</span> <span class="f">orders</span> <span class="f">o</span> <span class="k">ON</span> <span class="f">o</span>.<span class="f">customer_id</span> = <span class="f">c</span>.<span class="f">id</span>
+<span class="k">JOIN</span> <span class="f">order_items</span> <span class="f">oi</span> <span class="k">ON</span> <span class="f">oi</span>.<span class="f">order_id</span> = <span class="f">o</span>.<span class="f">id</span>
+<span class="k">GROUP BY</span> <span class="f">c</span>.<span class="f">id</span>;
+
+<span class="c">-- FIX: aggregate order_items first, then join once</span>
+<span class="k">SELECT</span> <span class="f">c</span>.<span class="f">id</span>, <span class="k">SUM</span>(<span class="f">o</span>.<span class="f">amount</span>) <span class="k">AS</span> <span class="f">total</span>
+<span class="k">FROM</span> <span class="f">customers</span> <span class="f">c</span>
+<span class="k">JOIN</span> <span class="f">orders</span> <span class="f">o</span> <span class="k">ON</span> <span class="f">o</span>.<span class="f">customer_id</span> = <span class="f">c</span>.<span class="f">id</span>
+<span class="k">GROUP BY</span> <span class="f">c</span>.<span class="f">id</span>;</pre>
+          <div class="exec-result" id="res-mult">→ The buggy version counts each order's amount once per line item — a customer with a ₹1000 order containing 3 items gets counted as ₹3000</div>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="perf">
+          <div class="accordion-item"><div class="accordion-head">Asked at Cognizant: How would you speed up a slow query joining three large tables? <span class="tag company">Cognizant</span><span class="plus">+</span></div><div class="accordion-body"><p>Check EXPLAIN for full scans (type=ALL), add indexes on every join column, filter early with WHERE, select only required columns, and check for accidental row multiplication before aggregation. Consider breaking the query into a CTE/subquery that pre-aggregates a "many" side.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Scenario: A LEFT JOIN query runs fine with 10k rows but times out with 10M rows. What's your first diagnostic step? <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>Run EXPLAIN on the query. Check whether the join column on the larger table has a usable index (type should be ref/eq_ref, not ALL) — a missing index is the single most common cause of this exact symptom.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHEAT SHEET ================= -->
+    <section class="section" id="cheatsheet">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Cheat Sheet</h1>
+        <div class="code-block">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">cheatsheet.sql</div></div>
+          <pre class="code"><span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">a</span> <span class="k">JOIN</span> <span class="f">b</span> <span class="k">ON</span> <span class="f">a</span>.<span class="f">id</span>=<span class="f">b</span>.<span class="f">a_id</span>;         <span class="c">-- INNER: matches only</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">a</span> <span class="k">LEFT JOIN</span> <span class="f">b</span> <span class="k">ON</span> <span class="f">a</span>.<span class="f">id</span>=<span class="f">b</span>.<span class="f">a_id</span>;    <span class="c">-- all of a</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">a</span> <span class="k">RIGHT JOIN</span> <span class="f">b</span> <span class="k">ON</span> <span class="f">a</span>.<span class="f">id</span>=<span class="f">b</span>.<span class="f">a_id</span>;   <span class="c">-- all of b</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">a</span> <span class="k">LEFT JOIN</span> <span class="f">b</span> <span class="k">ON</span> ... <span class="k">UNION</span> <span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">a</span> <span class="k">RIGHT JOIN</span> <span class="f">b</span> <span class="k">ON</span> ...; <span class="c">-- FULL sim</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">a</span> <span class="k">CROSS JOIN</span> <span class="f">b</span>;                       <span class="c">-- cartesian product</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">a</span> <span class="f">x</span> <span class="k">JOIN</span> <span class="f">a</span> <span class="f">y</span> <span class="k">ON</span> <span class="f">x</span>.<span class="f">parent_id</span>=<span class="f">y</span>.<span class="f">id</span>; <span class="c">-- SELF join, aliases required</span>
+
+<span class="c">-- Anti-join: find unmatched left rows</span>
+<span class="k">SELECT</span> <span class="f">a</span>.* <span class="k">FROM</span> <span class="f">a</span> <span class="k">LEFT JOIN</span> <span class="f">b</span> <span class="k">ON</span> <span class="f">a</span>.<span class="f">id</span>=<span class="f">b</span>.<span class="f">a_id</span> <span class="k">WHERE</span> <span class="f">b</span>.<span class="f">id</span> <span class="k">IS NULL</span>;</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MIND MAP ================= -->
+    <section class="section" id="mindmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Mind Map</h1>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 800 440" width="100%">
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <circle cx="400" cy="220" r="55" fill="rgba(110,231,249,0.1)" stroke="#6EE7F9"/>
+              <text x="400" y="215" text-anchor="middle" fill="#6EE7F9" font-weight="bold">Joins</text>
+              <text x="400" y="232" text-anchor="middle" fill="#6EE7F9" font-weight="bold">bridge tables</text>
+
+              <g stroke="#576079" stroke-width="1">
+                <line x1="400" y1="165" x2="400" y2="75"/>
+                <line x1="352" y1="190" x2="120" y2="100"/>
+                <line x1="352" y1="250" x2="120" y2="340"/>
+                <line x1="448" y1="190" x2="680" y2="100"/>
+                <line x1="448" y1="250" x2="680" y2="340"/>
+              </g>
+              <rect x="320" y="30" width="160" height="42" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="400" y="56" text-anchor="middle" fill="#34d399">INNER JOIN</text>
+
+              <rect x="10" y="76" width="220" height="42" rx="8" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="120" y="102" text-anchor="middle" fill="#6EE7F9">LEFT / RIGHT JOIN</text>
+
+              <rect x="10" y="318" width="220" height="42" rx="8" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="120" y="344" text-anchor="middle" fill="#A78BFA">SELF JOIN</text>
+
+              <rect x="570" y="76" width="220" height="42" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+              <text x="680" y="102" text-anchor="middle" fill="#f0b429">FULL (concept) / CROSS</text>
+
+              <rect x="570" y="318" width="220" height="42" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+              <text x="680" y="344" text-anchor="middle" fill="#fb7185">Execution + Performance</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FLASHCARDS ================= -->
+    <section class="section" id="flashcards">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Flash Cards</h1>
+        <p class="section-lede">Click any card to flip it.</p>
+        <div class="flash-grid" id="flash-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= QUIZ ================= -->
+    <section class="section" id="quiz">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Quick Quiz</h1>
+        <div id="quiz-score-bar">Score <span class="score" id="quiz-score">0 / 0</span></div>
+        <div id="quiz-container"></div>
+      </div>
+    </section>
+
+    <!-- ================= TOP 20 ================= -->
+    <section class="section" id="top20">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Top 20 Interview Questions</h1>
+        <div class="accordion" id="top20-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ROADMAP ================= -->
+    <section class="section" id="roadmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Where to go next</div>
+        <h1 class="section-title">Learning Roadmap</h1>
+        <div class="roadmap">
+          <div class="rm-item"><h4>1. Master this module</h4><p>Be able to sketch INNER/LEFT/RIGHT/FULL as Venn diagrams and write each from memory, including the anti-join pattern.</p></div>
+          <div class="rm-item"><h4>2. Combine joins with GROUP BY safely</h4><p>Avoid row-multiplication bugs when aggregating across one-to-many joins.</p></div>
+          <div class="rm-item"><h4>3. Subqueries &amp; CTEs</h4><p>WITH clauses, correlated subqueries, and when to prefer a JOIN over a subquery.</p></div>
+          <div class="rm-item"><h4>4. Indexing deep dive</h4><p>Composite indexes, covering indexes, and how EXPLAIN's type/key/rows columns guide join tuning.</p></div>
+          <div class="rm-item"><h4>5. Transactions &amp; Locking</h4><p>How concurrent joins interact with InnoDB row locks in read-heavy vs write-heavy systems.</p></div>
+        </div>
+        <h2 class="h2"><span class="idx">→</span>Further topics to explore</h2>
+        <ul class="plain-list">
+          <li>Window functions as a modern alternative to some self-join patterns</li>
+          <li>USING clause vs ON clause for equally-named join columns</li>
+          <li>NATURAL JOIN and why most style guides discourage it</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+    <section class="section" id="summary">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Wrap-up</div>
+        <h1 class="section-title">Summary &amp; Revision Notes</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>INNER JOIN</h4><p>Only matched rows from both tables — the intersection.</p></div>
+          <div class="mini-card"><h4>LEFT / RIGHT JOIN</h4><p>All rows from one side, NULLs on the other where unmatched. RIGHT is just LEFT reversed.</p></div>
+          <div class="mini-card"><h4>FULL JOIN (concept)</h4><p>MySQL has no native syntax — simulate with LEFT JOIN UNION RIGHT JOIN.</p></div>
+          <div class="mini-card"><h4>CROSS JOIN</h4><p>Cartesian product, no ON clause — powerful deliberately, dangerous by accident.</p></div>
+          <div class="mini-card"><h4>SELF JOIN</h4><p>A table joined to itself, aliases mandatory — used for hierarchies and comparisons.</p></div>
+          <div class="mini-card"><h4>Execution &amp; Performance</h4><p>Nested Loop Join is the default; index every join column; watch for row multiplication before aggregating.</p></div>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Before your interview</div>
+          <p>Practice sketching the Venn diagram for each join type on paper in under 10 seconds, and rehearse the anti-join ("find unmatched rows") pattern until it's automatic.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">MySQL Interview Blueprint · Module 08 of 12 · Built for Java Full Stack fresher interview prep</footer>
+  </main>
+</div>
+
+<script>
+const progressBar = document.getElementById('progress-bar');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+const sections = document.querySelectorAll('main section[id], .hero[id]');
+const links = document.querySelectorAll('.toc-link');
+function spy(){
+  let current = sections[0] ? sections[0].id : '';
+  sections.forEach(sec=>{
+    const rect = sec.getBoundingClientRect();
+    if(rect.top <= 140) current = sec.id;
+  });
+  links.forEach(l=>{
+    l.classList.toggle('active', l.getAttribute('href') === '#'+current);
+  });
+}
+document.addEventListener('scroll', spy, {passive:true});
+spy();
+
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+});
+links.forEach(l=>l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+document.querySelectorAll('.run-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    if(!target) return;
+    btn.textContent = '⏳ Running...';
+    setTimeout(()=>{
+      target.classList.add('show');
+      btn.textContent = '✓ Executed';
+      setTimeout(()=>{ btn.textContent = '▶ Run'; }, 1600);
+    }, 500);
+  });
+});
+
+document.addEventListener('click', (e)=>{
+  const head = e.target.closest('.accordion-head');
+  if(!head) return;
+  const item = head.closest('.accordion-item');
+  const body = item.querySelector('.accordion-body');
+  const wasOpen = item.classList.contains('open');
+  item.classList.toggle('open');
+  body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
+});
+
+const flashcards = [
+  {q:"What rows does INNER JOIN return?", a:"Only rows that have a match in both tables — the intersection."},
+  {q:"What does LEFT JOIN guarantee?", a:"Every row from the left table, with NULLs for unmatched right-side columns."},
+  {q:"Does MySQL support FULL JOIN natively?", a:"No — simulate it with LEFT JOIN UNION RIGHT JOIN."},
+  {q:"What is a CROSS JOIN?", a:"The Cartesian product of two tables — every row of A paired with every row of B, no ON clause."},
+  {q:"What's required for a SELF JOIN to work?", a:"Table aliases — since the same table appears twice in FROM, aliases disambiguate the two references."},
+  {q:"How do you find rows in table A with no match in table B?", a:"LEFT JOIN B ON ... WHERE B.id IS NULL — the anti-join pattern."},
+  {q:"What's MySQL's default join algorithm?", a:"Nested Loop Join — for each outer row, look up matches in the inner table, ideally via an index."},
+  {q:"Why does putting a right-table filter in WHERE break a LEFT JOIN?", a:"It filters out the NULL rows LEFT JOIN was preserving, silently turning the query into an INNER JOIN. Put the condition in ON instead."},
+  {q:"What causes SUM() to be inflated after a join?", a:"Joining a 'one' table to a 'many' table before aggregating multiplies the aggregated value once per matching row."},
+  {q:"What EXPLAIN column shows if an index was used for a join?", a:"The 'key' column — and 'type'=ALL signals a full table scan, a red flag."}
+];
+const flashGrid = document.getElementById('flash-grid');
+flashcards.forEach((c,i)=>{
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.innerHTML = `
+    <div class="flashcard-inner">
+      <div class="flash-face flash-front"><div class="fc-lbl">Question ${i+1}</div><p>${c.q}</p></div>
+      <div class="flash-face flash-back"><div class="fc-lbl">Answer</div><p>${c.a}</p></div>
+    </div>`;
+  card.addEventListener('click', ()=> card.classList.toggle('flipped'));
+  flashGrid.appendChild(card);
+});
+
+const quizData = [
+  {q:"Which join returns only matching rows from both tables?", opts:["LEFT JOIN","INNER JOIN","CROSS JOIN","FULL JOIN"], correct:1},
+  {q:"Does MySQL have native FULL JOIN syntax?", opts:["Yes","No — must simulate with UNION","Only in InnoDB","Only in MySQL 8+"], correct:1},
+  {q:"What does a CROSS JOIN produce?", opts:["Only matched rows","A Cartesian product","Deduplicated rows","An error"], correct:1},
+  {q:"What's required to join a table to itself?", opts:["A CROSS JOIN","Two separate databases","Table aliases","A subquery"], correct:2},
+  {q:"Where should a right-table filter go to preserve LEFT JOIN's unmatched rows?", opts:["WHERE clause","ON clause","GROUP BY","HAVING"], correct:1},
+  {q:"What is MySQL's default join algorithm called?", opts:["Merge Join","Nested Loop Join","Hash Join only","Bitmap Join"], correct:1},
+  {q:"What does 'type: ALL' in EXPLAIN indicate for a join?", opts:["Perfect index usage","A full table scan","A cached result","A syntax error"], correct:1}
+];
+const quizContainer = document.getElementById('quiz-container');
+let quizAnswered = 0, quizCorrect = 0;
+const scoreEl = document.getElementById('quiz-score');
+function updateScore(){ scoreEl.textContent = quizCorrect + ' / ' + quizAnswered; }
+
+quizData.forEach((q,qi)=>{
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  const optsHtml = q.opts.map((o,oi)=>`<div class="quiz-opt" data-idx="${oi}">${o}</div>`).join('');
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${q.q}</div><div class="quiz-opts">${optsHtml}</div>`;
+  quizContainer.appendChild(card);
+
+  let locked = false;
+  card.querySelectorAll('.quiz-opt').forEach(optEl=>{
+    optEl.addEventListener('click', ()=>{
+      if(locked) return;
+      locked = true;
+      quizAnswered++;
+      const chosen = parseInt(optEl.dataset.idx,10);
+      if(chosen === q.correct){ quizCorrect++; optEl.classList.add('correct'); }
+      else{
+        optEl.classList.add('wrong');
+        card.querySelectorAll('.quiz-opt')[q.correct].classList.add('correct');
+      }
+      updateScore();
+    });
+  });
+});
+
+const top20 = [
+  ["What's the difference between INNER JOIN and LEFT JOIN?","INNER JOIN returns only matched rows from both tables; LEFT JOIN returns every row from the left table plus matches from the right, with NULLs where there's no match."],
+  ["Why is INNER the same as plain JOIN in MySQL?","INNER is the default join type and purely optional syntax — MySQL treats JOIN and INNER JOIN identically."],
+  ["Does MySQL support FULL JOIN?","No. It must be simulated using LEFT JOIN UNION RIGHT JOIN, since MySQL lacks native FULL JOIN syntax that PostgreSQL/SQL Server/Oracle provide."],
+  ["Why use UNION instead of UNION ALL when simulating FULL JOIN?","UNION deduplicates rows that both the LEFT and RIGHT JOIN halves would otherwise return twice for matched rows."],
+  ["What is a CROSS JOIN and when would you legitimately use it?","The Cartesian product of two tables with no ON clause; used deliberately for generating combinations like product size × color variants."],
+  ["What's required for a SELF JOIN?","Two aliases for the same table, since MySQL needs a way to distinguish which occurrence a column reference belongs to."],
+  ["How do you find customers who have never placed an order?","LEFT JOIN orders ON customers.id = orders.customer_id WHERE orders.id IS NULL — the anti-join pattern."],
+  ["Why does filtering the right table in WHERE break a LEFT JOIN's purpose?","It removes the NULL rows LEFT JOIN was meant to preserve, effectively turning it into an INNER JOIN; the filter belongs in the ON clause instead."],
+  ["What's MySQL's default algorithm for executing a join?","Nested Loop Join — for each row in the outer/driving table, it looks up matches in the inner table, ideally using an index."],
+  ["What join algorithm did MySQL 8.0.18 add, and why does it matter?","Hash Join, used for equality joins lacking a usable index — often significantly faster than Block Nested Loop for large unindexed joins."],
+  ["What should you check first when a join query is slow?","Run EXPLAIN and check the 'type' and 'key' columns — type=ALL means a full table scan, and a missing 'key' means no index was used on the join column."],
+  ["What causes SUM()/COUNT() to be inflated after a join?","Joining a 'one' side to a 'many' side before aggregating causes values to repeat once per matching row on the many side; aggregate the many side first or be careful with GROUP BY placement."],
+  ["Why should you index foreign key columns used in joins?","Without an index, MySQL must scan the entire inner table for every row of the outer table in a Nested Loop Join, causing severe performance degradation at scale."],
+  ["Why avoid SELECT * in a multi-table join query?","It pulls unnecessary columns through every stage of the join, increasing memory and network overhead unnecessarily."],
+  ["What can cause a join's index to silently stop being used?","A type mismatch between the joined columns (e.g. INT joined to VARCHAR) forces implicit conversion, which can prevent index usage entirely."],
+  ["How would you rewrite a RIGHT JOIN as a LEFT JOIN?","Swap the table order in FROM and change RIGHT JOIN to LEFT JOIN — they're functionally equivalent, and LEFT JOIN is the more commonly used/readable convention."],
+  ["What's the difference between a correlated subquery and a JOIN for finding related data?","A correlated subquery often re-executes once per outer row, while a JOIN (or well-indexed EXISTS) typically lets the optimizer plan a single efficient pass."],
+  ["How do you model a manager/employee hierarchy in one table?","A self-referencing foreign key (e.g. manager_id referencing the same table's id), queried with a SELF JOIN using aliases."],
+  ["What does the ON clause do differently from the USING clause?","ON allows any join condition and differing column names; USING is shorthand for equi-joins on identically named columns in both tables."],
+  ["Why might an interviewer ask you to draw a Venn diagram for joins?","It quickly reveals whether you truly understand the row-inclusion logic of each join type, rather than just having memorized the syntax."]
+];
+const top20List = document.getElementById('top20-list');
+top20.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'accordion-item';
+  div.innerHTML = `<div class="accordion-head">${i+1}. ${item[0]}<span class="plus">+</span></div><div class="accordion-body"><p>${item[1]}</p></div>`;
+  top20List.appendChild(div);
+});
+</script>
+</body>
+</html>

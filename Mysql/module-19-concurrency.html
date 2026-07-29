@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 19 — Concurrency | MySQL Interview Blueprint</title>
+<style>
+:root{
+  --bg:#080b12;
+  --bg-2:#0c111c;
+  --panel:rgba(255,255,255,0.035);
+  --panel-strong:rgba(255,255,255,0.06);
+  --border:rgba(148,178,224,0.14);
+  --border-strong:rgba(148,178,224,0.28);
+  --grid:rgba(110,231,249,0.05);
+  --text:#e9edf6;
+  --text-dim:#94a1ba;
+  --text-faint:#576079;
+  --ink:#6EE7F9;
+  --ink-2:#A78BFA;
+  --amber:#f0b429;
+  --coral:#fb7185;
+  --mint:#34d399;
+  --code-bg:#0a0e17;
+  --radius:14px;
+  --font-display:'Segoe UI Semibold','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 15% -10%, rgba(110,231,249,0.08), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(167,139,250,0.07), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(90deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.6;
+}
+::selection{background:rgba(110,231,249,0.25);color:#fff;}
+a{color:inherit;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(148,178,224,0.25);border-radius:8px;}
+
+#progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--ink),var(--ink-2));
+  z-index:1000;
+  box-shadow:0 0 12px rgba(110,231,249,0.6);
+  transition:width .08s linear;
+}
+
+#topbar{
+  position:sticky;top:0;z-index:900;
+  display:none;
+  align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  background:rgba(8,11,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{font-family:var(--font-display);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);}
+#menu-toggle{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:8px 10px;cursor:pointer;
+}
+
+#layout{
+  display:grid;
+  grid-template-columns:270px minmax(0,1fr);
+  max-width:1400px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+
+#sidebar{
+  position:sticky;top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 18px 40px 28px;
+  border-right:1px solid var(--border);
+}
+.brand-block{margin-bottom:28px;}
+.brand-eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+  color:var(--ink);text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;
+}
+.brand-title{
+  font-family:var(--font-display);font-size:19px;margin-top:6px;
+  letter-spacing:.01em;
+}
+.brand-sub{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+.star{color:var(--amber);}
+
+nav#toc{display:flex;flex-direction:column;gap:2px;}
+.toc-group-label{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;
+  color:var(--text-faint);text-transform:uppercase;
+  margin:16px 0 6px 12px;
+}
+.toc-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:8px;
+  font-size:13.5px;color:var(--text-dim);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.toc-link .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex:none;
+  transition:background .2s ease,box-shadow .2s ease;
+}
+.toc-link:hover{background:var(--panel);color:var(--text);}
+.toc-link.active{
+  background:var(--panel-strong);color:var(--ink);
+  border-left-color:var(--ink);
+}
+.toc-link.active .dot{background:var(--ink);box-shadow:0 0 8px var(--ink);}
+
+#sidebar-footer{
+  margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);
+}
+
+main{padding:0 0 120px 0;min-width:0;}
+.section{
+  padding:90px clamp(20px,4vw,64px) 10px;
+  scroll-margin-top:20px;
+  max-width:920px;
+}
+.section-inner{max-width:820px;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);
+  padding:5px 12px;border:1px solid rgba(110,231,249,0.3);
+  border-radius:999px;background:rgba(110,231,249,0.06);
+  margin-bottom:18px;
+}
+.eyebrow.capstone{color:var(--amber);border-color:rgba(240,180,41,0.4);background:rgba(240,180,41,0.08);}
+h1.section-title{
+  font-family:var(--font-display);font-size:clamp(28px,4vw,42px);
+  letter-spacing:-0.01em;line-height:1.15;margin-bottom:14px;
+}
+p.section-lede{font-size:16.5px;color:var(--text-dim);max-width:680px;margin-bottom:6px;}
+h2.h2{
+  font-family:var(--font-display);font-size:22px;margin:44px 0 14px;
+  display:flex;align-items:center;gap:10px;
+}
+h2.h2 .idx{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink);
+  border:1px solid var(--border-strong);border-radius:6px;
+  padding:2px 7px;
+}
+h3.h3{font-family:var(--font-display);font-size:16.5px;margin:22px 0 10px;color:var(--text);}
+p{font-size:15px;color:var(--text-dim);margin-bottom:12px;}
+p strong{color:var(--text);font-weight:600;}
+ul.plain-list{margin:8px 0 16px 0;padding-left:0;list-style:none;}
+ul.plain-list li{
+  position:relative;padding-left:20px;margin-bottom:8px;font-size:14.5px;color:var(--text-dim);
+}
+ul.plain-list li::before{
+  content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--ink);
+}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  backdrop-filter:blur(10px);
+  margin:16px 0;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 12px 30px -14px rgba(0,0,0,.6);}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.card-grid{grid-template-columns:1fr;}}
+
+.label-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.label-row svg{flex:none;}
+.label-row .lbl{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+
+.box{
+  border-radius:12px;padding:16px 18px;margin:16px 0;
+  border:1px solid; position:relative; overflow:hidden;
+}
+.box .box-title{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700;
+}
+.box p{margin-bottom:6px;font-size:14px;}
+.box.tip{background:rgba(110,231,249,0.06);border-color:rgba(110,231,249,0.28);}
+.box.tip .box-title{color:var(--ink);}
+.box.mistake{background:rgba(251,113,133,0.07);border-color:rgba(251,113,133,0.3);}
+.box.mistake .box-title{color:var(--coral);}
+.box.warn{background:rgba(240,180,41,0.08);border-color:rgba(240,180,41,0.32);}
+.box.warn .box-title{color:var(--amber);}
+.box.best{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);}
+.box.best .box-title{color:var(--mint);}
+.box.memory{background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(110,231,249,0.06));border-color:rgba(167,139,250,0.32);}
+.box.memory .box-title{color:var(--ink-2);}
+
+.code-block{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin:16px 0;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.code-head .dots{display:flex;gap:6px;}
+.code-head .dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);}
+.code-head .filename{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+.run-btn{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+  background:rgba(110,231,249,0.1);color:var(--ink);
+  border:1px solid rgba(110,231,249,0.35);border-radius:7px;
+  padding:5px 10px;cursor:pointer;transition:background .2s ease;
+}
+.run-btn:hover{background:rgba(110,231,249,0.2);}
+pre.code{
+  padding:16px 18px;font-family:var(--font-mono);font-size:13.2px;
+  overflow-x:auto;color:#c9d3e6;line-height:1.7;
+}
+.k{color:#6EE7F9;font-weight:600;}
+.t{color:#a78bfa;}
+.s{color:#fbbf24;}
+.c{color:#576079;font-style:italic;}
+.f{color:#34d399;}
+.n{color:#fb7185;}
+
+.exec-result{
+  border-top:1px dashed var(--border);
+  padding:14px 18px;font-family:var(--font-mono);font-size:12.5px;
+  color:var(--mint);display:none;
+}
+.exec-result.show{display:block;animation:fadein .4s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.exec-result table{border-collapse:collapse;margin-top:8px;width:100%;}
+.exec-result th,.exec-result td{border:1px solid rgba(52,211,153,0.25);padding:5px 10px;font-size:12px;color:var(--text-dim);}
+.exec-result th{color:var(--mint);text-align:left;}
+
+.tabs{display:flex;gap:6px;margin:16px 0 0;flex-wrap:wrap;}
+.tab-btn{
+  font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:8px 8px 0 0;
+  background:var(--panel);border:1px solid var(--border);border-bottom:none;
+  color:var(--text-faint);cursor:pointer;transition:color .2s,background .2s;
+}
+.tab-btn.active{color:var(--ink);background:var(--panel-strong);}
+.tab-panels{border:1px solid var(--border);border-radius:0 10px 10px 10px;background:var(--panel);padding:18px;margin-bottom:16px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadein .3s ease;}
+
+.accordion-item{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--panel);}
+.accordion-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;cursor:pointer;font-size:14.5px;color:var(--text);font-weight:500;
+}
+.accordion-head .plus{color:var(--ink);font-family:var(--font-mono);transition:transform .3s ease;font-size:16px;}
+.accordion-item.open .plus{transform:rotate(45deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 16px;}
+.accordion-item.open .accordion-body{padding:0 16px 16px;}
+.accordion-body p{font-size:13.8px;}
+.tag{
+  display:inline-block;font-family:var(--font-mono);font-size:10.5px;
+  padding:2px 8px;border-radius:999px;margin-left:8px;
+  background:rgba(167,139,250,0.12);color:var(--ink-2);border:1px solid rgba(167,139,250,0.3);
+}
+.tag.company{background:rgba(240,180,41,0.1);color:var(--amber);border-color:rgba(240,180,41,0.3);}
+.tag.scenario{background:rgba(251,113,133,0.1);color:var(--coral);border-color:rgba(251,113,133,0.3);}
+
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+.cmp-table th,.cmp-table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.cmp-table th{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--border-strong);
+}
+.cmp-table td{color:var(--text-dim);}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02);}
+.cmp-table td.bad{color:var(--coral);}
+.cmp-table td.good{color:var(--mint);}
+
+.diagram-wrap{
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  background:radial-gradient(ellipse at top left, rgba(110,231,249,0.05), transparent 60%);
+  margin:18px 0;overflow-x:auto;
+}
+.diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;}
+
+.flow{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+.flow-step{display:flex;gap:16px;position:relative;padding-bottom:26px;}
+.flow-step:last-child{padding-bottom:0;}
+.flow-step::before{
+  content:"";position:absolute;left:15px;top:34px;bottom:0;width:1px;
+  background:linear-gradient(var(--border-strong),transparent);
+}
+.flow-step:last-child::before{display:none;}
+.flow-num{
+  flex:none;width:32px;height:32px;border-radius:50%;
+  background:var(--panel-strong);border:1px solid var(--border-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;color:var(--ink);z-index:1;
+}
+.flow-body{padding-top:4px;}
+.flow-body h4{font-size:14.5px;color:var(--text);margin-bottom:3px;font-weight:600;}
+.flow-body p{font-size:13.5px;margin-bottom:0;}
+
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+.mini-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.mini-card h4{font-size:13.5px;color:var(--ink);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:.04em;}
+.mini-card p{font-size:13px;margin-bottom:0;}
+
+.flash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:18px 0;}
+.flashcard{perspective:1000px;height:170px;cursor:pointer;}
+.flashcard-inner{
+  position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.flash-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:12px;border:1px solid var(--border-strong);
+  padding:18px;display:flex;flex-direction:column;justify-content:center;
+}
+.flash-front{background:linear-gradient(150deg,rgba(110,231,249,0.08),rgba(255,255,255,0.02));}
+.flash-back{background:linear-gradient(150deg,rgba(167,139,250,0.14),rgba(20,25,38,0.9));transform:rotateY(180deg);}
+.flash-face .fc-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.flash-face p{font-size:14px;color:var(--text);margin:0;}
+
+.quiz-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.quiz-q{font-size:15px;color:var(--text);margin-bottom:14px;font-weight:500;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  border:1px solid var(--border);background:var(--panel);border-radius:9px;
+  padding:11px 14px;font-size:13.8px;cursor:pointer;color:var(--text-dim);
+  transition:border-color .2s,background .2s;
+}
+.quiz-opt:hover{border-color:var(--border-strong);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(52,211,153,0.1);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--coral);background:rgba(251,113,133,0.1);color:var(--coral);}
+#quiz-score-bar{
+  position:sticky;top:10px;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,23,0.85);backdrop-filter:blur(10px);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;margin-bottom:20px;font-family:var(--font-mono);font-size:13px;
+}
+#quiz-score-bar .score{color:var(--ink);}
+
+.roadmap{position:relative;margin:26px 0 10px;padding-left:26px;}
+.roadmap::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--ink),var(--ink-2),transparent);}
+.rm-item{position:relative;margin-bottom:26px;}
+.rm-item::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ink);}
+.rm-item h4{font-size:14.5px;color:var(--text);margin-bottom:4px;}
+.rm-item p{font-size:13.5px;margin-bottom:0;}
+
+.hero{
+  min-height:92vh;display:flex;flex-direction:column;justify-content:center;
+  padding:60px clamp(20px,4vw,64px);position:relative;
+}
+.hero-kicker{
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.hero-kicker::before{content:"";width:34px;height:1px;background:var(--ink);}
+.hero-kicker .capstone-badge{
+  color:var(--amber);border:1px solid rgba(240,180,41,0.4);background:rgba(240,180,41,0.08);
+  padding:3px 10px;border-radius:999px;font-size:11px;letter-spacing:.1em;
+}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(38px,6vw,72px);line-height:1.03;
+  letter-spacing:-0.02em;max-width:900px;
+  background:linear-gradient(120deg,#fff 30%,var(--ink) 65%,var(--ink-2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.hero-sub{font-size:17px;color:var(--text-dim);max-width:620px;margin:22px 0 30px;}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px;}
+.hero-tag{
+  font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--panel);
+}
+.hero-scroll{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:8px;}
+.hero-scroll svg{animation:bob 1.8s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+.blueprint-hero{margin-top:10px;border:1px solid var(--border);border-radius:16px;padding:22px;background:rgba(255,255,255,0.02);}
+
+footer.page-footer{
+  text-align:center;padding:60px 20px 40px;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;
+  border-top:1px solid var(--border);margin-top:60px;
+}
+
+/* transaction timeline swimlanes */
+.swimlane-wrap{border:1px solid var(--border);border-radius:14px;padding:20px;margin:18px 0;overflow-x:auto;background:var(--panel);}
+.swimlane{display:flex;gap:0;min-width:520px;}
+.swimlane-track{flex:1;position:relative;}
+.swimlane-title{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);margin-bottom:10px;letter-spacing:.06em;}
+.swimlane-events{display:flex;flex-direction:column;gap:8px;}
+.swim-event{
+  border-radius:8px;padding:9px 12px;font-family:var(--font-mono);font-size:11.5px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.02);color:var(--text-dim);
+  opacity:0;transform:translateX(-8px);transition:opacity .5s ease,transform .5s ease;
+}
+.swim-event.show{opacity:1;transform:translateX(0);}
+.swim-event.txn-a{border-color:rgba(110,231,249,0.4);color:var(--ink);}
+.swim-event.txn-b{border-color:rgba(167,139,250,0.4);color:var(--ink-2);}
+.swim-event.conflict{border-color:rgba(251,113,133,0.5);background:rgba(251,113,133,0.08);color:var(--coral);font-weight:600;}
+
+/* lock icon badges */
+.lock-badge{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
+  padding:4px 10px;border-radius:999px;border:1px solid var(--border-strong);color:var(--text-dim);
+}
+
+@media(max-width:980px){
+  #layout{grid-template-columns:1fr;}
+  #sidebar{
+    position:fixed;left:0;top:57px;bottom:0;width:270px;
+    transform:translateX(-100%);transition:transform .3s ease;
+    background:rgba(8,11,18,0.98);z-index:800;height:calc(100vh - 57px);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #topbar{display:flex;}
+  .section{padding-top:56px;}
+  .hero{min-height:auto;padding-top:50px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div id="topbar">
+  <span class="brand">MySQL Blueprint · Mod 19 ⭐</span>
+  <button id="menu-toggle" aria-label="Toggle menu">☰ Menu</button>
+</div>
+
+<div id="layout">
+  <aside id="sidebar">
+    <div class="brand-block">
+      <div class="brand-eyebrow"><span class="star">⭐</span> Interview Blueprint · Module 19 · Capstone</div>
+      <div class="brand-title">Concurrency</div>
+      <div class="brand-sub">Transactions under load for Java Full Stack fresher interviews</div>
+    </div>
+    <nav id="toc">
+      <a class="toc-link" href="#hero"><span class="dot"></span>Overview</a>
+      <div class="toc-group-label">Core Topics</div>
+      <a class="toc-link" href="#race"><span class="dot"></span>Race Condition</a>
+      <a class="toc-link" href="#lostupdate"><span class="dot"></span>Lost Update</a>
+      <a class="toc-link" href="#mvcc"><span class="dot"></span>MVCC (concept)</a>
+      <a class="toc-link" href="#optimistic"><span class="dot"></span>Optimistic Locking</a>
+      <a class="toc-link" href="#pessimistic"><span class="dot"></span>Pessimistic Locking</a>
+      <a class="toc-link" href="#transactional"><span class="dot"></span>Spring @Transactional</a>
+      <div class="toc-group-label">Revision</div>
+      <a class="toc-link" href="#cheatsheet"><span class="dot"></span>Cheat Sheet</a>
+      <a class="toc-link" href="#mindmap"><span class="dot"></span>Mind Map</a>
+      <a class="toc-link" href="#flashcards"><span class="dot"></span>Flash Cards</a>
+      <a class="toc-link" href="#quiz"><span class="dot"></span>Quick Quiz</a>
+      <a class="toc-link" href="#top20"><span class="dot"></span>Top 20 Questions</a>
+      <a class="toc-link" href="#roadmap"><span class="dot"></span>Roadmap</a>
+      <a class="toc-link" href="#summary"><span class="dot"></span>Summary</a>
+    </nav>
+    <div id="sidebar-footer">Fresher track · Java + Spring Boot + MySQL<br>Zoho · TCS Digital · Infosys · Accenture · Capgemini · Cognizant · HCL · Wipro</div>
+  </aside>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="hero-kicker">Module 19 — MySQL Interview Track <span class="capstone-badge">⭐ Capstone Module</span></div>
+      <h1>Concurrency</h1>
+      <p class="hero-sub">A single-user query is easy. The real world has <strong>two checkout requests hitting the same seat at the same millisecond</strong>. This module covers what happens when multiple transactions touch the same row simultaneously — and how MySQL, and your Spring Boot service layer, keep that safe.</p>
+      <div class="hero-tags">
+        <span class="hero-tag">Race Condition</span>
+        <span class="hero-tag">Lost Update</span>
+        <span class="hero-tag">MVCC (concept)</span>
+        <span class="hero-tag">Optimistic Locking</span>
+        <span class="hero-tag">Pessimistic Locking</span>
+        <span class="hero-tag">Spring @Transactional</span>
+      </div>
+
+      <div class="blueprint-hero reveal">
+        <div class="label-row"><span class="lbl">Live diagram — two transactions racing for the same row</span></div>
+        <div class="diagram-wrap" style="margin-top:6px;border:none;padding:0;background:none;">
+          <svg viewBox="0 0 760 190" width="100%">
+            <defs>
+              <marker id="arrowhead-hero19" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#fb7185"/>
+              </marker>
+            </defs>
+            <g font-family="ui-monospace,monospace" font-size="11.5">
+              <text x="20" y="20" fill="#6EE7F9">Txn A</text>
+              <rect x="20" y="30" width="220" height="34" rx="6" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="32" y="52" fill="#e9edf6">READ balance = 1000</text>
+              <rect x="20" y="118" width="220" height="34" rx="6" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="32" y="140" fill="#e9edf6">WRITE balance = 900</text>
+
+              <text x="520" y="20" fill="#A78BFA">Txn B</text>
+              <rect x="520" y="70" width="220" height="34" rx="6" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="532" y="92" fill="#e9edf6">READ balance = 1000</text>
+              <rect x="520" y="155" width="220" height="34" rx="6" fill="rgba(251,113,133,0.1)" stroke="#fb7185"/>
+              <text x="532" y="177" fill="#fb7185">WRITE balance = 950 ← overwrites A!</text>
+
+              <line x1="240" y1="47" x2="510" y2="87" stroke="#576079" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="240" y1="135" x2="510" y2="172" stroke="#fb7185" stroke-width="1.4" marker-end="url(#arrowhead-hero19)"/>
+              <text x="330" y="60" fill="#576079" font-size="10">both read the same stale value</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-scroll" style="margin-top:26px;">
+        <span>Scroll to begin</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#6EE7F9" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </section>
+
+    <!-- ================= INTRO ================= -->
+    <section class="section" id="intro">
+      <div class="section-inner reveal">
+        <div class="eyebrow capstone">⭐ Why this module is the capstone</div>
+        <h1 class="section-title">Correct SQL isn't enough under concurrent load</h1>
+        <p class="section-lede">Every query you've written in this track has been analyzed as if it ran alone. Production systems never work that way — dozens of Spring Boot request threads can hit the same row within milliseconds of each other. Concurrency is where "works on my machine" meets "loses money in production."</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Real-world analogy</span></div>
+            <p>Two people looking at the same bank balance on two different ATMs at the exact same second, both withdrawing money based on what they saw — if the system isn't careful, one withdrawal can silently overwrite the effect of the other.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Interview framing</span></div>
+            <p>Interviewers ask concurrency questions specifically to see if you think about multi-user reality, not just single-request correctness — a strong differentiator even among freshers.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RACE CONDITION ================= -->
+    <section class="section" id="race">
+      <div class="section-inner reveal">
+        <div class="eyebrow">01 · Concept</div>
+        <h1 class="section-title">Race Condition</h1>
+        <p class="section-lede">When the correctness of a result depends on the unpredictable timing of two or more operations racing against each other.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">race_condition.sql</div><button class="run-btn" data-target="res-race" data-swim="swim-race">▶ Simulate</button></div>
+          <pre class="code"><span class="c">-- Classic "check-then-act" race: verify stock, then decrement, as TWO steps</span>
+<span class="k">SELECT</span> <span class="f">stock</span> <span class="k">FROM</span> <span class="f">products</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">42</span>;  <span class="c">-- app reads: stock = 1</span>
+<span class="c">-- app logic: "if stock > 0, allow purchase" ... then, separately:</span>
+<span class="k">UPDATE</span> <span class="f">products</span> <span class="k">SET</span> <span class="f">stock</span> = <span class="f">stock</span> - <span class="n">1</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">42</span>;</pre>
+          <div class="exec-result" id="res-race">→ If two customers both read stock=1 before either UPDATE runs, both purchases can succeed — selling one item twice</div>
+        </div>
+
+        <div class="swimlane-wrap">
+          <div class="swimlane">
+            <div class="swimlane-track">
+              <div class="swimlane-title">Customer A (Java thread 1)</div>
+              <div class="swimlane-events">
+                <div class="swim-event txn-a" id="swim-race-a1">t=0ms — SELECT stock → sees 1</div>
+                <div class="swim-event txn-a" id="swim-race-a2">t=15ms — app: "stock > 0, proceed"</div>
+                <div class="swim-event txn-a" id="swim-race-a3">t=20ms — UPDATE stock = stock - 1</div>
+              </div>
+            </div>
+            <div class="swimlane-track">
+              <div class="swimlane-title">Customer B (Java thread 2)</div>
+              <div class="swimlane-events">
+                <div class="swim-event txn-b" id="swim-race-b1">t=5ms — SELECT stock → also sees 1</div>
+                <div class="swim-event txn-b" id="swim-race-b2">t=18ms — app: "stock > 0, proceed"</div>
+                <div class="swim-event conflict" id="swim-race-b3">t=25ms — UPDATE stock = stock - 1 → sold twice, stock now -1 or overwritten</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>This exact "check stock, then update" pattern is the #1 asked concurrency scenario. The fix isn't application-level logic speed — it's making the check-and-decrement <strong>atomic</strong> at the database level: <code>UPDATE products SET stock = stock - 1 WHERE id = 42 AND stock > 0;</code> and checking the affected row count.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="race">
+          <div class="accordion-item"><div class="accordion-head">Asked at Zoho: How do you prevent overselling the last item in stock under concurrent requests? <span class="tag company">Zoho</span><span class="plus">+</span></div><div class="accordion-body"><p>Combine the check and the decrement into one atomic UPDATE statement with the condition in WHERE: <code>UPDATE products SET stock = stock - 1 WHERE id = ? AND stock > 0</code>, then check if the affected row count is 1 (success) or 0 (already sold out) — no separate SELECT-then-UPDATE race window exists.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LOST UPDATE ================= -->
+    <section class="section" id="lostupdate">
+      <div class="section-inner reveal">
+        <div class="eyebrow">02 · Anomaly</div>
+        <h1 class="section-title">Lost Update</h1>
+        <p class="section-lede">A specific, extremely common race condition outcome: two transactions read the same value, both compute a new value from it, and the second write silently erases the first.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">lost_update.sql</div><button class="run-btn" data-target="res-lost" data-swim="swim-lost">▶ Simulate</button></div>
+          <pre class="code"><span class="c">-- Txn A and Txn B both read balance = 1000 at nearly the same time</span>
+<span class="c">-- Txn A: deduct 100</span>
+<span class="k">UPDATE</span> <span class="f">accounts</span> <span class="k">SET</span> <span class="f">balance</span> = <span class="n">1000</span> - <span class="n">100</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">7</span>; <span class="c">-- writes 900</span>
+<span class="c">-- Txn B: deduct 50, computed from the SAME stale read of 1000</span>
+<span class="k">UPDATE</span> <span class="f">accounts</span> <span class="k">SET</span> <span class="f">balance</span> = <span class="n">1000</span> - <span class="n">50</span>  <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">7</span>; <span class="c">-- writes 950, overwriting A's 900</span></pre>
+          <div class="exec-result" id="res-lost">→ Final balance is 950, not the correct 850 — Txn A's ₹100 deduction was completely lost</div>
+        </div>
+
+        <div class="swimlane-wrap">
+          <div class="swimlane">
+            <div class="swimlane-track">
+              <div class="swimlane-title">Txn A — deduct ₹100</div>
+              <div class="swimlane-events">
+                <div class="swim-event txn-a" id="swim-lost-a1">READ balance = 1000</div>
+                <div class="swim-event txn-a" id="swim-lost-a2">WRITE balance = 900</div>
+              </div>
+            </div>
+            <div class="swimlane-track">
+              <div class="swimlane-title">Txn B — deduct ₹50</div>
+              <div class="swimlane-events">
+                <div class="swim-event txn-b" id="swim-lost-b1">READ balance = 1000 (before A's write)</div>
+                <div class="swim-event conflict" id="swim-lost-b2">WRITE balance = 950 → A's update is gone</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake</div>
+          <p>Reading a value in Java (<code>Account account = repo.findById(id)</code>), modifying it in memory (<code>account.setBalance(account.getBalance() - 100)</code>), then calling <code>save()</code> — this "read, modify in app, write back" pattern is exactly how lost updates happen when two requests interleave.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best practice</div>
+          <p>Prefer a single atomic <code>UPDATE accounts SET balance = balance - 100 WHERE id = 7</code> (letting MySQL compute from the current row value) over read-modify-write in application code whenever possible — or use locking (covered next) when app-level logic between read and write is unavoidable.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="lost">
+          <div class="accordion-item"><div class="accordion-head">What's the difference between a race condition and a lost update?<span class="plus">+</span></div><div class="accordion-body"><p>A race condition is the general category — any outcome depending on unpredictable timing between concurrent operations. A lost update is a specific, very common race condition outcome where one transaction's write is silently overwritten by another's, based on both having read the same stale value.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MVCC ================= -->
+    <section class="section" id="mvcc">
+      <div class="section-inner reveal">
+        <div class="eyebrow">03 · Concept</div>
+        <h1 class="section-title">MVCC (concept)</h1>
+        <p class="section-lede">Multi-Version Concurrency Control — how InnoDB lets readers and writers work on the same row simultaneously without blocking each other, most of the time.</p>
+
+        <h2 class="h2"><span class="idx">01</span>The core idea</h2>
+        <p>Instead of readers waiting for writers to finish, InnoDB keeps multiple "snapshot" versions of a row. When Transaction A starts, it sees a consistent snapshot of the data as of that moment — even if Transaction B commits a change to the same row a moment later, A keeps seeing its own snapshot until it re-reads or commits (depending on isolation level).</p>
+
+        <div class="flow">
+          <div class="flow-step reveal"><div class="flow-num">1</div><div class="flow-body"><h4>A row is updated</h4><p>InnoDB doesn't overwrite the old version in place — it keeps the old version accessible via the undo log, and marks the new version with the updating transaction's ID.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">2</div><div class="flow-body"><h4>Readers see a consistent snapshot</h4><p>A SELECT running concurrently reads the version of the row that was committed at (or before) its own transaction's start point — never a half-written or uncommitted value.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">3</div><div class="flow-body"><h4>Readers don't block writers, and vice versa</h4><p>Because there's no need to wait for a lock just to read a consistent snapshot, MVCC gives huge concurrency gains over lock-everything approaches — this is why plain SELECTs in InnoDB normally don't block on writes.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">4</div><div class="flow-body"><h4>Old versions are cleaned up later</h4><p>Once no active transaction still needs an old row version, InnoDB's purge process reclaims that undo log space.</p></div></div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>The one-liner to say: "MVCC is why <strong>readers don't block writers and writers don't block readers</strong> in InnoDB — each transaction sees a consistent snapshot instead of fighting over locks just to read." This directly explains why MySQL performs well under mixed read/write load compared to naive full-table locking.</p>
+        </div>
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>MVCC handles concurrent <em>reads</em> gracefully — it does <strong>not</strong> by itself prevent lost updates between two concurrent <em>writers</em>. Two transactions can each read their own consistent snapshot and still both attempt conflicting writes; that's exactly what locking (next two sections) exists to resolve.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="mvcc">
+          <div class="accordion-item"><div class="accordion-head">Why don't plain SELECT queries usually get blocked by concurrent UPDATEs in InnoDB?<span class="plus">+</span></div><div class="accordion-body"><p>Because of MVCC — a SELECT reads a consistent snapshot version of the row from the undo log rather than needing to acquire a lock on the current, possibly-being-modified row.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= OPTIMISTIC LOCKING ================= -->
+    <section class="section" id="optimistic">
+      <div class="section-inner reveal">
+        <div class="eyebrow">04 · Strategy</div>
+        <h1 class="section-title">Optimistic Locking</h1>
+        <p class="section-lede">Assume conflicts are rare: let everyone read and modify freely, but detect and reject a conflicting write at the last moment using a version check.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">optimistic_locking.sql</div><button class="run-btn" data-target="res-opt">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Table has a version column</span>
+<span class="k">SELECT</span> <span class="f">balance</span>, <span class="f">version</span> <span class="k">FROM</span> <span class="f">accounts</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">7</span>; <span class="c">-- balance=1000, version=5</span>
+
+<span class="c">-- Update only succeeds if version hasn't changed since we read it</span>
+<span class="k">UPDATE</span> <span class="f">accounts</span>
+<span class="k">SET</span> <span class="f">balance</span> = <span class="n">900</span>, <span class="f">version</span> = <span class="f">version</span> + <span class="n">1</span>
+<span class="k">WHERE</span> <span class="f">id</span> = <span class="n">7</span> <span class="k">AND</span> <span class="f">version</span> = <span class="n">5</span>;
+<span class="c">-- affected rows = 0 means someone else updated it first -- retry or fail</span></pre>
+          <div class="exec-result" id="res-opt">→ If another transaction already bumped version to 6, this UPDATE matches zero rows — the app detects the conflict via affected-row count and can retry or surface an error</div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Spring Boot / JPA relation</h2>
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">Account.java</div></div>
+          <pre class="code"><span class="k">@Entity</span>
+<span class="k">public class</span> <span class="f">Account</span> {
+    <span class="k">@Id</span> <span class="k">private</span> <span class="t">Long</span> <span class="f">id</span>;
+    <span class="k">private</span> <span class="t">BigDecimal</span> <span class="f">balance</span>;
+
+    <span class="k">@Version</span>
+    <span class="k">private</span> <span class="t">Long</span> <span class="f">version</span>; <span class="c">// Hibernate manages this automatically</span>
+}
+<span class="c">// A conflicting concurrent save() throws OptimisticLockException automatically</span></pre>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>Hibernate's <code>@Version</code> annotation implements exactly this pattern under the hood — it adds the version column to every UPDATE's WHERE clause and throws <code>OptimisticLockException</code> when zero rows are affected.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">When to use it</div>
+          <p>High-read, low-conflict scenarios — most web form edits, profile updates, catalog management — where two people rarely edit the exact same row at the exact same second, so the retry/failure path is rare and cheap.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="opt">
+          <div class="accordion-item"><div class="accordion-head">Scenario: Two admins edit the same product listing at once with optimistic locking enabled. What happens? <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>Both read version=5. The first save succeeds and bumps it to 6. The second save's WHERE version=5 matches zero rows, so Hibernate throws OptimisticLockException — the second admin's UI should catch this, refresh the latest data, and prompt them to re-apply or merge their changes.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PESSIMISTIC LOCKING ================= -->
+    <section class="section" id="pessimistic">
+      <div class="section-inner reveal">
+        <div class="eyebrow">05 · Strategy</div>
+        <h1 class="section-title">Pessimistic Locking</h1>
+        <p class="section-lede">Assume conflicts are likely: lock the row up front so no other transaction can touch it until you're done.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">pessimistic_locking.sql</div><button class="run-btn" data-target="res-pess" data-swim="swim-pess">▶ Simulate</button></div>
+          <pre class="code"><span class="k">START TRANSACTION</span>;
+<span class="k">SELECT</span> <span class="f">balance</span> <span class="k">FROM</span> <span class="f">accounts</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">7</span> <span class="k">FOR UPDATE</span>; <span class="c">-- locks this row</span>
+<span class="c">-- any other transaction's SELECT ... FOR UPDATE on id=7 now BLOCKS and waits</span>
+<span class="k">UPDATE</span> <span class="f">accounts</span> <span class="k">SET</span> <span class="f">balance</span> = <span class="f">balance</span> - <span class="n">100</span> <span class="k">WHERE</span> <span class="f">id</span> = <span class="n">7</span>;
+<span class="k">COMMIT</span>; <span class="c">-- lock released here</span></pre>
+          <div class="exec-result" id="res-pess">→ Txn B's SELECT ... FOR UPDATE on the same row waits until Txn A commits or rolls back — no interleaving is possible</div>
+        </div>
+
+        <div class="swimlane-wrap">
+          <div class="swimlane">
+            <div class="swimlane-track">
+              <div class="swimlane-title">Txn A</div>
+              <div class="swimlane-events">
+                <div class="swim-event txn-a" id="swim-pess-a1">SELECT ... FOR UPDATE → row locked</div>
+                <div class="swim-event txn-a" id="swim-pess-a2">UPDATE balance - 100</div>
+                <div class="swim-event txn-a" id="swim-pess-a3">COMMIT → lock released</div>
+              </div>
+            </div>
+            <div class="swimlane-track">
+              <div class="swimlane-title">Txn B</div>
+              <div class="swimlane-events">
+                <div class="swim-event txn-b" id="swim-pess-b1">SELECT ... FOR UPDATE → BLOCKED, waiting...</div>
+                <div class="swim-event txn-b" id="swim-pess-b2">(still waiting on A's lock)</div>
+                <div class="swim-event txn-b" id="swim-pess-b3">Lock acquired now — sees A's committed balance</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <table class="cmp-table">
+          <tr><th>Aspect</th><th>Optimistic</th><th>Pessimistic</th></tr>
+          <tr><td>Approach</td><td>Detect conflict at write time</td><td>Prevent conflict up front with a lock</td></tr>
+          <tr><td>Concurrency</td><td>Higher — no blocking on read</td><td>Lower — other transactions wait</td></tr>
+          <tr><td>Best for</td><td>Low-contention, high-read scenarios</td><td>High-contention, must-not-fail scenarios (e.g. seat booking, inventory decrement)</td></tr>
+          <tr><td>Failure mode</td><td>Conflict detected after work is done — must retry</td><td>Risk of deadlocks/timeouts if locks held too long</td></tr>
+          <tr><td>JPA annotation</td><td><code>@Version</code></td><td><code>@Lock(LockModeType.PESSIMISTIC_WRITE)</code></td></tr>
+        </table>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>Holding a pessimistic lock for too long (e.g. across a slow external API call inside the same transaction) is a common way to accidentally cause lock timeouts and deadlocks in production — keep locked transactions as short as possible.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="pess">
+          <div class="accordion-item"><div class="accordion-head">Asked at Capgemini: When would you choose pessimistic over optimistic locking? <span class="tag company">Capgemini</span><span class="plus">+</span></div><div class="accordion-body"><p>When conflicts are frequent and expensive to retry — like the very last seat in a flight booking system, where you'd rather make the second customer briefly wait than let both "succeed" and then have to reconcile an overbooking after the fact.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SPRING @TRANSACTIONAL ================= -->
+    <section class="section" id="transactional">
+      <div class="section-inner reveal">
+        <div class="eyebrow">06 · Applied</div>
+        <h1 class="section-title">Spring @Transactional</h1>
+        <p class="section-lede">The annotation that ties everything in this module together in a real Java backend — where transaction boundaries actually live in application code.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">AccountService.java</div><button class="run-btn" data-target="res-tx">▶ Run</button></div>
+          <pre class="code"><span class="k">@Service</span>
+<span class="k">public class</span> <span class="f">AccountService</span> {
+
+    <span class="k">@Transactional</span>
+    <span class="k">public void</span> <span class="f">transferMoney</span>(<span class="t">Long</span> <span class="f">fromId</span>, <span class="t">Long</span> <span class="f">toId</span>, <span class="t">BigDecimal</span> <span class="f">amount</span>) {
+        <span class="t">Account</span> <span class="f">from</span> = <span class="f">accountRepo</span>.<span class="f">findById</span>(<span class="f">fromId</span>);
+        <span class="t">Account</span> <span class="f">to</span>   = <span class="f">accountRepo</span>.<span class="f">findById</span>(<span class="f">toId</span>);
+        <span class="f">from</span>.<span class="f">debit</span>(<span class="f">amount</span>);
+        <span class="f">to</span>.<span class="f">credit</span>(<span class="f">amount</span>);
+        <span class="c">// both writes commit together, or neither does</span>
+    }
+}</pre>
+          <div class="exec-result" id="res-tx">→ If credit() throws after debit() succeeds, Spring rolls back the ENTIRE method — the debit is undone too, so money is never silently lost from one account without appearing in the other</div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>What @Transactional actually does</h2>
+        <div class="flow">
+          <div class="flow-step reveal"><div class="flow-num">1</div><div class="flow-body"><h4>Spring wraps the method in a proxy</h4><p>A dynamic proxy intercepts the call, starts a database transaction before your method body runs.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">2</div><div class="flow-body"><h4>All DB operations inside share one transaction</h4><p>Every repository call inside the method participates in the same underlying JDBC transaction/connection.</p></div></div>
+          <div class="flow-step reveal"><div class="flow-num">3</div><div class="flow-body"><h4>Success → COMMIT; unchecked exception → ROLLBACK</h4><p>By default, Spring rolls back only on RuntimeException/unchecked exceptions — checked exceptions do NOT trigger a rollback unless explicitly configured with rollbackFor.</p></div></div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap — the #1 asked @Transactional gotcha</div>
+          <p><strong>Self-invocation doesn't trigger the proxy.</strong> If method A (not annotated) calls method B (annotated @Transactional) on the same class instance via <code>this.methodB()</code>, Spring's proxy is bypassed entirely and no transaction is started. @Transactional only works through the Spring-managed proxy, which requires an external call through the bean.</p>
+        </div>
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake</div>
+          <p>Assuming @Transactional rolls back on <em>any</em> exception. By default it only rolls back on unchecked (RuntimeException and Error) exceptions — a checked exception silently commits unless you specify <code>@Transactional(rollbackFor = Exception.class)</code>.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Isolation levels, briefly</h2>
+        <table class="cmp-table">
+          <tr><th>Isolation Level</th><th>Prevents</th><th>Allows</th></tr>
+          <tr><td>READ UNCOMMITTED</td><td>Nothing</td><td>Dirty reads, non-repeatable reads, phantom reads</td></tr>
+          <tr><td>READ COMMITTED</td><td>Dirty reads</td><td>Non-repeatable reads, phantom reads</td></tr>
+          <tr><td>REPEATABLE READ (MySQL default)</td><td>Dirty + non-repeatable reads</td><td>Phantom reads (largely mitigated by MVCC + gap locks in InnoDB)</td></tr>
+          <tr><td>SERIALIZABLE</td><td>All of the above</td><td>Nothing — full isolation, lowest concurrency</td></tr>
+        </table>
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>MySQL's InnoDB default isolation level is <strong>REPEATABLE READ</strong> — different from many other databases (like PostgreSQL/Oracle, which default to READ COMMITTED). This is a frequently asked "gotcha" fact.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">03</span>Interview questions</h2>
+        <div class="accordion" data-group="tx">
+          <div class="accordion-item"><div class="accordion-head">Asked at Cognizant: Why doesn't @Transactional work when a method calls another @Transactional method on itself? <span class="tag company">Cognizant</span><span class="plus">+</span></div><div class="accordion-body"><p>Spring implements @Transactional using a proxy around the bean. A call like this.otherMethod() bypasses the proxy entirely since it's a direct internal Java call, not a call through the Spring-managed bean reference — so no new transaction is started for that inner call.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Scenario: Your @Transactional method catches an exception internally and logs it instead of rethrowing. Does the transaction still roll back? <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>No — if the exception is caught and swallowed inside the method, Spring's proxy never sees it, so the transaction commits normally (potentially with partial/incorrect state). Rollback only triggers when a qualifying exception actually propagates out of the method.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHEAT SHEET ================= -->
+    <section class="section" id="cheatsheet">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Cheat Sheet</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>Race Condition</h4><p>Outcome depends on unpredictable timing between concurrent operations — fix by making check-and-act atomic.</p></div>
+          <div class="mini-card"><h4>Lost Update</h4><p>Two writers overwrite each other based on the same stale read — fix with a single atomic UPDATE or a version check.</p></div>
+          <div class="mini-card"><h4>MVCC</h4><p>Readers see consistent snapshots without blocking writers — InnoDB's default concurrency mechanism.</p></div>
+          <div class="mini-card"><h4>Optimistic Locking</h4><p>Version column checked at write time; @Version in JPA; best for low-contention scenarios.</p></div>
+          <div class="mini-card"><h4>Pessimistic Locking</h4><p>SELECT ... FOR UPDATE locks the row up front; best for high-contention, must-not-fail scenarios.</p></div>
+          <div class="mini-card"><h4>@Transactional</h4><p>Proxy-based; rolls back on unchecked exceptions by default; self-invocation bypasses it entirely.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MIND MAP ================= -->
+    <section class="section" id="mindmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Mind Map</h1>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 800 440" width="100%">
+            <g font-family="ui-monospace,monospace" font-size="11.5">
+              <circle cx="400" cy="220" r="55" fill="rgba(240,180,41,0.1)" stroke="#f0b429"/>
+              <text x="400" y="215" text-anchor="middle" fill="#f0b429" font-weight="bold">Concurrency</text>
+              <text x="400" y="232" text-anchor="middle" fill="#f0b429" font-weight="bold">&amp; Locking</text>
+
+              <g stroke="#576079" stroke-width="1">
+                <line x1="400" y1="165" x2="400" y2="65"/>
+                <line x1="352" y1="190" x2="120" y2="100"/>
+                <line x1="352" y1="250" x2="120" y2="340"/>
+                <line x1="448" y1="190" x2="680" y2="100"/>
+                <line x1="448" y1="250" x2="680" y2="340"/>
+              </g>
+              <rect x="320" y="24" width="160" height="42" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+              <text x="400" y="50" text-anchor="middle" fill="#fb7185">Race Condition</text>
+
+              <rect x="10" y="66" width="220" height="42" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+              <text x="120" y="92" text-anchor="middle" fill="#f0b429">Lost Update</text>
+
+              <rect x="10" y="308" width="220" height="42" rx="8" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="120" y="334" text-anchor="middle" fill="#6EE7F9">MVCC (concept)</text>
+
+              <rect x="570" y="66" width="220" height="42" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="680" y="92" text-anchor="middle" fill="#34d399">Optimistic / Pessimistic</text>
+
+              <rect x="570" y="308" width="220" height="42" rx="8" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="680" y="334" text-anchor="middle" fill="#A78BFA">Spring @Transactional</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FLASHCARDS ================= -->
+    <section class="section" id="flashcards">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Flash Cards</h1>
+        <p class="section-lede">Click any card to flip it.</p>
+        <div class="flash-grid" id="flash-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= QUIZ ================= -->
+    <section class="section" id="quiz">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Quick Quiz</h1>
+        <div id="quiz-score-bar">Score <span class="score" id="quiz-score">0 / 0</span></div>
+        <div id="quiz-container"></div>
+      </div>
+    </section>
+
+    <!-- ================= TOP 20 ================= -->
+    <section class="section" id="top20">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Top 20 Interview Questions</h1>
+        <div class="accordion" id="top20-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ROADMAP ================= -->
+    <section class="section" id="roadmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Where to go next ⭐</div>
+        <h1 class="section-title">Learning Roadmap</h1>
+        <div class="roadmap">
+          <div class="rm-item"><h4>1. Master this module</h4><p>Explain a lost update scenario and its fix out loud, and know exactly when to reach for optimistic vs pessimistic locking.</p></div>
+          <div class="rm-item"><h4>2. Deadlocks</h4><p>How two transactions can each hold a lock the other needs, and how MySQL's deadlock detector resolves it by killing one transaction.</p></div>
+          <div class="rm-item"><h4>3. Isolation levels in depth</h4><p>Dirty reads, non-repeatable reads, phantom reads — and how REPEATABLE READ's gap locks specifically mitigate phantoms in InnoDB.</p></div>
+          <div class="rm-item"><h4>4. Connection pooling under load</h4><p>How HikariCP pool sizing interacts with long-held locks and transaction duration.</p></div>
+          <div class="rm-item"><h4>5. Distributed transactions</h4><p>What changes when a "transaction" spans more than one database or service — the two-phase commit and saga pattern basics.</p></div>
+        </div>
+        <h2 class="h2"><span class="idx">→</span>Further topics to explore</h2>
+        <ul class="plain-list">
+          <li>Gap locks and next-key locks in InnoDB's REPEATABLE READ implementation</li>
+          <li>Deadlock detection and how to read InnoDB's deadlock log (SHOW ENGINE INNODB STATUS)</li>
+          <li>Idempotency keys as an application-level complement to database locking</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+    <section class="section" id="summary">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Wrap-up ⭐</div>
+        <h1 class="section-title">Summary &amp; Revision Notes</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>Race Condition</h4><p>Outcome depends on operation timing — fix with atomicity, not "faster" application code.</p></div>
+          <div class="mini-card"><h4>Lost Update</h4><p>Stale-read-then-overwrite; fix with atomic UPDATEs or version checks.</p></div>
+          <div class="mini-card"><h4>MVCC</h4><p>Consistent snapshots let readers avoid blocking writers — InnoDB's default concurrency engine.</p></div>
+          <div class="mini-card"><h4>Optimistic Locking</h4><p>Detect conflicts at write time via a version column — low overhead, best for rare contention.</p></div>
+          <div class="mini-card"><h4>Pessimistic Locking</h4><p>Lock up front with SELECT ... FOR UPDATE — best for guaranteed-no-conflict scenarios.</p></div>
+          <div class="mini-card"><h4>@Transactional</h4><p>Proxy-based, rolls back only on unchecked exceptions by default, and doesn't work through self-invocation.</p></div>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Before your interview</div>
+          <p>Practice narrating the classic "two users buy the last item in stock" scenario end to end: identify the race, name it as a lost update, and pick + justify optimistic vs pessimistic locking as the fix.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">MySQL Interview Blueprint · Module 19 ⭐ Concurrency · Built for Java Full Stack fresher interview prep</footer>
+  </main>
+</div>
+
+<script>
+const progressBar = document.getElementById('progress-bar');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+const sections = document.querySelectorAll('main section[id], .hero[id]');
+const links = document.querySelectorAll('.toc-link');
+function spy(){
+  let current = sections[0] ? sections[0].id : '';
+  sections.forEach(sec=>{
+    const rect = sec.getBoundingClientRect();
+    if(rect.top <= 140) current = sec.id;
+  });
+  links.forEach(l=>{
+    l.classList.toggle('active', l.getAttribute('href') === '#'+current);
+  });
+}
+document.addEventListener('scroll', spy, {passive:true});
+spy();
+
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+});
+links.forEach(l=>l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+function animateSwimlane(prefix){
+  const ids = Array.from(document.querySelectorAll(`[id^="${prefix}-"]`)).map(el=>el.id);
+  ids.forEach((id, i)=>{
+    setTimeout(()=>{
+      const el = document.getElementById(id);
+      if(el) el.classList.add('show');
+    }, i * 450);
+  });
+}
+
+document.querySelectorAll('.run-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    btn.textContent = '⏳ Running...';
+    setTimeout(()=>{
+      if(target) target.classList.add('show');
+      if(btn.dataset.swim) animateSwimlane(btn.dataset.swim);
+      btn.textContent = '✓ Executed';
+      setTimeout(()=>{ btn.textContent = btn.dataset.swim ? '▶ Simulate' : '▶ Run'; }, 1600);
+    }, 400);
+  });
+});
+
+document.addEventListener('click', (e)=>{
+  const head = e.target.closest('.accordion-head');
+  if(!head) return;
+  const item = head.closest('.accordion-item');
+  const body = item.querySelector('.accordion-body');
+  const wasOpen = item.classList.contains('open');
+  item.classList.toggle('open');
+  body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
+});
+
+const flashcards = [
+  {q:"What is a race condition?", a:"An outcome that depends on the unpredictable timing of two or more concurrent operations."},
+  {q:"What is a lost update?", a:"Two transactions read the same stale value; the second write silently overwrites the effect of the first."},
+  {q:"How do you fix the classic 'check stock then decrement' race?", a:"Make it one atomic UPDATE with the condition in WHERE: UPDATE ... SET stock = stock - 1 WHERE id = ? AND stock > 0, then check affected rows."},
+  {q:"What does MVCC stand for and what does it enable?", a:"Multi-Version Concurrency Control — lets readers see a consistent snapshot without blocking concurrent writers, and vice versa."},
+  {q:"Does MVCC alone prevent lost updates between two writers?", a:"No — MVCC handles concurrent reads gracefully, but two writers can still conflict; locking (optimistic or pessimistic) resolves that."},
+  {q:"How does optimistic locking detect a conflict?", a:"A version column is checked in the UPDATE's WHERE clause; zero affected rows means someone else updated it first."},
+  {q:"What JPA annotation implements optimistic locking?", a:"@Version on an entity field — Hibernate manages the version check and throws OptimisticLockException on conflict."},
+  {q:"What SQL clause implements pessimistic locking?", a:"SELECT ... FOR UPDATE — locks the selected row(s) until the transaction commits or rolls back."},
+  {q:"Why doesn't @Transactional work on self-invoked calls?", a:"Spring implements it via a proxy around the bean; this.method() bypasses the proxy entirely, so no transaction boundary is created."},
+  {q:"What is MySQL InnoDB's default transaction isolation level?", a:"REPEATABLE READ — different from many databases (like PostgreSQL) which default to READ COMMITTED."}
+];
+const flashGrid = document.getElementById('flash-grid');
+flashcards.forEach((c,i)=>{
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.innerHTML = `
+    <div class="flashcard-inner">
+      <div class="flash-face flash-front"><div class="fc-lbl">Question ${i+1}</div><p>${c.q}</p></div>
+      <div class="flash-face flash-back"><div class="fc-lbl">Answer</div><p>${c.a}</p></div>
+    </div>`;
+  card.addEventListener('click', ()=> card.classList.toggle('flipped'));
+  flashGrid.appendChild(card);
+});
+
+const quizData = [
+  {q:"A race condition's outcome depends on:", opts:["The SQL syntax used","Unpredictable timing between concurrent operations","The number of columns in a table","The database engine version only"], correct:1},
+  {q:"A lost update happens when:", opts:["A row is deleted by mistake","Two writers overwrite each other based on the same stale read","A SELECT returns zero rows","An index is dropped accidentally"], correct:1},
+  {q:"MVCC primarily helps with:", opts:["Preventing all write conflicts","Letting readers see consistent snapshots without blocking writers","Encrypting data at rest","Compressing table storage"], correct:1},
+  {q:"Optimistic locking detects a conflict by:", opts:["Locking the row immediately on read","Checking a version column at write time","Disabling concurrent reads","Using CROSS JOIN"], correct:1},
+  {q:"Which SQL clause implements pessimistic locking?", opts:["SELECT ... FOR UPDATE","SELECT DISTINCT","GROUP BY","ORDER BY"], correct:0},
+  {q:"Why does self-invocation break @Transactional?", opts:["Java doesn't allow it","It bypasses Spring's proxy entirely","It causes a syntax error","It always throws an exception"], correct:1},
+  {q:"MySQL InnoDB's default isolation level is:", opts:["READ UNCOMMITTED","READ COMMITTED","REPEATABLE READ","SERIALIZABLE"], correct:2}
+];
+const quizContainer = document.getElementById('quiz-container');
+let quizAnswered = 0, quizCorrect = 0;
+const scoreEl = document.getElementById('quiz-score');
+function updateScore(){ scoreEl.textContent = quizCorrect + ' / ' + quizAnswered; }
+
+quizData.forEach((q,qi)=>{
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  const optsHtml = q.opts.map((o,oi)=>`<div class="quiz-opt" data-idx="${oi}">${o}</div>`).join('');
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${q.q}</div><div class="quiz-opts">${optsHtml}</div>`;
+  quizContainer.appendChild(card);
+
+  let locked = false;
+  card.querySelectorAll('.quiz-opt').forEach(optEl=>{
+    optEl.addEventListener('click', ()=>{
+      if(locked) return;
+      locked = true;
+      quizAnswered++;
+      const chosen = parseInt(optEl.dataset.idx,10);
+      if(chosen === q.correct){ quizCorrect++; optEl.classList.add('correct'); }
+      else{
+        optEl.classList.add('wrong');
+        card.querySelectorAll('.quiz-opt')[q.correct].classList.add('correct');
+      }
+      updateScore();
+    });
+  });
+});
+
+const top20 = [
+  ["What is a race condition, and give a concrete database example.","An outcome that depends on unpredictable timing between concurrent operations — e.g. two customers both reading stock=1 before either decrement runs, allowing both purchases to succeed and overselling the item."],
+  ["What is a lost update?","Two transactions read the same stale value, both compute a new value from it, and the second write silently overwrites the first's effect — e.g. two balance deductions computed from the same starting balance, where only one deduction survives."],
+  ["How do you fix the classic 'check stock then decrement' race condition?","Combine the check and the write into a single atomic UPDATE with the condition in WHERE, e.g. UPDATE products SET stock = stock - 1 WHERE id = ? AND stock > 0, then check the affected row count instead of doing a separate SELECT first."],
+  ["What does MVCC stand for and what problem does it solve?","Multi-Version Concurrency Control — it lets InnoDB give each transaction a consistent snapshot of data, so readers don't need to block on writers (and vice versa) just to read a consistent value."],
+  ["Does MVCC prevent lost updates between two concurrent writers?","No — MVCC solves the read-vs-write blocking problem, but two writers can still conflict; that's what optimistic or pessimistic locking is for."],
+  ["How does optimistic locking work?","A version column is included in the UPDATE's WHERE clause; if another transaction already changed the row (and thus the version), zero rows are affected, signaling a conflict the application must detect and handle."],
+  ["What JPA/Hibernate annotation implements optimistic locking automatically?","@Version on an entity field — Hibernate adds the version check to generated UPDATE statements and throws OptimisticLockException when it detects a conflict."],
+  ["How does pessimistic locking work in MySQL?","SELECT ... FOR UPDATE acquires a lock on the selected row(s) inside a transaction; any other transaction attempting to lock or modify the same row(s) blocks until the first transaction commits or rolls back."],
+  ["When would you choose pessimistic locking over optimistic?","When conflicts are frequent and/or costly to retry — e.g. booking the last available seat or unit of inventory, where you'd rather have the second request wait than let both apparently succeed."],
+  ["What's the main risk of pessimistic locking?","Holding locks too long (e.g. across a slow external call within the same transaction) can cause lock timeouts and deadlocks, reducing overall throughput."],
+  ["What does @Transactional actually do under the hood in Spring?","It wraps the annotated bean in a proxy that starts a transaction before the method runs, and commits or rolls back based on whether the method completes normally or throws a qualifying exception."],
+  ["Why doesn't @Transactional work when a method calls another @Transactional method on itself?","Spring's transaction management relies on a proxy wrapping the bean; a direct this.method() call bypasses that proxy entirely, so no new transaction boundary is created for the inner call."],
+  ["Does @Transactional roll back on every exception by default?","No — by default it only rolls back on unchecked exceptions (RuntimeException and Error); checked exceptions require explicit rollbackFor configuration to trigger a rollback."],
+  ["What happens if an exception is caught and logged inside a @Transactional method instead of rethrown?","The transaction commits normally, since Spring's proxy never sees the exception — potentially committing partial or inconsistent state."],
+  ["What is MySQL InnoDB's default transaction isolation level?","REPEATABLE READ — notably different from many other databases like PostgreSQL, which default to READ COMMITTED."],
+  ["What does REPEATABLE READ prevent that READ COMMITTED does not?","Non-repeatable reads — re-reading the same row within a transaction returns the same value even if another transaction commits a change to it in between."],
+  ["How does InnoDB's REPEATABLE READ largely mitigate phantom reads?","Through gap locks and next-key locking, which lock ranges of index entries (not just individual rows) to prevent new rows from being inserted into a range a transaction has already queried."],
+  ["Why is a single atomic UPDATE generally safer than a read-modify-write pattern in application code?","It avoids the window between reading a value and writing a new one where another transaction could interleave and cause a lost update; MySQL computes the new value directly from the current row atomically."],
+  ["Give a real-world analogy for optimistic vs pessimistic locking.","Optimistic: editing a shared document and getting a conflict warning only if someone else saved first. Pessimistic: checking out a library book so no one else can borrow it until you return it."],
+  ["What's a practical first question to ask when designing for concurrency in a new feature?","How likely and how costly are conflicting concurrent writes to the same data — that answer determines whether optimistic locking, pessimistic locking, or a simple atomic UPDATE is the right fit."]
+];
+const top20List = document.getElementById('top20-list');
+top20.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'accordion-item';
+  div.innerHTML = `<div class="accordion-head">${i+1}. ${item[0]}<span class="plus">+</span></div><div class="accordion-body"><p>${item[1]}</p></div>`;
+  top20List.appendChild(div);
+});
+</script>
+</body>
+</html>

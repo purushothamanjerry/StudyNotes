@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 17 — Performance Tuning | MySQL Interview Blueprint</title>
+<style>
+:root{
+  --bg:#080b12;
+  --bg-2:#0c111c;
+  --panel:rgba(255,255,255,0.035);
+  --panel-strong:rgba(255,255,255,0.06);
+  --border:rgba(148,178,224,0.14);
+  --border-strong:rgba(148,178,224,0.28);
+  --grid:rgba(110,231,249,0.05);
+  --text:#e9edf6;
+  --text-dim:#94a1ba;
+  --text-faint:#576079;
+  --ink:#6EE7F9;
+  --ink-2:#A78BFA;
+  --amber:#f0b429;
+  --coral:#fb7185;
+  --mint:#34d399;
+  --code-bg:#0a0e17;
+  --radius:14px;
+  --font-display:'Segoe UI Semibold','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 1200px 700px at 15% -10%, rgba(110,231,249,0.08), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(167,139,250,0.07), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(90deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 64px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.6;
+}
+::selection{background:rgba(110,231,249,0.25);color:#fff;}
+a{color:inherit;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(148,178,224,0.25);border-radius:8px;}
+
+#progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--ink),var(--ink-2));
+  z-index:1000;
+  box-shadow:0 0 12px rgba(110,231,249,0.6);
+  transition:width .08s linear;
+}
+
+#topbar{
+  position:sticky;top:0;z-index:900;
+  display:none;
+  align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  background:rgba(8,11,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+#topbar .brand{font-family:var(--font-display);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);}
+#menu-toggle{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:8px 10px;cursor:pointer;
+}
+
+#layout{
+  display:grid;
+  grid-template-columns:270px minmax(0,1fr);
+  max-width:1400px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+
+#sidebar{
+  position:sticky;top:0;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 18px 40px 28px;
+  border-right:1px solid var(--border);
+}
+.brand-block{margin-bottom:28px;}
+.brand-eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+  color:var(--ink);text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;
+}
+.brand-title{
+  font-family:var(--font-display);font-size:19px;margin-top:6px;
+  letter-spacing:.01em;
+}
+.brand-sub{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+.star{color:var(--amber);}
+
+nav#toc{display:flex;flex-direction:column;gap:2px;}
+.toc-group-label{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;
+  color:var(--text-faint);text-transform:uppercase;
+  margin:16px 0 6px 12px;
+}
+.toc-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:8px;
+  font-size:13.5px;color:var(--text-dim);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.toc-link .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex:none;
+  transition:background .2s ease,box-shadow .2s ease;
+}
+.toc-link:hover{background:var(--panel);color:var(--text);}
+.toc-link.active{
+  background:var(--panel-strong);color:var(--ink);
+  border-left-color:var(--ink);
+}
+.toc-link.active .dot{background:var(--ink);box-shadow:0 0 8px var(--ink);}
+
+#sidebar-footer{
+  margin-top:26px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);
+}
+
+main{padding:0 0 120px 0;min-width:0;}
+.section{
+  padding:90px clamp(20px,4vw,64px) 10px;
+  scroll-margin-top:20px;
+  max-width:920px;
+}
+.section-inner{max-width:820px;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);
+  padding:5px 12px;border:1px solid rgba(110,231,249,0.3);
+  border-radius:999px;background:rgba(110,231,249,0.06);
+  margin-bottom:18px;
+}
+.eyebrow.capstone{color:var(--amber);border-color:rgba(240,180,41,0.4);background:rgba(240,180,41,0.08);}
+h1.section-title{
+  font-family:var(--font-display);font-size:clamp(28px,4vw,42px);
+  letter-spacing:-0.01em;line-height:1.15;margin-bottom:14px;
+}
+p.section-lede{font-size:16.5px;color:var(--text-dim);max-width:680px;margin-bottom:6px;}
+h2.h2{
+  font-family:var(--font-display);font-size:22px;margin:44px 0 14px;
+  display:flex;align-items:center;gap:10px;
+}
+h2.h2 .idx{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink);
+  border:1px solid var(--border-strong);border-radius:6px;
+  padding:2px 7px;
+}
+h3.h3{font-family:var(--font-display);font-size:16.5px;margin:22px 0 10px;color:var(--text);}
+p{font-size:15px;color:var(--text-dim);margin-bottom:12px;}
+p strong{color:var(--text);font-weight:600;}
+ul.plain-list{margin:8px 0 16px 0;padding-left:0;list-style:none;}
+ul.plain-list li{
+  position:relative;padding-left:20px;margin-bottom:8px;font-size:14.5px;color:var(--text-dim);
+}
+ul.plain-list li::before{
+  content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--ink);
+}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  backdrop-filter:blur(10px);
+  margin:16px 0;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 12px 30px -14px rgba(0,0,0,.6);}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.card-grid{grid-template-columns:1fr;}}
+
+.label-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.label-row svg{flex:none;}
+.label-row .lbl{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+
+.box{
+  border-radius:12px;padding:16px 18px;margin:16px 0;
+  border:1px solid; position:relative; overflow:hidden;
+}
+.box .box-title{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700;
+}
+.box p{margin-bottom:6px;font-size:14px;}
+.box.tip{background:rgba(110,231,249,0.06);border-color:rgba(110,231,249,0.28);}
+.box.tip .box-title{color:var(--ink);}
+.box.mistake{background:rgba(251,113,133,0.07);border-color:rgba(251,113,133,0.3);}
+.box.mistake .box-title{color:var(--coral);}
+.box.warn{background:rgba(240,180,41,0.08);border-color:rgba(240,180,41,0.32);}
+.box.warn .box-title{color:var(--amber);}
+.box.best{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);}
+.box.best .box-title{color:var(--mint);}
+.box.memory{background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(110,231,249,0.06));border-color:rgba(167,139,250,0.32);}
+.box.memory .box-title{color:var(--ink-2);}
+
+.code-block{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin:16px 0;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.code-head .dots{display:flex;gap:6px;}
+.code-head .dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);}
+.code-head .filename{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);}
+.run-btn{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+  background:rgba(110,231,249,0.1);color:var(--ink);
+  border:1px solid rgba(110,231,249,0.35);border-radius:7px;
+  padding:5px 10px;cursor:pointer;transition:background .2s ease;
+}
+.run-btn:hover{background:rgba(110,231,249,0.2);}
+pre.code{
+  padding:16px 18px;font-family:var(--font-mono);font-size:13.2px;
+  overflow-x:auto;color:#c9d3e6;line-height:1.7;
+}
+.k{color:#6EE7F9;font-weight:600;}
+.t{color:#a78bfa;}
+.s{color:#fbbf24;}
+.c{color:#576079;font-style:italic;}
+.f{color:#34d399;}
+.n{color:#fb7185;}
+
+.exec-result{
+  border-top:1px dashed var(--border);
+  padding:14px 18px;font-family:var(--font-mono);font-size:12.5px;
+  color:var(--mint);display:none;
+}
+.exec-result.show{display:block;animation:fadein .4s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.exec-result table{border-collapse:collapse;margin-top:8px;width:100%;}
+.exec-result th,.exec-result td{border:1px solid rgba(52,211,153,0.25);padding:5px 10px;font-size:12px;color:var(--text-dim);}
+.exec-result th{color:var(--mint);text-align:left;}
+.exec-result td.bad{color:var(--coral);}
+.exec-result td.good{color:var(--mint);}
+
+.tabs{display:flex;gap:6px;margin:16px 0 0;flex-wrap:wrap;}
+.tab-btn{
+  font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:8px 8px 0 0;
+  background:var(--panel);border:1px solid var(--border);border-bottom:none;
+  color:var(--text-faint);cursor:pointer;transition:color .2s,background .2s;
+}
+.tab-btn.active{color:var(--ink);background:var(--panel-strong);}
+.tab-panels{border:1px solid var(--border);border-radius:0 10px 10px 10px;background:var(--panel);padding:18px;margin-bottom:16px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadein .3s ease;}
+
+.accordion-item{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--panel);}
+.accordion-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;cursor:pointer;font-size:14.5px;color:var(--text);font-weight:500;
+}
+.accordion-head .plus{color:var(--ink);font-family:var(--font-mono);transition:transform .3s ease;font-size:16px;}
+.accordion-item.open .plus{transform:rotate(45deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 16px;}
+.accordion-item.open .accordion-body{padding:0 16px 16px;}
+.accordion-body p{font-size:13.8px;}
+.tag{
+  display:inline-block;font-family:var(--font-mono);font-size:10.5px;
+  padding:2px 8px;border-radius:999px;margin-left:8px;
+  background:rgba(167,139,250,0.12);color:var(--ink-2);border:1px solid rgba(167,139,250,0.3);
+}
+.tag.company{background:rgba(240,180,41,0.1);color:var(--amber);border-color:rgba(240,180,41,0.3);}
+.tag.scenario{background:rgba(251,113,133,0.1);color:var(--coral);border-color:rgba(251,113,133,0.3);}
+
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+.cmp-table th,.cmp-table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.cmp-table th{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--border-strong);
+}
+.cmp-table td{color:var(--text-dim);}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02);}
+.cmp-table td.bad{color:var(--coral);}
+.cmp-table td.good{color:var(--mint);}
+
+.diagram-wrap{
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  background:radial-gradient(ellipse at top left, rgba(110,231,249,0.05), transparent 60%);
+  margin:18px 0;overflow-x:auto;
+}
+.diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;}
+
+.flow{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+.flow-step{display:flex;gap:16px;position:relative;padding-bottom:26px;}
+.flow-step:last-child{padding-bottom:0;}
+.flow-step::before{
+  content:"";position:absolute;left:15px;top:34px;bottom:0;width:1px;
+  background:linear-gradient(var(--border-strong),transparent);
+}
+.flow-step:last-child::before{display:none;}
+.flow-num{
+  flex:none;width:32px;height:32px;border-radius:50%;
+  background:var(--panel-strong);border:1px solid var(--border-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;color:var(--ink);z-index:1;
+}
+.flow-body{padding-top:4px;}
+.flow-body h4{font-size:14.5px;color:var(--text);margin-bottom:3px;font-weight:600;}
+.flow-body p{font-size:13.5px;margin-bottom:0;}
+
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+.mini-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.mini-card h4{font-size:13.5px;color:var(--ink);font-family:var(--font-mono);margin-bottom:8px;letter-spacing:.04em;}
+.mini-card p{font-size:13px;margin-bottom:0;}
+
+.flash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:18px 0;}
+.flashcard{perspective:1000px;height:170px;cursor:pointer;}
+.flashcard-inner{
+  position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.flash-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:12px;border:1px solid var(--border-strong);
+  padding:18px;display:flex;flex-direction:column;justify-content:center;
+}
+.flash-front{background:linear-gradient(150deg,rgba(110,231,249,0.08),rgba(255,255,255,0.02));}
+.flash-back{background:linear-gradient(150deg,rgba(167,139,250,0.14),rgba(20,25,38,0.9));transform:rotateY(180deg);}
+.flash-face .fc-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.flash-face p{font-size:14px;color:var(--text);margin:0;}
+
+.quiz-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.quiz-q{font-size:15px;color:var(--text);margin-bottom:14px;font-weight:500;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  border:1px solid var(--border);background:var(--panel);border-radius:9px;
+  padding:11px 14px;font-size:13.8px;cursor:pointer;color:var(--text-dim);
+  transition:border-color .2s,background .2s;
+}
+.quiz-opt:hover{border-color:var(--border-strong);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(52,211,153,0.1);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--coral);background:rgba(251,113,133,0.1);color:var(--coral);}
+#quiz-score-bar{
+  position:sticky;top:10px;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,23,0.85);backdrop-filter:blur(10px);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;margin-bottom:20px;font-family:var(--font-mono);font-size:13px;
+}
+#quiz-score-bar .score{color:var(--ink);}
+
+.roadmap{position:relative;margin:26px 0 10px;padding-left:26px;}
+.roadmap::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--ink),var(--ink-2),transparent);}
+.rm-item{position:relative;margin-bottom:26px;}
+.rm-item::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ink);}
+.rm-item h4{font-size:14.5px;color:var(--text);margin-bottom:4px;}
+.rm-item p{font-size:13.5px;margin-bottom:0;}
+
+.hero{
+  min-height:92vh;display:flex;flex-direction:column;justify-content:center;
+  padding:60px clamp(20px,4vw,64px);position:relative;
+}
+.hero-kicker{
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.hero-kicker::before{content:"";width:34px;height:1px;background:var(--ink);}
+.hero-kicker .capstone-badge{
+  color:var(--amber);border:1px solid rgba(240,180,41,0.4);background:rgba(240,180,41,0.08);
+  padding:3px 10px;border-radius:999px;font-size:11px;letter-spacing:.1em;
+}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(38px,6vw,72px);line-height:1.03;
+  letter-spacing:-0.02em;max-width:900px;
+  background:linear-gradient(120deg,#fff 30%,var(--ink) 65%,var(--ink-2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.hero-sub{font-size:17px;color:var(--text-dim);max-width:620px;margin:22px 0 30px;}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px;}
+.hero-tag{
+  font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--panel);
+}
+.hero-scroll{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:8px;}
+.hero-scroll svg{animation:bob 1.8s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+.blueprint-hero{margin-top:10px;border:1px solid var(--border);border-radius:16px;padding:22px;background:rgba(255,255,255,0.02);}
+
+footer.page-footer{
+  text-align:center;padding:60px 20px 40px;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;
+  border-top:1px solid var(--border);margin-top:60px;
+}
+
+/* explain output table */
+.explain-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px;margin-top:10px;}
+.explain-table th,.explain-table td{padding:8px 10px;border:1px solid rgba(52,211,153,0.2);text-align:left;}
+.explain-table th{color:var(--mint);}
+.explain-table td{color:var(--text-dim);}
+.explain-table td.flag-bad{color:var(--coral);font-weight:600;}
+.explain-table td.flag-good{color:var(--mint);font-weight:600;}
+
+/* latency bar comparison */
+.latency-bars{display:flex;flex-direction:column;gap:14px;margin:18px 0;}
+.latency-row{display:flex;align-items:center;gap:12px;}
+.latency-label{width:170px;flex:none;font-family:var(--font-mono);font-size:12px;color:var(--text-dim);}
+.latency-track{flex:1;height:22px;background:rgba(255,255,255,0.03);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.latency-fill{height:100%;width:0;border-radius:6px;transition:width 1.1s cubic-bezier(.2,.8,.2,1);}
+.latency-fill.bad{background:linear-gradient(90deg,#fb7185,#f0b429);}
+.latency-fill.good{background:linear-gradient(90deg,#34d399,#6EE7F9);}
+.latency-val{width:70px;flex:none;font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-align:right;}
+
+@media(max-width:980px){
+  #layout{grid-template-columns:1fr;}
+  #sidebar{
+    position:fixed;left:0;top:57px;bottom:0;width:270px;
+    transform:translateX(-100%);transition:transform .3s ease;
+    background:rgba(8,11,18,0.98);z-index:800;height:calc(100vh - 57px);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #topbar{display:flex;}
+  .section{padding-top:56px;}
+  .hero{min-height:auto;padding-top:50px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div id="topbar">
+  <span class="brand">MySQL Blueprint · Mod 17 ⭐</span>
+  <button id="menu-toggle" aria-label="Toggle menu">☰ Menu</button>
+</div>
+
+<div id="layout">
+  <aside id="sidebar">
+    <div class="brand-block">
+      <div class="brand-eyebrow"><span class="star">⭐</span> Interview Blueprint · Module 17 · Capstone</div>
+      <div class="brand-title">Performance Tuning</div>
+      <div class="brand-sub">Making MySQL fast for Java Full Stack fresher interviews</div>
+    </div>
+    <nav id="toc">
+      <a class="toc-link" href="#hero"><span class="dot"></span>Overview</a>
+      <div class="toc-group-label">Core Topics</div>
+      <a class="toc-link" href="#explain"><span class="dot"></span>EXPLAIN</a>
+      <a class="toc-link" href="#slow"><span class="dot"></span>Slow Queries</a>
+      <a class="toc-link" href="#indexopt"><span class="dot"></span>Index Optimization</a>
+      <a class="toc-link" href="#queryopt"><span class="dot"></span>Query Optimization</a>
+      <a class="toc-link" href="#pagination"><span class="dot"></span>Pagination</a>
+      <a class="toc-link" href="#batchinsert"><span class="dot"></span>Batch Insert</a>
+      <a class="toc-link" href="#selectstar"><span class="dot"></span>SELECT * Problems</a>
+      <div class="toc-group-label">Revision</div>
+      <a class="toc-link" href="#cheatsheet"><span class="dot"></span>Cheat Sheet</a>
+      <a class="toc-link" href="#mindmap"><span class="dot"></span>Mind Map</a>
+      <a class="toc-link" href="#flashcards"><span class="dot"></span>Flash Cards</a>
+      <a class="toc-link" href="#quiz"><span class="dot"></span>Quick Quiz</a>
+      <a class="toc-link" href="#top20"><span class="dot"></span>Top 20 Questions</a>
+      <a class="toc-link" href="#roadmap"><span class="dot"></span>Roadmap</a>
+      <a class="toc-link" href="#summary"><span class="dot"></span>Summary</a>
+    </nav>
+    <div id="sidebar-footer">Fresher track · Java + Spring Boot + MySQL<br>Zoho · TCS Digital · Infosys · Accenture · Capgemini · Cognizant · HCL · Wipro</div>
+  </aside>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="hero-kicker">Module 17 — MySQL Interview Track <span class="capstone-badge">⭐ Capstone Module</span></div>
+      <h1>Performance Tuning</h1>
+      <p class="hero-sub">A query that returns correct results but takes 8 seconds isn't done — it's broken. This module is where every earlier concept (indexes, joins, aggregation, pagination) gets stress-tested: reading <strong>EXPLAIN</strong>, hunting slow queries, and fixing the specific patterns that quietly wreck production performance.</p>
+      <div class="hero-tags">
+        <span class="hero-tag">EXPLAIN</span>
+        <span class="hero-tag">Slow Queries</span>
+        <span class="hero-tag">Index Optimization</span>
+        <span class="hero-tag">Query Optimization</span>
+        <span class="hero-tag">Pagination</span>
+        <span class="hero-tag">Batch Insert</span>
+        <span class="hero-tag">SELECT * Problems</span>
+      </div>
+
+      <div class="blueprint-hero reveal">
+        <div class="label-row"><span class="lbl">Live diagram — the diagnostic loop every fast query goes through</span></div>
+        <div class="diagram-wrap" style="margin-top:6px;border:none;padding:0;background:none;">
+          <svg viewBox="0 0 760 190" width="100%">
+            <defs>
+              <marker id="arrowhead-hero17" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#6EE7F9"/>
+              </marker>
+            </defs>
+            <g font-family="ui-monospace,monospace" font-size="12">
+              <rect x="20" y="70" width="150" height="50" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+              <text x="95" y="100" text-anchor="middle" fill="#fb7185">Slow query</text>
+
+              <line x1="170" y1="95" x2="270" y2="95" stroke="#6EE7F9" stroke-width="1.4" marker-end="url(#arrowhead-hero17)"/>
+              <rect x="280" y="70" width="150" height="50" rx="8" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="355" y="100" text-anchor="middle" fill="#6EE7F9">EXPLAIN</text>
+
+              <line x1="430" y1="95" x2="530" y2="95" stroke="#f0b429" stroke-width="1.4" marker-end="url(#arrowhead-hero17)"/>
+              <rect x="540" y="70" width="150" height="50" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+              <text x="615" y="100" text-anchor="middle" fill="#f0b429">Add index / rewrite</text>
+
+              <path d="M615,70 C615,20 355,20 355,70" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrowhead-hero17)"/>
+              <text x="470" y="30" text-anchor="middle" fill="#34d399" font-size="11">re-run EXPLAIN to confirm</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-scroll" style="margin-top:26px;">
+        <span>Scroll to begin</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke="#6EE7F9" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </section>
+
+    <!-- ================= INTRO ================= -->
+    <section class="section" id="intro">
+      <div class="section-inner reveal">
+        <div class="eyebrow capstone">⭐ Why this module is the capstone</div>
+        <h1 class="section-title">Every prior module becomes a performance lever here</h1>
+        <p class="section-lede">Schema design (Module 3), joins (Module 8), aggregation (Module 6) — all of it directly determines how fast or slow your queries run. Interviewers use performance questions specifically to test whether you understand the "why" underneath the syntax you've already learned.</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="label-row"><span class="lbl">Real-world analogy</span></div>
+            <p>EXPLAIN is like asking Google Maps for the route before driving — it shows you the plan (which "roads"/indexes MySQL will take) so you can spot a bad detour before you're stuck in traffic for 8 seconds per request.</p>
+          </div>
+          <div class="card">
+            <div class="label-row"><span class="lbl">Problem it solves</span></div>
+            <p>A functionally correct query can still take down a production system under load. Performance tuning is the discipline of making sure "correct" and "fast enough" are both true, not just the first one.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= EXPLAIN ================= -->
+    <section class="section" id="explain">
+      <div class="section-inner reveal">
+        <div class="eyebrow">01 · Diagnostic Tool</div>
+        <h1 class="section-title">EXPLAIN</h1>
+        <p class="section-lede">Prefixing any query with EXPLAIN shows MySQL's execution plan without running it — the single most important habit for anyone touching production SQL.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">explain.sql</div><button class="run-btn" data-target="res-explain">▶ Run</button></div>
+          <pre class="code"><span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="f">e</span>.<span class="f">first_name</span>, <span class="f">d</span>.<span class="f">dept_name</span>
+<span class="k">FROM</span> <span class="f">employees</span> <span class="f">e</span>
+<span class="k">JOIN</span> <span class="f">departments</span> <span class="f">d</span> <span class="k">ON</span> <span class="f">e</span>.<span class="f">dept_id</span> = <span class="f">d</span>.<span class="f">id</span>
+<span class="k">WHERE</span> <span class="f">e</span>.<span class="f">salary</span> &gt; <span class="n">50000</span>;</pre>
+          <div class="exec-result show" id="res-explain">
+            <table class="explain-table">
+              <tr><th>table</th><th>type</th><th>key</th><th>rows</th><th>Extra</th></tr>
+              <tr><td>e</td><td class="flag-bad">ALL</td><td>NULL</td><td>18420</td><td class="flag-bad">Using where</td></tr>
+              <tr><td>d</td><td class="flag-good">eq_ref</td><td>PRIMARY</td><td>1</td><td></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>The columns that actually matter</h2>
+        <table class="cmp-table">
+          <tr><th>Column</th><th>What to look for</th></tr>
+          <tr><td>type</td><td>Access method — <span class="good">const/eq_ref/ref</span> is great, <span class="bad">ALL</span> means a full table scan (red flag)</td></tr>
+          <tr><td>key</td><td>Which index was actually used — NULL means no index was used at all</td></tr>
+          <tr><td>rows</td><td>Estimated rows MySQL expects to examine — lower is better, a strong cost proxy</td></tr>
+          <tr><td>Extra</td><td>"Using filesort" / "Using temporary" are common performance warnings worth investigating</td></tr>
+        </table>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>The `e` table above shows <code>type: ALL</code> despite filtering on <code>salary</code> — because there's no index on that column. The fix (add an index) is the direct segue into Index Optimization below.</p>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Beyond EXPLAIN</div>
+          <p><code>EXPLAIN ANALYZE</code> (MySQL 8.0.18+) actually executes the query and reports real timing per step, not just estimates — mention this for extra credit in interviews.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="explain">
+          <div class="accordion-item"><div class="accordion-head">What does "type: ALL" mean in EXPLAIN, and why is it bad?<span class="plus">+</span></div><div class="accordion-body"><p>It means MySQL is doing a full table scan — reading every row to find matches, instead of using an index to jump directly to relevant rows. On large tables this is the single biggest performance red flag.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">What's the difference between EXPLAIN and EXPLAIN ANALYZE?<span class="plus">+</span></div><div class="accordion-body"><p>EXPLAIN shows the optimizer's estimated plan without running the query. EXPLAIN ANALYZE actually executes it and reports real measured timing and row counts per step, giving ground truth instead of an estimate.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLOW QUERIES ================= -->
+    <section class="section" id="slow">
+      <div class="section-inner reveal">
+        <div class="eyebrow">02 · Diagnostics</div>
+        <h1 class="section-title">Slow Queries</h1>
+        <p class="section-lede">Before you can fix a slow query, you have to find it — MySQL's slow query log is the production-grade way to do that.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">slow_query_log.sql</div><button class="run-btn" data-target="res-slow">▶ Run</button></div>
+          <pre class="code"><span class="k">SET GLOBAL</span> <span class="f">slow_query_log</span> = <span class="s">'ON'</span>;
+<span class="k">SET GLOBAL</span> <span class="f">long_query_time</span> = <span class="n">1</span>; <span class="c">-- log any query taking &gt; 1 second</span>
+<span class="k">SHOW VARIABLES</span> <span class="k">LIKE</span> <span class="s">'slow_query_log_file'</span>;</pre>
+          <div class="exec-result" id="res-slow">
+            → Every query exceeding 1 second is now appended to the slow query log with full timing and row-examination stats<br>
+            → Tools like <strong>mysqldumpslow</strong> or <strong>pt-query-digest</strong> summarize the log by frequency × cost
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Common causes, ranked by frequency</h2>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>Missing index</h4><p>By far the most common cause — a WHERE/JOIN/ORDER BY column with no supporting index forces a full scan.</p></div>
+          <div class="mini-card"><h4>Function on an indexed column</h4><p><code>WHERE YEAR(created_at)=2026</code> disables index usage on created_at entirely.</p></div>
+          <div class="mini-card"><h4>Implicit type conversion</h4><p>Comparing an indexed INT column to a string literal can silently prevent index use.</p></div>
+          <div class="mini-card"><h4>Large OFFSET pagination</h4><p>MySQL still scans and discards every skipped row before returning the page.</p></div>
+          <div class="mini-card"><h4>N+1 query pattern</h4><p>A loop issuing one query per row instead of one batched query — extremely common in careless JPA/Hibernate code.</p></div>
+          <div class="mini-card"><h4>Lock contention</h4><p>Long-running transactions holding row/table locks, blocking other queries from proceeding.</p></div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">The N+1 trap — asked constantly for Spring Boot roles</div>
+          <p>A JPA <code>@OneToMany</code> relationship fetched lazily inside a loop issues 1 query for the parent list, then 1 additional query per child — 101 queries for 100 rows. Fix with <code>JOIN FETCH</code> in JPQL, an <code>@EntityGraph</code>, or a single batched query.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="slow">
+          <div class="accordion-item"><div class="accordion-head">Asked at Infosys: How would you identify the slowest queries in a production MySQL instance? <span class="tag company">Infosys</span><span class="plus">+</span></div><div class="accordion-body"><p>Enable the slow query log with an appropriate long_query_time threshold, then analyze it with mysqldumpslow or pt-query-digest to rank queries by total time × frequency (not just single-query duration) — a frequently-run "slightly slow" query often costs more overall than a rare "very slow" one.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= INDEX OPTIMIZATION ================= -->
+    <section class="section" id="indexopt">
+      <div class="section-inner reveal">
+        <div class="eyebrow">03 · Optimization</div>
+        <h1 class="section-title">Index Optimization</h1>
+        <p class="section-lede">Indexes are the single highest-leverage performance tool in MySQL — and the easiest to misuse.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">index_optimization.sql</div><button class="run-btn" data-target="res-idx">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Single-column index</span>
+<span class="k">CREATE INDEX</span> <span class="f">idx_employees_salary</span> <span class="k">ON</span> <span class="f">employees</span>(<span class="f">salary</span>);
+
+<span class="c">-- Composite index -- column order matters!</span>
+<span class="k">CREATE INDEX</span> <span class="f">idx_orders_status_date</span> <span class="k">ON</span> <span class="f">orders</span>(<span class="f">status</span>, <span class="f">order_date</span>);
+
+<span class="c">-- Covering index -- query can be satisfied from the index alone</span>
+<span class="k">CREATE INDEX</span> <span class="f">idx_covering</span> <span class="k">ON</span> <span class="f">employees</span>(<span class="f">dept_id</span>, <span class="f">first_name</span>, <span class="f">salary</span>);
+<span class="k">SELECT</span> <span class="f">first_name</span>, <span class="f">salary</span> <span class="k">FROM</span> <span class="f">employees</span> <span class="k">WHERE</span> <span class="f">dept_id</span> = <span class="n">2</span>;</pre>
+          <div class="exec-result" id="res-idx">
+            → The covering index query never touches the table's data pages at all — "Using index" appears in EXPLAIN's Extra column<br>
+            → This is significantly faster than a normal index lookup, which still needs one extra hop to fetch the row
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>The leftmost-prefix rule</h2>
+        <p>A composite index on <code>(status, order_date)</code> can serve queries filtering on <code>status</code> alone, or on <code>status AND order_date</code> together — but <strong>not</strong> a query filtering on <code>order_date</code> alone. The index is only usable left-to-right, like a phone book sorted by last name then first name: useless for finding everyone named "Rahul" without knowing the last name too.</p>
+
+        <table class="cmp-table">
+          <tr><th>Query filters on</th><th>Can use idx(status, order_date)?</th></tr>
+          <tr><td>status</td><td class="good">Yes</td></tr>
+          <tr><td>status AND order_date</td><td class="good">Yes</td></tr>
+          <tr><td>order_date only</td><td class="bad">No — leftmost column skipped</td></tr>
+        </table>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>"Should you index every column?" — No. Every index speeds up reads but slows down every INSERT/UPDATE/DELETE (each index must also be maintained) and consumes disk space. Index columns actually used in WHERE, JOIN, and ORDER BY — not every column defensively.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best practice</div>
+          <p>Put the highest-selectivity (most distinct values) or equality-filtered column first in a composite index when the access pattern allows it — this lets MySQL narrow down the fewest matching rows earliest.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">02</span>Interview questions</h2>
+        <div class="accordion" data-group="idxopt">
+          <div class="accordion-item"><div class="accordion-head">Asked at Accenture: What is a covering index and why is it fast? <span class="tag company">Accenture</span><span class="plus">+</span></div><div class="accordion-body"><p>An index that contains every column the query needs, so MySQL can answer the query by reading only the index (a smaller, sorted structure) without a second lookup into the actual table data (the clustered index) — visible as "Using index" in EXPLAIN.</p></div></div>
+          <div class="accordion-item"><div class="accordion-head">Scenario: You add an index but EXPLAIN still shows type: ALL. Why might MySQL ignore your new index? <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>Common causes: a function wraps the indexed column in WHERE, a type mismatch forces conversion, the query doesn't respect the leftmost-prefix rule for a composite index, or the optimizer estimates the table is small/low-selectivity enough that a full scan is actually cheaper than an index lookup.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= QUERY OPTIMIZATION ================= -->
+    <section class="section" id="queryopt">
+      <div class="section-inner reveal">
+        <div class="eyebrow">04 · Optimization</div>
+        <h1 class="section-title">Query Optimization</h1>
+        <p class="section-lede">Rewriting the query itself, independent of indexing — the patterns that turn an 8-second query into an 80-millisecond one.</p>
+
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="qo-func">Functions on columns</button>
+          <button class="tab-btn" data-tab="qo-exists">EXISTS vs IN vs JOIN</button>
+          <button class="tab-btn" data-tab="qo-limit">Filter before joining</button>
+        </div>
+        <div class="tab-panels">
+          <div class="tab-panel active" id="qo-func">
+            <pre class="code" style="padding:0;"><span class="c">-- SLOW: function on indexed column disables the index</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">orders</span> <span class="k">WHERE</span> <span class="k">YEAR</span>(<span class="f">order_date</span>) = <span class="n">2026</span>;
+
+<span class="c">-- FAST: rewritten as a sargable range, index-friendly</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">orders</span>
+<span class="k">WHERE</span> <span class="f">order_date</span> &gt;= <span class="s">'2026-01-01'</span> <span class="k">AND</span> <span class="f">order_date</span> &lt; <span class="s">'2027-01-01'</span>;</pre>
+          </div>
+          <div class="tab-panel" id="qo-exists">
+            <pre class="code" style="padding:0;"><span class="c">-- EXISTS often outperforms IN with a subquery on large sets</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">customers</span> <span class="f">c</span>
+<span class="k">WHERE EXISTS</span> (<span class="k">SELECT</span> <span class="n">1</span> <span class="k">FROM</span> <span class="f">orders</span> <span class="f">o</span> <span class="k">WHERE</span> <span class="f">o</span>.<span class="f">customer_id</span> = <span class="f">c</span>.<span class="f">id</span>);
+
+<span class="c">-- MySQL 8's optimizer often rewrites simple IN subqueries to joins/semi-joins,</span>
+<span class="c">-- but EXISTS with a well-indexed correlated column is a safe, explicit choice</span></pre>
+          </div>
+          <div class="tab-panel" id="qo-limit">
+            <pre class="code" style="padding:0;"><span class="c">-- SLOW: join first, then filter a huge intermediate result</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">orders</span> <span class="f">o</span> <span class="k">JOIN</span> <span class="f">order_items</span> <span class="f">oi</span> <span class="k">ON</span> <span class="f">oi</span>.<span class="f">order_id</span>=<span class="f">o</span>.<span class="f">id</span>
+<span class="k">WHERE</span> <span class="f">o</span>.<span class="f">status</span> = <span class="s">'PENDING'</span>;
+
+<span class="c">-- FAST: MySQL's optimizer usually pushes WHERE down automatically,</span>
+<span class="c">-- but for complex queries, pre-filtering in a subquery/CTE helps it plan better</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> (<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">orders</span> <span class="k">WHERE</span> <span class="f">status</span>=<span class="s">'PENDING'</span>) <span class="f">o</span>
+<span class="k">JOIN</span> <span class="f">order_items</span> <span class="f">oi</span> <span class="k">ON</span> <span class="f">oi</span>.<span class="f">order_id</span>=<span class="f">o</span>.<span class="f">id</span>;</pre>
+          </div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>The term to know: a condition is <strong>"sargable"</strong> (Search ARGument ABLE) if MySQL can use an index to evaluate it directly. Wrapping a column in a function almost always makes a condition non-sargable.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="qopt">
+          <div class="accordion-item"><div class="accordion-head">What does "sargable" mean, and give an example of a non-sargable condition?<span class="plus">+</span></div><div class="accordion-body"><p>A condition MySQL can evaluate using an index seek rather than a full scan. <code>WHERE UPPER(email) = 'X@CORP.COM'</code> is non-sargable because UPPER() must be computed per row before comparison, disabling the index on email.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGINATION ================= -->
+    <section class="section" id="pagination">
+      <div class="section-inner reveal">
+        <div class="eyebrow">05 · Pattern</div>
+        <h1 class="section-title">Pagination</h1>
+        <p class="section-lede">Every list endpoint in a REST API paginates — and the naive approach degrades badly at scale.</p>
+
+        <div class="latency-bars" id="pagination-chart">
+          <div class="latency-row"><div class="latency-label">OFFSET page 1</div><div class="latency-track"><div class="latency-fill good" data-w="8%"></div></div><div class="latency-val">4 ms</div></div>
+          <div class="latency-row"><div class="latency-label">OFFSET page 1,000</div><div class="latency-track"><div class="latency-fill bad" data-w="55%"></div></div><div class="latency-val">340 ms</div></div>
+          <div class="latency-row"><div class="latency-label">OFFSET page 10,000</div><div class="latency-track"><div class="latency-fill bad" data-w="100%"></div></div><div class="latency-val">2,900 ms</div></div>
+          <div class="latency-row"><div class="latency-label">Keyset page (any depth)</div><div class="latency-track"><div class="latency-fill good" data-w="6%"></div></div><div class="latency-val">3 ms</div></div>
+        </div>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">pagination.sql</div><button class="run-btn" data-target="res-page" data-chart="pagination-chart">▶ Run</button></div>
+          <pre class="code"><span class="c">-- OFFSET pagination: gets slower as page number grows</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">products</span> <span class="k">ORDER BY</span> <span class="f">id</span> <span class="k">LIMIT</span> <span class="n">20</span> <span class="k">OFFSET</span> <span class="n">200000</span>;
+
+<span class="c">-- Keyset (seek) pagination: constant time at any depth</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">products</span>
+<span class="k">WHERE</span> <span class="f">id</span> &gt; <span class="n">200000</span> <span class="c">-- last_seen_id from the previous page</span>
+<span class="k">ORDER BY</span> <span class="f">id</span> <span class="k">LIMIT</span> <span class="n">20</span>;</pre>
+          <div class="exec-result" id="res-page">→ Keyset pagination uses the index to seek directly to the right spot; OFFSET must still count through every skipped row first</div>
+        </div>
+
+        <div class="box warn reveal">
+          <div class="box-title">Interview trap</div>
+          <p>"Why is <code>LIMIT 20 OFFSET 200000</code> slow?" — MySQL cannot skip directly to row 200,000; it must scan and discard the first 200,000 matching rows (even using an index) before returning the page you asked for.</p>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Spring Boot relation</div>
+          <p>Spring Data JPA's <code>Pageable</code> defaults to OFFSET-based paging. For deep or high-traffic pagination, use a <code>Slice</code> query with a keyset WHERE clause instead of relying on <code>PageRequest.of(pageNumber, size)</code> alone.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="page">
+          <div class="accordion-item"><div class="accordion-head">Scenario: Your product listing API gets noticeably slower as users click deeper into pagination. How do you fix it? <span class="tag scenario">Scenario</span><span class="plus">+</span></div><div class="accordion-body"><p>Switch from OFFSET-based to keyset (seek) pagination: track the last row's sort key (e.g. id) from the current page, and query WHERE id > last_seen_id ORDER BY id LIMIT n for the next page — constant-time at any depth, provided that column is indexed.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= BATCH INSERT ================= -->
+    <section class="section" id="batchinsert">
+      <div class="section-inner reveal">
+        <div class="eyebrow">06 · Pattern</div>
+        <h1 class="section-title">Batch Insert</h1>
+        <p class="section-lede">Bulk-loading data one row per round trip is one of the most common fresher performance mistakes — and one of the easiest to fix.</p>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">batch_insert.sql</div><button class="run-btn" data-target="res-batch">▶ Run</button></div>
+          <pre class="code"><span class="c">-- SLOW: 10,000 separate round trips</span>
+<span class="c">-- for (row in rows) { INSERT INTO products (name, price) VALUES (?, ?); }</span>
+
+<span class="c">-- FAST: one round trip, one statement, thousands of rows</span>
+<span class="k">INSERT INTO</span> <span class="f">products</span> (<span class="f">name</span>, <span class="f">price</span>) <span class="k">VALUES</span>
+  (<span class="s">'Widget A'</span>, <span class="n">199.00</span>),
+  (<span class="s">'Widget B'</span>, <span class="n">249.00</span>),
+  <span class="c">-- ... thousands more rows ...</span>
+  (<span class="s">'Widget Z'</span>, <span class="n">399.00</span>);</pre>
+          <div class="exec-result" id="res-batch">
+            → Single-row loop: ~10,000 round trips, each with network + transaction overhead — often 30-60 seconds<br>
+            → Batched insert (500-1000 rows/statement): the same 10,000 rows in roughly 1-2 seconds
+          </div>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Practical batching rules</h2>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>Chunk large batches</h4><p>Don't put all 100,000 rows in one statement — respect <code>max_allowed_packet</code>; batches of 500-1000 rows per statement are a common sweet spot.</p></div>
+          <div class="mini-card"><h4>Wrap in a transaction</h4><p>Wrapping multiple batch statements in one transaction avoids per-statement commit overhead (autocommit off, then one COMMIT at the end).</p></div>
+          <div class="mini-card"><h4>Disable/defer indexes for huge loads</h4><p>For very large one-time bulk loads, some teams drop secondary indexes, load data, then rebuild indexes — much faster than maintaining them per row.</p></div>
+          <div class="mini-card"><h4>Hibernate batching</h4><p><code>spring.jpa.properties.hibernate.jdbc.batch_size=50</code> plus <code>saveAll()</code> lets JPA batch inserts instead of issuing one per entity.</p></div>
+        </div>
+
+        <div class="box mistake reveal">
+          <div class="box-title">Beginner mistake</div>
+          <p>Calling <code>repository.save(entity)</code> inside a for-loop in Spring Data JPA — this issues one INSERT (and often one extra SELECT for ID generation strategy checks) per entity, exactly the anti-pattern this section fixes.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SELECT * PROBLEMS ================= -->
+    <section class="section" id="selectstar">
+      <div class="section-inner reveal">
+        <div class="eyebrow">07 · Anti-pattern</div>
+        <h1 class="section-title">SELECT * Problems</h1>
+        <p class="section-lede">The most common query smell in every fresher's first codebase — convenient to write, quietly expensive at scale.</p>
+
+        <table class="cmp-table">
+          <tr><th>Problem</th><th>Why it hurts</th></tr>
+          <tr><td>Wider network payload</td><td>Pulls every column, including large TEXT/BLOB fields you don't need, over the wire</td></tr>
+          <tr><td>Disables covering indexes</td><td>A covering index only helps if the query's needed columns fit inside it — SELECT * almost always forces a trip back to the full table row</td></tr>
+          <tr><td>Breaks silently on schema changes</td><td>Adding a column changes what * returns, potentially breaking code relying on positional column order</td></tr>
+          <tr><td>Over-fetches for the use case</td><td>An API that only needs id + name still deserializes every column into memory, then discards most of it</td></tr>
+        </table>
+
+        <div class="code-block reveal">
+          <div class="code-head"><div class="dots"><span></span><span></span><span></span></div><div class="filename">select_star.sql</div><button class="run-btn" data-target="res-star">▶ Run</button></div>
+          <pre class="code"><span class="c">-- Anti-pattern</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> <span class="f">employees</span> <span class="k">WHERE</span> <span class="f">dept_id</span> = <span class="n">2</span>;
+
+<span class="c">-- Fixed: only the columns the API/view actually needs</span>
+<span class="k">SELECT</span> <span class="f">id</span>, <span class="f">first_name</span>, <span class="f">email</span> <span class="k">FROM</span> <span class="f">employees</span> <span class="k">WHERE</span> <span class="f">dept_id</span> = <span class="n">2</span>;</pre>
+          <div class="exec-result" id="res-star">→ Narrower SELECT list can turn a non-covering index lookup into a fully covering one — visible as "Using index" appearing in EXPLAIN's Extra column</div>
+        </div>
+
+        <div class="box tip reveal">
+          <div class="box-title">Interview tip</div>
+          <p>This connects directly back to Module 4's naming-columns-explicitly rule for INSERT — the same "name what you need explicitly" discipline applies on the read side for the same reasons: clarity, resilience to schema change, and performance.</p>
+        </div>
+        <div class="box best reveal">
+          <div class="box-title">Best practice</div>
+          <p>In Spring Data JPA, use projections (interface-based or DTO constructor expressions) instead of fetching full entities when an endpoint only needs a subset of fields — this is the Java-side equivalent of avoiding SELECT *.</p>
+        </div>
+
+        <h2 class="h2"><span class="idx">01</span>Interview questions</h2>
+        <div class="accordion" data-group="star">
+          <div class="accordion-item"><div class="accordion-head">Asked at TCS Digital: Why is SELECT * considered bad practice in production code? <span class="tag company">TCS Digital</span><span class="plus">+</span></div><div class="accordion-body"><p>It over-fetches unnecessary columns (network + memory cost), can prevent covering-index optimizations, and silently changes behavior when the schema evolves — naming explicit columns is safer, faster, and more self-documenting.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHEAT SHEET ================= -->
+    <section class="section" id="cheatsheet">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Cheat Sheet</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>EXPLAIN</h4><p>Check type (avoid ALL), key (index used), rows, and Extra before trusting any query is fast.</p></div>
+          <div class="mini-card"><h4>Slow Queries</h4><p>Enable the slow query log; rank by frequency × duration, not just single-query time.</p></div>
+          <div class="mini-card"><h4>Index Optimization</h4><p>Leftmost-prefix rule for composite indexes; covering indexes skip the table lookup entirely.</p></div>
+          <div class="mini-card"><h4>Query Optimization</h4><p>Keep conditions sargable — never wrap an indexed column in a function.</p></div>
+          <div class="mini-card"><h4>Pagination</h4><p>Keyset (seek) pagination beats OFFSET at depth — constant time vs linear scan-and-discard.</p></div>
+          <div class="mini-card"><h4>Batch Insert</h4><p>One multi-row INSERT beats thousands of single-row round trips.</p></div>
+          <div class="mini-card"><h4>SELECT *</h4><p>Name only the columns you need — for network cost, index coverage, and schema resilience.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MIND MAP ================= -->
+    <section class="section" id="mindmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Mind Map</h1>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 800 460" width="100%">
+            <g font-family="ui-monospace,monospace" font-size="11.5">
+              <circle cx="400" cy="230" r="58" fill="rgba(240,180,41,0.1)" stroke="#f0b429"/>
+              <text x="400" y="224" text-anchor="middle" fill="#f0b429" font-weight="bold">Performance</text>
+              <text x="400" y="242" text-anchor="middle" fill="#f0b429" font-weight="bold">Tuning</text>
+
+              <g stroke="#576079" stroke-width="1">
+                <line x1="400" y1="172" x2="400" y2="65"/>
+                <line x1="350" y1="195" x2="110" y2="90"/>
+                <line x1="350" y1="265" x2="110" y2="370"/>
+                <line x1="450" y1="195" x2="690" y2="90"/>
+                <line x1="450" y1="265" x2="690" y2="370"/>
+                <line x1="400" y1="288" x2="400" y2="400"/>
+              </g>
+              <rect x="320" y="20" width="160" height="42" rx="8" fill="rgba(110,231,249,0.08)" stroke="#6EE7F9"/>
+              <text x="400" y="46" text-anchor="middle" fill="#6EE7F9">EXPLAIN</text>
+
+              <rect x="0" y="66" width="220" height="42" rx="8" fill="rgba(251,113,133,0.08)" stroke="#fb7185"/>
+              <text x="110" y="92" text-anchor="middle" fill="#fb7185">Slow Queries</text>
+
+              <rect x="0" y="346" width="220" height="42" rx="8" fill="rgba(52,211,153,0.08)" stroke="#34d399"/>
+              <text x="110" y="372" text-anchor="middle" fill="#34d399">Index Optimization</text>
+
+              <rect x="580" y="66" width="220" height="42" rx="8" fill="rgba(167,139,250,0.08)" stroke="#A78BFA"/>
+              <text x="690" y="92" text-anchor="middle" fill="#A78BFA">Query Optimization</text>
+
+              <rect x="580" y="346" width="220" height="42" rx="8" fill="rgba(255,255,255,0.04)" stroke="#94a1ba"/>
+              <text x="690" y="372" text-anchor="middle" fill="#94a1ba">Pagination + Batch Insert</text>
+
+              <rect x="300" y="392" width="200" height="42" rx="8" fill="rgba(240,180,41,0.08)" stroke="#f0b429"/>
+              <text x="400" y="418" text-anchor="middle" fill="#f0b429">SELECT * Problems</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FLASHCARDS ================= -->
+    <section class="section" id="flashcards">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Flash Cards</h1>
+        <p class="section-lede">Click any card to flip it.</p>
+        <div class="flash-grid" id="flash-grid"></div>
+      </div>
+    </section>
+
+    <!-- ================= QUIZ ================= -->
+    <section class="section" id="quiz">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Quick Quiz</h1>
+        <div id="quiz-score-bar">Score <span class="score" id="quiz-score">0 / 0</span></div>
+        <div id="quiz-container"></div>
+      </div>
+    </section>
+
+    <!-- ================= TOP 20 ================= -->
+    <section class="section" id="top20">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Revision</div>
+        <h1 class="section-title">Top 20 Interview Questions</h1>
+        <div class="accordion" id="top20-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ROADMAP ================= -->
+    <section class="section" id="roadmap">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Where to go next ⭐</div>
+        <h1 class="section-title">Learning Roadmap</h1>
+        <div class="roadmap">
+          <div class="rm-item"><h4>1. Master this module</h4><p>Read EXPLAIN output fluently, know the leftmost-prefix rule cold, and rehearse the OFFSET-vs-keyset pagination trade-off.</p></div>
+          <div class="rm-item"><h4>2. Transactions &amp; Locking</h4><p>How long-running transactions cause the lock contention that shows up as "mysteriously slow" queries.</p></div>
+          <div class="rm-item"><h4>3. Connection pooling</h4><p>HikariCP tuning in Spring Boot — pool size, timeout settings, and how they interact with slow queries under load.</p></div>
+          <div class="rm-item"><h4>4. Caching strategies</h4><p>Application-level caching (Redis, Spring Cache) as the next layer beyond query-level optimization.</p></div>
+          <div class="rm-item"><h4>5. Replication &amp; scaling</h4><p>Read replicas, sharding, and horizontal scaling once single-instance tuning hits its ceiling.</p></div>
+        </div>
+        <h2 class="h2"><span class="idx">→</span>Further topics to explore</h2>
+        <ul class="plain-list">
+          <li>Query cache deprecation in MySQL 8 and what replaced it</li>
+          <li>InnoDB buffer pool sizing and its impact on read performance</li>
+          <li>Partitioning very large tables by date range</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+    <section class="section" id="summary">
+      <div class="section-inner reveal">
+        <div class="eyebrow">Wrap-up ⭐</div>
+        <h1 class="section-title">Summary &amp; Revision Notes</h1>
+        <div class="grid-cards">
+          <div class="mini-card"><h4>EXPLAIN</h4><p>Always check before trusting a query is fast — type, key, rows, Extra.</p></div>
+          <div class="mini-card"><h4>Slow Queries</h4><p>Log them, rank by total cost (frequency × duration), not single-run time alone.</p></div>
+          <div class="mini-card"><h4>Index Optimization</h4><p>Respect the leftmost-prefix rule; covering indexes avoid the extra table lookup.</p></div>
+          <div class="mini-card"><h4>Query Optimization</h4><p>Keep WHERE conditions sargable — no functions wrapping indexed columns.</p></div>
+          <div class="mini-card"><h4>Pagination</h4><p>Keyset pagination for depth; OFFSET degrades linearly with page number.</p></div>
+          <div class="mini-card"><h4>Batch Insert</h4><p>One multi-row statement beats a loop of single-row round trips.</p></div>
+          <div class="mini-card"><h4>SELECT *</h4><p>Name only what you need — network, index coverage, and schema resilience all benefit.</p></div>
+        </div>
+        <div class="box tip reveal">
+          <div class="box-title">Before your interview</div>
+          <p>Be ready to walk through a full diagnostic loop out loud: spot a slow query → run EXPLAIN → identify the missing index or non-sargable condition → propose and justify the fix → explain how you'd verify it worked.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">MySQL Interview Blueprint · Module 17 ⭐ Performance Tuning · Built for Java Full Stack fresher interview prep</footer>
+  </main>
+</div>
+
+<script>
+const progressBar = document.getElementById('progress-bar');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+const sections = document.querySelectorAll('main section[id], .hero[id]');
+const links = document.querySelectorAll('.toc-link');
+function spy(){
+  let current = sections[0] ? sections[0].id : '';
+  sections.forEach(sec=>{
+    const rect = sec.getBoundingClientRect();
+    if(rect.top <= 140) current = sec.id;
+  });
+  links.forEach(l=>{
+    l.classList.toggle('active', l.getAttribute('href') === '#'+current);
+  });
+}
+document.addEventListener('scroll', spy, {passive:true});
+spy();
+
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menu-toggle').addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+});
+links.forEach(l=>l.addEventListener('click', ()=> sidebar.classList.remove('open')));
+
+document.querySelectorAll('.run-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    btn.textContent = '⏳ Running...';
+    setTimeout(()=>{
+      if(target) target.classList.add('show');
+      if(btn.dataset.chart){
+        const chart = document.getElementById(btn.dataset.chart);
+        chart.querySelectorAll('.latency-fill').forEach(f=>{ f.style.width = f.dataset.w; });
+      }
+      btn.textContent = '✓ Executed';
+      setTimeout(()=>{ btn.textContent = '▶ Run'; }, 1600);
+    }, 500);
+  });
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const wrap = btn.closest('div').parentElement;
+    wrap.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const panelsWrap = wrap.querySelector('.tab-panels');
+    panelsWrap.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.addEventListener('click', (e)=>{
+  const head = e.target.closest('.accordion-head');
+  if(!head) return;
+  const item = head.closest('.accordion-item');
+  const body = item.querySelector('.accordion-body');
+  const wasOpen = item.classList.contains('open');
+  item.classList.toggle('open');
+  body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
+});
+
+const flashcards = [
+  {q:"What does 'type: ALL' mean in EXPLAIN?", a:"A full table scan — MySQL reads every row instead of using an index, a major red flag on large tables."},
+  {q:"What's the leftmost-prefix rule?", a:"A composite index on (a, b) can serve queries filtering on 'a' alone or 'a AND b', but not 'b' alone."},
+  {q:"What is a covering index?", a:"An index containing every column a query needs, letting MySQL avoid a second lookup into the actual table row."},
+  {q:"Why is 'WHERE YEAR(order_date) = 2026' slow?", a:"Wrapping an indexed column in a function makes the condition non-sargable, disabling index usage — rewrite as a date range instead."},
+  {q:"Why does deep OFFSET pagination get slower with page number?", a:"MySQL must scan and discard every skipped row before returning the page; keyset pagination avoids this with a WHERE id > last_seen_id approach."},
+  {q:"Why batch multi-row INSERTs instead of looping single-row inserts?", a:"Each round trip has network and transaction overhead; batching drastically reduces total load time."},
+  {q:"Why is SELECT * considered bad practice at scale?", a:"It over-fetches unused columns, can prevent covering-index optimization, and silently breaks when schema changes."},
+  {q:"What's the N+1 query problem?", a:"A loop issuing one query per row instead of one batched query — a common JPA/Hibernate lazy-loading mistake."},
+  {q:"What does EXPLAIN ANALYZE add over plain EXPLAIN?", a:"It actually executes the query and reports real measured timing, rather than just the optimizer's estimate."},
+  {q:"What's the term for a WHERE condition an index can be used for directly?", a:"Sargable (Search ARGument ABLE)."}
+];
+const flashGrid = document.getElementById('flash-grid');
+flashcards.forEach((c,i)=>{
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.innerHTML = `
+    <div class="flashcard-inner">
+      <div class="flash-face flash-front"><div class="fc-lbl">Question ${i+1}</div><p>${c.q}</p></div>
+      <div class="flash-face flash-back"><div class="fc-lbl">Answer</div><p>${c.a}</p></div>
+    </div>`;
+  card.addEventListener('click', ()=> card.classList.toggle('flipped'));
+  flashGrid.appendChild(card);
+});
+
+const quizData = [
+  {q:"Which EXPLAIN 'type' value indicates a full table scan?", opts:["const","ref","ALL","eq_ref"], correct:2},
+  {q:"A composite index on (status, order_date) can serve a query filtering only on:", opts:["order_date","status","Neither alone","Only both together"], correct:1},
+  {q:"What makes a WHERE condition 'non-sargable'?", opts:["Using AND","Wrapping the indexed column in a function","Using a JOIN","Using ORDER BY"], correct:1},
+  {q:"Why is LIMIT 20 OFFSET 200000 slow?", opts:["LIMIT is always slow","MySQL must scan and discard all skipped rows first","OFFSET disables indexes entirely","It's actually fast"], correct:1},
+  {q:"What is a covering index?", opts:["An index on every column","An index containing all columns a query needs","A unique index","A full-text index"], correct:1},
+  {q:"What's the main fix for the N+1 query problem in JPA?", opts:["Increase connection pool size","Use JOIN FETCH or an EntityGraph","Disable lazy loading globally","Add more RAM"], correct:1},
+  {q:"Why avoid SELECT * in production queries?", opts:["It's a syntax error","Over-fetches data and can prevent covering-index use","It's slower to type","It disables joins"], correct:1}
+];
+const quizContainer = document.getElementById('quiz-container');
+let quizAnswered = 0, quizCorrect = 0;
+const scoreEl = document.getElementById('quiz-score');
+function updateScore(){ scoreEl.textContent = quizCorrect + ' / ' + quizAnswered; }
+
+quizData.forEach((q,qi)=>{
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  const optsHtml = q.opts.map((o,oi)=>`<div class="quiz-opt" data-idx="${oi}">${o}</div>`).join('');
+  card.innerHTML = `<div class="quiz-q">${qi+1}. ${q.q}</div><div class="quiz-opts">${optsHtml}</div>`;
+  quizContainer.appendChild(card);
+
+  let locked = false;
+  card.querySelectorAll('.quiz-opt').forEach(optEl=>{
+    optEl.addEventListener('click', ()=>{
+      if(locked) return;
+      locked = true;
+      quizAnswered++;
+      const chosen = parseInt(optEl.dataset.idx,10);
+      if(chosen === q.correct){ quizCorrect++; optEl.classList.add('correct'); }
+      else{
+        optEl.classList.add('wrong');
+        card.querySelectorAll('.quiz-opt')[q.correct].classList.add('correct');
+      }
+      updateScore();
+    });
+  });
+});
+
+const top20 = [
+  ["What is EXPLAIN and why is it the first step in performance tuning?","It shows MySQL's query execution plan without running it, revealing which indexes (if any) will be used, how many rows are estimated to be scanned, and where full table scans occur — the starting point for any optimization."],
+  ["What does 'type: ALL' mean and why is it a red flag?","It means MySQL is doing a full table scan, reading every row instead of using an index — extremely costly on large tables and almost always fixable with the right index."],
+  ["What's the difference between EXPLAIN and EXPLAIN ANALYZE?","EXPLAIN estimates the plan without executing; EXPLAIN ANALYZE actually runs the query and reports real measured timing and row counts per step."],
+  ["How would you find the slowest queries in a production database?","Enable the slow query log with an appropriate long_query_time threshold, then analyze results with mysqldumpslow or pt-query-digest, ranking by total time (frequency × duration) rather than single-query duration alone."],
+  ["What is the leftmost-prefix rule for composite indexes?","A composite index on (a, b, c) can be used for queries filtering on 'a', 'a and b', or 'a, b, and c' — but not on 'b' or 'c' alone, since the index is only usable left-to-right."],
+  ["What is a covering index?","An index that contains every column a query needs, allowing MySQL to satisfy the query by reading only the index without an extra lookup into the table's data pages — shown as 'Using index' in EXPLAIN."],
+  ["Why does wrapping an indexed column in a function disable the index?","The function must be evaluated per row before comparison, so MySQL can no longer use the index's sorted structure to seek directly to matching values — the condition becomes non-sargable."],
+  ["What does 'sargable' mean?","Search ARGument ABLE — a condition MySQL can evaluate using an index seek rather than a full scan."],
+  ["Why is deep OFFSET-based pagination slow?","MySQL must scan and discard every row before the requested offset, even when using an index, making cost grow linearly with page depth."],
+  ["What is keyset (seek) pagination and why is it faster?","Instead of OFFSET, it filters with WHERE id > last_seen_id ORDER BY id LIMIT n, letting MySQL seek directly to the right spot via the index — constant time regardless of depth."],
+  ["Why should you batch INSERT statements instead of looping single-row inserts?","Each round trip carries network and transaction overhead; a single multi-row INSERT statement dramatically reduces total load time for bulk data."],
+  ["What is the N+1 query problem and how do you fix it in Spring Data JPA?","A loop that issues one query per row instead of one batched query, commonly from lazy-loaded associations; fix with JOIN FETCH in JPQL, @EntityGraph, or restructuring to a single batched query."],
+  ["Why is SELECT * discouraged in production code?","It over-fetches unnecessary columns (network and memory cost), can prevent covering-index optimizations, and silently changes behavior when the schema evolves."],
+  ["Should every column be indexed defensively?","No — every index speeds up reads but adds overhead to every INSERT/UPDATE/DELETE and consumes disk space; index only columns actually used in WHERE, JOIN, and ORDER BY."],
+  ["What's an example of an implicit type conversion silently disabling an index?","Comparing an indexed INT column to a string literal (e.g. WHERE int_col = '123') can force MySQL to convert types per row, bypassing the index."],
+  ["How would you diagnose a LEFT JOIN query that's fast at 10k rows but times out at 10M rows?","Run EXPLAIN and check whether the join column on the larger table has a usable index — type should be ref/eq_ref, not ALL; a missing index is the most common cause."],
+  ["What's the practical difference between indexing for reads vs the cost to writes?","More indexes speed up SELECT queries but slow down INSERT/UPDATE/DELETE, since every index must be updated alongside the underlying table — it's a deliberate trade-off, not a free win."],
+  ["Why might disabling secondary indexes during a huge bulk data load improve performance?","Maintaining indexes per inserted row is expensive at scale; dropping them before a large one-time load and rebuilding them afterward is often significantly faster overall."],
+  ["What's the benefit of wrapping multiple batch INSERT statements in a single transaction?","It avoids the overhead of committing after every statement, since InnoDB flushes/logs at each commit boundary; one COMMIT at the end amortizes that cost across the whole batch."],
+  ["How does using DTO projections in Spring Data JPA relate to the SELECT * problem?","Fetching only the fields an endpoint actually needs (via interface-based or constructor-expression projections) is the Java-side equivalent of naming explicit SQL columns instead of SELECT *, avoiding unnecessary data transfer and entity hydration."]
+];
+const top20List = document.getElementById('top20-list');
+top20.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'accordion-item';
+  div.innerHTML = `<div class="accordion-head">${i+1}. ${item[0]}<span class="plus">+</span></div><div class="accordion-body"><p>${item[1]}</p></div>`;
+  top20List.appendChild(div);
+});
+</script>
+</body>
+</html>
