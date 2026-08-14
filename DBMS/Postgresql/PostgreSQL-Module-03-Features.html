@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 03 · PostgreSQL Features — Interview Console</title>
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#080B13;
+  --bg-1:#0B0F1A;
+  --panel:#10152280;
+  --panel-solid:#101522;
+  --panel-2:#0D1220;
+  --border:rgba(148,163,184,.14);
+  --border-strong:rgba(148,163,184,.28);
+  --text:#E7ECF7;
+  --text-dim:#95A0B8;
+  --text-faint:#5C6982;
+  --accent:#5B9DF9;
+  --accent-soft:#5B9DF922;
+  --mint:#34D399;
+  --mint-soft:#34D39922;
+  --amber:#F5A623;
+  --amber-soft:#F5A62322;
+  --violet:#A78BFA;
+  --violet-soft:#A78BFA22;
+  --rose:#F76E8C;
+  --rose-soft:#F76E8C22;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Roboto Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --r-sm:8px; --r-md:14px; --r-lg:22px;
+  --shadow-glow: 0 0 0 1px var(--border), 0 20px 60px -20px #000c;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 700px at 15% -10%, #17224a55, transparent 60%),
+    radial-gradient(900px 600px at 100% 10%, #1a2e2255, transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--accent-soft); color:var(--text); }
+a{color:inherit;}
+code, .mono{font-family:var(--mono);}
+h1,h2,h3,h4{font-family:var(--sans); font-weight:700; letter-spacing:-.02em; margin:0;}
+p{margin:0;}
+.container{max-width:1180px; margin:0 auto; padding:0 28px;}
+@media(max-width:640px){.container{padding:0 18px;}}
+
+/* scrollbar */
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#2a3350; border-radius:10px;}
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+#progress-track{position:fixed; top:0; left:0; right:0; height:3px; background:#0f1524; z-index:200;}
+#progress-fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--mint)); box-shadow:0 0 12px var(--accent); transition:width .08s linear;}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+#topbar{
+  position:fixed; top:3px; left:0; right:0; z-index:190;
+  backdrop-filter:blur(14px);
+  background:#080B13cc;
+  border-bottom:1px solid var(--border);
+}
+#topbar .inner{display:flex; align-items:center; justify-content:space-between; padding:12px 28px; max-width:1180px; margin:0 auto;}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:13px; color:var(--text-dim);}
+.brand b{color:var(--text); font-family:var(--sans);}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--mint); box-shadow:0 0 8px var(--mint); animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+#menu-toggle{display:none; background:none; border:1px solid var(--border); color:var(--text); width:38px;height:38px;border-radius:10px; cursor:pointer; align-items:center; justify-content:center;}
+.topbar-stats{display:flex; gap:18px; font-family:var(--mono); font-size:12px; color:var(--text-faint);}
+.topbar-stats b{color:var(--accent);}
+@media(max-width:900px){.topbar-stats{display:none;} #menu-toggle{display:flex;}}
+
+/* ============================================================
+   LAYOUT: SIDEBAR + MAIN
+   ============================================================ */
+#layout{display:grid; grid-template-columns:260px 1fr; gap:40px; max-width:1180px; margin:0 auto; padding:0 28px; padding-top:78px;}
+@media(max-width:900px){#layout{grid-template-columns:1fr; padding:0 18px; padding-top:70px;}}
+
+#sidebar{
+  position:sticky; top:78px; align-self:start; height:calc(100vh - 100px);
+  overflow-y:auto; padding:18px 4px 40px 0;
+}
+#sidebar::-webkit-scrollbar{width:4px;}
+@media(max-width:900px){
+  #sidebar{position:fixed; top:0; left:0; height:100vh; width:280px; background:#0B0F1AF5; backdrop-filter:blur(20px);
+    border-right:1px solid var(--border); z-index:300; transform:translateX(-100%); transition:transform .3s ease; padding:80px 20px 40px;}
+  #sidebar.open{transform:translateX(0);}
+}
+.sb-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin:18px 0 8px; padding-left:12px;}
+.sb-eyebrow:first-child{margin-top:0;}
+.sb-link{
+  display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:9px; font-size:13.5px; color:var(--text-dim);
+  text-decoration:none; border-left:2px solid transparent; transition:.15s;
+}
+.sb-link:hover{background:#ffffff08; color:var(--text);}
+.sb-link.active{color:var(--accent); background:var(--accent-soft); border-left:2px solid var(--accent);}
+.sb-link .n{font-family:var(--mono); font-size:10.5px; color:var(--text-faint); width:18px; flex-shrink:0;}
+.sb-link.active .n{color:var(--accent);}
+
+main{min-width:0; padding-bottom:100px;}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+#hero{padding:30px 0 60px; position:relative;}
+.term{
+  background:var(--panel-2); border:1px solid var(--border); border-radius:var(--r-md);
+  overflow:hidden; box-shadow:var(--shadow-glow); max-width:640px;
+}
+.term-bar{display:flex; align-items:center; gap:7px; padding:10px 14px; border-bottom:1px solid var(--border); background:#0a0e18;}
+.term-bar span{width:10px;height:10px;border-radius:50%; display:inline-block;}
+.term-bar .r{background:#F76E8C;} .term-bar .y{background:#F5A623;} .term-bar .g{background:#34D399;}
+.term-bar .label{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+.term-body{padding:16px 18px; font-family:var(--mono); font-size:13.5px; color:#9fe3b5; min-height:100px;}
+.term-body .prompt{color:var(--accent);}
+.term-body .caret{display:inline-block; width:7px; height:15px; background:var(--mint); vertical-align:middle; animation:blink 1s step-end infinite; margin-left:2px;}
+@keyframes blink{50%{opacity:0;}}
+
+.hero-eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:var(--mint); margin-top:26px; display:flex; align-items:center; gap:8px;}
+.hero-eyebrow::before{content:''; width:20px; height:1px; background:var(--mint);}
+h1.hero-title{font-size:clamp(34px,5.4vw,58px); line-height:1.04; margin-top:14px; max-width:820px;}
+h1.hero-title .grad{background:linear-gradient(100deg, var(--accent), var(--mint) 60%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.hero-sub{margin-top:18px; max-width:640px; color:var(--text-dim); font-size:16.5px;}
+.hero-chiprow{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px;}
+.chip{font-family:var(--mono); font-size:12px; padding:7px 12px; border:1px solid var(--border); border-radius:100px; color:var(--text-dim); background:var(--panel);}
+
+.hero-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:40px; border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; background:var(--border);}
+.hero-stat{background:var(--panel-solid); padding:18px 16px;}
+.hero-stat b{display:block; font-size:26px; font-family:var(--mono); color:var(--accent);}
+.hero-stat span{font-size:12px; color:var(--text-faint);}
+@media(max-width:640px){.hero-stats{grid-template-columns:repeat(2,1fr);}}
+
+/* ============================================================
+   SECTION SCAFFOLDING
+   ============================================================ */
+.section{padding:70px 0; border-top:1px solid var(--border); scroll-margin-top:90px;}
+.section:first-of-type{border-top:none;}
+.sec-head{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:34px; flex-wrap:wrap;}
+.sec-eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);}
+.sec-title{font-size:clamp(24px,3vw,32px); margin-top:6px;}
+.sec-desc{color:var(--text-dim); max-width:640px; margin-top:10px; font-size:15px;}
+
+.reveal{opacity:0; transform:translateY(22px); transition:opacity .6s ease, transform .6s ease;}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+/* ============================================================
+   GENERIC CARD / GLASS
+   ============================================================ */
+.glass{
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--r-md);
+  backdrop-filter:blur(10px);
+}
+.card-hover{transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;}
+.card-hover:hover{transform:translateY(-3px); border-color:var(--border-strong); box-shadow:0 16px 40px -20px #000a;}
+
+/* callouts */
+.callout{border-radius:var(--r-md); padding:16px 18px; border:1px solid; display:flex; gap:12px; align-items:flex-start; margin:14px 0;}
+.callout svg{flex-shrink:0; margin-top:2px;}
+.callout .t{font-weight:700; font-size:13.5px; margin-bottom:3px;}
+.callout .d{font-size:13.5px; color:var(--text-dim);}
+.callout.warn{background:var(--amber-soft); border-color:#F5A62344; }
+.callout.warn .t{color:var(--amber);}
+.callout.tip{background:var(--mint-soft); border-color:#34D39944;}
+.callout.tip .t{color:var(--mint);}
+.callout.info{background:var(--accent-soft); border-color:#5B9DF944;}
+.callout.info .t{color:var(--accent);}
+.callout.analogy{background:var(--violet-soft); border-color:#A78BFA44;}
+.callout.analogy .t{color:var(--violet);}
+
+/* code blocks */
+pre.code{
+  background:#0a0e18; border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.7; margin:10px 0;
+}
+.tok-kw{color:#7CB7FF; font-weight:600;}
+.tok-fn{color:#34D399;}
+.tok-str{color:#F5A623;}
+.tok-num{color:#F76E8C;}
+.tok-com{color:#5C6982; font-style:italic;}
+.tok-op{color:#A78BFA;}
+
+/* ============================================================
+   FEATURE SECTION
+   ============================================================ */
+.feature-card{border-radius:var(--r-lg); border:1px solid var(--border); background:var(--panel-solid); margin-bottom:26px; overflow:hidden;}
+.feature-head{
+  display:flex; align-items:center; gap:16px; padding:22px 26px; cursor:pointer; user-select:none;
+  border-bottom:1px solid transparent;
+}
+.feature-head:hover{background:#ffffff05;}
+.feature-card.open .feature-head{border-bottom-color:var(--border);}
+.feature-icon{width:46px; height:46px; border-radius:12px; background:var(--bg-1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.feature-title-wrap{flex:1; min-width:0;}
+.feature-tag{font-family:var(--mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.08em;}
+.feature-name{font-size:19px; margin-top:2px;}
+.feature-oneliner{font-size:13px; color:var(--text-dim); margin-top:3px;}
+.feature-chevron{transition:transform .3s ease; color:var(--text-faint); flex-shrink:0;}
+.feature-card.open .feature-chevron{transform:rotate(180deg); color:var(--accent);}
+.feature-body{max-height:0; overflow:hidden; transition:max-height .4s ease;}
+.feature-body-inner{padding:8px 26px 30px;}
+
+.psql-line{font-family:var(--mono); font-size:12.5px; color:var(--mint); background:#0a0e18; border:1px solid var(--border); border-radius:8px; padding:9px 14px; margin-bottom:20px; display:flex; gap:8px;}
+.psql-line .p{color:var(--accent);}
+
+/* tabs */
+.tabs{display:flex; gap:6px; border-bottom:1px solid var(--border); margin-bottom:18px; flex-wrap:wrap;}
+.tab-btn{background:none; border:none; color:var(--text-faint); font-family:var(--sans); font-size:13px; font-weight:600; padding:9px 14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;}
+.tab-btn.active{color:var(--accent); border-bottom-color:var(--accent);}
+.tab-panel{display:none; font-size:14.5px; color:var(--text-dim);}
+.tab-panel.active{display:block;}
+
+.two-col{display:grid; grid-template-columns:1.1fr .9fr; gap:26px; margin:18px 0;}
+@media(max-width:800px){.two-col{grid-template-columns:1fr;}}
+
+.diagram-box{background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-md); padding:18px; display:flex; align-items:center; justify-content:center;}
+.diagram-box svg{width:100%; height:auto; max-width:340px;}
+
+.mini-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px;}
+@media(max-width:640px){.mini-grid{grid-template-columns:1fr;}}
+.mini-card{border:1px solid var(--border); border-radius:var(--r-sm); padding:14px 16px; background:var(--bg-1);}
+.mini-card h5{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:8px; display:flex; align-items:center; gap:6px;}
+.mini-card ul{margin:0; padding-left:18px; font-size:13.5px; color:var(--text-dim);}
+.mini-card li{margin-bottom:5px;}
+
+.usewrap{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px;}
+@media(max-width:640px){.usewrap{grid-template-columns:1fr;}}
+.use-yes{border-left:3px solid var(--mint); background:var(--mint-soft); border-radius:8px; padding:12px 14px; font-size:13.5px;}
+.use-no{border-left:3px solid var(--rose); background:var(--rose-soft); border-radius:8px; padding:12px 14px; font-size:13.5px;}
+
+table.cmp{width:100%; border-collapse:collapse; margin-top:14px; font-size:13.5px;}
+table.cmp th, table.cmp td{padding:10px 14px; text-align:left; border-bottom:1px solid var(--border);}
+table.cmp th{color:var(--text-faint); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:600;}
+table.cmp td:first-child{color:var(--text); font-weight:600; white-space:nowrap;}
+table.cmp .pg{color:var(--mint);}
+table.cmp .my{color:var(--amber);}
+
+.iq-list{margin-top:10px;}
+.iq{border:1px solid var(--border); border-radius:9px; margin-bottom:8px; overflow:hidden; background:var(--bg-1);}
+.iq-q{display:flex; justify-content:space-between; align-items:center; padding:12px 16px; cursor:pointer; font-size:13.5px; font-weight:600; gap:10px;}
+.iq-q .plus{color:var(--accent); font-family:var(--mono); flex-shrink:0;}
+.iq-a{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+.iq-a-inner{padding:0 16px 14px; font-size:13.5px; color:var(--text-dim); border-top:1px solid var(--border); padding-top:12px;}
+.iq.open .iq-a{max-height:400px;}
+.iq.open .plus{transform:rotate(45deg);}
+
+.perf-note{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:var(--text-dim); margin-top:14px;}
+
+/* ============================================================
+   BADGE / SECTION LABEL ROW for feature nav / roadmap
+   ============================================================ */
+.roadmap{display:flex; gap:14px; overflow-x:auto; padding:10px 2px 20px;}
+.roadmap::-webkit-scrollbar{height:6px;}
+.rm-item{flex:0 0 190px; border:1px solid var(--border); border-radius:var(--r-md); padding:16px; background:var(--panel); cursor:pointer; transition:.2s;}
+.rm-item:hover{border-color:var(--accent); transform:translateY(-3px);}
+.rm-item .rm-n{font-family:var(--mono); color:var(--text-faint); font-size:11px;}
+.rm-item .rm-t{font-size:14px; font-weight:700; margin-top:6px;}
+.rm-item .rm-d{font-size:12px; color:var(--text-dim); margin-top:6px;}
+
+/* ============================================================
+   SCENARIO / PRODUCT QUESTIONS
+   ============================================================ */
+.filter-row{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+.filter-btn{font-family:var(--mono); font-size:12px; padding:7px 13px; border-radius:100px; border:1px solid var(--border); background:var(--panel); color:var(--text-dim); cursor:pointer;}
+.filter-btn.active{background:var(--accent-soft); border-color:var(--accent); color:var(--accent);}
+.scenario-card{border:1px solid var(--border); border-radius:var(--r-md); padding:18px 20px; margin-bottom:14px; background:var(--panel-solid);}
+.scenario-tag{display:inline-block; font-family:var(--mono); font-size:10.5px; padding:3px 9px; border-radius:100px; margin-bottom:10px;}
+.scenario-tag.company{background:var(--violet-soft); color:var(--violet);}
+.scenario-tag.scenario{background:var(--accent-soft); color:var(--accent);}
+.scenario-q{font-weight:600; font-size:14.5px;}
+.scenario-a{margin-top:10px; font-size:13.5px; color:var(--text-dim); border-top:1px dashed var(--border); padding-top:10px; display:none;}
+.scenario-card.open .scenario-a{display:block;}
+.scenario-toggle{font-family:var(--mono); font-size:11.5px; color:var(--accent); margin-top:10px; cursor:pointer; display:inline-block;}
+
+/* ============================================================
+   MEMORY TRICKS
+   ============================================================ */
+.mem-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px;}
+.mem-card{border:1px solid var(--border); border-radius:var(--r-md); padding:18px; background:linear-gradient(160deg, var(--panel-solid), var(--bg-1)); position:relative; overflow:hidden;}
+.mem-card::before{content:'"'; position:absolute; top:-10px; right:8px; font-size:70px; color:#ffffff08; font-family:Georgia,serif;}
+.mem-card .mem-key{font-family:var(--mono); font-size:11px; color:var(--amber); letter-spacing:.06em; text-transform:uppercase;}
+.mem-card .mem-txt{margin-top:8px; font-size:14px; font-weight:600;}
+.mem-card .mem-sub{margin-top:6px; font-size:12.5px; color:var(--text-faint);}
+
+/* ============================================================
+   FLASHCARDS
+   ============================================================ */
+.flash-wrap{max-width:560px; margin:0 auto;}
+.flash-scene{perspective:1400px; height:260px; margin-bottom:20px;}
+.flash-card{width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.2,.8,.2,1); cursor:pointer;}
+.flash-card.flipped{transform:rotateY(180deg);}
+.flash-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--r-lg); border:1px solid var(--border); padding:30px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+.flash-front{background:linear-gradient(150deg,#141b30,#0d1220);}
+.flash-back{background:linear-gradient(150deg,#0f2318,#0d1220); transform:rotateY(180deg);}
+.flash-eyebrow{font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.1em; margin-bottom:14px;}
+.flash-q{font-size:19px; font-weight:700; line-height:1.4;}
+.flash-a{font-size:15px; color:var(--text-dim);}
+.flash-hint{position:absolute; bottom:14px; font-size:11px; color:var(--text-faint); font-family:var(--mono);}
+.flash-controls{display:flex; align-items:center; justify-content:center; gap:14px;}
+.fbtn{background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--sans);}
+.fbtn:hover{border-color:var(--accent); color:var(--accent);}
+.flash-count{font-family:var(--mono); font-size:12px; color:var(--text-faint);}
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+#quiz-wrap{max-width:680px;}
+.quiz-progress{display:flex; gap:5px; margin-bottom:20px;}
+.quiz-progress span{flex:1; height:4px; border-radius:4px; background:#1c2338;}
+.quiz-progress span.done{background:var(--mint);}
+.quiz-progress span.current{background:var(--accent);}
+.quiz-q{font-size:18px; font-weight:700; margin-bottom:18px;}
+.quiz-opts{display:flex; flex-direction:column; gap:10px;}
+.quiz-opt{text-align:left; padding:14px 16px; border-radius:10px; border:1px solid var(--border); background:var(--panel-solid); color:var(--text); cursor:pointer; font-size:14px; font-family:var(--sans); display:flex; justify-content:space-between; align-items:center;}
+.quiz-opt:hover{border-color:var(--accent);}
+.quiz-opt.correct{border-color:var(--mint); background:var(--mint-soft); color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--rose); background:var(--rose-soft); color:var(--rose);}
+.quiz-opt[disabled]{cursor:default;}
+.quiz-explain{margin-top:16px; padding:14px 16px; border-radius:10px; background:var(--bg-1); border:1px solid var(--border); font-size:13.5px; color:var(--text-dim); display:none;}
+.quiz-explain.show{display:block;}
+.quiz-nav{display:flex; justify-content:space-between; align-items:center; margin-top:22px;}
+.quiz-score{font-family:var(--mono); font-size:13px; color:var(--text-faint);}
+#quiz-result{text-align:center; padding:40px 20px;}
+#quiz-result b{font-size:44px; font-family:var(--mono); color:var(--mint); display:block;}
+
+/* ============================================================
+   SQL PRACTICE
+   ============================================================ */
+.practice-card{border:1px solid var(--border); border-radius:var(--r-md); padding:18px 20px; margin-bottom:14px; background:var(--panel-solid);}
+.practice-num{font-family:var(--mono); color:var(--accent); font-size:12px;}
+.practice-q{font-size:14.5px; font-weight:600; margin-top:6px;}
+.reveal-btn{margin-top:12px; font-family:var(--mono); font-size:12px; background:none; border:1px dashed var(--border); color:var(--text-dim); padding:7px 12px; border-radius:8px; cursor:pointer;}
+.practice-answer{display:none; margin-top:12px;}
+.practice-card.revealed .practice-answer{display:block;}
+.practice-card.revealed .reveal-btn{display:none;}
+
+/* ============================================================
+   CHEAT SHEET
+   ============================================================ */
+.cheat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px;}
+.cheat-card{border:1px solid var(--border); border-radius:var(--r-md); padding:16px 18px; background:var(--panel-solid);}
+.cheat-card h5{font-size:13px; color:var(--accent); margin-bottom:10px;}
+.cheat-card .row{display:flex; justify-content:space-between; gap:10px; font-family:var(--mono); font-size:12px; padding:6px 0; border-bottom:1px dashed var(--border);}
+.cheat-card .row:last-child{border-bottom:none;}
+.cheat-card .row span:first-child{color:var(--text-dim);}
+.cheat-card .row span:last-child{color:var(--mint); text-align:right;}
+
+/* ============================================================
+   MIND MAP
+   ============================================================ */
+#mindmap-box{background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:20px; overflow-x:auto;}
+#mindmap-box svg{display:block; margin:0 auto;}
+.mm-node{cursor:pointer;}
+.mm-node text{font-family:var(--mono);}
+.mm-node:hover circle, .mm-node:hover rect{filter:brightness(1.3);}
+
+/* ============================================================
+   REVISION CHECKLIST
+   ============================================================ */
+.rev-list{display:flex; flex-direction:column; gap:8px;}
+.rev-item{display:flex; align-items:center; gap:12px; padding:12px 16px; border:1px solid var(--border); border-radius:9px; background:var(--panel-solid); cursor:pointer;}
+.rev-check{width:20px; height:20px; border-radius:5px; border:1.5px solid var(--text-faint); flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+.rev-item.checked .rev-check{background:var(--mint); border-color:var(--mint);}
+.rev-item.checked span{color:var(--text-faint); text-decoration:line-through;}
+#rev-progress{font-family:var(--mono); font-size:12px; color:var(--text-faint); margin-top:14px;}
+
+/* ============================================================
+   SUMMARY / TAKEAWAYS / FOOTER
+   ============================================================ */
+.takeaway-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px;}
+.takeaway{border:1px solid var(--border); border-radius:var(--r-md); padding:18px; background:var(--panel-solid);}
+.takeaway .num{font-family:var(--mono); font-size:20px; color:var(--accent);}
+.takeaway p{margin-top:8px; font-size:13.5px; color:var(--text-dim);}
+
+footer{border-top:1px solid var(--border); padding:50px 0; text-align:center;}
+footer .fbrand{font-family:var(--mono); color:var(--text-faint); font-size:13px;}
+.further-chips{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px;}
+
+.btn-primary{background:linear-gradient(120deg,var(--accent),var(--mint)); color:#04101a; font-weight:700; border:none; padding:11px 20px; border-radius:10px; cursor:pointer; font-size:13.5px;}
+
+@media(prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-track"><div id="progress-fill"></div></div>
+
+<div id="topbar">
+  <div class="inner">
+    <div class="brand">
+      <button id="menu-toggle" aria-label="Toggle menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+      <span class="dot"></span> <b>postgres=#</b> module_03_features
+    </div>
+    <div class="topbar-stats"><span><b>11</b> Features</span><span><b>45+</b> Interview Qs</span><span><b>10</b> Quiz Qs</span></div>
+  </div>
+</div>
+
+<div id="layout">
+  <nav id="sidebar">
+    <div class="sb-eyebrow">Orientation</div>
+    <a class="sb-link" data-target="hero"><span class="n">00</span> Start Here</a>
+    <a class="sb-link" data-target="why"><span class="n">01</span> Why This Module</a>
+    <a class="sb-link" data-target="roadmap"><span class="n">02</span> Feature Roadmap</a>
+
+    <div class="sb-eyebrow">Deep Dives</div>
+    <a class="sb-link" data-target="f-mvcc"><span class="n">03</span> MVCC</a>
+    <a class="sb-link" data-target="f-acid"><span class="n">04</span> ACID</a>
+    <a class="sb-link" data-target="f-txn"><span class="n">05</span> Transactions</a>
+    <a class="sb-link" data-target="f-json"><span class="n">06</span> JSON / JSONB</a>
+    <a class="sb-link" data-target="f-array"><span class="n">07</span> Arrays</a>
+    <a class="sb-link" data-target="f-uuid"><span class="n">08</span> UUID</a>
+    <a class="sb-link" data-target="f-window"><span class="n">09</span> Window Fns</a>
+    <a class="sb-link" data-target="f-cte"><span class="n">10</span> CTE / WITH</a>
+    <a class="sb-link" data-target="f-view"><span class="n">11</span> Views</a>
+    <a class="sb-link" data-target="f-matview"><span class="n">12</span> Materialized Views</a>
+    <a class="sb-link" data-target="f-fts"><span class="n">13</span> Full-text Search</a>
+
+    <div class="sb-eyebrow">Interview Zone</div>
+    <a class="sb-link" data-target="scenarios"><span class="n">14</span> Scenario Questions</a>
+    <a class="sb-link" data-target="compare"><span class="n">15</span> PG vs MySQL</a>
+    <a class="sb-link" data-target="memory"><span class="n">16</span> Memory Tricks</a>
+    <a class="sb-link" data-target="flashcards"><span class="n">17</span> Flash Cards</a>
+    <a class="sb-link" data-target="quiz"><span class="n">18</span> Quick Quiz</a>
+    <a class="sb-link" data-target="practice"><span class="n">19</span> SQL Practice</a>
+
+    <div class="sb-eyebrow">Wrap Up</div>
+    <a class="sb-link" data-target="cheatsheet"><span class="n">20</span> Cheat Sheet</a>
+    <a class="sb-link" data-target="mindmap"><span class="n">21</span> Mind Map</a>
+    <a class="sb-link" data-target="revision"><span class="n">22</span> Revision Checklist</a>
+    <a class="sb-link" data-target="summary"><span class="n">23</span> Key Takeaways</a>
+  </nav>
+
+  <main>
+    <!-- ============================= HERO ============================= -->
+    <section id="hero" class="section reveal" style="border-top:none; padding-top:10px;">
+      <div class="term">
+        <div class="term-bar"><span class="r"></span><span class="y"></span><span class="g"></span><span class="label">psql — postgres@interview-prep</span></div>
+        <div class="term-body" id="term-body"></div>
+      </div>
+      <div class="hero-eyebrow">MODULE 03 — POSTGRESQL FEATURES</div>
+      <h1 class="hero-title">The feature set interviewers <span class="grad">actually probe</span> for backend freshers.</h1>
+      <p class="hero-sub">MVCC, ACID, transactions, JSON/JSONB, arrays, UUID, window functions, CTEs, views, materialized views and full‑text search — each broken down the way a Zoho, Freshworks or Amazon interviewer expects a Java Full Stack fresher to explain it.</p>
+      <div class="hero-chiprow">
+        <span class="chip">Java Full Stack</span><span class="chip">Spring Boot Backend</span><span class="chip">Fresher → SDE-1</span><span class="chip">Product Companies</span>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><b>11</b><span>Core features</span></div>
+        <div class="hero-stat"><b>45+</b><span>Interview questions</span></div>
+        <div class="hero-stat"><b>10</b><span>Flash cards</span></div>
+        <div class="hero-stat"><b>7</b><span>SQL practice sets</span></div>
+      </div>
+    </section>
+
+    <!-- ============================= WHY ============================= -->
+    <section id="why" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">01 · Orientation</div><h2 class="sec-title">Why this module exists</h2></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <p style="color:var(--text-dim); font-size:15px;">Most fresher candidates can write a <code class="mono">SELECT</code> and a <code class="mono">JOIN</code>, but interviewers filter on the next layer: <b style="color:var(--text);">do you know what makes PostgreSQL a different engine, not just "SQL with a different name"?</b> That's exactly the layer this module targets.</p>
+          <div class="callout info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <div><div class="t">The problem this module solves</div><div class="d">Freshers often memorize syntax but freeze when asked "why does Postgres use JSONB instead of JSON?" or "what happens internally when two transactions update the same row?" This module trains the <i>why</i>, not just the <i>how</i>.</div></div>
+          </div>
+          <div class="callout analogy">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg>
+            <div><div class="t">Real-world framing</div><div class="d">Think of an e-commerce backend: MVCC lets two customers check a product page while one buys the last unit; JSONB stores flexible product attributes; a materialized view powers the "Today's Sales" dashboard without slowing down checkout.</div></div>
+          </div>
+        </div>
+        <div class="diagram-box" id="why-diagram"></div>
+      </div>
+    </section>
+
+    <!-- ============================= ROADMAP ============================= -->
+    <section id="roadmap" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">02 · Learning Roadmap</div><h2 class="sec-title">11 features, one logical order</h2></div>
+      </div>
+      <p class="sec-desc">Concurrency &amp; correctness first, then data types, then querying power, then read-optimization. Tap any card to jump straight there.</p>
+      <div class="roadmap" id="roadmap-row"></div>
+    </section>
+
+    <!-- FEATURE SECTIONS INJECTED HERE -->
+    <section id="features-host"></section>
+
+    <!-- ============================= SCENARIOS ============================= -->
+    <section id="scenarios" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">14 · Interview Zone</div><h2 class="sec-title">Scenario &amp; product-company questions</h2></div>
+      </div>
+      <p class="sec-desc">These are asked at Zoho, Freshworks, Amazon, Microsoft, Oracle and service-based interviews (TCS Digital, Infosys, Wipro, Cognizant). Tap a filter, then tap a card to reveal the expected answer.</p>
+      <div class="filter-row" id="scenario-filters"></div>
+      <div id="scenario-host"></div>
+    </section>
+
+    <!-- ============================= COMPARE ============================= -->
+    <section id="compare" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">15 · Comparison</div><h2 class="sec-title">PostgreSQL vs MySQL — feature by feature</h2></div>
+      </div>
+      <div class="glass" style="padding:6px 20px 16px; border-radius:var(--r-lg);">
+        <table class="cmp" id="compare-table"></table>
+      </div>
+    </section>
+
+    <!-- ============================= MEMORY ============================= -->
+    <section id="memory" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">16 · Recall Aids</div><h2 class="sec-title">Memory tricks</h2></div>
+      </div>
+      <div class="mem-grid" id="memory-grid"></div>
+    </section>
+
+    <!-- ============================= FLASHCARDS ============================= -->
+    <section id="flashcards" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">17 · Active Recall</div><h2 class="sec-title">Flash cards</h2></div>
+      </div>
+      <p class="sec-desc" style="text-align:center; margin:0 auto 20px;">Tap the card to flip it. Use next/prev or shuffle to cycle through all 10.</p>
+      <div class="flash-wrap">
+        <div class="flash-scene"><div class="flash-card" id="flash-card">
+          <div class="flash-face flash-front"><div class="flash-eyebrow">QUESTION</div><div class="flash-q" id="flash-q"></div><div class="flash-hint">tap to reveal answer</div></div>
+          <div class="flash-face flash-back"><div class="flash-eyebrow" style="color:var(--mint);">ANSWER</div><div class="flash-a" id="flash-a"></div><div class="flash-hint">tap to flip back</div></div>
+        </div></div>
+        <div class="flash-controls">
+          <button class="fbtn" id="flash-prev">← Prev</button>
+          <span class="flash-count" id="flash-count">1 / 10</span>
+          <button class="fbtn" id="flash-shuffle">Shuffle ⤳</button>
+          <button class="fbtn" id="flash-next">Next →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================= QUIZ ============================= -->
+    <section id="quiz" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">18 · Test Yourself</div><h2 class="sec-title">Quick quiz</h2></div>
+      </div>
+      <div id="quiz-wrap">
+        <div class="quiz-progress" id="quiz-progress"></div>
+        <div class="glass" style="padding:26px; border-radius:var(--r-lg);" id="quiz-live">
+          <div class="quiz-q" id="quiz-q"></div>
+          <div class="quiz-opts" id="quiz-opts"></div>
+          <div class="quiz-explain" id="quiz-explain"></div>
+          <div class="quiz-nav">
+            <span class="quiz-score" id="quiz-score">Score: 0 / 10</span>
+            <button class="btn-primary" id="quiz-next" style="display:none;">Next Question →</button>
+          </div>
+        </div>
+        <div class="glass" style="padding:26px; border-radius:var(--r-lg); display:none;" id="quiz-result"></div>
+      </div>
+    </section>
+
+    <!-- ============================= PRACTICE ============================= -->
+    <section id="practice" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">19 · Hands-on</div><h2 class="sec-title">SQL practice questions</h2></div>
+      </div>
+      <p class="sec-desc">Write the query mentally, then reveal the expected answer to self-check.</p>
+      <div id="practice-host"></div>
+    </section>
+
+    <!-- ============================= CHEATSHEET ============================= -->
+    <section id="cheatsheet" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">20 · Quick Reference</div><h2 class="sec-title">Cheat sheet</h2></div>
+      </div>
+      <div class="cheat-grid" id="cheat-grid"></div>
+    </section>
+
+    <!-- ============================= MINDMAP ============================= -->
+    <section id="mindmap" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">21 · Big Picture</div><h2 class="sec-title">Mind map</h2></div>
+      </div>
+      <p class="sec-desc">Click any node to jump to that deep-dive section.</p>
+      <div id="mindmap-box"></div>
+    </section>
+
+    <!-- ============================= REVISION ============================= -->
+    <section id="revision" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">22 · Before the Interview</div><h2 class="sec-title">Revision checklist</h2></div>
+      </div>
+      <div class="rev-list" id="rev-list"></div>
+      <div id="rev-progress"></div>
+    </section>
+
+    <!-- ============================= SUMMARY ============================= -->
+    <section id="summary" class="section reveal">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">23 · Key Takeaways</div><h2 class="sec-title">Summary</h2></div>
+      </div>
+      <div class="takeaway-grid" id="takeaway-grid"></div>
+
+      <div class="callout tip" style="margin-top:34px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+        <div><div class="t">Further topics to explore next</div>
+        <div class="d">Indexes (B-Tree/GIN/GiST/BRIN), WAL &amp; replication, Query Planner &amp; EXPLAIN ANALYZE, Autovacuum internals, Partitioning, Extensions (PostGIS, pg_trgm), Connection pooling (PgBouncer) with Spring Boot HikariCP.</div></div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="fbrand">postgres=# <span style="color:var(--mint);">\q</span> <span style="opacity:.5;">-- end of module 03</span></div>
+      <div class="further-chips">
+        <span class="chip">Module 04: Indexing →</span><span class="chip">Module 05: WAL &amp; Replication →</span><span class="chip">Module 06: Query Planner →</span>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const $ = (s,ctx=document)=>ctx.querySelector(s);
+const $$ = (s,ctx=document)=>Array.from(ctx.querySelectorAll(s));
+
+function sql(code){
+  // very small syntax highlighter for demo SQL blocks
+  let out = code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  out = out.replace(/(--.*)$/gm, '<span class="tok-com">$1</span>');
+  const kws = ['SELECT','FROM','WHERE','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','VIEW','MATERIALIZED','RECURSIVE','WITH','AS','JOIN','ON','GROUP','BY','ORDER','PARTITION','OVER','BEGIN','COMMIT','ROLLBACK','SAVEPOINT','TO','REFRESH','CONCURRENTLY','UNIQUE','INDEX','GIN','DEFAULT','PRIMARY','KEY','AND','OR','NOT','NULL','IS','ANY','ALL','UNION','RANK','ROW_NUMBER','LAG','LEAD','SUM','COUNT'];
+  const kwRe = new RegExp('\\b('+kws.join('|')+')\\b','g');
+  out = out.replace(kwRe, '<span class="tok-kw">$1</span>');
+  out = out.replace(/'([^']*)'/g, `<span class="tok-str">'$1'</span>`);
+  out = out.replace(/\b(\d+)\b/g, '<span class="tok-num">$1</span>');
+  out = out.replace(/(gen_random_uuid|to_tsvector|to_tsquery|unnest|ts_rank|jsonb_path_ops)\(/g,'<span class="tok-fn">$1</span>(');
+  return out;
+}
+function icon(name, color){
+  const ic = {
+    layers:`<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>`,
+    shield:`<path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/>`,
+    swap:`<path d="M7 4v13M7 4L3 8M7 4l4 4M17 20V7M17 20l4-4M17 20l-4-4"/>`,
+    braces:`<path d="M8 3a3 3 0 0 0-3 3v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a3 3 0 0 0 3 3M16 3a3 3 0 0 1 3 3v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a3 3 0 0 1-3 3"/>`,
+    list:`<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>`,
+    fingerprint:`<path d="M12 3a5 5 0 0 1 5 5v2a9 9 0 0 1-1 4M7 8a5 5 0 0 1 10 0v2c0 4-2 7-4 9M12 8a2 2 0 0 1 2 2v1c0 4-2 8-5 10M8 12v1c0 3-1 6-3 8"/>`,
+    trend:`<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>`,
+    stack:`<path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>`,
+    eye:`<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>`,
+    camera:`<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>`,
+    search:`<circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>`
+  };
+  return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic[name]||ic.layers}</svg>`;
+}
+
+/* ============================================================
+   TERMINAL BOOT ANIMATION
+   ============================================================ */
+(function bootTerm(){
+  const body = $('#term-body');
+  const lines = [
+    {p:'postgres=# ', t:'\\dx  -- list installed extensions'},
+    {p:'postgres=# ', t:'SELECT relname FROM pg_class LIMIT 3;'},
+    {p:'   ready', t:'11 features loaded · press scroll to begin ▸'}
+  ];
+  let li=0;
+  function typeLine(){
+    if(li>=lines.length) return;
+    const {p,t} = lines[li];
+    const row = document.createElement('div');
+    const promptSpan = li<2 ? `<span class="prompt">${p}</span>` : `<span style="color:var(--text-faint)">${p}</span>`;
+    row.innerHTML = promptSpan+'<span class="typed"></span>';
+    body.appendChild(row);
+    const typedEl = row.querySelector('.typed');
+    let ci=0;
+    const iv = setInterval(()=>{
+      typedEl.textContent += t[ci];
+      ci++;
+      if(ci>=t.length){
+        clearInterval(iv);
+        li++;
+        setTimeout(typeLine, 260);
+      }
+    }, 18);
+  }
+  typeLine();
+})();
+
+/* ============================================================
+   SCROLL PROGRESS + ACTIVE SIDEBAR LINK
+   ============================================================ */
+const sections = ['hero','why','roadmap','f-mvcc','f-acid','f-txn','f-json','f-array','f-uuid','f-window','f-cte','f-view','f-matview','f-fts','scenarios','compare','memory','flashcards','quiz','practice','cheatsheet','mindmap','revision','summary'];
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
+  $('#progress-fill').style.width = scrolled+'%';
+
+  let current = sections[0];
+  for(const id of sections){
+    const el = document.getElementById(id);
+    if(el && el.getBoundingClientRect().top < 140) current = id;
+  }
+  $$('.sb-link').forEach(a=>a.classList.toggle('active', a.dataset.target===current));
+},{passive:true});
+
+$$('.sb-link').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const t = document.getElementById(a.dataset.target);
+    if(t){ t.scrollIntoView({behavior:'smooth'}); }
+    $('#sidebar').classList.remove('open');
+  });
+});
+$('#menu-toggle').addEventListener('click', ()=> $('#sidebar').classList.toggle('open'));
+
+/* reveal on scroll */
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{ if(en.isIntersecting) en.target.classList.add('in'); });
+},{threshold:.08});
+document.addEventListener('DOMContentLoaded', ()=> $$('.reveal').forEach(el=>io.observe(el)));
+
+/* ============================================================
+   FEATURE DATA
+   ============================================================ */
+const FEATURES = [
+{
+  id:'f-mvcc', num:'03', tag:'CONCURRENCY CONTROL', name:'MVCC', full:'Multi-Version Concurrency Control',
+  oneliner:'How Postgres lets readers and writers work at the same time without blocking each other.',
+  icon:'layers', color:'#5B9DF9',
+  simple:'PostgreSQL keeps multiple versions of a row so a reader never has to wait for a writer, and a writer never has to wait for a reader.',
+  technical:'Every row carries hidden system columns <code class="mono">xmin</code> (creating transaction id) and <code class="mono">xmax</code> (deleting/updating transaction id). An UPDATE doesn\'t overwrite in place — it inserts a new row version and marks the old one dead. Each transaction sees a consistent "snapshot" of the database based on which transaction IDs were committed when it started. Dead row versions are later reclaimed by <b>VACUUM</b>.',
+  interview:'"MVCC means Postgres gives every transaction a consistent snapshot instead of using read locks. That\'s why a long-running <code class="mono">SELECT</code> never blocks an <code class="mono">UPDATE</code>, and vice versa — at the cost of needing VACUUM to clean up old row versions."',
+  analogy:'Think of a shared Google Doc with version history: when you open it, you see a stable version even if someone else is editing right now. Your view doesn\'t change mid-read, and their edit doesn\'t have to wait for you to close the tab.',
+  sqlLines:[
+    "-- Session A",
+    "BEGIN;",
+    "SELECT balance FROM accounts WHERE id = 1; -- sees 5000",
+    "",
+    "-- Session B (runs concurrently, commits)",
+    "UPDATE accounts SET balance = 4000 WHERE id = 1;",
+    "COMMIT;",
+    "",
+    "-- Session A still in progress:",
+    "SELECT balance FROM accounts WHERE id = 1; -- still sees 5000 (its own snapshot)"
+  ],
+  diagram:'mvcc',
+  mistakes:['Assuming Postgres takes a read lock like some older engines do — it doesn\'t, for plain SELECTs.','Forgetting that UPDATE/DELETE leave "dead tuples" behind — table bloats if VACUUM falls behind.','Running huge batch updates inside one giant transaction, which delays cleanup of old versions.'],
+  bestPractices:['Keep transactions short and commit frequently in batch jobs.','Let autovacuum run — don\'t disable it in production.','Monitor <code class="mono">pg_stat_user_tables</code> for dead tuple counts.'],
+  performance:'Heavy UPDATE/DELETE workloads without timely VACUUM cause table and index bloat, slowing every query — this is one of the most common real production Postgres issues.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL InnoDB also implements MVCC, but via separate undo logs; Postgres stores old versions directly in the table heap, which is why vacuuming matters so much in Postgres specifically.',
+  whenUse:'It\'s automatic and always on — you don\'t "opt in", but you design around it (short transactions, healthy autovacuum).',
+  whenNot:'N/A — but understand it deeply, since almost every "why is my table bloated" interview scenario traces back here.',
+  interviewQs:[
+    {q:'What is MVCC and why does PostgreSQL use it?', a:'It lets concurrent transactions read and write without blocking each other by maintaining multiple row versions, each transaction working off its own consistent snapshot.'},
+    {q:'What happens to an old row version after an UPDATE?', a:'It becomes a "dead tuple" — invisible to new transactions but still on disk until VACUUM reclaims the space.'},
+    {q:'Why can a Postgres table become bloated?', a:'High UPDATE/DELETE volume plus autovacuum falling behind (e.g. due to long-running transactions holding back the oldest visible snapshot) leaves dead tuples accumulating.'}
+  ]
+},
+{
+  id:'f-acid', num:'04', tag:'TRANSACTION GUARANTEE', name:'ACID', full:'Atomicity, Consistency, Isolation, Durability',
+  oneliner:'The four guarantees that make a bank transfer safe to run on Postgres.',
+  icon:'shield', color:'#34D399',
+  simple:'ACID means your set of database operations either fully happens or fully doesn\'t, always leaves data valid, doesn\'t get corrupted by other transactions running at the same time, and survives a crash.',
+  technical:'<b>Atomicity</b> — all-or-nothing, enforced via the transaction log so a crash mid-transaction rolls back. <b>Consistency</b> — constraints (FK, CHECK, UNIQUE) keep data valid before/after. <b>Isolation</b> — MVCC + isolation levels control what concurrent transactions can see of each other. <b>Durability</b> — once committed, the change is written to the Write-Ahead Log (WAL) and survives a crash/restart.',
+  interview:'"Postgres is ACID-compliant across all its table types (unlike MySQL\'s older MyISAM engine). Atomicity and durability are backed by WAL; isolation is backed by MVCC; consistency is backed by constraints — I can map each letter to a concrete Postgres mechanism."',
+  analogy:'A bank transfer: money must leave account A and arrive in account B together, or neither happens. If the power goes out mid-transfer, the bank\'s ledger should never show money missing from both or duplicated in both.',
+  sqlLines:[
+    "BEGIN;",
+    "UPDATE accounts SET balance = balance - 500 WHERE id = 1;",
+    "UPDATE accounts SET balance = balance + 500 WHERE id = 2;",
+    "-- if anything fails here, ROLLBACK undoes both",
+    "COMMIT; -- both changes become permanent together"
+  ],
+  diagram:'acid',
+  mistakes:['Running multi-step business logic as separate auto-committed statements instead of one transaction.','Assuming "Consistency" means the same thing as "Isolation" — they are different letters for different guarantees.','Thinking ACID guarantees correctness of your business logic — it only guarantees the database mechanics.'],
+  bestPractices:['Wrap related writes in one explicit transaction from your Spring Boot service layer (<code class="mono">@Transactional</code>).','Let constraints (FK/CHECK/UNIQUE) do consistency enforcement instead of only application code.','Choose the isolation level deliberately for the operation\'s risk level.'],
+  performance:'Higher isolation levels (Serializable) increase the chance of transaction retries under contention — measure before defaulting to the strictest level everywhere.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL\'s MyISAM storage engine is NOT ACID-compliant (no transactions); InnoDB is. In Postgres, ACID applies uniformly — there is no non-transactional table engine to accidentally pick.',
+  whenUse:'Any multi-step write that must succeed or fail as a unit — money transfers, order + inventory decrement, multi-table inserts.',
+  whenNot:'N/A conceptually, but a single simple statement is already atomic by default — no need for explicit BEGIN/COMMIT.',
+  interviewQs:[
+    {q:'Explain ACID with a real example.', a:'Use the bank transfer example: atomicity ensures both debit and credit happen together, consistency keeps balances valid, isolation stops a concurrent read from seeing a half-done transfer, durability ensures it survives a crash after commit.'},
+    {q:'What is the default isolation level in Postgres?', a:'Read Committed.'},
+    {q:'Difference between atomicity and consistency?', a:'Atomicity is about the transaction completing fully or not at all; consistency is about the data always satisfying defined rules/constraints before and after.'}
+  ]
+},
+{
+  id:'f-txn', num:'05', tag:'TRANSACTION CONTROL', name:'Transactions', full:'BEGIN / COMMIT / ROLLBACK / SAVEPOINT / Isolation Levels',
+  oneliner:'How you group statements, roll back partially, and control what concurrent transactions can see.',
+  icon:'swap', color:'#A78BFA',
+  simple:'A transaction is a group of SQL statements you treat as one unit — either all succeed or you roll them all back.',
+  technical:'Postgres supports four SQL-standard isolation levels: <b>Read Committed</b> (default — sees only committed data, but can see different data on each statement), <b>Repeatable Read</b> (snapshot fixed for the whole transaction), <b>Serializable</b> (fully isolated, as if transactions ran one after another), and technically Read Uncommitted (which Postgres treats the same as Read Committed since it never allows dirty reads). <code class="mono">SAVEPOINT</code> allows partial rollback within a transaction.',
+  interview:'"I\'d explain isolation levels through the anomalies they prevent: dirty read, non-repeatable read, and phantom read. Postgres never allows dirty reads even at its loosest level — that already puts it ahead of the SQL standard\'s minimum."',
+  analogy:'A shopping cart checkout: you can add/remove items (like SAVEPOINTs), but the order isn\'t final until you hit "Place Order" (COMMIT) — and you can always "Cancel" (ROLLBACK) before that.',
+  sqlLines:[
+    "BEGIN;",
+    "INSERT INTO orders(user_id, total) VALUES (1, 999);",
+    "SAVEPOINT before_discount;",
+    "UPDATE orders SET total = total * 0.9 WHERE user_id = 1;",
+    "ROLLBACK TO before_discount; -- undo just the discount",
+    "COMMIT;"
+  ],
+  diagram:'txn',
+  mistakes:['Leaving transactions "idle in transaction" (opened but forgotten) — this blocks VACUUM and holds locks.','Not handling deadlocks / serialization failures with retry logic at the application layer.','Assuming Postgres autocommits are gone once you open a transaction — nested BEGIN inside BEGIN is not stacking.'],
+  bestPractices:['Set a reasonable <code class="mono">statement_timeout</code> / <code class="mono">idle_in_transaction_session_timeout</code>.','Use Serializable only for the specific operations that truly need it (e.g. seat booking).','In Spring Boot, scope <code class="mono">@Transactional</code> tightly around the actual DB work.'],
+  performance:'Long-open transactions are one of the top causes of production Postgres slowdowns — they pin the "oldest snapshot" and stop autovacuum from cleaning dead rows.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL/InnoDB defaults to Repeatable Read; Postgres defaults to Read Committed — a very common interview trap for candidates who assume all databases share the same default.',
+  whenUse:'Any sequence of writes needing atomicity, or reads needing a stable snapshot across multiple statements.',
+  whenNot:'A single standalone statement — Postgres already wraps it in an implicit transaction.',
+  interviewQs:[
+    {q:'Difference between Read Committed and Repeatable Read?', a:'Read Committed re-checks for the latest committed data on every statement within the transaction; Repeatable Read fixes the snapshot at the transaction\'s start so every statement sees the same data.'},
+    {q:'What is a phantom read?', a:'When a transaction re-runs the same query and sees new rows that another committed transaction inserted in between — possible under Read Committed and Repeatable Read, prevented under Serializable.'},
+    {q:'What is SAVEPOINT used for?', a:'It creates a rollback point inside a larger transaction, so you can undo part of the work without aborting the whole transaction.'}
+  ]
+},
+{
+  id:'f-json', num:'06', tag:'SEMI-STRUCTURED DATA', name:'JSON vs JSONB', full:'Native JSON document storage',
+  oneliner:'Storing flexible, schema-less data inside a relational column — and querying it efficiently.',
+  icon:'braces', color:'#F5A623',
+  simple:'Both store JSON documents in a column. JSON keeps the exact text you inserted; JSONB parses it into an efficient binary form that\'s faster to query and can be indexed.',
+  technical:'JSONB removes insignificant whitespace, drops duplicate keys (keeping the last), and doesn\'t preserve key order — in exchange it supports operators like <code class="mono">-></code>, <code class="mono">->></code>, <code class="mono">@></code>, <code class="mono">?</code> efficiently and can be indexed with <b>GIN</b>. JSON must be re-parsed on every read since it\'s stored as plain text.',
+  interview:'"In almost every real project I\'d default to JSONB — the only reason to pick JSON is if you must preserve exact formatting/key order/duplicate keys, or you write far more than you read."',
+  analogy:'JSON is like a handwritten letter — exact, but you have to re-read the whole thing to find anything. JSONB is like that letter typed into a searchable, indexed document — instant lookups.',
+  sqlLines:[
+    "CREATE TABLE users (",
+    "  id SERIAL PRIMARY KEY,",
+    "  profile JSONB",
+    ");",
+    "",
+    "INSERT INTO users(profile) VALUES ('{\"name\":\"Ravi\",\"role\":\"admin\"}');",
+    "",
+    "SELECT profile->>'name' FROM users",
+    "WHERE profile @> '{\"role\":\"admin\"}';",
+    "",
+    "CREATE INDEX idx_profile ON users USING GIN (profile);"
+  ],
+  diagram:'json',
+  mistakes:['Defaulting to JSON when the column will actually be queried/filtered.','Storing core relational data (that needs joins, constraints, foreign keys) as JSON instead of normalizing it.','Forgetting to add a GIN index, then wondering why JSONB queries are slow at scale.'],
+  bestPractices:['Use JSONB for flexible/optional attributes (e.g. product specs) alongside normal relational columns for core fields.','Add a GIN index (optionally <code class="mono">jsonb_path_ops</code>) for containment queries.','Validate structure at the application layer since Postgres won\'t enforce a JSON schema.'],
+  performance:'JSONB is faster to query (binary, indexable) but marginally slower to write (extra parsing on insert) compared to JSON, which is faster to write but slow to query.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL\'s JSON type is functionally closer to Postgres\'s JSONB (also binary, also indexable via generated columns), but Postgres\'s operator set and native GIN indexing on JSONB are generally considered richer.',
+  whenUse:'Semi-structured or evolving data: user preferences, event payloads, product attributes, API response caching.',
+  whenNot:'Data that is core to your relational model and needs strong typing, foreign keys, and joins — normalize it instead.',
+  interviewQs:[
+    {q:'JSON vs JSONB — what\'s the real difference?', a:'JSON stores exact text and reparses on every access; JSONB stores a parsed binary structure, supports indexing, and is faster to query but a bit slower to write.'},
+    {q:'How do you index a JSONB column?', a:'With a GIN index, e.g. CREATE INDEX ... USING GIN (column), which speeds up containment (@>) and key-existence (?) queries.'},
+    {q:'When would you avoid JSON/JSONB columns entirely?', a:'When the data is core relational data needing joins, foreign keys, and strict typing — that should be modeled as normal columns/tables.'}
+  ]
+},
+{
+  id:'f-array', num:'07', tag:'DATA TYPE', name:'Arrays', full:'Native array column type',
+  oneliner:'Storing a list of values directly in a single column — a genuine Postgres differentiator.',
+  icon:'list', color:'#5B9DF9',
+  simple:'A column can hold a list of values of the same type (e.g. a list of tags) instead of needing a separate table.',
+  technical:'Declared as <code class="mono">type[]</code> (e.g. <code class="mono">text[]</code>, <code class="mono">int[]</code>). Query membership with <code class="mono">ANY()</code>/<code class="mono">ALL()</code>, expand to rows with <code class="mono">unnest()</code>, and index with GIN for fast containment search.',
+  interview:'"Arrays are great for small, simple, denormalized lists like tags — but I wouldn\'t reach for them when the list items need their own attributes or relationships; that\'s what a proper join table is for."',
+  analogy:'A single spreadsheet cell holding "red, blue, green" instead of three separate rows in a colors table — fine until you need to know who added each color and when.',
+  sqlLines:[
+    "CREATE TABLE posts (",
+    "  id SERIAL PRIMARY KEY,",
+    "  title TEXT,",
+    "  tags TEXT[]",
+    ");",
+    "",
+    "INSERT INTO posts(title, tags) VALUES ('Postgres MVCC', ARRAY['postgres','db','interview']);",
+    "",
+    "SELECT * FROM posts WHERE 'postgres' = ANY(tags);",
+    "SELECT unnest(tags) AS tag FROM posts;"
+  ],
+  diagram:'array',
+  mistakes:['Using arrays as a substitute for a proper many-to-many relationship that needs its own metadata.','Running array containment searches without a GIN index at scale.','Forgetting that array indices in Postgres start at 1, not 0.'],
+  bestPractices:['Reach for arrays only for simple, flat, denormalized lists (tags, categories, phone numbers).','Add a GIN index if you filter by array contents often.','Use <code class="mono">unnest()</code> when you need to join array elements against another table.'],
+  performance:'Unindexed array searches (<code class="mono">= ANY(tags)</code>) force a sequential scan; a GIN index turns it into an indexed lookup.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL has no native array type — developers typically fake it with a comma-separated string or a JSON array, both of which are clumsier and harder to index than Postgres\'s native array type.',
+  whenUse:'Small, order-insensitive, flat lists like tags, labels, or a short set of categories.',
+  whenNot:'Whenever the list items need their own attributes, ordering guarantees, or relationships — normalize into a separate table instead.',
+  interviewQs:[
+    {q:'How do you search inside an array column?', a:'Use = ANY(array_column) for a single value, or the @> containment operator with a GIN index for larger arrays.'},
+    {q:'Why not just use arrays instead of a join table everywhere?', a:'Arrays can\'t hold per-item metadata, can\'t be foreign-keyed to another table per element, and become harder to query/index as complexity grows — a join table stays normalized and query-friendly.'}
+  ]
+},
+{
+  id:'f-uuid', num:'08', tag:'IDENTIFIER TYPE', name:'UUID', full:'Universally Unique Identifier',
+  oneliner:'A 128-bit globally unique ID — common for distributed systems and public-facing IDs.',
+  icon:'fingerprint', color:'#F76E8C',
+  simple:'A UUID is a very long, essentially-unique ID that doesn\'t need a central counter to generate — any service, anywhere, can generate one without colliding with another.',
+  technical:'Postgres has a native 16-byte <code class="mono">uuid</code> type (much more compact than storing it as a 36-character string). Generate with <code class="mono">gen_random_uuid()</code> (built-in from PG13+, or via the <code class="mono">pgcrypto</code>/<code class="mono">uuid-ossp</code> extension on older versions). Standard v4 UUIDs are random, which can hurt B-Tree index locality on huge tables.',
+  interview:'"I\'d use UUID as a primary key when IDs must be generated across multiple services/microservices without coordination, or when I don\'t want sequential IDs exposed publicly (enumeration risk). For a single monolithic high-throughput table, a BIGINT identity column is usually faster to index."',
+  analogy:'A passport number (globally unique, works anywhere in the world) vs a locally-issued token number at a single shop counter (simple, sequential, but only unique within that shop).',
+  sqlLines:[
+    "CREATE TABLE orders (",
+    "  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),",
+    "  customer_id UUID,",
+    "  amount NUMERIC",
+    ");",
+    "",
+    "INSERT INTO orders(customer_id, amount) VALUES (gen_random_uuid(), 499.00);"
+  ],
+  diagram:'uuid',
+  mistakes:['Defaulting to UUID for every table without weighing the index-locality cost on very large, high-write tables.','Storing UUID as VARCHAR/CHAR(36) instead of the native uuid type, wasting space and comparison speed.','Exposing sequential BIGINT IDs publicly when they should be UUIDs to prevent enumeration attacks.'],
+  bestPractices:['Use UUID for public-facing IDs, distributed ID generation, or offline/pre-generation needs.','Consider time-ordered variants (UUIDv7/ULID) when you want uniqueness plus index-friendly ordering.','Keep an internal BIGINT surrogate key if raw insert throughput matters more than external ID unpredictability.'],
+  performance:'Random UUIDv4 values scatter inserts across a B-Tree index (page splits, poor cache locality), unlike a monotonically increasing BIGINT — a real, measurable cost on very large write-heavy tables.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL has no native UUID storage type — it\'s usually stored as CHAR(36), which is both larger and slower to index/compare than Postgres\'s dedicated 16-byte uuid type.',
+  whenUse:'Distributed/microservice ID generation, public APIs where you don\'t want to leak record counts, merging data from multiple sources.',
+  whenNot:'Single high-throughput OLTP tables where sequential BIGINT identity columns give better index locality and smaller storage.',
+  interviewQs:[
+    {q:'UUID vs auto-increment BIGINT as a primary key — pros and cons?', a:'UUID: globally unique without coordination, doesn\'t leak record counts, easy to generate offline. Cons: larger (16 bytes vs 8), random values can fragment B-Tree indexes. BIGINT identity: compact, sequential, faster inserts, but predictable and needs a single source of truth.'},
+    {q:'How do you generate a UUID in Postgres?', a:'gen_random_uuid(), built into Postgres 13+, or via the pgcrypto/uuid-ossp extension on older versions.'},
+    {q:'Why can UUIDs hurt index performance?', a:'Because v4 UUIDs are random, new rows insert at random points in a B-Tree index instead of the end, causing more page splits and worse cache locality than sequential keys.'}
+  ]
+},
+{
+  id:'f-window', num:'09', tag:'ANALYTIC SQL', name:'Window Functions', full:'OVER() / PARTITION BY / RANK / LAG / LEAD',
+  oneliner:'Calculations across a set of related rows — without collapsing them like GROUP BY does.',
+  icon:'trend', color:'#34D399',
+  simple:'A window function lets each row see and calculate against a group of related rows (like "all employees in my department") while still keeping every row in the result.',
+  technical:'Syntax: <code class="mono">function() OVER (PARTITION BY col ORDER BY col)</code>. Common functions: <code class="mono">ROW_NUMBER()</code>, <code class="mono">RANK()</code>, <code class="mono">DENSE_RANK()</code>, <code class="mono">LAG()</code>/<code class="mono">LEAD()</code> (look at previous/next row), and aggregate functions like <code class="mono">SUM() OVER()</code> for running totals.',
+  interview:'"GROUP BY collapses rows into one row per group; a window function keeps every row and just attaches a calculated value to it. That\'s the one-line distinction I\'d lead with."',
+  analogy:'A bank statement: each transaction row shows its own amount plus a running balance calculated from all rows before it — nothing is collapsed away.',
+  sqlLines:[
+    "SELECT",
+    "  name, department, salary,",
+    "  RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank,",
+    "  LAG(salary) OVER (PARTITION BY department ORDER BY salary DESC) AS next_lower_salary",
+    "FROM employees;"
+  ],
+  diagram:'window',
+  mistakes:['Confusing window functions with GROUP BY and expecting rows to collapse.','Trying to use a window function directly in a WHERE clause (not allowed — wrap the query in a subquery/CTE and filter there).','Forgetting ORDER BY inside OVER(), which makes ranking/LAG results non-deterministic.'],
+  bestPractices:['Use ROW_NUMBER() for de-duplication ("keep only the latest row per user").','Use RANK()/DENSE_RANK() for leaderboards depending on whether ties should skip numbers.','Always specify PARTITION BY + ORDER BY explicitly rather than relying on defaults.'],
+  performance:'Window functions over huge unpartitioned datasets can be expensive; make sure PARTITION BY / ORDER BY columns are indexed where possible.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL only gained window function support in version 8.0 — MySQL 5.7 (still common in older interview questions) doesn\'t support them at all, while Postgres has had them for a long time.',
+  whenUse:'Ranking (leaderboards), running totals, comparing a row to the previous/next row, "top-N per group" queries.',
+  whenNot:'Simple aggregate rollups where you don\'t need individual row detail — plain GROUP BY is simpler and often faster.',
+  interviewQs:[
+    {q:'Difference between a window function and GROUP BY?', a:'GROUP BY collapses rows into one row per group; a window function computes an aggregate/ranking per row while keeping every row in the output.'},
+    {q:'How do you get the top 3 salaries per department?', a:'Wrap a RANK() OVER (PARTITION BY department ORDER BY salary DESC) query in a subquery/CTE and filter WHERE dept_rank <= 3.'},
+    {q:'What does LAG() do?', a:'It returns the value from a previous row within the same partition/order, useful for comparisons like "salary vs previous employee\'s salary".'}
+  ]
+},
+{
+  id:'f-cte', num:'10', tag:'QUERY STRUCTURING', name:'CTE (WITH)', full:'Common Table Expressions, including RECURSIVE',
+  oneliner:'Naming a temporary result set to make complex queries readable — and to model hierarchies.',
+  icon:'stack', color:'#A78BFA',
+  simple:'A CTE lets you write a named "mini-query" at the top of your SQL and then reference it like a table in the main query, making long queries easier to read.',
+  technical:'Non-recursive CTEs simply factor out a subquery for readability. <b>RECURSIVE</b> CTEs repeatedly reference themselves to walk hierarchical data (org charts, category trees) — a base case UNIONed with a recursive step. Since Postgres 12, the planner can inline (not materialize) a CTE unless you force behavior with <code class="mono">MATERIALIZED</code>/<code class="mono">NOT MATERIALIZED</code>.',
+  interview:'"I\'d reach for a CTE any time a query has multiple logical steps — it reads top-to-bottom like a mini pipeline. For hierarchical data like an employee-manager tree, a RECURSIVE CTE is the standard approach."',
+  analogy:'A recipe\'s "prep step" — you define "1 cup of chopped onions" once at the top, then just say "add the prepped onions" later instead of re-explaining the chopping every time.',
+  sqlLines:[
+    "WITH high_earners AS (",
+    "  SELECT * FROM employees WHERE salary > 100000",
+    ")",
+    "SELECT * FROM high_earners WHERE department = 'Engineering';",
+    "",
+    "-- Recursive: build an org chart",
+    "WITH RECURSIVE org AS (",
+    "  SELECT id, name, manager_id, 1 AS level",
+    "  FROM employees WHERE manager_id IS NULL",
+    "  UNION ALL",
+    "  SELECT e.id, e.name, e.manager_id, o.level + 1",
+    "  FROM employees e JOIN org o ON e.manager_id = o.id",
+    ")",
+    "SELECT * FROM org ORDER BY level;"
+  ],
+  diagram:'cte',
+  mistakes:['Assuming a CTE always "materializes" (pre-Postgres-12 behavior) — from PG12+ it can be inlined and optimized like a subquery.','Writing a RECURSIVE CTE without a proper terminating base case — risk of an infinite loop.','Over-nesting CTEs so deeply that the query becomes harder to read than the problem it was meant to solve.'],
+  bestPractices:['Use CTEs to break a complex query into readable, named logical steps.','Use RECURSIVE CTEs specifically for trees/hierarchies (org charts, category trees, bill-of-materials).','Add <code class="mono">MATERIALIZED</code> explicitly only when you deliberately want to force the old fencing behavior (e.g. to avoid re-executing an expensive subquery multiple times).'],
+  performance:'On Postgres 12+, the planner may inline a CTE into the outer query for better optimization — don\'t assume it\'s always a separate materialized step like in older versions.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL added CTE support (including RECURSIVE) only in version 8.0 — MySQL 5.7 has no CTE support at all, a frequent trivia question comparing the two engines.',
+  whenUse:'Breaking down complex multi-step queries for readability, and modeling recursive/hierarchical data.',
+  whenNot:'A trivial one-line subquery doesn\'t need the ceremony of a CTE.',
+  interviewQs:[
+    {q:'What is a recursive CTE? Give an example use case.', a:'A CTE that references itself to walk hierarchical data, such as building an org chart from employee-manager relationships or expanding a category tree.'},
+    {q:'Does a CTE always materialize in Postgres?', a:'Not since Postgres 12 — the planner can inline it like a subquery unless you force MATERIALIZED explicitly.'},
+    {q:'CTE vs subquery vs view — when would you use each?', a:'A subquery is inline and one-off; a CTE names a subquery for readability/reuse within one query; a view persists the named query definition for reuse across many queries.'}
+  ]
+},
+{
+  id:'f-view', num:'11', tag:'QUERY ABSTRACTION', name:'Views', full:'Stored, reusable SELECT definitions',
+  oneliner:'A saved query you can treat like a table — recomputed fresh every time you query it.',
+  icon:'eye', color:'#5B9DF9',
+  simple:'A view is a named SQL query saved in the database. Querying the view runs the underlying query live — it doesn\'t store data itself.',
+  technical:'Defined with <code class="mono">CREATE VIEW name AS SELECT ...</code>. Simple views over a single table (without aggregation/DISTINCT/etc.) can be updatable — INSERT/UPDATE/DELETE through them get translated to the underlying table.',
+  interview:'"A view is purely logical — zero storage of its own, always live. That\'s the key distinction from a materialized view, which I\'d bring up immediately if asked to compare."',
+  analogy:'A saved search or a bookmarked filter — every time you open it, it re-runs live against the current data; it doesn\'t keep a snapshot.',
+  sqlLines:[
+    "CREATE VIEW active_customers AS",
+    "SELECT id, name, email FROM customers WHERE is_active = true;",
+    "",
+    "SELECT * FROM active_customers WHERE name LIKE 'A%';"
+  ],
+  diagram:'view',
+  mistakes:['Expecting a view to be cached/fast automatically — it re-executes the underlying query every time.','Stacking many nested views, which can hurt readability and sometimes optimizer performance.','Assuming every view is automatically updatable — complex views (joins, aggregates, DISTINCT) generally are not, without extra work (rules/triggers).'],
+  bestPractices:['Use views to hide complex joins behind a simple, reusable name.','Use views for security — expose only specific columns/rows to a role instead of the full table.','Keep view definitions reasonably shallow to stay debuggable.'],
+  performance:'A view provides zero performance benefit by itself — the underlying query still runs in full each time; for performance, you want a materialized view or a properly indexed base query.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL views work similarly at a conceptual level (a stored SELECT), so this concept mostly transfers directly between the two engines.',
+  whenUse:'Abstraction over complex joins, simplifying application code, or restricting column/row access for security.',
+  whenNot:'When you need pre-computed, fast-to-read aggregated data — reach for a materialized view instead.',
+  interviewQs:[
+    {q:'View vs a regular table — what\'s the difference?', a:'A table stores actual data on disk; a view is just a saved query definition with no storage of its own, re-executed on every access.'},
+    {q:'Can you update data through a view?', a:'Only simple views over a single table without aggregation/DISTINCT/GROUP BY are automatically updatable; complex views need rules or INSTEAD OF triggers, or aren\'t updatable at all.'},
+    {q:'View vs Materialized View?', a:'A view always runs live and reflects current data instantly but with no caching benefit; a materialized view physically stores results and must be manually or scheduled to refresh, trading freshness for speed.'}
+  ]
+},
+{
+  id:'f-matview', num:'12', tag:'CACHED QUERY RESULT', name:'Materialized Views', full:'Physically stored, refreshable query results',
+  oneliner:'A view whose results are actually stored on disk — fast to read, but goes stale until refreshed.',
+  icon:'camera', color:'#F5A623',
+  simple:'Like a normal view, but Postgres actually runs the query once and stores the result physically — later reads are fast, but you must manually or automatically refresh it to see new data.',
+  technical:'<code class="mono">CREATE MATERIALIZED VIEW name AS SELECT ...</code>. Refresh with <code class="mono">REFRESH MATERIALIZED VIEW name</code> (locks it against reads while refreshing) or <code class="mono">REFRESH MATERIALIZED VIEW CONCURRENTLY name</code> (needs a UNIQUE index on the view first, but allows concurrent reads during refresh).',
+  interview:'"I\'d pick a materialized view for an expensive aggregation that\'s read very often but doesn\'t need to be real-time — like a daily sales dashboard — and schedule its refresh with something like pg_cron or a Spring Boot scheduled job."',
+  analogy:'A view is a live dashboard; a materialized view is a printed report from this morning — instant to read, but it\'s a snapshot, not the live number.',
+  sqlLines:[
+    "CREATE MATERIALIZED VIEW sales_summary AS",
+    "SELECT region, SUM(amount) AS total_sales",
+    "FROM sales GROUP BY region;",
+    "",
+    "CREATE UNIQUE INDEX ON sales_summary (region);",
+    "",
+    "REFRESH MATERIALIZED VIEW CONCURRENTLY sales_summary;"
+  ],
+  diagram:'matview',
+  mistakes:['Forgetting to refresh it, then being confused why new data isn\'t showing.','Trying to REFRESH ... CONCURRENTLY without first creating a UNIQUE index — it will fail.','Treating a materialized view as real-time when the business actually needed live numbers.'],
+  bestPractices:['Schedule refreshes on a cadence that matches how "fresh" the data really needs to be (hourly/daily).','Always add a UNIQUE index before using CONCURRENTLY refresh, to avoid blocking readers.','Document the staleness window clearly for whoever consumes the view.'],
+  performance:'Massively speeds up expensive aggregate/reporting queries by paying the computation cost once at refresh time instead of on every read.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL has no native materialized view feature — teams typically simulate one with a real table plus triggers or scheduled events, which is more manual than Postgres\'s built-in support. This is a genuine Postgres advantage worth mentioning in interviews.',
+  whenUse:'Expensive reports/dashboards that are read frequently but don\'t need second-by-second freshness.',
+  whenNot:'Data that must always reflect the absolute latest state (e.g. current account balance).',
+  interviewQs:[
+    {q:'Materialized view vs regular view?', a:'A regular view always computes live and stores nothing; a materialized view physically stores the result and must be refreshed to reflect new data, trading freshness for read speed.'},
+    {q:'How do you refresh a materialized view without locking out readers?', a:'REFRESH MATERIALIZED VIEW CONCURRENTLY, which requires a UNIQUE index on the materialized view first.'},
+    {q:'Does MySQL support materialized views?', a:'Not natively — it has to be emulated with a real table refreshed via triggers or scheduled events, unlike Postgres\'s built-in MATERIALIZED VIEW support.'}
+  ]
+},
+{
+  id:'f-fts', num:'13', tag:'SEARCH', name:'Full-text Search', full:'tsvector / tsquery / GIN-indexed linguistic search',
+  oneliner:'Search that understands language (word forms, relevance ranking) instead of blind substring matching.',
+  icon:'search', color:'#F76E8C',
+  simple:'Instead of a slow "contains this exact substring" search with LIKE, Postgres full-text search understands words, ignores common filler words, matches different word forms, and ranks results by relevance.',
+  technical:'Convert text into a searchable <code class="mono">tsvector</code> with <code class="mono">to_tsvector(\'english\', text)</code>, and search terms into a <code class="mono">tsquery</code> with <code class="mono">to_tsquery()</code>. Match with the <code class="mono">@@</code> operator, and index the tsvector column with a <b>GIN</b> index for speed. Use <code class="mono">ts_rank()</code> to order by relevance.',
+  interview:'"LIKE \'%term%\' forces a sequential scan and has zero linguistic awareness. Full-text search precomputes a searchable document representation, indexes it with GIN, and gives you relevance ranking — that\'s the upgrade I\'d describe."',
+  analogy:'LIKE \'%word%\' is like using Ctrl+F on a single page; full-text search is like using Google — it understands "running" should match "run" and ranks the best matches first.',
+  sqlLines:[
+    "ALTER TABLE articles ADD COLUMN search_vector tsvector",
+    "  GENERATED ALWAYS AS (to_tsvector('english', body)) STORED;",
+    "",
+    "CREATE INDEX idx_search ON articles USING GIN (search_vector);",
+    "",
+    "SELECT title, ts_rank(search_vector, query) AS rank",
+    "FROM articles, to_tsquery('english', 'postgres & index') query",
+    "WHERE search_vector @@ query",
+    "ORDER BY rank DESC;"
+  ],
+  diagram:'fts',
+  mistakes:['Using LIKE \'%term%\' for search-heavy features at scale — no index can help a leading-wildcard LIKE.','Forgetting to add a GIN index on the tsvector column, losing most of the performance benefit.','Expecting full-text search to behave like a dedicated search engine (typo-tolerance, complex facets) — it\'s good, but not Elasticsearch.'],
+  bestPractices:['Precompute the tsvector as a generated/stored column so it\'s not recalculated on every query.','Add a GIN index on that column.','Use ts_rank() to sort results by relevance rather than arbitrary order.'],
+  performance:'LIKE \'%term%\' forces a full sequential scan; GIN-indexed full-text search turns the same lookup into an efficient indexed operation, especially valuable at scale.',
+  mysqlRelevant:true,
+  mysqlNote:'MySQL offers FULLTEXT indexes (on MyISAM and InnoDB) which are simpler to set up but generally less flexible than Postgres\'s tsvector/tsquery model with weighted ranking and language-aware dictionaries.',
+  whenUse:'In-app search features at small-to-medium scale where you don\'t want to run a separate search infrastructure.',
+  whenNot:'Very large scale search with advanced relevance/typo-tolerance/faceting needs — that\'s when teams bring in Elasticsearch/OpenSearch instead.',
+  interviewQs:[
+    {q:'How does full-text search differ from a LIKE query?', a:'LIKE does blind substring matching with no indexing benefit for leading wildcards; full-text search tokenizes and normalizes text into a tsvector, can be GIN-indexed, and supports relevance ranking.'},
+    {q:'What are tsvector and tsquery?', a:'tsvector is the searchable, normalized representation of a document\'s text; tsquery is the normalized representation of the search terms; they\'re matched with the @@ operator.'},
+    {q:'When would you use Elasticsearch instead of Postgres full-text search?', a:'At very large scale, or when you need advanced relevance tuning, typo-tolerance, faceted search, or near-real-time search across huge, frequently changing datasets.'}
+  ]
+}
+];
+
+/* ============================================================
+   DIAGRAM SVGS
+   ============================================================ */
+function makeDiagram(kind){
+  const map = {
+    mvcc:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <text x="160" y="20" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="10">ROW id=1 — VERSION CHAIN</text>
+      <rect x="20" y="40" width="120" height="46" rx="8" fill="#5B9DF922" stroke="#5B9DF9"/>
+      <text x="80" y="60" text-anchor="middle" fill="#5B9DF9" font-family="ui-monospace,monospace" font-size="10">xmin=101</text>
+      <text x="80" y="75" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="10">balance=5000</text>
+      <rect x="180" y="40" width="120" height="46" rx="8" fill="#34D39922" stroke="#34D399">
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" repeatCount="indefinite"/>
+      </rect>
+      <text x="240" y="60" text-anchor="middle" fill="#34D399" font-family="ui-monospace,monospace" font-size="10">xmin=104</text>
+      <text x="240" y="75" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="10">balance=4000</text>
+      <path d="M140 63 L178 63" stroke="#5C6982" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="160" y="105" text-anchor="middle" fill="#5C6982" font-family="ui-monospace,monospace" font-size="9">UPDATE marks old dead, inserts new</text>
+      <rect x="20" y="140" width="280" height="50" rx="8" fill="#0d1220" stroke="#233"/>
+      <text x="160" y="160" text-anchor="middle" fill="#A78BFA" font-family="ui-monospace,monospace" font-size="10">Txn A (started before update)</text>
+      <text x="160" y="176" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="10">still sees balance = 5000</text>
+      <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#5C6982"/></marker></defs>
+    </svg>`,
+    acid:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      ${['A','C','I','D'].map((l,i)=>`
+      <rect x="${20+i*72}" y="30" width="60" height="60" rx="10" fill="#34D39918" stroke="#34D399"/>
+      <text x="${50+i*72}" y="68" text-anchor="middle" fill="#34D399" font-family="ui-monospace,monospace" font-size="22" font-weight="bold">${l}</text>`).join('')}
+      <text x="50" y="108" text-anchor="middle" fill="#95A0B8" font-size="9">Atomic</text>
+      <text x="122" y="108" text-anchor="middle" fill="#95A0B8" font-size="9">Consistent</text>
+      <text x="194" y="108" text-anchor="middle" fill="#95A0B8" font-size="9">Isolated</text>
+      <text x="266" y="108" text-anchor="middle" fill="#95A0B8" font-size="9">Durable</text>
+      <rect x="20" y="140" width="280" height="55" rx="8" fill="#0d1220" stroke="#233"/>
+      <text x="160" y="162" text-anchor="middle" fill="#5B9DF9" font-family="ui-monospace,monospace" font-size="10">debit A → credit B</text>
+      <text x="160" y="180" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="10">both commit together, or neither happens</text>
+    </svg>`,
+    txn:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <line x1="20" y1="110" x2="300" y2="110" stroke="#233" stroke-width="2"/>
+      ${[["BEGIN",30],["INSERT",95],["SAVEPOINT",165],["ROLLBACK TO",235],["COMMIT",295]].map(([l,x],i)=>`
+        <circle cx="${x}" cy="110" r="6" fill="${i===4?'#34D399':'#5B9DF9'}"/>
+        <text x="${x}" y="95" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">${l}</text>`).join('')}
+      <text x="160" y="150" text-anchor="middle" fill="#95A0B8" font-size="10">one unit of work — all or nothing</text>
+      <rect x="60" y="165" width="200" height="34" rx="17" fill="#5B9DF918" stroke="#5B9DF9"/>
+      <text x="160" y="187" text-anchor="middle" fill="#5B9DF9" font-family="ui-monospace,monospace" font-size="10">isolation level controls visibility</text>
+    </svg>`,
+    json:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="30" width="120" height="150" rx="10" fill="#F5A62318" stroke="#F5A623"/>
+      <text x="80" y="52" text-anchor="middle" fill="#F5A623" font-family="ui-monospace,monospace" font-size="11">JSON</text>
+      <text x="80" y="76" text-anchor="middle" fill="#95A0B8" font-size="9">plain text</text>
+      <text x="80" y="94" text-anchor="middle" fill="#95A0B8" font-size="9">reparsed</text>
+      <text x="80" y="112" text-anchor="middle" fill="#95A0B8" font-size="9">every read</text>
+      <text x="80" y="140" text-anchor="middle" fill="#5C6982" font-size="9">no index</text>
+      <rect x="180" y="30" width="120" height="150" rx="10" fill="#34D39918" stroke="#34D399"/>
+      <text x="240" y="52" text-anchor="middle" fill="#34D399" font-family="ui-monospace,monospace" font-size="11">JSONB</text>
+      <text x="240" y="76" text-anchor="middle" fill="#95A0B8" font-size="9">binary form</text>
+      <text x="240" y="94" text-anchor="middle" fill="#95A0B8" font-size="9">parsed once</text>
+      <text x="240" y="112" text-anchor="middle" fill="#95A0B8" font-size="9">on insert</text>
+      <text x="240" y="140" text-anchor="middle" fill="#34D399" font-size="9">GIN indexable ✓</text>
+    </svg>`,
+    array:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <text x="160" y="30" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="10">tags column</text>
+      ${['postgres','db','interview'].map((t,i)=>`
+        <rect x="${30+i*90}" y="50" width="80" height="36" rx="8" fill="#5B9DF922" stroke="#5B9DF9"/>
+        <text x="${70+i*90}" y="72" text-anchor="middle" fill="#5B9DF9" font-family="ui-monospace,monospace" font-size="10">${t}</text>`).join('')}
+      <text x="160" y="115" text-anchor="middle" fill="#5C6982" font-size="9">unnest() ↓ expands to rows</text>
+      ${['postgres','db','interview'].map((t,i)=>`
+        <rect x="110" y="${135+i*24}" width="100" height="20" rx="5" fill="#0d1220" stroke="#233"/>
+        <text x="160" y="${149+i*24}" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">${t}</text>`).join('')}
+    </svg>`,
+    uuid:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <rect x="30" y="70" width="260" height="40" rx="10" fill="#F76E8C18" stroke="#F76E8C"/>
+      <text x="160" y="95" text-anchor="middle" fill="#F76E8C" font-family="ui-monospace,monospace" font-size="10">a1b2c3d4-e5f6-4a1b-9c2d-8e7f6a5b4c3d</text>
+      <text x="160" y="45" text-anchor="middle" fill="#95A0B8" font-size="10">128-bit · 16 bytes · random</text>
+      <text x="160" y="140" text-anchor="middle" fill="#5C6982" font-size="9">vs BIGINT identity: 1, 2, 3, 4 ...</text>
+      <rect x="90" y="155" width="30" height="24" rx="4" fill="#34D39922" stroke="#34D399"/><text x="105" y="171" text-anchor="middle" fill="#34D399" font-size="10">1</text>
+      <rect x="130" y="155" width="30" height="24" rx="4" fill="#34D39922" stroke="#34D399"/><text x="145" y="171" text-anchor="middle" fill="#34D399" font-size="10">2</text>
+      <rect x="170" y="155" width="30" height="24" rx="4" fill="#34D39922" stroke="#34D399"/><text x="185" y="171" text-anchor="middle" fill="#34D399" font-size="10">3</text>
+    </svg>`,
+    window:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <text x="160" y="20" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="10">PARTITION BY department ORDER BY salary DESC</text>
+      ${[["Asha","1",40],["Ravi","2",80],["Ken","3",120]].map(([n,r,y])=>`
+        <rect x="30" y="${y}" width="260" height="30" rx="6" fill="#34D39918" stroke="#34D399"/>
+        <text x="45" y="${y+20}" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="10">${n}</text>
+        <text x="270" y="${y+20}" text-anchor="end" fill="#34D399" font-family="ui-monospace,monospace" font-size="10">rank ${r}</text>`).join('')}
+      <text x="160" y="185" text-anchor="middle" fill="#5C6982" font-size="9">all rows kept — nothing collapses</text>
+    </svg>`,
+    cte:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <rect x="60" y="20" width="200" height="34" rx="8" fill="#A78BFA22" stroke="#A78BFA"/>
+      <text x="160" y="42" text-anchor="middle" fill="#A78BFA" font-family="ui-monospace,monospace" font-size="10">CEO (level 1)</text>
+      <line x1="120" y1="54" x2="90" y2="80" stroke="#5C6982"/><line x1="200" y1="54" x2="230" y2="80" stroke="#5C6982"/>
+      <rect x="20" y="80" width="140" height="30" rx="7" fill="#A78BFA18" stroke="#A78BFA"/>
+      <text x="90" y="100" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">Manager A (lvl 2)</text>
+      <rect x="160" y="80" width="140" height="30" rx="7" fill="#A78BFA18" stroke="#A78BFA"/>
+      <text x="230" y="100" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">Manager B (lvl 2)</text>
+      <line x1="60" y1="110" x2="45" y2="135" stroke="#5C6982"/>
+      <rect x="10" y="135" width="100" height="28" rx="6" fill="#A78BFA10" stroke="#3a3560"/>
+      <text x="60" y="153" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="9">Engineer (lvl 3)</text>
+      <text x="160" y="195" text-anchor="middle" fill="#5C6982" font-size="9">RECURSIVE CTE walks each level</text>
+    </svg>`,
+    view:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="30" width="130" height="150" rx="10" fill="#0d1220" stroke="#233"/>
+      <text x="85" y="52" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="9">customers</text>
+      ${[0,1,2,3].map(i=>`<rect x="35" y="${65+i*24}" width="100" height="16" rx="3" fill="#5B9DF918"/>`).join('')}
+      <path d="M155 105 L175 105" stroke="#34D399" stroke-width="1.5" marker-end="url(#a2)"/>
+      <rect x="180" y="80" width="120" height="50" rx="10" fill="#34D39918" stroke="#34D399"/>
+      <text x="240" y="100" text-anchor="middle" fill="#34D399" font-family="ui-monospace,monospace" font-size="9">VIEW</text>
+      <text x="240" y="116" text-anchor="middle" fill="#95A0B8" font-size="8">runs live, no storage</text>
+      <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#34D399"/></marker></defs>
+    </svg>`,
+    matview:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="30" width="130" height="150" rx="10" fill="#0d1220" stroke="#233"/>
+      <text x="85" y="52" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="9">sales (live)</text>
+      ${[0,1,2,3].map(i=>`<rect x="35" y="${65+i*24}" width="100" height="16" rx="3" fill="#F5A62318"/>`).join('')}
+      <path d="M155 105 L175 105" stroke="#F5A623" stroke-width="1.5" marker-end="url(#a3)"/>
+      <rect x="180" y="70" width="120" height="70" rx="10" fill="#F5A62318" stroke="#F5A623"/>
+      <text x="240" y="92" text-anchor="middle" fill="#F5A623" font-family="ui-monospace,monospace" font-size="9">MAT. VIEW</text>
+      <text x="240" y="108" text-anchor="middle" fill="#95A0B8" font-size="8">stored snapshot</text>
+      <text x="240" y="122" text-anchor="middle" fill="#5C6982" font-size="8">REFRESH to update</text>
+      <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#F5A623"/></marker></defs>
+    </svg>`,
+    fts:`<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+      <text x="160" y="25" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="10">"PostgreSQL indexing guide"</text>
+      <path d="M160 35 L160 55" stroke="#5C6982" marker-end="url(#a4)"/>
+      <rect x="60" y="58" width="200" height="30" rx="7" fill="#F76E8C18" stroke="#F76E8C"/>
+      <text x="160" y="78" text-anchor="middle" fill="#F76E8C" font-family="ui-monospace,monospace" font-size="9">to_tsvector() → 'postgresql':1 'index':2 'guid':3</text>
+      <path d="M160 88 L160 108" stroke="#5C6982" marker-end="url(#a4)"/>
+      <rect x="90" y="110" width="140" height="30" rx="7" fill="#34D39918" stroke="#34D399"/>
+      <text x="160" y="130" text-anchor="middle" fill="#34D399" font-family="ui-monospace,monospace" font-size="9">GIN index</text>
+      <text x="160" y="165" text-anchor="middle" fill="#5C6982" font-size="9">query @@ tsquery → ranked results</text>
+      <defs><marker id="a4" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5C6982"/></marker></defs>
+    </svg>`
+  };
+  return map[kind]||'';
+}
+
+/* ============================================================
+   RENDER FEATURE SECTIONS
+   ============================================================ */
+function renderFeatures(){
+  const host = $('#features-host');
+  host.innerHTML = FEATURES.map(f=>`
+    <section id="${f.id}" class="section reveal" style="padding-top:60px;">
+      <div class="sec-head">
+        <div><div class="sec-eyebrow">${f.num} · Deep Dive</div><h2 class="sec-title">${f.name}</h2>
+        <p class="sec-desc">${f.full}</p></div>
+      </div>
+      <div class="feature-card open" data-fc>
+        <div class="feature-head">
+          <div class="feature-icon">${icon(f.icon, f.color)}</div>
+          <div class="feature-title-wrap">
+            <div class="feature-tag">${f.tag}</div>
+            <div class="feature-name">${f.name}</div>
+            <div class="feature-oneliner">${f.oneliner}</div>
+          </div>
+          <svg class="feature-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="feature-body">
+          <div class="feature-body-inner">
+            <div class="psql-line"><span class="p">postgres=#</span> \\h ${f.name.split(' ')[0]}</div>
+
+            <div class="tabs" data-tabs="${f.id}">
+              <button class="tab-btn active" data-tab="simple">Simple Explanation</button>
+              <button class="tab-btn" data-tab="technical">Technical Explanation</button>
+              <button class="tab-btn" data-tab="interview">Interview Explanation</button>
+            </div>
+            <div class="tab-panel active" data-panel="simple">${f.simple}</div>
+            <div class="tab-panel" data-panel="technical">${f.technical}</div>
+            <div class="tab-panel" data-panel="interview">${f.interview}</div>
+
+            <div class="callout analogy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg>
+              <div><div class="t">Real-world analogy</div><div class="d">${f.analogy}</div></div></div>
+
+            <div class="two-col">
+              <div>
+                <h5 style="font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:8px;">SQL Example</h5>
+                <pre class="code"><code>${sql(f.sqlLines.join('\n'))}</code></pre>
+              </div>
+              <div>
+                <h5 style="font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:8px;">Visual Diagram</h5>
+                <div class="diagram-box">${makeDiagram(f.diagram)}</div>
+              </div>
+            </div>
+
+            <div class="mini-grid">
+              <div class="mini-card">
+                <h5 style="color:var(--amber);">${icon('shield','#F5A623')} Beginner Mistakes</h5>
+                <ul>${f.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul>
+              </div>
+              <div class="mini-card">
+                <h5 style="color:var(--mint);">${icon('shield','#34D399')} Best Practices</h5>
+                <ul>${f.bestPractices.map(m=>`<li>${m}</li>`).join('')}</ul>
+              </div>
+            </div>
+
+            <div class="perf-note">${icon('trend','#5B9DF9')} <span><b style="color:var(--text);">Performance note —</b> ${f.performance}</span></div>
+
+            ${f.mysqlRelevant? `
+            <h5 style="font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin:22px 0 4px;">PostgreSQL vs MySQL</h5>
+            <p style="font-size:13.5px; color:var(--text-dim);">${f.mysqlNote}</p>` : ''}
+
+            <div class="usewrap">
+              <div class="use-yes"><b style="color:var(--mint);">✓ When to use</b><br>${f.whenUse}</div>
+              <div class="use-no"><b style="color:var(--rose);">✕ When NOT to use</b><br>${f.whenNot}</div>
+            </div>
+
+            <h5 style="font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin:24px 0 4px;">Common Interview Questions</h5>
+            <div class="iq-list">
+              ${f.interviewQs.map(iq=>`
+                <div class="iq">
+                  <div class="iq-q"><span>${iq.q}</span><span class="plus">+</span></div>
+                  <div class="iq-a"><div class="iq-a-inner">${iq.a}</div></div>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `).join('');
+
+  // feature accordion toggle + set inline max-height (open by default)
+  $$('[data-fc]').forEach(card=>{
+    const head = card.querySelector('.feature-head');
+    const body = card.querySelector('.feature-body');
+    body.style.maxHeight = body.scrollHeight+'px';
+    head.addEventListener('click', ()=>{
+      const isOpen = card.classList.toggle('open');
+      body.style.maxHeight = isOpen ? body.scrollHeight+'px' : '0px';
+    });
+  });
+  // tabs
+  $$('[data-tabs]').forEach(tabRow=>{
+    const card = tabRow.closest('.feature-body-inner');
+    tabRow.querySelectorAll('.tab-btn').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        e.stopPropagation();
+        tabRow.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        card.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.dataset.panel===btn.dataset.tab));
+        // recompute open height
+        const fb = tabRow.closest('.feature-body');
+        if(fb) fb.style.maxHeight = fb.scrollHeight+'px';
+      });
+    });
+  });
+  // interview question accordions
+  $$('.iq').forEach(iq=>{
+    iq.querySelector('.iq-q').addEventListener('click', e=>{
+      e.stopPropagation();
+      iq.classList.toggle('open');
+      const fb = iq.closest('.feature-body');
+      requestAnimationFrame(()=>{ if(fb) fb.style.maxHeight = fb.scrollHeight+'px'; });
+    });
+  });
+  $$('.section.reveal').forEach(el=>io.observe(el));
+}
+renderFeatures();
+
+/* ============================================================
+   WHY DIAGRAM
+   ============================================================ */
+$('#why-diagram').innerHTML = `<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="280" height="180" rx="12" fill="#0d1220" stroke="#233"/>
+  <text x="160" y="45" text-anchor="middle" fill="#5B9DF9" font-family="ui-monospace,monospace" font-size="11">e-commerce backend</text>
+  <rect x="35" y="60" width="120" height="40" rx="8" fill="#5B9DF922" stroke="#5B9DF9"/><text x="95" y="84" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">MVCC: concurrent checkout</text>
+  <rect x="165" y="60" width="120" height="40" rx="8" fill="#F5A62322" stroke="#F5A623"/><text x="225" y="84" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">JSONB: product attrs</text>
+  <rect x="35" y="112" width="120" height="40" rx="8" fill="#34D39922" stroke="#34D399"/><text x="95" y="136" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">Mat. View: sales dashboard</text>
+  <rect x="165" y="112" width="120" height="40" rx="8" fill="#A78BFA22" stroke="#A78BFA"/><text x="225" y="136" text-anchor="middle" fill="#E7ECF7" font-family="ui-monospace,monospace" font-size="9">Window fn: top sellers</text>
+  <text x="160" y="180" text-anchor="middle" fill="#5C6982" font-size="9">one engine, many interview-tested features</text>
+</svg>`;
+
+/* ============================================================
+   ROADMAP ROW
+   ============================================================ */
+$('#roadmap-row').innerHTML = FEATURES.map(f=>`
+  <div class="rm-item" data-jump="${f.id}">
+    <div class="rm-n">${f.num}</div>
+    <div class="rm-t">${f.name}</div>
+    <div class="rm-d">${f.oneliner}</div>
+  </div>`).join('');
+$$('.rm-item').forEach(el=>el.addEventListener('click', ()=> document.getElementById(el.dataset.jump).scrollIntoView({behavior:'smooth'})));
+
+/* ============================================================
+   SCENARIO QUESTIONS
+   ============================================================ */
+const SCENARIOS = [
+  {tag:'Scenario', company:'General Product Co.', q:'Two users click "Buy Now" on the last item in stock at the same time. How does Postgres prevent overselling?', a:'MVCC lets both transactions read the current stock concurrently, but the actual UPDATE/decrement uses row-level locking — the second transaction\'s UPDATE waits for the first to commit, then re-checks the (now updated) row. Wrapping the check-and-decrement in one transaction, or using SELECT ... FOR UPDATE, prevents overselling.'},
+  {tag:'Product', company:'Zoho', q:'Your Spring Boot service does 3 sequential inserts across 2 tables for one "create order" API call. What guarantee do you need, and how do you get it?', a:'Atomicity — wrap the service method in @Transactional so all inserts commit together or roll back together if any step fails.'},
+  {tag:'Product', company:'Freshworks', q:'A reporting dashboard query takes 12 seconds because it aggregates millions of rows on every page load. How would you fix it with a Postgres feature from this module?', a:'Convert the aggregation into a materialized view refreshed on a schedule (e.g. every 15 minutes via pg_cron or a Spring Boot scheduled job), so the dashboard reads a pre-computed, indexed snapshot instead of recomputing the aggregate live.'},
+  {tag:'Scenario', company:'General Backend', q:'You need to store optional, frequently-changing product attributes (color, size, custom specs) without altering your table schema every time. What would you use?', a:'A JSONB column for the flexible attributes, with a GIN index if those attributes are filtered/searched often — while keeping core fields (price, SKU, name) as normal typed columns.'},
+  {tag:'Product', company:'Amazon', q:'Design a query to get the top 3 highest-paid employees in each department without losing any employee rows from the base table.', a:'Use RANK() OVER (PARTITION BY department ORDER BY salary DESC) inside a CTE or subquery, then filter WHERE rank <= 3 in the outer query — a plain GROUP BY would collapse rows and lose employee-level detail.'},
+  {tag:'Scenario', company:'General Backend', q:'A microservice generates order IDs offline before syncing to the central database. Why would UUID be preferred over an auto-increment ID here?', a:'Because auto-increment IDs need the database to hand out the next number, which isn\'t possible offline or across independent services without coordination. UUIDs can be generated locally with virtually no collision risk.'},
+  {tag:'Product', company:'Microsoft', q:'Your team is deciding between Postgres full-text search and adding Elasticsearch for an in-app search bar. What factors would drive that decision?', a:'Scale of data, freshness requirements, and how advanced the relevance/ranking/typo-tolerance needs are. For a small-to-medium dataset with straightforward keyword search, Postgres full-text search (tsvector/tsquery + GIN) avoids the operational overhead of a separate search cluster; Elasticsearch wins at very large scale or with complex faceted/fuzzy search needs.'},
+  {tag:'Scenario', company:'TCS Digital / Infosys', q:'A junior developer says "I\'ll just use LIKE \'%keyword%\' for the search feature since it\'s simple." What would you tell them, and what module feature is the better fit?', a:'LIKE with a leading wildcard can\'t use a standard index and forces a full table scan, which won\'t scale. Recommend Postgres full-text search (to_tsvector/to_tsquery with a GIN index) instead, which is indexable and ranks results by relevance.'},
+];
+function renderScenarios(filter){
+  const wrap = $('#scenario-host');
+  const list = filter==='All' ? SCENARIOS : SCENARIOS.filter(s=> (filter==='Scenario'? s.tag==='Scenario' : s.company===filter));
+  wrap.innerHTML = list.map(s=>`
+    <div class="scenario-card">
+      <span class="scenario-tag ${s.tag==='Scenario'?'scenario':'company'}">${s.tag==='Scenario'?'SCENARIO':s.company.toUpperCase()}</span>
+      <div class="scenario-q">${s.q}</div>
+      <span class="scenario-toggle">Show expected answer ▾</span>
+      <div class="scenario-a">${s.a}</div>
+    </div>`).join('');
+  $$('.scenario-card').forEach(c=>{
+    c.querySelector('.scenario-toggle').addEventListener('click', ()=>{
+      c.classList.toggle('open');
+      c.querySelector('.scenario-toggle').textContent = c.classList.contains('open') ? 'Hide answer ▴' : 'Show expected answer ▾';
+    });
+  });
+}
+const companies = ['All','Scenario', ...Array.from(new Set(SCENARIOS.filter(s=>s.tag!=='Scenario').map(s=>s.company)))];
+$('#scenario-filters').innerHTML = companies.map((c,i)=>`<button class="filter-btn ${i===0?'active':''}" data-f="${c}">${c==='Scenario'?'Scenario-based':c}</button>`).join('');
+$$('.filter-btn').forEach(b=> b.addEventListener('click', ()=>{
+  $$('.filter-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderScenarios(b.dataset.f);
+}));
+renderScenarios('All');
+
+/* ============================================================
+   COMPARISON TABLE
+   ============================================================ */
+const CMP = [
+  ['MVCC','Table-heap row versions (needs VACUUM)','Undo-log based (InnoDB only)'],
+  ['ACID','All tables, always','Only with InnoDB, not MyISAM'],
+  ['Default isolation','Read Committed','Repeatable Read'],
+  ['JSON support','JSON + JSONB (binary, GIN-indexable)','JSON (binary-ish, less operator depth)'],
+  ['Arrays','Native array type','No native type (JSON/string workaround)'],
+  ['UUID','Native 16-byte uuid type','Stored as CHAR(36), no native type'],
+  ['Window functions','Supported since early versions','Only from MySQL 8.0+'],
+  ['Recursive CTE','Supported since PG 8.4','Only from MySQL 8.0+'],
+  ['Materialized views','Native, built-in','Not supported (needs manual emulation)'],
+  ['Full-text search','tsvector/tsquery + GIN, linguistic','FULLTEXT index, simpler, less flexible'],
+];
+$('#compare-table').innerHTML = `<tr><th>Feature</th><th>PostgreSQL</th><th>MySQL</th></tr>` +
+  CMP.map(r=>`<tr><td>${r[0]}</td><td class="pg">${r[1]}</td><td class="my">${r[2]}</td></tr>`).join('');
+
+/* ============================================================
+   MEMORY TRICKS
+   ============================================================ */
+const MEMORY = [
+  {k:'MVCC', t:'"Many Versions, Concurrent Chill"', s:'Multiple row versions = readers and writers stay chill, no blocking.'},
+  {k:'ACID', t:'"All Changes In, Durably"', s:'Atomic → Consistent → Isolated → Durable, in that promise order.'},
+  {k:'JSONB', t:'"B for Binary, B for Better indexing"', s:'JSONB = JSON + Binary + Better performance for reads.'},
+  {k:'UUID', t:'"U for Unique, no Usher (coordinator) needed"', s:'Any service can mint one without asking a central authority.'},
+  {k:'Window Fn', t:'"Window = you can still see through it"', s:'Rows stay visible (not collapsed) — you just see extra context through the "window".'},
+  {k:'CTE', t:'"WITH = With clarity"', s:'WITH names your subquery so the main query reads cleanly top to bottom.'},
+  {k:'View vs MatView', t:'"View = Live TV, MatView = Recorded"', s:'A view streams live; a materialized view is a recording you must re-record (REFRESH) to update.'},
+  {k:'Full-text Search', t:'"tsvector = the Dictionary, tsquery = the Question"', s:'tsvector indexes the document\'s words; tsquery asks the question against it.'},
+];
+$('#memory-grid').innerHTML = MEMORY.map(m=>`
+  <div class="mem-card"><div class="mem-key">${m.k}</div><div class="mem-txt">${m.t}</div><div class="mem-sub">${m.s}</div></div>`).join('');
+
+/* ============================================================
+   FLASHCARDS
+   ============================================================ */
+let FLASH = [
+  {q:'What does MVCC stand for and what problem does it solve?', a:'Multi-Version Concurrency Control — lets readers and writers work concurrently without blocking each other by keeping multiple row versions.'},
+  {q:'What is the default transaction isolation level in Postgres?', a:'Read Committed.'},
+  {q:'JSON vs JSONB — which one is indexable with GIN?', a:'JSONB (binary, parsed) is GIN-indexable; JSON (plain text) is not efficiently indexable the same way.'},
+  {q:'Why can UUID primary keys hurt B-Tree index performance?', a:'Because v4 UUIDs are random, inserts scatter across the index instead of appending at the end, causing more page splits and worse cache locality.'},
+  {q:'Difference between a window function and GROUP BY?', a:'GROUP BY collapses rows into one per group; a window function keeps every row while attaching a calculated value per row.'},
+  {q:'What makes a CTE "recursive"?', a:'It references itself with a base case UNIONed with a recursive step, used to walk hierarchical data like org charts.'},
+  {q:'What is the key difference between a view and a materialized view?', a:'A view runs live every time with no storage; a materialized view physically stores results and must be refreshed to update.'},
+  {q:'What function converts text into a searchable full-text search document?', a:'to_tsvector(\'english\', text) — producing a tsvector.'},
+  {q:'What is a "dead tuple" in Postgres?', a:'An old row version left behind after UPDATE/DELETE that is invisible to new transactions but still occupies disk space until VACUUM reclaims it.'},
+  {q:'Which SQL clause lets you undo part of a transaction without aborting the whole thing?', a:'SAVEPOINT, combined with ROLLBACK TO savepoint_name.'}
+];
+let flashIdx = 0;
+function renderFlash(){
+  $('#flash-q').textContent = FLASH[flashIdx].q;
+  $('#flash-a').textContent = FLASH[flashIdx].a;
+  $('#flash-count').textContent = `${flashIdx+1} / ${FLASH.length}`;
+  $('#flash-card').classList.remove('flipped');
+}
+$('#flash-card').addEventListener('click', ()=> $('#flash-card').classList.toggle('flipped'));
+$('#flash-next').addEventListener('click', ()=>{ flashIdx=(flashIdx+1)%FLASH.length; renderFlash(); });
+$('#flash-prev').addEventListener('click', ()=>{ flashIdx=(flashIdx-1+FLASH.length)%FLASH.length; renderFlash(); });
+$('#flash-shuffle').addEventListener('click', ()=>{
+  for(let i=FLASH.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [FLASH[i],FLASH[j]]=[FLASH[j],FLASH[i]]; }
+  flashIdx=0; renderFlash();
+});
+renderFlash();
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+const QUIZ = [
+  {q:'What does MVCC primarily eliminate the need for?', opts:['Foreign keys','Read locks for SELECT','Primary keys','Indexes'], correct:1, ex:'MVCC gives each transaction a consistent snapshot, so plain reads never need to take a lock.'},
+  {q:'Which Postgres component makes Durability (the "D" in ACID) possible?', opts:['GIN index','Write-Ahead Log (WAL)','tsvector','Materialized view'], correct:1, ex:'WAL ensures committed changes survive a crash — the core mechanism behind durability.'},
+  {q:'Which data type is generally preferred for querying/filtering: JSON or JSONB?', opts:['JSON','JSONB','Both identical','Neither is queryable'], correct:1, ex:'JSONB is stored in a parsed binary form and supports GIN indexing, making it far better for querying.'},
+  {q:'What is the main downside of using random UUIDv4 as a primary key at scale?', opts:['It\'s not unique enough','It fragments B-Tree index locality','It cannot be generated offline','It is not supported by Postgres'], correct:1, ex:'Random inserts scatter across the index, unlike sequential BIGINT keys, hurting write/index performance at scale.'},
+  {q:'Which of these keeps every input row in the output while still computing a per-row calculated value?', opts:['GROUP BY','Window function','DISTINCT','HAVING'], correct:1, ex:'Window functions attach a calculated value to each row without collapsing rows the way GROUP BY does.'},
+  {q:'What must a RECURSIVE CTE always have to avoid an infinite loop?', opts:['A JOIN','An ORDER BY','A terminating base case','A materialized hint'], correct:2, ex:'The base case (non-recursive term) stops the recursion once there\'s nothing left to expand.'},
+  {q:'What is the key operational difference between a view and a materialized view?', opts:['Views are faster to read','Materialized views must be refreshed to reflect new data','Views can\'t be queried with WHERE','Materialized views can\'t use indexes'], correct:1, ex:'A materialized view stores a snapshot and needs an explicit REFRESH; a view is always live.'},
+  {q:'Which command lets you refresh a materialized view without blocking concurrent readers?', opts:['REFRESH MATERIALIZED VIEW', 'REFRESH MATERIALIZED VIEW CONCURRENTLY', 'VACUUM MATERIALIZED VIEW', 'REBUILD VIEW'], correct:1, ex:'CONCURRENTLY avoids locking out readers, but requires a UNIQUE index on the materialized view first.'},
+  {q:'Full-text search relevance ranking is computed with which function?', opts:['ts_rank()', 'to_tsvector()', 'unnest()', 'RANK() OVER()'], correct:0, ex:'ts_rank() scores how well a document matches a tsquery, letting you ORDER BY relevance.'},
+  {q:'What is Postgres\'s default transaction isolation level?', opts:['Serializable','Repeatable Read','Read Committed','Read Uncommitted'], correct:2, ex:'Read Committed is the default — each statement sees the latest committed data as of when it runs.'}
+];
+let quizIdx=0, quizScore=0, answered=false;
+function renderQuizProgress(){
+  $('#quiz-progress').innerHTML = QUIZ.map((_,i)=>`<span class="${i<quizIdx?'done':i===quizIdx?'current':''}"></span>`).join('');
+}
+function renderQuiz(){
+  if(quizIdx>=QUIZ.length){ finishQuiz(); return; }
+  answered=false;
+  renderQuizProgress();
+  const item = QUIZ[quizIdx];
+  $('#quiz-q').textContent = `Q${quizIdx+1}. ${item.q}`;
+  $('#quiz-opts').innerHTML = item.opts.map((o,i)=>`<button class="quiz-opt" data-i="${i}">${o}</button>`).join('');
+  $('#quiz-explain').classList.remove('show');
+  $('#quiz-explain').textContent='';
+  $('#quiz-next').style.display='none';
+  $('#quiz-score').textContent = `Score: ${quizScore} / ${QUIZ.length}`;
+  $$('#quiz-opts .quiz-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(answered) return;
+      answered=true;
+      const chosen = parseInt(btn.dataset.i);
+      $$('#quiz-opts .quiz-opt').forEach(b=>{
+        b.setAttribute('disabled','true');
+        if(parseInt(b.dataset.i)===item.correct) b.classList.add('correct');
+        else if(b===btn) b.classList.add('wrong');
+      });
+      if(chosen===item.correct) quizScore++;
+      $('#quiz-explain').textContent = item.ex;
+      $('#quiz-explain').classList.add('show');
+      $('#quiz-score').textContent = `Score: ${quizScore} / ${QUIZ.length}`;
+      $('#quiz-next').style.display='inline-block';
+    });
+  });
+}
+function finishQuiz(){
+  $('#quiz-live').style.display='none';
+  $('#quiz-progress').style.display='none';
+  const res = $('#quiz-result');
+  res.style.display='block';
+  res.innerHTML = `<b>${quizScore} / ${QUIZ.length}</b><p style="color:var(--text-dim); margin-top:10px;">${quizScore>=8?'Interview ready — sharp recall of PostgreSQL feature internals.':quizScore>=5?'Solid base — revisit the missed topics above once more.':'Re-read the deep-dive sections and try again — repetition builds recall.'}</p><button class="btn-primary" id="quiz-retry" style="margin-top:18px;">Retry Quiz</button>`;
+  $('#quiz-retry').addEventListener('click', ()=>{
+    quizIdx=0; quizScore=0; res.style.display='none'; $('#quiz-live').style.display='block'; $('#quiz-progress').style.display='flex'; renderQuiz();
+  });
+}
+$('#quiz-next').addEventListener('click', ()=>{ quizIdx++; renderQuiz(); });
+renderQuiz();
+
+/* ============================================================
+   SQL PRACTICE
+   ============================================================ */
+const PRACTICE = [
+  {q:'Write a query to find the current balance of account id=1, ensuring you see only committed data (the Postgres default behavior).', a:"SELECT balance FROM accounts WHERE id = 1;\n-- Default Read Committed isolation already guarantees you only see committed rows."},
+  {q:'Write a transaction that transfers 200 from account 1 to account 2 atomically.', a:"BEGIN;\nUPDATE accounts SET balance = balance - 200 WHERE id = 1;\nUPDATE accounts SET balance = balance + 200 WHERE id = 2;\nCOMMIT;"},
+  {q:'Given a JSONB column `profile`, find all users whose profile contains \"role\": \"admin\".', a:"SELECT * FROM users WHERE profile @> '{\"role\":\"admin\"}';"},
+  {q:"Given a `tags TEXT[]` column, find all posts tagged with 'postgres'.", a:"SELECT * FROM posts WHERE 'postgres' = ANY(tags);"},
+  {q:'Write a query returning each employee\'s salary along with their rank within their department.', a:"SELECT name, department, salary,\n  RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank\nFROM employees;"},
+  {q:'Write a materialized view that stores total sales per region, and the command to refresh it without blocking readers.', a:"CREATE MATERIALIZED VIEW sales_summary AS\nSELECT region, SUM(amount) AS total_sales FROM sales GROUP BY region;\n\nCREATE UNIQUE INDEX ON sales_summary(region);\nREFRESH MATERIALIZED VIEW CONCURRENTLY sales_summary;"},
+  {q:"Write a full-text search query to find articles whose body matches both 'postgres' and 'index'.", a:"SELECT title FROM articles\nWHERE to_tsvector('english', body) @@ to_tsquery('english', 'postgres & index');"}
+];
+$('#practice-host').innerHTML = PRACTICE.map((p,i)=>`
+  <div class="practice-card">
+    <div class="practice-num">PRACTICE ${String(i+1).padStart(2,'0')}</div>
+    <div class="practice-q">${p.q}</div>
+    <button class="reveal-btn">Reveal expected query ▾</button>
+    <div class="practice-answer"><pre class="code"><code>${sql(p.a)}</code></pre></div>
+  </div>`).join('');
+$$('.practice-card').forEach(c=> c.querySelector('.reveal-btn').addEventListener('click', ()=> c.classList.add('revealed')));
+
+/* ============================================================
+   CHEAT SHEET
+   ============================================================ */
+const CHEAT = [
+  {h:'Transactions', rows:[['Start','BEGIN;'],['Commit','COMMIT;'],['Undo','ROLLBACK;'],['Partial undo','SAVEPOINT / ROLLBACK TO']]},
+  {h:'JSON / JSONB', rows:[['Get field','data->>\'key\''],['Contains','data @> \'{"k":"v"}\''],['Key exists','data ? \'key\''],['Index','CREATE INDEX ... USING GIN']]},
+  {h:'Arrays', rows:[['Membership','val = ANY(arr)'],['Expand to rows','unnest(arr)'],['Literal','ARRAY[\'a\',\'b\']']]},
+  {h:'UUID', rows:[['Generate','gen_random_uuid()'],['Column type','UUID']]},
+  {h:'Window Functions', rows:[['Rank','RANK() OVER(...)'],['Row number','ROW_NUMBER() OVER(...)'],['Previous row','LAG(col) OVER(...)']]},
+  {h:'CTE', rows:[['Basic','WITH x AS (...) SELECT ...'],['Recursive','WITH RECURSIVE x AS (...)']]},
+  {h:'Views', rows:[['Create','CREATE VIEW v AS SELECT ...'],['Materialized','CREATE MATERIALIZED VIEW'],['Refresh','REFRESH MATERIALIZED VIEW CONCURRENTLY']]},
+  {h:'Full-text Search', rows:[['Vectorize','to_tsvector(\'english\', txt)'],['Query','to_tsquery(\'english\', \'a & b\')'],['Match','vec @@ query'],['Rank','ts_rank(vec, query)']]},
+];
+$('#cheat-grid').innerHTML = CHEAT.map(c=>`
+  <div class="cheat-card"><h5>${c.h}</h5>${c.rows.map(r=>`<div class="row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')}</div>`).join('');
+
+/* ============================================================
+   MIND MAP
+   ============================================================ */
+(function mindmap(){
+  const cx=380, cy=260, R=170;
+  const nodes = FEATURES.map((f,i)=>{
+    const angle = (i/FEATURES.length)*2*Math.PI - Math.PI/2;
+    return {...f, x: cx+R*Math.cos(angle), y: cy+R*Math.sin(angle)};
+  });
+  let svg = `<svg viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:760px;">`;
+  nodes.forEach(n=> svg += `<line x1="${cx}" y1="${cy}" x2="${n.x}" y2="${n.y}" stroke="#233" stroke-width="1.5"/>`);
+  svg += `<circle cx="${cx}" cy="${cy}" r="58" fill="#5B9DF922" stroke="#5B9DF9" stroke-width="1.5"/>`;
+  svg += `<text x="${cx}" y="${cy-4}" text-anchor="middle" fill="#5B9DF9" font-family="ui-monospace,monospace" font-size="12" font-weight="bold">PostgreSQL</text>`;
+  svg += `<text x="${cx}" y="${cy+14}" text-anchor="middle" fill="#95A0B8" font-family="ui-monospace,monospace" font-size="10">Features</text>`;
+  nodes.forEach(n=>{
+    svg += `<g class="mm-node" data-jump="${n.id}">
+      <circle cx="${n.x}" cy="${n.y}" r="42" fill="${n.color}22" stroke="${n.color}" stroke-width="1.4"/>
+      <text x="${n.x}" y="${n.y+4}" text-anchor="middle" fill="${n.color}" font-family="ui-monospace,monospace" font-size="10.5">${n.name.length>13? n.name.slice(0,12)+'…': n.name}</text>
+    </g>`;
+  });
+  svg += `</svg>`;
+  $('#mindmap-box').innerHTML = svg;
+  $$('.mm-node').forEach(g=> g.addEventListener('click', ()=> document.getElementById(g.dataset.jump).scrollIntoView({behavior:'smooth'})));
+})();
+
+/* ============================================================
+   REVISION CHECKLIST
+   ============================================================ */
+const REV = [
+  'I can explain MVCC and why SELECT never blocks on UPDATE.',
+  'I can map each ACID letter to a concrete Postgres mechanism.',
+  'I know Postgres\'s default isolation level and what phantom reads are.',
+  'I can explain JSON vs JSONB and when to index with GIN.',
+  'I know when to use arrays vs a proper join table.',
+  'I can explain the UUID vs BIGINT identity trade-off.',
+  'I can write a window function query for "top N per group".',
+  'I can write a recursive CTE for hierarchical data.',
+  'I know the difference between a view and a materialized view.',
+  'I can explain full-text search vs LIKE \'%term%\'.',
+];
+$('#rev-list').innerHTML = REV.map((t,i)=>`
+  <div class="rev-item" data-i="${i}"><div class="rev-check"></div><span>${t}</span></div>`).join('');
+function updateRevProgress(){
+  const total = REV.length, done = $$('.rev-item.checked').length;
+  $('#rev-progress').textContent = `${done} / ${total} concepts marked ready — ${done===total?'you\'re interview ready! 🚀':'keep going.'}`;
+}
+$$('.rev-item').forEach(el=> el.addEventListener('click', ()=>{ el.classList.toggle('checked'); updateRevProgress(); }));
+updateRevProgress();
+
+/* ============================================================
+   TAKEAWAYS
+   ============================================================ */
+const TAKEAWAYS = [
+  'Postgres concurrency is snapshot-based (MVCC), not lock-based — that single idea explains a huge share of "why does Postgres behave this way" interview questions.',
+  'ACID isn\'t abstract theory here — each letter maps to a real Postgres mechanism (WAL, constraints, MVCC) you can name on demand.',
+  'JSONB, arrays, and UUID show Postgres\'s edge as a "relational database with document-store superpowers" — a common selling point in interviews.',
+  'Window functions and recursive CTEs are the analytic/hierarchical query tools interviewers use to separate fresher-level SQL from stronger candidates.',
+  'Views, materialized views, and full-text search are about trading freshness for speed — know exactly when each trade-off is worth it.'
+];
+$('#takeaway-grid').innerHTML = TAKEAWAYS.map((t,i)=>`
+  <div class="takeaway"><div class="num">${String(i+1).padStart(2,'0')}</div><p>${t}</p></div>`).join('');
+
+</script>
+</body>
+</html>

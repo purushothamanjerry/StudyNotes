@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 1 — PostgreSQL Basics | Interview Mastery</title>
+<style>
+  :root{
+    --bg: #0a0d14;
+    --bg-elevated: #0f1420;
+    --surface: rgba(255,255,255,0.035);
+    --surface-2: rgba(255,255,255,0.055);
+    --border: rgba(255,255,255,0.09);
+    --border-strong: rgba(255,255,255,0.16);
+    --text-1: #eef1f7;
+    --text-2: #9aa4b8;
+    --text-3: #626d82;
+    --blue: #5aa3e8;
+    --blue-dim: #3a6a94;
+    --teal: #4fd1c0;
+    --amber: #f0ad4e;
+    --red: #f0637a;
+    --green: #3fd18b;
+    --purple: #a68bfa;
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --radius: 14px;
+    --maxw: 1160px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(1200px 700px at 15% -10%, rgba(90,163,232,0.10), transparent 60%),
+      radial-gradient(1000px 600px at 100% 20%, rgba(79,209,192,0.06), transparent 55%),
+      var(--bg);
+    color:var(--text-1);
+    font-family:var(--font-body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{ background: rgba(90,163,232,0.35); }
+  a{ color:inherit; text-decoration:none; }
+  img,svg{ display:block; max-width:100%; }
+
+  /* ===== Progress bar ===== */
+  #progressBar{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg, var(--blue), var(--teal));
+    z-index:9999; transition:width .1s ease-out;
+    box-shadow:0 0 10px rgba(90,163,232,0.6);
+  }
+
+  /* ===== Top bar ===== */
+  #topbar{
+    position:fixed; top:0; left:0; right:0; height:60px; z-index:900;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px;
+    background:rgba(10,13,20,0.72); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-size:17px; letter-spacing:.3px;}
+  .brand .mark{
+    width:28px; height:28px; border-radius:8px;
+    background:linear-gradient(135deg, var(--blue), var(--teal));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-weight:700; font-size:13px; color:#04121a;
+  }
+  .brand small{ display:block; font-family:var(--font-body); font-size:10.5px; color:var(--text-3); letter-spacing:1.5px; text-transform:uppercase; margin-top:1px;}
+  #menuToggle{
+    display:none; background:var(--surface); border:1px solid var(--border); color:var(--text-1);
+    width:38px; height:38px; border-radius:9px; cursor:pointer; font-size:16px;
+  }
+  .module-pill{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--text-2);
+    border:1px solid var(--border); padding:5px 12px; border-radius:100px;
+    background:var(--surface);
+  }
+
+  /* ===== Layout shell ===== */
+  #shell{ display:flex; padding-top:60px; max-width:1440px; margin:0 auto; }
+  #sidebar{
+    width:260px; flex-shrink:0; position:sticky; top:60px; align-self:flex-start;
+    height:calc(100vh - 60px); overflow-y:auto; padding:26px 14px 60px 22px;
+    border-right:1px solid var(--border);
+  }
+  #sidebar::-webkit-scrollbar{ width:5px; }
+  #sidebar::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:5px; }
+  .side-group{ margin-bottom:22px; }
+  .side-group-title{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:1.4px; color:var(--text-3);
+    margin-bottom:8px; font-weight:600;
+  }
+  .side-link{
+    display:flex; align-items:center; gap:9px;
+    font-size:13.3px; color:var(--text-2); padding:7px 10px; border-radius:8px;
+    border-left:2px solid transparent; transition:.15s;
+  }
+  .side-link:hover{ color:var(--text-1); background:var(--surface); }
+  .side-link.active{ color:var(--blue); background:rgba(90,163,232,0.08); border-left-color:var(--blue); font-weight:600;}
+  .side-link .n{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-3); width:16px; }
+
+  main{ flex:1; min-width:0; padding:0 0 100px; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 40px; }
+
+  /* ===== Hero ===== */
+  #hero{ padding:78px 0 50px; position:relative; overflow:hidden; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--teal); background:rgba(79,209,192,0.08); border:1px solid rgba(79,209,192,0.25);
+    padding:6px 14px; border-radius:100px; margin-bottom:22px;
+  }
+  h1.hero-title{
+    font-family:var(--font-display); font-weight:400; font-size:clamp(34px,5.4vw,58px);
+    line-height:1.08; letter-spacing:-0.5px; max-width:820px;
+  }
+  h1.hero-title em{ font-style:italic; color:var(--blue); }
+  .hero-sub{ margin-top:22px; font-size:17px; color:var(--text-2); max-width:640px; }
+  .hero-stats{ display:flex; gap:34px; margin-top:38px; flex-wrap:wrap; }
+  .hstat b{ display:block; font-family:var(--font-display); font-size:26px; color:var(--text-1); }
+  .hstat span{ font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; }
+  .elephant-mark{ position:absolute; right:-40px; top:20px; opacity:.10; width:340px; pointer-events:none; }
+
+  /* ===== Section framework ===== */
+  section.topic{ padding:70px 0; border-top:1px solid var(--border); }
+  .tag-row{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .tag{
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:.5px; text-transform:uppercase;
+    padding:4px 10px; border-radius:6px; border:1px solid var(--border);
+    color:var(--text-3);
+  }
+  h2.sec-title{
+    font-family:var(--font-display); font-weight:400; font-size:clamp(26px,3.4vw,36px);
+    letter-spacing:-.3px; margin-bottom:10px; display:flex; align-items:baseline; gap:14px;
+  }
+  h2.sec-title .idx{ font-family:var(--font-mono); font-size:15px; color:var(--blue-dim); }
+  .sec-lede{ color:var(--text-2); font-size:16px; max-width:720px; margin-bottom:36px; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  @media(max-width:860px){ .grid-2, .grid-3{ grid-template-columns:1fr; } }
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:24px; position:relative; overflow:hidden;
+  }
+  .card.reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+  .card.reveal.in{ opacity:1; transform:none; }
+  .card-label{ font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-3); margin-bottom:10px;}
+  .card h3{ font-size:16.5px; font-weight:600; margin-bottom:8px; }
+  .card p{ color:var(--text-2); font-size:14.3px; }
+
+  /* explanation stack */
+  .explain-stack{ display:flex; flex-direction:column; gap:14px; margin:28px 0; }
+  .explain-item{
+    display:grid; grid-template-columns:150px 1fr; gap:20px;
+    border:1px solid var(--border); border-radius:12px; padding:18px 22px; background:var(--surface);
+  }
+  .explain-item .label{ font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:1px; padding-top:2px;}
+  .explain-item.simple .label{ color:var(--teal); }
+  .explain-item.tech .label{ color:var(--blue); }
+  .explain-item.interview .label{ color:var(--amber); }
+  .explain-item.analogy .label{ color:var(--purple); }
+  .explain-item p{ color:var(--text-2); font-size:14.7px; }
+  @media(max-width:700px){ .explain-item{ grid-template-columns:1fr; gap:6px; } }
+
+  /* callout boxes */
+  .box{ border-radius:12px; padding:18px 22px; margin:20px 0; border:1px solid; display:flex; gap:14px; }
+  .box .ic{ font-size:18px; line-height:1; flex-shrink:0; margin-top:1px; }
+  .box .b-title{ font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px; }
+  .box p, .box li{ font-size:14.2px; color:var(--text-2); }
+  .box.tip{ background:rgba(240,173,78,0.06); border-color:rgba(240,173,78,0.3); }
+  .box.tip .b-title{ color:var(--amber); }
+  .box.mistake{ background:rgba(240,99,122,0.06); border-color:rgba(240,99,122,0.3); }
+  .box.mistake .b-title{ color:var(--red); }
+  .box.practice{ background:rgba(63,209,139,0.06); border-color:rgba(63,209,139,0.3); }
+  .box.practice .b-title{ color:var(--green); }
+  .box.warn{ background:rgba(166,139,250,0.06); border-color:rgba(166,139,250,0.3); }
+  .box.warn .b-title{ color:var(--purple); }
+
+  /* code block */
+  pre.code{
+    background:#070a10; border:1px solid var(--border); border-radius:10px;
+    padding:18px 20px; overflow-x:auto; font-family:var(--font-mono); font-size:13px;
+    line-height:1.65; color:#cfe3f7; margin:16px 0;
+  }
+  pre.code .kw{ color:#c586c0; } pre.code .fn{ color:#5aa3e8; } pre.code .str{ color:#ce9178; }
+  pre.code .cm{ color:#6a7688; font-style:italic; } pre.code .num{ color:#4fd1c0; }
+
+  /* comparison table */
+  table.cmp{ width:100%; border-collapse:collapse; margin:18px 0; font-size:14px; }
+  table.cmp th{
+    text-align:left; padding:12px 16px; background:var(--surface-2); color:var(--text-1);
+    font-size:11.5px; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid var(--border-strong);
+  }
+  table.cmp td{ padding:12px 16px; border-bottom:1px solid var(--border); color:var(--text-2); }
+  table.cmp tr:hover td{ background:rgba(255,255,255,0.02); color:var(--text-1); }
+  table.cmp td.hl{ color:var(--blue); font-weight:600; }
+
+  /* timeline */
+  .timeline{ position:relative; margin:30px 0 10px; padding-left:26px; }
+  .timeline::before{ content:''; position:absolute; left:5px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--blue), var(--teal)); }
+  .t-item{ position:relative; padding-bottom:26px; }
+  .t-item::before{ content:''; position:absolute; left:-26px; top:3px; width:12px; height:12px; border-radius:50%; background:var(--bg); border:2px solid var(--blue); }
+  .t-item b{ font-family:var(--font-mono); color:var(--blue); font-size:13px; }
+  .t-item p{ color:var(--text-2); font-size:14px; margin-top:3px; }
+
+  /* accordion */
+  .acc-item{ border:1px solid var(--border); border-radius:12px; margin-bottom:10px; overflow:hidden; background:var(--surface); }
+  .acc-head{ display:flex; justify-content:space-between; align-items:center; padding:16px 20px; cursor:pointer; gap:16px;}
+  .acc-head .q{ font-size:14.5px; font-weight:600; }
+  .acc-head .tags{ display:flex; gap:6px; flex-shrink:0; }
+  .acc-chip{ font-family:var(--font-mono); font-size:9.5px; padding:2px 8px; border-radius:100px; border:1px solid var(--border); color:var(--text-3); white-space:nowrap; }
+  .acc-plus{ font-size:18px; color:var(--text-3); transition:transform .25s; flex-shrink:0; }
+  .acc-item.open .acc-plus{ transform:rotate(45deg); color:var(--blue); }
+  .acc-body{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .acc-body-inner{ padding:0 20px 20px; color:var(--text-2); font-size:14px; }
+  .acc-body-inner .a-label{ font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; color:var(--green); letter-spacing:1px; margin-bottom:6px;}
+
+  /* tabs */
+  .tabs-nav{ display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+  .tab-btn{ padding:8px 16px; border-radius:100px; border:1px solid var(--border); background:var(--surface); color:var(--text-2); font-size:13px; cursor:pointer; }
+  .tab-btn.active{ background:rgba(90,163,232,0.12); border-color:var(--blue); color:var(--blue); }
+  .tab-pane{ display:none; } .tab-pane.active{ display:block; }
+
+  /* flashcards */
+  .flash-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  @media(max-width:860px){ .flash-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:560px){ .flash-grid{ grid-template-columns:1fr; } }
+  .flash{ perspective:1200px; height:150px; cursor:pointer; }
+  .flash-inner{ position:relative; width:100%; height:100%; transition:transform .55s; transform-style:preserve-3d; }
+  .flash.flipped .flash-inner{ transform:rotateY(180deg); }
+  .flash-face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:12px; padding:18px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13.5px; border:1px solid var(--border); }
+  .flash-front{ background:var(--surface); color:var(--text-1); font-weight:600; }
+  .flash-back{ background:rgba(90,163,232,0.1); border-color:var(--blue); transform:rotateY(180deg); color:var(--text-1); font-size:13px; }
+
+  /* quiz */
+  #quizBox{ border:1px solid var(--border); border-radius:14px; padding:26px; background:var(--surface); }
+  .quiz-q{ font-size:15.5px; font-weight:600; margin-bottom:14px; }
+  .quiz-opt{ display:block; width:100%; text-align:left; padding:12px 16px; margin-bottom:8px; border-radius:9px; border:1px solid var(--border); background:var(--bg-elevated); color:var(--text-2); cursor:pointer; font-size:13.8px; }
+  .quiz-opt:hover{ border-color:var(--blue-dim); }
+  .quiz-opt.correct{ border-color:var(--green); background:rgba(63,209,139,0.1); color:var(--green); }
+  .quiz-opt.wrong{ border-color:var(--red); background:rgba(240,99,122,0.1); color:var(--red); }
+  #quizFooter{ display:flex; justify-content:space-between; align-items:center; margin-top:18px; }
+  #quizScore{ font-family:var(--font-mono); font-size:13px; color:var(--text-3); }
+  .btn{ background:linear-gradient(135deg,var(--blue),var(--teal)); color:#04121a; font-weight:700; border:none; padding:10px 20px; border-radius:9px; cursor:pointer; font-size:13.5px; }
+  .btn:disabled{ opacity:.4; cursor:default; }
+
+  /* cheat sheet */
+  .cheat-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media(max-width:700px){ .cheat-grid{ grid-template-columns:1fr; } }
+  .cheat-card{ border:1px solid var(--border); border-radius:10px; padding:16px 18px; background:var(--surface); }
+  .cheat-card h4{ font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--teal); margin-bottom:10px; font-family:var(--font-mono);}
+  .cheat-card code{ display:block; font-family:var(--font-mono); font-size:12.6px; color:#cfe3f7; margin-bottom:6px; }
+
+  /* mind map (svg) */
+  .mindmap-wrap{ overflow-x:auto; }
+
+  /* company chips */
+  .company-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:26px; }
+  .company-chip{ font-size:12px; padding:6px 13px; border-radius:100px; border:1px solid var(--border); color:var(--text-2); background:var(--surface); }
+  .company-chip.active{ border-color:var(--blue); color:var(--blue); background:rgba(90,163,232,0.1); }
+
+  /* footer */
+  footer{ padding:60px 0 40px; text-align:center; color:var(--text-3); font-size:13px; border-top:1px solid var(--border); margin-top:20px;}
+
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:6px; }
+
+  @media(max-width:980px){
+    #sidebar{ position:fixed; left:-280px; top:60px; width:270px; background:var(--bg-elevated); z-index:800; transition:left .25s; box-shadow:20px 0 40px rgba(0,0,0,.4); }
+    #sidebar.open{ left:0; }
+    #menuToggle{ display:block; }
+    .wrap{ padding:0 22px; }
+    .grid-2{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+
+<div id="topbar">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button id="menuToggle" aria-label="Toggle menu">☰</button>
+    <div class="brand"><div class="mark">Pg</div><div>PG Interview Track<small>Interview Mastery Series</small></div></div>
+  </div>
+  <div class="module-pill">Module 01 / 21 · Basics</div>
+</div>
+
+<div id="shell">
+  <aside id="sidebar">
+    <div class="side-group">
+      <div class="side-group-title">Foundations</div>
+      <a class="side-link" data-target="s-what"><span class="n">01</span>What is PostgreSQL</a>
+      <a class="side-link" data-target="s-history"><span class="n">02</span>History</a>
+      <a class="side-link" data-target="s-why"><span class="n">03</span>Why Companies Use It</a>
+      <a class="side-link" data-target="s-arch"><span class="n">04</span>Architecture</a>
+      <a class="side-link" data-target="s-vs"><span class="n">05</span>Postgres vs MySQL</a>
+      <a class="side-link" data-target="s-install"><span class="n">06</span>Installation</a>
+      <a class="side-link" data-target="s-hierarchy"><span class="n">07</span>DB → Schema → Table</a>
+      <a class="side-link" data-target="s-types"><span class="n">08</span>Data Types</a>
+    </div>
+    <div class="side-group">
+      <div class="side-group-title">Interview Prep</div>
+      <a class="side-link" data-target="s-questions"><span class="n">09</span>Top 20 Questions</a>
+      <a class="side-link" data-target="s-scenario"><span class="n">10</span>Scenario Questions</a>
+      <a class="side-link" data-target="s-mistakes"><span class="n">11</span>Beginner Mistakes</a>
+      <a class="side-link" data-target="s-bestpractice"><span class="n">12</span>Best Practices</a>
+      <a class="side-link" data-target="s-perf"><span class="n">13</span>Performance & Security</a>
+      <a class="side-link" data-target="s-spring"><span class="n">14</span>Spring Boot Relation</a>
+    </div>
+    <div class="side-group">
+      <div class="side-group-title">Revision</div>
+      <a class="side-link" data-target="s-flash"><span class="n">15</span>Flash Cards</a>
+      <a class="side-link" data-target="s-quiz"><span class="n">16</span>Quick Quiz</a>
+      <a class="side-link" data-target="s-sql"><span class="n">17</span>SQL Practice</a>
+      <a class="side-link" data-target="s-cheat"><span class="n">18</span>Cheat Sheet</a>
+      <a class="side-link" data-target="s-mindmap"><span class="n">19</span>Mind Map</a>
+      <a class="side-link" data-target="s-roadmap"><span class="n">20</span>Roadmap</a>
+      <a class="side-link" data-target="s-summary"><span class="n">21</span>Summary</a>
+    </div>
+  </aside>
+
+  <main>
+    <!-- HERO -->
+    <section id="hero">
+      <div class="wrap">
+        <svg class="elephant-mark" viewBox="0 0 200 200" fill="none"><path d="M60 130c-10-30 5-60 35-68 25-6 45 8 52 28 5 15 1 24-6 30 8 4 14 12 12 22-3 14-18 20-30 15-4 10-16 16-27 13-3 12-16 19-28 14-14-6-18-22-8-34-13-2-22-14-19-27 2-9 10-15 19-13z" stroke="#5aa3e8" stroke-width="2"/><circle cx="75" cy="115" r="3" fill="#5aa3e8"/></svg>
+        <div class="eyebrow">● Module 01 — Foundations Track</div>
+        <h1 class="hero-title">PostgreSQL Basics — <em>the elephant that never forgets a transaction.</em></h1>
+        <p class="hero-sub">A ground-zero interview refresher for Java Full Stack fresher interviews: what PostgreSQL actually is, why product companies bet on it, how it's built internally, and every basic-tier question that gets asked at Zoho, TCS Digital, Infosys, Accenture, Capgemini, Cognizant, HCL, Wipro and mid-size product companies.</p>
+        <div class="hero-stats">
+          <div class="hstat"><b>8</b><span>Core Topics</span></div>
+          <div class="hstat"><b>20</b><span>Interview Qs</span></div>
+          <div class="hstat"><b>12+</b><span>Diagrams &amp; Flows</span></div>
+          <div class="hstat"><b>10</b><span>Flash Cards</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 01 WHAT IS POSTGRESQL -->
+    <section class="topic" id="s-what">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Foundations</span><span class="tag">Fresher Must-Know</span></div>
+        <h2 class="sec-title"><span class="idx">01</span>What is PostgreSQL?</h2>
+        <p class="sec-lede">The single most common opening question in a database round. Answer it in layers — simple, technical, then interview-polished — and you're already ahead of most freshers.</p>
+
+        <div class="explain-stack">
+          <div class="explain-item simple"><div class="label">Simple</div><p>PostgreSQL is a program that stores your data — like user records, orders, products — safely in tables, and lets you ask questions about that data using SQL.</p></div>
+          <div class="explain-item tech"><div class="label">Technical</div><p>PostgreSQL is an open-source <b>object-relational database management system (ORDBMS)</b> that implements the SQL standard while extending it with objects, custom types, inheritance, JSON support, and full ACID-compliant transactions.</p></div>
+          <div class="explain-item interview"><div class="label">Interview-Ready</div><p>"PostgreSQL is an open-source, ACID-compliant, object-relational database known for standards compliance, extensibility, and strong support for complex queries and concurrent transactions — commonly used as the primary datastore behind Spring Boot backends."</p></div>
+          <div class="explain-item analogy"><div class="label">Analogy</div><p>Think of PostgreSQL as a highly disciplined librarian: every book (row) has a strict place (table/schema), every checkout is logged so nothing is ever lost mid-transaction, and the librarian can also handle very unusual requests (JSON documents, custom data types) without breaking the filing system.</p></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card reveal">
+            <div class="card-label">Problem It Solves</div>
+            <h3>Flat files & spreadsheets don't scale</h3>
+            <p>Before RDBMSs, applications stored data in flat files — no relationships, no concurrency control, no guarantee that two users editing the same record wouldn't corrupt it. PostgreSQL solves this with structured tables, relationships (foreign keys), and transactional guarantees.</p>
+          </div>
+          <div class="card reveal">
+            <div class="card-label">Real-World Example</div>
+            <h3>An e-commerce order system</h3>
+            <p>When you place an order: stock must decrease, payment must be recorded, and an order row must be created — all or nothing. PostgreSQL's transaction engine guarantees this even if the server crashes mid-request.</p>
+          </div>
+        </div>
+
+        <div class="box tip">
+          <div class="ic">💡</div>
+          <div><div class="b-title">Interview Tip</div><p>Interviewers love hearing "ORDBMS" instead of just "RDBMS" for Postgres — it signals you know Postgres supports object-oriented features (custom types, table inheritance) beyond plain relational databases like classic MySQL.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 HISTORY -->
+    <section class="topic" id="s-history">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Background</span></div>
+        <h2 class="sec-title"><span class="idx">02</span>History <span style="font-size:14px;color:var(--text-3);font-family:var(--font-body);">(short version — don't over-invest here)</span></h2>
+        <p class="sec-lede">You won't be quizzed deeply on history, but knowing the one-line origin story shows genuine familiarity.</p>
+        <div class="timeline">
+          <div class="t-item"><b>1986</b><p>Started at UC Berkeley as the <b>POSTGRES</b> project by Michael Stonebraker, successor to the earlier "Ingres" database.</p></div>
+          <div class="t-item"><b>1996</b><p>Renamed to <b>PostgreSQL</b> after SQL support was added, reflecting its evolution into a full SQL-compliant system.</p></div>
+          <div class="t-item"><b>Ongoing</b><p>Maintained by a global open-source community (not a single company) — a point often raised to contrast with vendor-owned databases.</p></div>
+        </div>
+        <div class="box warn"><div class="ic">🧠</div><div><div class="b-title">Memory Trick</div><p>"POSTGRES → Post-Ingres." It's literally the database that came <i>after</i> Ingres — that's the whole naming story in one word.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 03 WHY COMPANIES USE -->
+    <section class="topic" id="s-why">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Business Context</span><span class="tag">Common Follow-up</span></div>
+        <h2 class="sec-title"><span class="idx">03</span>Why Companies Use PostgreSQL</h2>
+        <p class="sec-lede">A very common follow-up to "what is PostgreSQL" is "why would we choose it?" — have concrete reasons ready.</p>
+        <div class="grid-3">
+          <div class="card reveal"><div class="card-label">Advantage</div><h3>Standards Compliance</h3><p>Closely follows ANSI SQL, reducing surprises when migrating between systems or hiring SQL-literate engineers.</p></div>
+          <div class="card reveal"><div class="card-label">Advantage</div><h3>Extensibility</h3><p>Custom data types, operators, and extensions (like PostGIS for geodata) without forking the database.</p></div>
+          <div class="card reveal"><div class="card-label">Advantage</div><h3>Strong Concurrency (MVCC)</h3><p>Multi-Version Concurrency Control lets readers and writers work simultaneously without blocking each other.</p></div>
+          <div class="card reveal"><div class="card-label">Advantage</div><h3>JSON + Relational</h3><p>Native <code>JSONB</code> support means teams get document-store flexibility without adding a separate NoSQL database.</p></div>
+          <div class="card reveal"><div class="card-label">Advantage</div><h3>No Licensing Cost</h3><p>Fully open-source (PostgreSQL License, a permissive license), removing vendor lock-in risk that comes with Oracle or SQL Server.</p></div>
+          <div class="card reveal"><div class="card-label">Advantage</div><h3>Reliability</h3><p>Write-Ahead Logging (WAL) and strict ACID guarantees make it a trusted choice for financial and transactional systems.</p></div>
+        </div>
+        <div class="box practice"><div class="ic">✅</div><div><div class="b-title">Best Practice — Answering This</div><p>Name 3 reasons max in an interview, tied to a real scenario: "For a fintech backend, I'd pick PostgreSQL for its strict ACID guarantees and MVCC-based concurrency" lands better than reciting a feature list.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 04 ARCHITECTURE -->
+    <section class="topic" id="s-arch">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Internals</span><span class="tag">How It Works</span></div>
+        <h2 class="sec-title"><span class="idx">04</span>PostgreSQL Architecture (Basic)</h2>
+        <p class="sec-lede">You won't be asked to draw this from memory as a fresher, but understanding the flow of a query makes every later module (indexes, transactions, locks) click faster.</p>
+
+        <div class="card" style="padding:30px;">
+          <svg viewBox="0 0 900 300" width="100%" height="300">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#5aa3e8"/>
+              </marker>
+            </defs>
+            <rect x="20" y="120" width="130" height="60" rx="10" fill="rgba(90,163,232,0.12)" stroke="#5aa3e8"/>
+            <text x="85" y="145" fill="#eef1f7" font-size="12" text-anchor="middle" font-family="monospace">Client App</text>
+            <text x="85" y="162" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">(JDBC / psql)</text>
+
+            <line x1="150" y1="150" x2="215" y2="150" stroke="#5aa3e8" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <rect x="220" y="100" width="150" height="100" rx="10" fill="rgba(79,209,192,0.12)" stroke="#4fd1c0"/>
+            <text x="295" y="140" fill="#eef1f7" font-size="12" text-anchor="middle" font-family="monospace">Postmaster</text>
+            <text x="295" y="158" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">forks a backend</text>
+            <text x="295" y="174" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">process per connection</text>
+
+            <line x1="370" y1="150" x2="435" y2="150" stroke="#4fd1c0" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <rect x="440" y="90" width="160" height="120" rx="10" fill="rgba(240,173,78,0.10)" stroke="#f0ad4e"/>
+            <text x="520" y="120" fill="#eef1f7" font-size="12" text-anchor="middle" font-family="monospace">Backend Process</text>
+            <text x="520" y="140" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">parses → plans →</text>
+            <text x="520" y="156" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">optimizes → executes</text>
+            <text x="520" y="176" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">the SQL query</text>
+
+            <line x1="600" y1="150" x2="655" y2="150" stroke="#f0ad4e" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <rect x="660" y="40" width="210" height="60" rx="10" fill="rgba(166,139,250,0.10)" stroke="#a68bfa"/>
+            <text x="765" y="65" fill="#eef1f7" font-size="12" text-anchor="middle" font-family="monospace">Shared Buffers</text>
+            <text x="765" y="82" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">in-memory page cache</text>
+
+            <rect x="660" y="120" width="210" height="60" rx="10" fill="rgba(240,99,122,0.10)" stroke="#f0637a"/>
+            <text x="765" y="145" fill="#eef1f7" font-size="12" text-anchor="middle" font-family="monospace">WAL (Write-Ahead Log)</text>
+            <text x="765" y="162" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">durability before commit</text>
+
+            <rect x="660" y="200" width="210" height="60" rx="10" fill="rgba(63,209,139,0.10)" stroke="#3fd18b"/>
+            <text x="765" y="225" fill="#eef1f7" font-size="12" text-anchor="middle" font-family="monospace">Disk Storage</text>
+            <text x="765" y="242" fill="#9aa4b8" font-size="10" text-anchor="middle" font-family="monospace">heap files, indexes</text>
+
+            <line x1="765" y1="100" x2="765" y2="120" stroke="#a68bfa" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <line x1="765" y1="180" x2="765" y2="200" stroke="#f0637a" stroke-width="1.5" stroke-dasharray="3,3"/>
+          </svg>
+        </div>
+
+        <div class="explain-stack" style="margin-top:10px;">
+          <div class="explain-item simple"><div class="label">Step-by-step</div><p>1) Your app opens a connection → 2) the <b>Postmaster</b> process forks a dedicated <b>backend process</b> for it → 3) that process parses and plans your SQL → 4) data is read from <b>shared buffers</b> (memory) or disk → 5) any write is first recorded in the <b>WAL</b> for crash safety, then applied.</p></div>
+          <div class="explain-item interview"><div class="label">Interview Line</div><p>"PostgreSQL uses a process-per-connection model — unlike thread-per-connection engines — and guarantees durability through Write-Ahead Logging before a transaction is considered committed."</p></div>
+        </div>
+        <div class="box mistake"><div class="ic">⚠️</div><div><div class="b-title">Common Mistake</div><p>Saying PostgreSQL is "multi-threaded per connection." It's actually <b>process-based</b> — each client connection gets its own OS process, which is why connection pooling (e.g., PgBouncer) matters for high-concurrency apps.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 05 VS MYSQL -->
+    <section class="topic" id="s-vs">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Comparison</span><span class="tag">Very Frequently Asked</span></div>
+        <h2 class="sec-title"><span class="idx">05</span>PostgreSQL vs MySQL (Overview)</h2>
+        <p class="sec-lede">Since you already know MySQL, frame every answer as a contrast — interviewers specifically want to see you can compare, not just recall.</p>
+
+        <table class="cmp">
+          <tr><th>Aspect</th><th>PostgreSQL</th><th>MySQL</th></tr>
+          <tr><td>Type</td><td class="hl">Object-Relational (ORDBMS)</td><td>Purely Relational (RDBMS)</td></tr>
+          <tr><td>SQL Compliance</td><td class="hl">Very close to ANSI SQL standard</td><td>Historically more relaxed, has diverged in places</td></tr>
+          <tr><td>Concurrency Model</td><td class="hl">MVCC across all storage</td><td>Depends on storage engine (InnoDB uses MVCC)</td></tr>
+          <tr><td>JSON Support</td><td class="hl">Native JSONB — indexed, queryable</td><td>JSON type exists but less mature indexing</td></tr>
+          <tr><td>Extensibility</td><td class="hl">Custom types, operators, extensions (PostGIS)</td><td>Limited extensibility</td></tr>
+          <tr><td>Replication</td><td>Strong, but historically more manual setup</td><td class="hl">Simpler out-of-the-box replication</td></tr>
+          <tr><td>Read-heavy simple apps</td><td>Slightly more overhead per connection</td><td class="hl">Traditionally faster for simple read-heavy workloads</td></tr>
+          <tr><td>Best Fit</td><td class="hl">Complex queries, analytics, data integrity-critical apps</td><td>Simple, high-speed read/write web apps</td></tr>
+        </table>
+
+        <div class="grid-2">
+          <div class="card reveal"><div class="card-label">When To Use PostgreSQL</div><p>Financial systems, apps needing complex joins/window functions, geospatial data, or a mix of relational + JSON data.</p></div>
+          <div class="card reveal"><div class="card-label">When NOT To Use PostgreSQL</div><p>Extremely simple, high-throughput read workloads with no complex relationships, where operational simplicity outweighs feature depth.</p></div>
+        </div>
+
+        <div class="box tip"><div class="ic">💡</div><div><div class="b-title">Interview Tip</div><p>Never say "PostgreSQL is just better." Say: "It depends on the workload — PostgreSQL wins on data integrity and complex querying, MySQL wins on simplicity for straightforward CRUD-heavy apps."</p></div></div>
+      </div>
+    </section>
+
+    <!-- 06 INSTALLATION -->
+    <section class="topic" id="s-install">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Optional</span><span class="tag">Practical</span></div>
+        <h2 class="sec-title"><span class="idx">06</span>Installation <span style="font-size:14px;color:var(--text-3);font-family:var(--font-body);">(optional, good to know)</span></h2>
+        <p class="sec-lede">Rarely asked directly, but useful if a live-coding round expects you to spin up a local instance.</p>
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="t-linux">Ubuntu / Linux</button>
+          <button class="tab-btn" data-tab="t-mac">macOS</button>
+          <button class="tab-btn" data-tab="t-docker">Docker</button>
+        </div>
+        <div class="tab-pane active" id="t-linux">
+<pre class="code"><span class="cm">-- install</span>
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+
+<span class="cm">-- switch to the default admin user</span>
+sudo -i -u postgres
+psql</pre>
+        </div>
+        <div class="tab-pane" id="t-mac">
+<pre class="code"><span class="cm">-- using Homebrew</span>
+brew install postgresql@16
+brew services start postgresql@16</pre>
+        </div>
+        <div class="tab-pane" id="t-docker">
+<pre class="code">docker run --name pg-dev -e POSTGRES_PASSWORD=secret \
+  -p 5432:5432 -d postgres:16</pre>
+        </div>
+        <div class="box practice"><div class="ic">✅</div><div><div class="b-title">Best Practice</div><p>For local Spring Boot development, prefer the Docker route — it keeps your machine clean and matches production versions closely.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 07 HIERARCHY -->
+    <section class="topic" id="s-hierarchy">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Core Concept</span><span class="tag">Frequently Confused</span></div>
+        <h2 class="sec-title"><span class="idx">07</span>Database, Schema, Table</h2>
+        <p class="sec-lede">A classic fresher trap: candidates confuse "schema" with "database." Get this hierarchy airtight.</p>
+
+        <div class="card" style="padding:30px;">
+          <svg viewBox="0 0 700 220" width="100%" height="220">
+            <rect x="20" y="20" width="660" height="180" rx="14" fill="rgba(90,163,232,0.06)" stroke="#5aa3e8" stroke-dasharray="4,4"/>
+            <text x="40" y="42" fill="#5aa3e8" font-size="12" font-family="monospace">DATABASE (e.g. "app_db")</text>
+
+            <rect x="55" y="60" width="280" height="120" rx="12" fill="rgba(79,209,192,0.08)" stroke="#4fd1c0" stroke-dasharray="3,3"/>
+            <text x="70" y="80" fill="#4fd1c0" font-size="11" font-family="monospace">SCHEMA "public"</text>
+            <rect x="70" y="95" width="110" height="34" rx="6" fill="rgba(255,255,255,0.06)" stroke="#9aa4b8"/>
+            <text x="125" y="116" fill="#eef1f7" font-size="10" text-anchor="middle" font-family="monospace">users</text>
+            <rect x="200" y="95" width="110" height="34" rx="6" fill="rgba(255,255,255,0.06)" stroke="#9aa4b8"/>
+            <text x="255" y="116" fill="#eef1f7" font-size="10" text-anchor="middle" font-family="monospace">orders</text>
+            <rect x="70" y="140" width="110" height="34" rx="6" fill="rgba(255,255,255,0.06)" stroke="#9aa4b8"/>
+            <text x="125" y="161" fill="#eef1f7" font-size="10" text-anchor="middle" font-family="monospace">products</text>
+
+            <rect x="365" y="60" width="280" height="120" rx="12" fill="rgba(240,173,78,0.07)" stroke="#f0ad4e" stroke-dasharray="3,3"/>
+            <text x="380" y="80" fill="#f0ad4e" font-size="11" font-family="monospace">SCHEMA "audit"</text>
+            <rect x="380" y="105" width="230" height="34" rx="6" fill="rgba(255,255,255,0.06)" stroke="#9aa4b8"/>
+            <text x="495" y="126" fill="#eef1f7" font-size="10" text-anchor="middle" font-family="monospace">login_history</text>
+          </svg>
+        </div>
+
+        <div class="explain-stack">
+          <div class="explain-item simple"><div class="label">Simple</div><p><b>Database</b> = the whole building. <b>Schema</b> = a floor/department inside it. <b>Table</b> = a filing cabinet on that floor holding actual rows of data.</p></div>
+          <div class="explain-item interview"><div class="label">Interview-Ready</div><p>"A database is the top-level container and connections are scoped to exactly one database. A schema is a logical namespace inside that database used to group and isolate tables — by default, everything lives in the 'public' schema unless organized otherwise."</p></div>
+        </div>
+
+<pre class="code"><span class="kw">CREATE</span> DATABASE app_db;
+\c app_db
+
+<span class="kw">CREATE</span> SCHEMA audit;
+
+<span class="kw">CREATE</span> TABLE public.users (
+  id <span class="fn">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  name <span class="fn">VARCHAR</span>(100) <span class="kw">NOT NULL</span>
+);
+
+<span class="kw">CREATE</span> TABLE audit.login_history (
+  id <span class="fn">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  user_id <span class="fn">INT</span> <span class="kw">REFERENCES</span> public.users(id),
+  logged_in_at <span class="fn">TIMESTAMP</span> <span class="kw">DEFAULT</span> now()
+);</pre>
+
+        <div class="box mistake"><div class="ic">⚠️</div><div><div class="b-title">Common Mistake</div><p>Calling "public" a database. It's a <b>schema</b> — the default one PostgreSQL creates automatically inside every new database.</p></div></div>
+        <div class="box practice"><div class="ic">✅</div><div><div class="b-title">Best Practice</div><p>Use separate schemas (not separate databases) to isolate modules like <code>audit</code>, <code>reporting</code>, or per-tenant data — cross-schema joins are cheap; cross-database joins are not directly possible in PostgreSQL.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 08 DATA TYPES -->
+    <section class="topic" id="s-types">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Core Concept</span><span class="tag">Coding Round Relevant</span></div>
+        <h2 class="sec-title"><span class="idx">08</span>Data Types</h2>
+        <p class="sec-lede">Expect a rapid-fire round: "what type would you use for X?" Know the categories, not just the names.</p>
+
+        <table class="cmp">
+          <tr><th>Category</th><th>Types</th><th>Use Case</th></tr>
+          <tr><td>Numeric</td><td class="hl">SMALLINT, INTEGER, BIGINT, NUMERIC, REAL, DOUBLE PRECISION</td><td>IDs, counts, money (use NUMERIC for currency — never REAL)</td></tr>
+          <tr><td>Character</td><td class="hl">CHAR(n), VARCHAR(n), TEXT</td><td>Names, descriptions; TEXT for unbounded content</td></tr>
+          <tr><td>Boolean</td><td class="hl">BOOLEAN</td><td>Flags like is_active, is_deleted</td></tr>
+          <tr><td>Date/Time</td><td class="hl">DATE, TIME, TIMESTAMP, TIMESTAMPTZ, INTERVAL</td><td>Always prefer TIMESTAMPTZ for anything user-facing across timezones</td></tr>
+          <tr><td>JSON</td><td class="hl">JSON, JSONB</td><td>Semi-structured data; JSONB is binary & indexable — almost always the right pick</td></tr>
+          <tr><td>UUID</td><td class="hl">UUID</td><td>Globally unique identifiers, common in distributed systems</td></tr>
+          <tr><td>Array</td><td class="hl">INTEGER[], TEXT[]</td><td>PostgreSQL-specific — store lists directly in a column</td></tr>
+          <tr><td>Special</td><td class="hl">SERIAL / BIGSERIAL</td><td>Auto-incrementing integer (sugar over sequence + default)</td></tr>
+        </table>
+
+        <div class="grid-2">
+          <div class="card reveal"><div class="card-label">Performance Note</div><h3>VARCHAR(n) vs TEXT</h3><p>In PostgreSQL, there's virtually no performance difference — both are stored the same way internally. Use VARCHAR(n) only when you need a hard length constraint; otherwise TEXT is idiomatic.</p></div>
+          <div class="card reveal"><div class="card-label">Performance Note</div><h3>JSON vs JSONB</h3><p>Always prefer JSONB unless you need to preserve exact input formatting/whitespace — JSONB is stored in binary, is faster to query, and supports GIN indexing.</p></div>
+        </div>
+
+        <div class="box mistake"><div class="ic">⚠️</div><div><div class="b-title">Common Mistake</div><p>Using <code>FLOAT</code>/<code>REAL</code> for money. Floating-point types lose precision — always use <code>NUMERIC(p,s)</code> for currency and financial calculations.</p></div></div>
+        <div class="box warn"><div class="ic">🧠</div><div><div class="b-title">Memory Trick</div><p>"JSONB = J-Speed-B." B for Binary, B for Better performance, B for the type you should default to.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 09 TOP 20 QUESTIONS -->
+    <section class="topic" id="s-questions">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">High Priority</span></div>
+        <h2 class="sec-title"><span class="idx">09</span>Top 20 Interview Questions</h2>
+        <p class="sec-lede">Click any question to reveal the expected interview-grade answer. Company tags show where this exact style of question tends to appear.</p>
+        <div class="company-row" id="companyFilter">
+          <span class="company-chip active" data-c="all">All</span>
+          <span class="company-chip" data-c="Zoho">Zoho</span>
+          <span class="company-chip" data-c="TCS Digital">TCS Digital</span>
+          <span class="company-chip" data-c="Infosys">Infosys</span>
+          <span class="company-chip" data-c="Accenture">Accenture</span>
+          <span class="company-chip" data-c="Product">Product Cos</span>
+        </div>
+        <div id="accWrap"></div>
+      </div>
+    </section>
+
+    <!-- 10 SCENARIO -->
+    <section class="topic" id="s-scenario">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Applied</span></div>
+        <h2 class="sec-title"><span class="idx">10</span>Scenario-Based Questions</h2>
+        <p class="sec-lede">These test judgment, not memorization — structure your answer as: constraint → reasoning → decision.</p>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><div class="q">Your team is deciding between one shared "public" schema vs. one schema per client (multi-tenant). What do you check first?</div><div class="acc-plus">+</div></div>
+          <div class="acc-body"><div class="acc-body-inner"><div class="a-label">Model Answer</div>Expected client count and isolation needs — a handful of large clients benefits from per-schema isolation (easy backup/restore per tenant), while thousands of small tenants makes per-schema unmanageable and a shared schema with a `tenant_id` column is more practical.</div></div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><div class="q">A junior dev stored prices as FLOAT and totals are now slightly off in production. What happened and how do you fix it?</div><div class="acc-plus">+</div></div>
+          <div class="acc-body"><div class="acc-body-inner"><div class="a-label">Model Answer</div>Floating-point types can't represent all decimal fractions exactly, causing rounding drift over many operations. Fix: migrate the column to NUMERIC(p,s), recompute existing aggregates, and add a review step to catch numeric-type choices in code review.</div></div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><div class="q">You're modeling a product's "attributes" that vary wildly between product categories (shoes have sizes, books have ISBNs). How do you design this?</div><div class="acc-plus">+</div></div>
+          <div class="acc-body"><div class="acc-body-inner"><div class="a-label">Model Answer</div>Use a JSONB column for the variable attributes alongside fixed relational columns for the common fields (name, price, category). This avoids an unmanageable sparse table with hundreds of nullable columns, while keeping core fields queryable and indexed normally.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 MISTAKES -->
+    <section class="topic" id="s-mistakes">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Self-Check</span></div>
+        <h2 class="sec-title"><span class="idx">11</span>Beginner Mistakes</h2>
+        <div class="grid-2">
+          <div class="box mistake" style="margin:0;"><div class="ic">⚠️</div><div><div class="b-title">Mistake</div><p>Confusing "database" and "schema" in conversation — costs credibility fast in interviews.</p></div></div>
+          <div class="box mistake" style="margin:0;"><div class="ic">⚠️</div><div><div class="b-title">Mistake</div><p>Assuming PostgreSQL behaves identically to MySQL for auto-increment (it's SERIAL / sequences, not AUTO_INCREMENT).</p></div></div>
+          <div class="box mistake" style="margin:0;"><div class="ic">⚠️</div><div><div class="b-title">Mistake</div><p>Using FLOAT/REAL for currency values instead of NUMERIC.</p></div></div>
+          <div class="box mistake" style="margin:0;"><div class="ic">⚠️</div><div><div class="b-title">Mistake</div><p>Thinking PostgreSQL is "just for big companies" — it's equally suited to small projects due to being free and lightweight to run.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 BEST PRACTICES -->
+    <section class="topic" id="s-bestpractice">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Habits</span></div>
+        <h2 class="sec-title"><span class="idx">12</span>Best Practices</h2>
+        <div class="grid-2">
+          <div class="box practice" style="margin:0;"><div class="ic">✅</div><div><div class="b-title">Practice</div><p>Default to TIMESTAMPTZ, not TIMESTAMP, for anything that could be viewed across timezones.</p></div></div>
+          <div class="box practice" style="margin:0;"><div class="ic">✅</div><div><div class="b-title">Practice</div><p>Prefer JSONB over JSON unless you have a specific reason not to.</p></div></div>
+          <div class="box practice" style="margin:0;"><div class="ic">✅</div><div><div class="b-title">Practice</div><p>Name schemas by responsibility (audit, reporting) instead of dumping everything into public.</p></div></div>
+          <div class="box practice" style="margin:0;"><div class="ic">✅</div><div><div class="b-title">Practice</div><p>Use NUMERIC(p,s) for any monetary or precision-sensitive value.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 PERF/SECURITY -->
+    <section class="topic" id="s-perf">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Deeper</span></div>
+        <h2 class="sec-title"><span class="idx">13</span>Performance & Security Notes</h2>
+        <div class="grid-2">
+          <div class="card reveal"><div class="card-label">Performance</div><h3>Connections are expensive</h3><p>Because each connection is a process, opening/closing connections frequently is costly — use a connection pool (HikariCP in Spring Boot, or PgBouncer at the DB layer).</p></div>
+          <div class="card reveal"><div class="card-label">Security</div><h3>Least-privilege roles</h3><p>Avoid connecting your app with the superuser role. Create a dedicated role with only the privileges the application actually needs (SELECT/INSERT/UPDATE on specific schemas).</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 SPRING BOOT -->
+    <section class="topic" id="s-spring">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Full Stack Relevance</span></div>
+        <h2 class="sec-title"><span class="idx">14</span>Spring Boot Relation</h2>
+        <p class="sec-lede">This is where interviewers connect the dots — expect this exact linkage to come up.</p>
+<pre class="code"><span class="cm"># application.properties</span>
+spring.datasource.url=jdbc:postgresql://localhost:5432/app_db
+spring.datasource.username=app_user
+spring.datasource.password=****
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect</pre>
+        <div class="box tip"><div class="ic">💡</div><div><div class="b-title">Interview Tip</div><p>Mention that Spring Data JPA + Hibernate translates your <code>@Entity</code> classes into PostgreSQL DDL, and that connection pooling (HikariCP, Spring Boot's default) is what keeps process-based PostgreSQL connections efficient under load.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 15 FLASH CARDS -->
+    <section class="topic" id="s-flash">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Revision</span></div>
+        <h2 class="sec-title"><span class="idx">15</span>Flash Cards <span style="font-size:14px;color:var(--text-3);font-family:var(--font-body);">(click to flip)</span></h2>
+        <div class="flash-grid" id="flashGrid"></div>
+      </div>
+    </section>
+
+    <!-- 16 QUIZ -->
+    <section class="topic" id="s-quiz">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Test Yourself</span></div>
+        <h2 class="sec-title"><span class="idx">16</span>Quick Quiz</h2>
+        <div id="quizBox">
+          <div class="quiz-q" id="quizQ"></div>
+          <div id="quizOpts"></div>
+          <div id="quizFooter">
+            <span id="quizScore">Score: 0 / 0</span>
+            <button class="btn" id="quizNext">Next Question →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 17 SQL PRACTICE -->
+    <section class="topic" id="s-sql">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Hands-On</span></div>
+        <h2 class="sec-title"><span class="idx">17</span>SQL Practice Questions</h2>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><div class="q">1. Create a database `shop_db`, a schema `inventory`, and a table `items` with id, name (text), price (numeric).</div><div class="acc-plus">+</div></div>
+          <div class="acc-body"><div class="acc-body-inner"><div class="a-label">Solution</div><pre class="code"><span class="kw">CREATE</span> DATABASE shop_db;
+\c shop_db
+<span class="kw">CREATE</span> SCHEMA inventory;
+<span class="kw">CREATE</span> TABLE inventory.items (
+  id <span class="fn">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  name <span class="fn">TEXT</span> <span class="kw">NOT NULL</span>,
+  price <span class="fn">NUMERIC</span>(10,2)
+);</pre></div></div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><div class="q">2. Add a JSONB column `metadata` to `items` and insert a row with a nested attribute.</div><div class="acc-plus">+</div></div>
+          <div class="acc-body"><div class="acc-body-inner"><div class="a-label">Solution</div><pre class="code"><span class="kw">ALTER TABLE</span> inventory.items <span class="kw">ADD COLUMN</span> metadata <span class="fn">JSONB</span>;
+
+<span class="kw">INSERT INTO</span> inventory.items (name, price, metadata)
+<span class="kw">VALUES</span> (<span class="str">'Running Shoe'</span>, <span class="num">59.99</span>, <span class="str">'{"size": 9, "color": "black"}'</span>);</pre></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 CHEAT SHEET -->
+    <section class="topic" id="s-cheat">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Reference</span></div>
+        <h2 class="sec-title"><span class="idx">18</span>Cheat Sheet</h2>
+        <div class="cheat-grid">
+          <div class="cheat-card"><h4>Database</h4><code>CREATE DATABASE db_name;</code><code>\l</code><code>\c db_name</code></div>
+          <div class="cheat-card"><h4>Schema</h4><code>CREATE SCHEMA name;</code><code>\dn</code><code>SET search_path TO name;</code></div>
+          <div class="cheat-card"><h4>Table</h4><code>CREATE TABLE t (id SERIAL PRIMARY KEY);</code><code>\dt</code><code>\d t</code></div>
+          <div class="cheat-card"><h4>Common Types</h4><code>NUMERIC(p,s) · TEXT · BOOLEAN</code><code>TIMESTAMPTZ · JSONB · UUID</code></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 19 MIND MAP -->
+    <section class="topic" id="s-mindmap">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Big Picture</span></div>
+        <h2 class="sec-title"><span class="idx">19</span>Mind Map</h2>
+        <div class="card mindmap-wrap" style="padding:26px;">
+          <svg viewBox="0 0 900 380" width="900" height="380" style="min-width:640px;">
+            <circle cx="450" cy="190" r="60" fill="rgba(90,163,232,0.15)" stroke="#5aa3e8"/>
+            <text x="450" y="185" fill="#eef1f7" font-size="12" text-anchor="middle" font-family="monospace">PostgreSQL</text>
+            <text x="450" y="200" fill="#9aa4b8" font-size="9" text-anchor="middle" font-family="monospace">Basics</text>
+
+            <g font-family="monospace" font-size="11">
+              <line x1="450" y1="140" x2="230" y2="60" stroke="#4fd1c0"/>
+              <rect x="140" y="35" width="180" height="50" rx="10" fill="rgba(79,209,192,0.1)" stroke="#4fd1c0"/>
+              <text x="230" y="65" fill="#eef1f7" text-anchor="middle">Identity: ORDBMS, ACID</text>
+
+              <line x1="450" y1="140" x2="670" y2="60" stroke="#f0ad4e"/>
+              <rect x="580" y="35" width="200" height="50" rx="10" fill="rgba(240,173,78,0.1)" stroke="#f0ad4e"/>
+              <text x="680" y="65" fill="#eef1f7" text-anchor="middle">Architecture: WAL, MVCC</text>
+
+              <line x1="450" y1="250" x2="230" y2="320" stroke="#a68bfa"/>
+              <rect x="130" y="295" width="200" height="50" rx="10" fill="rgba(166,139,250,0.1)" stroke="#a68bfa"/>
+              <text x="230" y="325" fill="#eef1f7" text-anchor="middle">Structure: DB → Schema → Table</text>
+
+              <line x1="450" y1="250" x2="670" y2="320" stroke="#3fd18b"/>
+              <rect x="580" y="295" width="210" height="50" rx="10" fill="rgba(63,209,139,0.1)" stroke="#3fd18b"/>
+              <text x="685" y="325" fill="#eef1f7" text-anchor="middle">Types: JSONB, NUMERIC, UUID</text>
+
+              <line x1="390" y1="190" x2="100" y2="190" stroke="#f0637a"/>
+              <rect x="20" y="165" width="170" height="50" rx="10" fill="rgba(240,99,122,0.1)" stroke="#f0637a"/>
+              <text x="105" y="195" text-anchor="middle" fill="#eef1f7">vs MySQL</text>
+
+              <line x1="510" y1="190" x2="800" y2="190" stroke="#5aa3e8"/>
+              <rect x="800" y="165" width="80" height="50" rx="10" fill="rgba(90,163,232,0.1)" stroke="#5aa3e8"/>
+              <text x="840" y="195" text-anchor="middle" fill="#eef1f7">Spring</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 20 ROADMAP -->
+    <section class="topic" id="s-roadmap">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">What's Next</span></div>
+        <h2 class="sec-title"><span class="idx">20</span>Learning Roadmap</h2>
+        <div class="timeline">
+          <div class="t-item"><b>Module 01 ✓</b><p>PostgreSQL Basics — you are here.</p></div>
+          <div class="t-item"><b>Module 02</b><p>Constraints, Keys & Relationships (PK, FK, UNIQUE, CHECK).</p></div>
+          <div class="t-item"><b>Module 03</b><p>Joins, Subqueries & Set Operations.</p></div>
+          <div class="t-item"><b>Module 04</b><p>Indexes & Query Performance (EXPLAIN ANALYZE).</p></div>
+          <div class="t-item"><b>Module 05</b><p>Transactions, ACID & Isolation Levels.</p></div>
+        </div>
+        <div class="box warn"><div class="ic">📚</div><div><div class="b-title">Further Topics To Explore Independently</div><p>Window functions, CTEs (WITH queries), partitioning, replication & failover, PostGIS basics, and PL/pgSQL stored procedures — not required for fresher rounds but great for standing out.</p></div></div>
+      </div>
+    </section>
+
+    <!-- 21 SUMMARY -->
+    <section class="topic" id="s-summary">
+      <div class="wrap">
+        <div class="tag-row"><span class="tag">Wrap-Up</span></div>
+        <h2 class="sec-title"><span class="idx">21</span>Summary & Revision Notes</h2>
+        <div class="grid-2">
+          <div class="card reveal">
+            <div class="card-label">In One Paragraph</div>
+            <p>PostgreSQL is an open-source, ACID-compliant object-relational database that stores data across a Database → Schema → Table hierarchy, uses process-based connections with WAL for durability and MVCC for concurrency, and offers rich data types (especially JSONB) that make it a strong default choice for Java Spring Boot backends where data integrity matters.</p>
+          </div>
+          <div class="card reveal">
+            <div class="card-label">Revision Checklist</div>
+            <p>✔ Define PostgreSQL in 3 styles (simple/technical/interview)<br>✔ Explain the query flow (client → postmaster → backend → WAL/buffers)<br>✔ Contrast with MySQL confidently<br>✔ Get DB/Schema/Table hierarchy right every time<br>✔ Know when to use NUMERIC, JSONB, TIMESTAMPTZ, UUID</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>Module 01 of 21 · PostgreSQL Interview Mastery Track · Built for Java Full Stack fresher interview prep</footer>
+  </main>
+</div>
+
+<script>
+// ===== Progress bar + active nav on scroll =====
+const progressBar = document.getElementById('progressBar');
+const sideLinks = Array.from(document.querySelectorAll('.side-link'));
+const sections = sideLinks.map(l => document.getElementById(l.dataset.target)).filter(Boolean);
+
+function onScroll(){
+  const doc = document.documentElement;
+  const scrolled = (doc.scrollTop) / (doc.scrollHeight - doc.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+
+  let currentIdx = 0;
+  sections.forEach((s,i) => { if (s && s.getBoundingClientRect().top < 140) currentIdx = i; });
+  sideLinks.forEach((l,i) => l.classList.toggle('active', i === currentIdx));
+}
+document.addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+
+sideLinks.forEach(l => l.addEventListener('click', e => {
+  e.preventDefault();
+  const t = document.getElementById(l.dataset.target);
+  if(t) t.scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('sidebar').classList.remove('open');
+}));
+
+// ===== Mobile menu =====
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// ===== Reveal on scroll =====
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+}, {threshold:0.15});
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ===== Accordion =====
+function toggleAcc(head){
+  const item = head.parentElement;
+  const body = item.querySelector('.acc-body');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.acc-item.open').forEach(o => {
+    if(o !== item){ o.classList.remove('open'); o.querySelector('.acc-body').style.maxHeight = null; }
+  });
+  item.classList.toggle('open', !isOpen);
+  body.style.maxHeight = !isOpen ? body.scrollHeight + 'px' : null;
+}
+
+// ===== Tabs =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.parentElement;
+    group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const paneId = btn.dataset.tab;
+    const paneParent = group.nextElementSibling.parentElement;
+    document.querySelectorAll('#s-install .tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById(paneId).classList.add('active');
+  });
+});
+
+// ===== Top 20 Interview Questions (accordion, company-filterable) =====
+const QUESTIONS = [
+  {q:"What is PostgreSQL and how is it different from a typical RDBMS?", a:"PostgreSQL is an open-source object-relational database (ORDBMS) — it supports everything a standard RDBMS does, plus custom types, table inheritance, and strong extensibility, while remaining fully ACID-compliant.", c:["Zoho","TCS Digital","Product"]},
+  {q:"Is PostgreSQL free? What license does it use?", a:"Yes — PostgreSQL is released under the PostgreSQL License, a permissive open-source license similar to MIT/BSD, with no licensing fees.", c:["Infosys","Accenture"]},
+  {q:"What does ORDBMS mean and why does it matter for PostgreSQL?", a:"Object-Relational DBMS — it blends relational tables with object-oriented concepts like custom data types and inheritance, giving more modeling flexibility than a plain RDBMS.", c:["Zoho","Product"]},
+  {q:"Explain PostgreSQL's process architecture.", a:"Each client connection is handled by a dedicated backend process forked by the Postmaster — this is different from a thread-per-connection model, which is why connection pooling matters at scale.", c:["Product","TCS Digital"]},
+  {q:"What is WAL (Write-Ahead Log) and why is it important?", a:"WAL records every change before it's applied to the actual data files, guaranteeing that committed transactions survive a crash — the backbone of PostgreSQL's durability guarantee.", c:["Product"]},
+  {q:"What is MVCC?", a:"Multi-Version Concurrency Control — PostgreSQL keeps multiple versions of a row so readers never block writers and writers never block readers, improving concurrency.", c:["Infosys","Product"]},
+  {q:"What's the difference between a database, a schema, and a table?", a:"A database is the top-level container a connection is scoped to; a schema is a logical namespace inside a database that groups tables; a table stores the actual rows of data.", c:["Zoho","TCS Digital","Accenture"]},
+  {q:"What is the default schema in PostgreSQL?", a:"The 'public' schema — every new database starts with it, and objects created without specifying a schema land there by default.", c:["Zoho"]},
+  {q:"How does PostgreSQL differ from MySQL?", a:"PostgreSQL is closer to ANSI SQL standard, is a true ORDBMS with strong JSONB support and extensibility, while MySQL is historically simpler and faster for straightforward, high-throughput read/write workloads.", c:["TCS Digital","Accenture","Product"]},
+  {q:"When would you choose PostgreSQL over MySQL?", a:"When the application needs complex queries, strict data integrity, geospatial data (PostGIS), or a mix of relational and JSON data — e.g., financial systems or analytics platforms.", c:["Accenture","Product"]},
+  {q:"What is SERIAL in PostgreSQL?", a:"SERIAL is syntactic sugar that creates an auto-incrementing integer column backed by a sequence — PostgreSQL's equivalent to MySQL's AUTO_INCREMENT.", c:["Zoho","Infosys"]},
+  {q:"What's the difference between VARCHAR and TEXT?", a:"Internally they're stored identically in PostgreSQL. VARCHAR(n) adds a length constraint; TEXT is unbounded. Performance is essentially the same.", c:["TCS Digital"]},
+  {q:"What's the difference between JSON and JSONB?", a:"JSON stores an exact text copy of the input (including whitespace); JSONB stores a parsed binary representation that's faster to query and supports indexing (e.g., GIN indexes). JSONB is preferred in almost all cases.", c:["Product","Zoho"]},
+  {q:"Why shouldn't you use FLOAT for currency values?", a:"FLOAT/REAL are approximate binary floating-point types that can't represent many decimal fractions exactly, causing rounding errors. NUMERIC(p,s) stores exact decimal values instead.", c:["Infosys","Accenture"]},
+  {q:"What is TIMESTAMPTZ and why prefer it over TIMESTAMP?", a:"TIMESTAMPTZ stores time with timezone awareness (internally normalized to UTC), avoiding ambiguity when your app serves users across timezones — TIMESTAMP has no timezone context at all.", c:["Product"]},
+  {q:"Can PostgreSQL store arrays in a column?", a:"Yes — PostgreSQL supports native array types like INTEGER[] or TEXT[], a feature most RDBMSs (including MySQL) don't offer directly.", c:["Zoho"]},
+  {q:"How does a Spring Boot app connect to PostgreSQL?", a:"Via a JDBC URL configured in application.properties, with Spring Data JPA/Hibernate using the PostgreSQLDialect to translate entity mappings into PostgreSQL DDL and queries, typically pooled through HikariCP.", c:["TCS Digital","Infosys"]},
+  {q:"What is a role in PostgreSQL, and how does it relate to security?", a:"A role is PostgreSQL's unit of authentication and permission (replacing the old 'user'/'group' distinction). Best practice is to give the application a dedicated role with least-privilege access rather than superuser.", c:["Accenture"]},
+  {q:"Why might connection pooling matter more in PostgreSQL than in some other databases?", a:"Because each connection maps to a full OS process (not a lightweight thread), opening too many raw connections is expensive — pooling via HikariCP or PgBouncer reuses a small set of connections efficiently.", c:["Product"]},
+  {q:"Name two PostgreSQL features that MySQL traditionally lacked.", a:"Native array types and rich JSONB with indexing are two classic examples — though MySQL has added partial JSON support in recent versions, PostgreSQL's implementation remains more mature.", c:["TCS Digital","Product"]},
+];
+
+const accWrap = document.getElementById('accWrap');
+function renderQuestions(filter){
+  accWrap.innerHTML = '';
+  QUESTIONS.forEach((item, idx) => {
+    if(filter !== 'all' && !item.c.includes(filter)) return;
+    const div = document.createElement('div');
+    div.className = 'acc-item';
+    div.innerHTML = `
+      <div class="acc-head" onclick="toggleAcc(this)">
+        <div class="q">${idx+1}. ${item.q}</div>
+        <div class="tags">${item.c.slice(0,2).map(c=>`<span class="acc-chip">${c}</span>`).join('')}</div>
+        <div class="acc-plus">+</div>
+      </div>
+      <div class="acc-body"><div class="acc-body-inner"><div class="a-label">Model Answer</div>${item.a}</div></div>`;
+    accWrap.appendChild(div);
+  });
+}
+renderQuestions('all');
+document.querySelectorAll('#companyFilter .company-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#companyFilter .company-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    renderQuestions(chip.dataset.c);
+  });
+});
+
+// ===== Flash cards =====
+const FLASH = [
+  {f:"ORDBMS", b:"Object-Relational Database Management System — PostgreSQL's classification, blending relational tables with object features."},
+  {f:"WAL", b:"Write-Ahead Log — every change is logged before being applied, guaranteeing durability after a crash."},
+  {f:"MVCC", b:"Multi-Version Concurrency Control — enables readers and writers to work without blocking each other."},
+  {f:"SERIAL", b:"Auto-incrementing integer type, PostgreSQL's equivalent to MySQL's AUTO_INCREMENT."},
+  {f:"JSONB", b:"Binary-stored, indexable JSON type — preferred over plain JSON for almost all use cases."},
+  {f:"Public Schema", b:"The default schema every new PostgreSQL database starts with."},
+  {f:"NUMERIC(p,s)", b:"Exact decimal type — always use this (never FLOAT) for currency and precision-sensitive values."},
+  {f:"TIMESTAMPTZ", b:"Timezone-aware timestamp, normalized internally to UTC — safer default than plain TIMESTAMP."},
+  {f:"Postmaster", b:"The parent process that forks a dedicated backend process per client connection."},
+  {f:"PostgreSQL License", b:"A permissive open-source license (similar to MIT/BSD) — no cost, no vendor lock-in."},
+];
+const flashGrid = document.getElementById('flashGrid');
+FLASH.forEach(item => {
+  const div = document.createElement('div');
+  div.className = 'flash';
+  div.innerHTML = `<div class="flash-inner">
+      <div class="flash-face flash-front">${item.f}</div>
+      <div class="flash-face flash-back">${item.b}</div>
+    </div>`;
+  div.addEventListener('click', () => div.classList.toggle('flipped'));
+  flashGrid.appendChild(div);
+});
+
+// ===== Quiz =====
+const QUIZ = [
+  {q:"What does WAL guarantee in PostgreSQL?", opts:["Faster reads","Durability after crashes","Smaller disk usage","Automatic indexing"], correct:1},
+  {q:"Which type should you use for storing money?", opts:["FLOAT","REAL","NUMERIC(p,s)","TEXT"], correct:2},
+  {q:"What is the default schema in a new PostgreSQL database?", opts:["default","main","public","dbo"], correct:2},
+  {q:"JSONB is preferred over JSON mainly because it is:", opts:["Human readable","Faster to query & indexable","Smaller in every case","The only type that validates JSON"], correct:1},
+  {q:"PostgreSQL handles each client connection using:", opts:["A shared thread pool","A dedicated OS process","A single global thread","A stateless function"], correct:1},
+  {q:"MVCC primarily helps with:", opts:["Reducing disk space","Concurrent reads without blocking writers","Faster table creation","Automatic backups"], correct:1},
+];
+let qIdx = 0, score = 0, answered = false;
+const quizQ = document.getElementById('quizQ');
+const quizOpts = document.getElementById('quizOpts');
+const quizScore = document.getElementById('quizScore');
+const quizNext = document.getElementById('quizNext');
+
+function loadQuiz(){
+  answered = false;
+  const item = QUIZ[qIdx % QUIZ.length];
+  quizQ.textContent = (qIdx+1) + ". " + item.q;
+  quizOpts.innerHTML = '';
+  item.opts.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'quiz-opt';
+    b.textContent = opt;
+    b.addEventListener('click', () => {
+      if(answered) return;
+      answered = true;
+      if(i === item.correct){ b.classList.add('correct'); score++; }
+      else {
+        b.classList.add('wrong');
+        quizOpts.children[item.correct].classList.add('correct');
+      }
+      quizScore.textContent = `Score: ${score} / ${qIdx+1}`;
+    });
+    quizOpts.appendChild(b);
+  });
+}
+quizNext.addEventListener('click', () => { qIdx++; loadQuiz(); });
+loadQuiz();
+</script>
+</body>
+</html>

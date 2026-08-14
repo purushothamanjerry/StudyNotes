@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL Interview Preparation</title>
+<style>
+:root{
+  --bg:#0a0e14;
+  --bg-elev:#0f1520;
+  --card:#131a26;
+  --card-hover:#182236;
+  --border:#212b3d;
+  --text:#e4e9f2;
+  --text-dim:#8a94a8;
+  --text-faint:#5c6579;
+  --accent:#4fd8c4;
+  --accent-dim:#2a9d8f33;
+  --gold:#f0b429;
+  --red:#f2555f;
+  --blue:#5b9dff;
+  --mono:ui-monospace,SFMono-Regular,'Cascadia Code','JetBrains Mono',Consolas,Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --radius:10px;
+}
+[data-theme="light"]{
+  --bg:#f5f6f8;
+  --bg-elev:#ffffff;
+  --card:#ffffff;
+  --card-hover:#f0f2f6;
+  --border:#dfe3ea;
+  --text:#1a2130;
+  --text-dim:#5c657a;
+  --text-faint:#8a94a8;
+  --accent:#0f9d8f;
+  --accent-dim:#0f9d8f22;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  line-height:1.55;min-height:100vh;transition:background .25s,color .25s;
+}
+::selection{background:var(--accent);color:#04151a}
+a{color:var(--accent)}
+button{font-family:var(--sans);cursor:pointer}
+code,.mono{font-family:var(--mono)}
+
+/* ===== layout shell ===== */
+.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+
+/* ===== sidebar ===== */
+.sidebar{
+  background:var(--bg-elev);border-right:1px solid var(--border);
+  position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 14px;
+  display:flex;flex-direction:column;gap:18px;z-index:40;
+}
+@media(max-width:900px){
+  .sidebar{position:fixed;left:0;top:0;width:260px;transform:translateX(-100%);transition:transform .25s;box-shadow:0 0 40px #000a}
+  .sidebar.open{transform:translateX(0)}
+}
+.brand{padding:6px 8px 10px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.brand .prompt{font-family:var(--mono);font-size:12px;color:var(--accent);display:flex;align-items:center;gap:6px}
+.brand .prompt .cursor{width:7px;height:14px;background:var(--accent);display:inline-block;animation:blink 1s steps(1) infinite}
+.brand h1{font-size:16px;font-weight:700;margin-top:6px;letter-spacing:.2px}
+@keyframes blink{50%{opacity:0}}
+
+.progress-wrap{padding:0 8px}
+.progress-label{font-size:11px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px;font-family:var(--mono)}
+.progress-track{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));border-radius:99px;transition:width .4s}
+
+.navlist{list-style:none;display:flex;flex-direction:column;gap:2px}
+.navlist button{
+  all:unset;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 10px;border-radius:8px;font-size:13.5px;color:var(--text-dim);width:100%;
+}
+.navlist button:hover{background:var(--card-hover);color:var(--text)}
+.navlist button.active{background:var(--accent-dim);color:var(--accent);font-weight:600}
+.navlist .count{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:99px}
+.navlist button.active .count{color:var(--accent);border-color:var(--accent)}
+
+.sidebar-foot{margin-top:auto;padding:10px 8px 0;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.sidebar-btn{
+  all:unset;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);
+  padding:8px 10px;border-radius:8px;border:1px solid var(--border);justify-content:center;
+}
+.sidebar-btn:hover{background:var(--card-hover);color:var(--text)}
+
+/* ===== main ===== */
+main{min-width:0}
+.topbar{
+  position:sticky;top:0;z-index:30;background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;padding:12px 22px;
+}
+.menu-toggle{display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 10px}
+@media(max-width:900px){.menu-toggle{display:block}}
+.search-box{
+  flex:1;display:flex;align-items:center;gap:8px;background:var(--card);
+  border:1px solid var(--border);border-radius:9px;padding:9px 12px;max-width:520px;
+}
+.search-box input{background:none;border:none;outline:none;color:var(--text);width:100%;font-size:13.5px}
+.search-box svg{flex-shrink:0;opacity:.55}
+.topbar-actions{display:flex;gap:8px;margin-left:auto}
+.icon-btn{
+  background:var(--card);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:8px;padding:8px 11px;font-size:12.5px;display:flex;align-items:center;gap:6px;
+}
+.icon-btn:hover{color:var(--text);background:var(--card-hover)}
+.icon-btn.on{color:var(--accent);border-color:var(--accent)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;padding:14px 22px 0}
+.chip{
+  all:unset;font-size:12.5px;padding:6px 13px;border-radius:99px;border:1px solid var(--border);
+  color:var(--text-dim);font-family:var(--mono);
+}
+.chip:hover{color:var(--text)}
+.chip.active{background:var(--accent);color:#04151a;border-color:var(--accent);font-weight:600}
+
+.content{padding:20px 22px 80px;max-width:980px}
+
+.hero{padding:26px 4px 18px}
+.hero .eyebrow{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:1px;text-transform:uppercase}
+.hero h2{font-size:26px;margin-top:8px;font-weight:700}
+.hero p{color:var(--text-dim);margin-top:8px;font-size:14.5px;max-width:640px}
+
+.section-title{font-size:12px;font-family:var(--mono);color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;margin:26px 4px 12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:"";flex:1;height:1px;background:var(--border)}
+
+/* ===== question card ===== */
+.qcard{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:10px;overflow:hidden;transition:border-color .2s;
+}
+.qcard:hover{border-color:#3a465e}
+.qcard .qhead{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;
+}
+.qcard .qnum{font-family:var(--mono);font-size:11px;color:var(--text-faint);width:34px;flex-shrink:0}
+.qcard .qtext{flex:1;font-size:14.5px;font-weight:600}
+.qmeta{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.tag{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:99px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap}
+.tag.basic{color:#7bd88f;border-color:#7bd88f44}
+.tag.intermediate{color:var(--blue);border-color:#5b9dff44}
+.tag.advanced{color:var(--red);border-color:#f2555f44}
+.tag.must{color:var(--gold);border-color:#f0b42944}
+.star{color:var(--gold);font-size:13px}
+.chevron{transition:transform .2s;color:var(--text-faint);flex-shrink:0}
+.qcard.open .chevron{transform:rotate(90deg)}
+.bookmark-btn{background:none;border:none;color:var(--text-faint);font-size:15px;flex-shrink:0;padding:2px}
+.bookmark-btn.on{color:var(--gold)}
+.done-check{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:transparent}
+.done-check.on{background:var(--accent);border-color:var(--accent);color:#04151a}
+
+.qbody{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.qcard.open .qbody{max-height:4000px}
+.qbody-inner{padding:0 16px 18px;border-top:1px solid var(--border);margin-top:0}
+.qblock{margin-top:14px}
+.qblock h4{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);font-family:var(--mono);margin-bottom:6px}
+.qblock p,.qblock li{font-size:13.8px;color:var(--text);opacity:.92}
+.qblock ul{padding-left:18px}
+.followups{list-style:none;padding:0;display:flex;flex-direction:column;gap:5px}
+.followups li{font-size:13.3px;color:var(--text-dim);padding-left:14px;position:relative}
+.followups li::before{content:"→";position:absolute;left:0;color:var(--accent)}
+
+pre.sql{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;
+  overflow-x:auto;font-family:var(--mono);font-size:12.8px;line-height:1.6;position:relative;margin-top:4px;color:#c9d6f0;
+}
+[data-theme="light"] pre.sql{color:#1a2130}
+.copy-btn{
+  position:absolute;top:8px;right:8px;background:var(--card);border:1px solid var(--border);
+  color:var(--text-dim);font-size:10.5px;padding:4px 9px;border-radius:6px;font-family:var(--sans);
+}
+.copy-btn:hover{color:var(--text)}
+.copy-btn.copied{color:var(--accent);border-color:var(--accent)}
+
+/* ===== comparison table ===== */
+.diff-table{width:100%;border-collapse:collapse;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.diff-table th{background:var(--bg-elev);text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-faint);font-family:var(--mono)}
+.diff-table td{padding:10px 12px;font-size:13px;border-top:1px solid var(--border);vertical-align:top}
+.diff-table tr:hover td{background:var(--card-hover)}
+
+/* ===== interview mode ===== */
+.im-overlay{position:fixed;inset:0;background:#000c;backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.im-overlay.show{display:flex}
+.im-box{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:34px;max-width:620px;width:100%;text-align:center}
+.im-progress{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-bottom:18px}
+.im-q{font-size:19px;font-weight:700;margin-bottom:22px;min-height:60px;display:flex;align-items:center;justify-content:center}
+.im-answer{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:left;font-size:13.8px;color:var(--text-dim);margin-bottom:20px}
+.im-answer.show{display:block}
+.im-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{all:unset;padding:10px 20px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn-primary{background:var(--accent);color:#04151a}
+.btn-primary:hover{opacity:.88}
+.btn-ghost{border:1px solid var(--border);color:var(--text-dim)}
+.btn-ghost:hover{color:var(--text)}
+.im-close{position:absolute;top:18px;right:22px;color:var(--text-dim);font-size:22px;background:none;border:none}
+
+.empty{padding:60px 10px;text-align:center;color:var(--text-faint)}
+.empty h3{color:var(--text-dim);margin-bottom:6px;font-size:15px}
+
+.top40-grid .qcard{border-left:2px solid var(--gold)}
+
+@media print{
+  .sidebar,.topbar,.filters,.menu-toggle,.bookmark-btn,.done-check,.copy-btn,.im-overlay{display:none!important}
+  .shell{display:block}
+  body{background:#fff;color:#000}
+  .qbody{max-height:none!important}
+  .qcard{border:1px solid #999;break-inside:avoid;margin-bottom:14px}
+  pre.sql{background:#f4f4f4;color:#000;border-color:#ccc}
+  .content{max-width:100%;padding:0}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="prompt">mysql&gt; <span class="cursor"></span></div>
+      <h1>MySQL Interview Prep</h1>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>PREPARATION</span><span id="progressPct">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <ul class="navlist" id="navlist"></ul>
+
+    <div class="sidebar-foot">
+      <button class="sidebar-btn" id="interviewModeBtn">🎯 Interview Mode</button>
+      <button class="sidebar-btn" id="printBtn">🖨 Print</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="searchInput" type="text" placeholder="Search interview questions...">
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="bookmarkFilterBtn">★ Bookmarks</button>
+        <button class="icon-btn" id="themeToggle">🌙 Dark</button>
+      </div>
+    </div>
+
+    <div class="filters" id="difficultyFilters">
+      <button class="chip active" data-diff="all">All</button>
+      <button class="chip" data-diff="must">⭐ Must Know</button>
+      <button class="chip" data-diff="important">Important</button>
+      <button class="chip" data-diff="Basic">Basic</button>
+      <button class="chip" data-diff="Intermediate">Intermediate</button>
+      <button class="chip" data-diff="Advanced">Advanced</button>
+    </div>
+
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div class="im-overlay" id="imOverlay">
+  <div class="im-box">
+    <button class="im-close" id="imClose">✕</button>
+    <div class="im-progress" id="imProgress">Question 1 / 40 · Answered: 0</div>
+    <div class="im-q" id="imQuestion"></div>
+    <div class="im-answer" id="imAnswer"></div>
+    <div class="im-actions">
+      <button class="btn btn-ghost" id="imReveal">Reveal Answer</button>
+      <button class="btn btn-primary" id="imNext">Next Question →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const TOPICS = [
+  {id:'top40', label:'🔥 Top 40 Questions'},
+  {id:'procedures', label:'Stored Procedures'},
+  {id:'functions', label:'Functions'},
+  {id:'joins', label:'Joins'},
+  {id:'indexes', label:'Indexes'},
+  {id:'transactions', label:'Transactions'},
+  {id:'concurrency', label:'Race Conditions'},
+  {id:'constraints', label:'Constraints & Keys'},
+  {id:'aggregate', label:'Aggregate Functions'},
+  {id:'subqueries', label:'Subqueries'},
+  {id:'views', label:'Views'},
+  {id:'normalization', label:'Normalization'},
+  {id:'sqlcoding', label:'💻 SQL Coding'},
+  {id:'scenarios', label:'Scenario Questions'},
+  {id:'differences', label:'⚡ Common Differences'},
+];
+
+// Deep-dive question bank. difficulty: Basic|Intermediate|Advanced, importance: must|important
+let Q = [];
+let qid = 0;
+function add(topic, o){ qid++; Q.push(Object.assign({id:'q'+qid, topic}, o)); }
+
+/* ---------------- STORED PROCEDURES ---------------- */
+add('procedures',{q:"What is a stored procedure and why use one?",
+short:"A stored procedure is a precompiled block of SQL stored in the database that you can call by name. It centralizes business logic on the server, reduces network round-trips, and lets multiple applications reuse the same validated logic.",
+detail:"Stored procedures live inside the database and can contain variables, control flow, loops, and transactions. They're compiled once and cached, so repeated calls are faster than sending raw SQL every time, and they reduce the amount of data sent over the network since only the call and parameters travel, not the full query text.",
+sql:"DELIMITER //\nCREATE PROCEDURE GetEmployeeCount(IN dept_id INT, OUT emp_count INT)\nBEGIN\n  SELECT COUNT(*) INTO emp_count\n  FROM employees WHERE department_id = dept_id;\nEND //\nDELIMITER ;\n\nCALL GetEmployeeCount(3, @count);\nSELECT @count;",
+tip:"Mention centralization of logic, reduced network overhead, and reusability — interviewers want to hear you understand the 'why', not just the syntax.",
+follow:["How would you handle errors inside a procedure?","Can a procedure call another procedure?"],
+difficulty:"Basic", importance:"must"});
+
+add('procedures',{q:"Explain IN, OUT, and INOUT parameters.",
+short:"IN passes a value into the procedure (read-only, default type). OUT returns a value back to the caller. INOUT does both — it passes a value in and lets the procedure modify it and return the new value.",
+detail:"IN parameters are copied into the procedure and any change inside doesn't affect the caller's variable. OUT parameters start as NULL and must be assigned inside the procedure before it ends. INOUT parameters carry the caller's value in, allow modification, and reflect back out.",
+sql:"CREATE PROCEDURE AdjustSalary(INOUT sal DECIMAL(10,2), IN pct DECIMAL(5,2))\nBEGIN\n  SET sal = sal + (sal * pct / 100);\nEND;",
+tip:"Give a one-line real example for each — interviewers often ask you to distinguish them quickly.",
+follow:["What happens if you don't set an OUT parameter?","Can a function have OUT parameters?"],
+difficulty:"Basic", importance:"important"});
+
+add('procedures',{q:"How do you handle errors inside a stored procedure?",
+short:"MySQL uses DECLARE ... HANDLER blocks to catch conditions like SQLEXCEPTION, SQLWARNING, or specific SQLSTATE / error codes, and respond with rollback, logging, or a custom message.",
+detail:"A CONTINUE handler lets execution keep going after the error is handled; an EXIT handler stops the current block. Combined with transactions, an EXIT handler on SQLEXCEPTION is commonly used to ROLLBACK and re-signal a clean error to the caller.",
+sql:"CREATE PROCEDURE SafeTransfer(IN src INT, IN dst INT, IN amt DECIMAL(10,2))\nBEGIN\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n  BEGIN\n    ROLLBACK;\n    RESIGNAL;\n  END;\n\n  START TRANSACTION;\n  UPDATE accounts SET balance = balance - amt WHERE id = src;\n  UPDATE accounts SET balance = balance + amt WHERE id = dst;\n  COMMIT;\nEND;",
+tip:"Tie error handling directly to transactions — that combination is what interviewers are really probing for.",
+follow:["Difference between CONTINUE and EXIT handlers?","What is RESIGNAL used for?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('procedures',{q:"Compare LOOP, WHILE, and REPEAT.",
+short:"LOOP is an unconditional loop that needs an explicit LEAVE to exit. WHILE checks its condition before each iteration (may run zero times). REPEAT checks its condition after each iteration, so it always runs at least once.",
+detail:"LOOP gives full manual control and is often used with a cursor and a handler for NOT FOUND to LEAVE. WHILE is the natural choice when you might skip the body entirely. REPEAT...UNTIL is the natural choice for 'do this, then check if I should stop' logic, similar to do-while in other languages.",
+sql:"-- WHILE\nWHILE i <= 10 DO\n  SET total = total + i;\n  SET i = i + 1;\nEND WHILE;\n\n-- REPEAT\nREPEAT\n  SET i = i + 1;\nUNTIL i >= 10 END REPEAT;",
+tip:"Anchor the difference with 'checks before' vs 'checks after' vs 'manual exit' — that phrase alone answers the question cleanly.",
+follow:["When would you prefer a cursor over a loop on a result set?","How do you break out of a LOOP?"],
+difficulty:"Basic", importance:"important"});
+
+add('procedures',{q:"Stored Procedure vs Function — what's the real difference?",
+short:"A function must return exactly one value and can be used inside a SELECT statement; a procedure can return zero, one, or many result sets (or none) and cannot be called from inside a query. Functions also can't modify data in most configurations, while procedures freely run DML and transactions.",
+detail:"Because functions are used inline in expressions (SELECT calc_tax(price)), MySQL restricts them from statements like COMMIT or arbitrary DML in many modes. Procedures are called with CALL and are the right tool for multi-step business logic, transactions, and returning multiple result sets.",
+sql:"-- Function\nCREATE FUNCTION CalcTax(amount DECIMAL(10,2)) RETURNS DECIMAL(10,2)\nDETERMINISTIC\nBEGIN\n  RETURN amount * 0.18;\nEND;\n\nSELECT product_id, CalcTax(price) FROM products;",
+tip:"This is one of the most-asked differences — always mention 'usable inside SELECT' as the key practical distinction.",
+follow:["Can a function call a procedure?","Why must functions typically be DETERMINISTIC or declare NO SQL / READS SQL DATA?"],
+difficulty:"Basic", importance:"must"});
+
+add('procedures',{q:"Stored Procedure vs Trigger — when do you use which?",
+short:"A procedure runs only when explicitly called by an application or another routine. A trigger runs automatically in response to an INSERT, UPDATE, or DELETE on a specific table — you never call it directly.",
+detail:"Triggers are ideal for enforcing invariants (audit logging, denormalized counters, validation) that must happen no matter which client performs the write. Procedures are ideal for explicit, on-demand multi-step operations initiated by the application.",
+sql:"CREATE TRIGGER trg_audit_salary\nAFTER UPDATE ON employees\nFOR EACH ROW\nBEGIN\n  IF OLD.salary <> NEW.salary THEN\n    INSERT INTO salary_audit(emp_id, old_salary, new_salary, changed_at)\n    VALUES(OLD.id, OLD.salary, NEW.salary, NOW());\n  END IF;\nEND;",
+tip:"Say 'triggers fire implicitly on data change, procedures run only when called' — that one sentence is the whole answer.",
+follow:["What are the risks of relying heavily on triggers?","Can a trigger call a stored procedure?"],
+difficulty:"Intermediate", importance:"important"});
+
+add('procedures',{q:"What are the advantages and disadvantages of stored procedures?",
+short:"Advantages: reduced network traffic, reusable centralized logic, better security through permission control, and precompiled execution. Disadvantages: harder to version-control and test than application code, vendor lock-in, and business logic split across two layers can hurt maintainability.",
+detail:"Many teams now prefer keeping heavy business logic in the application layer and using procedures sparingly — for performance-critical batch operations or strict data-integrity rules — rather than as the primary place for logic.",
+sql:null,
+tip:"A balanced answer (pros AND cons) signals seniority — don't just praise stored procedures blindly.",
+follow:["When would you avoid using stored procedures?","How do teams version-control stored procedures?"],
+difficulty:"Basic", importance:"important"});
+
+add('procedures',{q:"Can you run a transaction inside a stored procedure? Show an example.",
+short:"Yes — START TRANSACTION, COMMIT, and ROLLBACK can all be used inside a procedure, typically paired with an exception handler so a failure anywhere rolls back the whole unit of work.",
+detail:"This is the standard pattern for money transfers, inventory deductions, or any multi-table write that must be all-or-nothing. Wrapping it in a procedure also means the transaction boundary is guaranteed no matter which client calls it.",
+sql:"CREATE PROCEDURE PlaceOrder(IN p_user INT, IN p_product INT, IN p_qty INT)\nBEGIN\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK; RESIGNAL; END;\n  START TRANSACTION;\n  UPDATE products SET stock = stock - p_qty WHERE id = p_product AND stock >= p_qty;\n  IF ROW_COUNT() = 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient stock';\n  END IF;\n  INSERT INTO orders(user_id, product_id, qty) VALUES(p_user, p_product, p_qty);\n  COMMIT;\nEND;",
+tip:"This example (stock check + insert) is a favorite follow-up to race-condition questions — know it cold.",
+follow:["How does this relate to preventing overselling?","What isolation level would you pair this with?"],
+difficulty:"Advanced", importance:"must"});
+
+/* ---------------- FUNCTIONS ---------------- */
+add('functions',{q:"What is a user-defined function and how do you create one?",
+short:"A user-defined function (UDF) is a named, reusable block of SQL that accepts parameters and returns a single value, which you can call inside expressions like SELECT, WHERE, or ORDER BY.",
+detail:"Functions are defined with CREATE FUNCTION, must declare a RETURNS type, and must contain a RETURN statement. They're best for small, pure calculations you want to reuse across many queries.",
+sql:"CREATE FUNCTION FullName(fname VARCHAR(50), lname VARCHAR(50))\nRETURNS VARCHAR(101)\nDETERMINISTIC\nBEGIN\n  RETURN CONCAT(fname, ' ', lname);\nEND;\n\nSELECT FullName(first_name, last_name) FROM employees;",
+tip:"Mention DETERMINISTIC — interviewers often follow up on why it matters for replication and the query cache.",
+follow:["What does DETERMINISTIC mean and why does MySQL care?","Can a function have a side effect like an INSERT?"],
+difficulty:"Basic", importance:"must"});
+
+add('functions',{q:"IFNULL vs COALESCE vs CASE for handling NULLs — when do you use each?",
+short:"IFNULL(a,b) is MySQL-specific and handles exactly two arguments. COALESCE(a,b,c,...) is ANSI-standard and returns the first non-NULL value from any number of arguments. CASE WHEN is the most flexible, letting you branch on arbitrary conditions, not just NULL checks.",
+detail:"For simple two-value fallback, IFNULL is concise. For a priority list of possible values, COALESCE is cleaner and portable across databases. When the logic is conditional rather than purely 'is it null', CASE is the right tool.",
+sql:"SELECT product_name,\n  COALESCE(discount_price, sale_price, list_price) AS effective_price\nFROM products;",
+tip:"Say 'COALESCE is the portable, N-argument version of IFNULL' — that's the exact distinction interviewers listen for.",
+follow:["Is COALESCE evaluated lazily (short-circuited)?","How does NULL behave in arithmetic and comparisons?"],
+difficulty:"Basic", importance:"must"});
+
+add('functions',{q:"Name common string, date, and numeric built-in functions you use often.",
+short:"String: CONCAT, SUBSTRING, TRIM, UPPER/LOWER, REPLACE, LENGTH. Date: NOW(), CURDATE(), DATEDIFF, DATE_ADD, DATE_FORMAT. Numeric: ROUND, CEIL, FLOOR, ABS, MOD.",
+detail:"Being fluent with these avoids writing procedural code for things SQL already does well — e.g. computing age with TIMESTAMPDIFF instead of pulling data into the application to calculate it.",
+sql:"SELECT name,\n  TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) AS age,\n  DATE_FORMAT(hire_date, '%d %b %Y') AS hired\nFROM employees;",
+tip:"Interviewers often just want to see you're comfortable reaching for built-ins instead of over-engineering.",
+follow:["Difference between CHAR_LENGTH and LENGTH?","How do you add 30 days to a date?"],
+difficulty:"Basic", importance:"important"});
+
+add('functions',{q:"When should you use a function versus writing the logic in the application?",
+short:"Use a database function when the logic needs to run close to the data — inside a query, across many rows, or shared by multiple applications hitting the same database. Keep logic in the application when it needs testing frameworks, version control alongside app code, or involves external calls.",
+detail:"A function that just formats or derives a value used in reporting queries belongs in the database. Business rules that change frequently or are unit-tested extensively are usually safer in application code.",
+sql:null,
+tip:"A nuanced 'it depends, here's my rule of thumb' answer is stronger than a blanket rule.",
+follow:["What are the performance implications of calling a function per row in a large SELECT?","Can functions be indexed indirectly via generated columns?"],
+difficulty:"Intermediate", importance:"important"});
+
+add('functions',{q:"What are aggregate functions and how do they differ from scalar functions?",
+short:"Aggregate functions (COUNT, SUM, AVG, MIN, MAX) operate across a set of rows and collapse them into a single value per group. Scalar functions (UPPER, ROUND, NOW) operate on one row at a time and return one value per row.",
+detail:"Aggregate functions are typically paired with GROUP BY; without it, they aggregate the entire result set into a single row. Mixing a non-aggregated column with an aggregate function in the same SELECT without GROUP BY causes errors or undefined results depending on SQL mode.",
+sql:"SELECT department_id, COUNT(*) AS emp_count, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department_id;",
+tip:"Clarify 'per row vs per group' — that framing instantly shows you understand the mental model.",
+follow:["What happens with ONLY_FULL_GROUP_BY mode?","Can you use an aggregate function inside WHERE?"],
+difficulty:"Basic", importance:"important"});
+
+add('functions',{q:"Write a function that returns a customer's loyalty tier based on total spend.",
+short:"A scalar function that takes total spend as input and returns a tier label using CASE, demonstrating both function syntax and branching logic in one example.",
+detail:"This kind of function is commonly reused across reports, dashboards, and application queries so the tier logic stays in one place instead of being duplicated in multiple SELECT statements.",
+sql:"CREATE FUNCTION LoyaltyTier(total_spend DECIMAL(10,2))\nRETURNS VARCHAR(10)\nDETERMINISTIC\nBEGIN\n  RETURN CASE\n    WHEN total_spend >= 10000 THEN 'Platinum'\n    WHEN total_spend >= 5000  THEN 'Gold'\n    WHEN total_spend >= 1000  THEN 'Silver'\n    ELSE 'Bronze'\n  END;\nEND;",
+tip:"Walk through the CASE branches out loud — interviewers are watching your reasoning, not just the final code.",
+follow:["How would you index a query that filters by this tier?","Would a generated column be better here than a function call per row?"],
+difficulty:"Intermediate", importance:"important"});
+
+/* ---------------- JOINS ---------------- */
+const joinCommon = {difficulty:"Basic"};
+add('joins',{q:"What does INNER JOIN do, and when do you use it?",
+short:"INNER JOIN returns only the rows where the join condition matches in both tables — any row without a matching counterpart on either side is excluded entirely.",
+detail:"Use INNER JOIN when you only care about records that definitely have a relationship on both sides, e.g. employees that do have an assigned department. It's the most common and usually the most performant join because the result set is naturally filtered.",
+sql:"SELECT e.name, d.department_name\nFROM employees e\nINNER JOIN departments d ON e.department_id = d.id;",
+tip:"Common trap: candidates forget INNER JOIN silently drops unmatched rows — call that out explicitly.",
+follow:["What happens to NULL foreign keys in an INNER JOIN?","How is INNER JOIN different from a WHERE-based old-style join?"],
+difficulty:"Basic", importance:"must"});
+
+add('joins',{q:"What does LEFT JOIN do? Find employees without a department.",
+short:"LEFT JOIN returns every row from the left table, plus matching rows from the right table — and NULL for right-side columns when there's no match. It's the standard tool for finding 'missing' relationships.",
+detail:"To find rows with no match, you LEFT JOIN and then filter WHERE the right table's key IS NULL, which only keeps rows that had nothing to join to.",
+sql:"SELECT e.name\nFROM employees e\nLEFT JOIN departments d ON e.department_id = d.id\nWHERE d.id IS NULL;",
+tip:"This exact pattern (LEFT JOIN + IS NULL) is one of the most-repeated SQL interview idioms — memorize it.",
+follow:["How would you find departments with zero employees using the same idiom?","Why can't you filter with WHERE d.id IS NULL if you put the condition in the ON clause instead?"],
+difficulty:"Basic", importance:"must"});
+
+add('joins',{q:"Find departments that have no employees (RIGHT JOIN version).",
+short:"A RIGHT JOIN keeps every row from the right table even without a match on the left — filtering for NULL on the left table's key finds departments nobody belongs to. It's functionally the mirror image of the LEFT JOIN pattern.",
+detail:"RIGHT JOIN is less commonly used in practice because most people just swap table order and use LEFT JOIN instead — but interviewers still expect you to know RIGHT JOIN exists and behaves symmetrically.",
+sql:"SELECT d.department_name\nFROM employees e\nRIGHT JOIN departments d ON e.department_id = d.id\nWHERE e.id IS NULL;",
+tip:"Mention that this is equivalent to swapping table order and using LEFT JOIN — shows real understanding, not memorized syntax.",
+follow:["Why do many style guides recommend avoiding RIGHT JOIN?","Is RIGHT JOIN slower than an equivalent LEFT JOIN?"],
+difficulty:"Basic", importance:"important"});
+
+add('joins',{q:"What is CROSS JOIN and when is it actually useful?",
+short:"CROSS JOIN produces the Cartesian product — every row of table A paired with every row of table B, with no join condition. It's useful for generating combinations, like all product/size pairs, or building a calendar of dates against every store.",
+detail:"Accidental cross joins (forgetting a join condition) are a classic interview trap and a classic production bug — they blow up result set size exponentially.",
+sql:"SELECT p.product_name, s.size_label\nFROM products p\nCROSS JOIN sizes s;",
+tip:"Flag the danger: an accidental CROSS JOIN from a missing ON clause is a top real-world SQL bug.",
+follow:["How many rows does a CROSS JOIN of a 100-row and 50-row table produce?","How do you intentionally limit a CROSS JOIN's size?"],
+difficulty:"Intermediate", importance:"important"});
+
+add('joins',{q:"What is a SELF JOIN? Show the classic 'employee earns more than their manager' example.",
+short:"A SELF JOIN joins a table to itself, typically using two aliases, to compare rows within the same table — like comparing an employee to their own manager, who is also a row in the employees table.",
+detail:"This pattern is used constantly for hierarchical data (manager chains, category trees, org charts) stored in a single table with a self-referencing foreign key.",
+sql:"SELECT e.name AS employee, m.name AS manager\nFROM employees e\nJOIN employees m ON e.manager_id = m.id\nWHERE e.salary > m.salary;",
+tip:"Always alias both sides clearly (e / m) — interviewers watch whether your aliasing keeps the query readable.",
+follow:["How would you find the top of the hierarchy (employees with no manager)?","How deep can you traverse with a single self join versus a recursive CTE?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('joins',{q:"How do you join 3 or 4 tables together?",
+short:"Chain multiple JOIN clauses, each with its own ON condition, connecting tables through their foreign key relationships — order generally follows the logical relationship path, though the optimizer can reorder internally.",
+detail:"Readability matters: alias every table, keep ON conditions directly under each JOIN, and only pull the columns you actually need. For deeply nested relationships, sometimes a subquery or CTE per logical group is clearer than one giant join chain.",
+sql:"SELECT o.id AS order_id, c.name AS customer, p.product_name, oi.quantity\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nJOIN order_items oi ON oi.order_id = o.id\nJOIN products p ON oi.product_id = p.id;",
+tip:"Narrate the relationship path out loud (orders→customers, orders→items→products) — it shows you're modeling the schema, not guessing.",
+follow:["How would you add a filter for orders placed in the last 30 days?","What happens to performance as you add more joined tables?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('joins',{q:"Find customers who have never placed an order.",
+short:"LEFT JOIN customers to orders and filter WHERE the order's key IS NULL — this returns customers with zero matching rows in the orders table.",
+detail:"This is functionally identical to a NOT EXISTS or NOT IN subquery, but is often the most intuitive to write and, in many MySQL versions, performs comparably or better when indexes are in place.",
+sql:"SELECT c.id, c.name\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.id IS NULL;",
+tip:"Interviewers may ask you to rewrite this with NOT EXISTS on the spot — be ready to do both.",
+follow:["Rewrite this using NOT EXISTS.","Why can NOT IN silently return zero rows if the subquery contains a NULL?"],
+difficulty:"Basic", importance:"must"});
+
+add('joins',{q:"Find duplicate records using a JOIN.",
+short:"Self-join the table on the columns that define a duplicate (e.g. email) with a condition that the primary keys differ, which surfaces every pair of rows sharing those values.",
+detail:"For reporting purposes, this is often combined with GROUP BY and HAVING COUNT(*) > 1 instead, which is simpler when you just need to know which values are duplicated rather than every duplicate pair.",
+sql:"SELECT a.id, a.email\nFROM customers a\nJOIN customers b ON a.email = b.email AND a.id <> b.id;",
+tip:"Mention the GROUP BY / HAVING alternative unprompted — it shows you know more than one way to solve it.",
+follow:["How would you keep only one copy and delete the rest safely?","Which approach is more efficient on a large table?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('joins',{q:"Find the highest salary in each department using JOIN.",
+short:"Join employees to a derived table that computes MAX(salary) per department, matching on department_id and salary equal to that max — this returns the actual employee row(s) at the top of each department.",
+detail:"A correlated subquery or window function (RANK() OVER (PARTITION BY department_id ORDER BY salary DESC)) can achieve the same result, and window functions are usually cleaner when ties need specific handling.",
+sql:"SELECT e.*\nFROM employees e\nJOIN (\n  SELECT department_id, MAX(salary) AS max_salary\n  FROM employees GROUP BY department_id\n) m ON e.department_id = m.department_id AND e.salary = m.max_salary;",
+tip:"If MySQL 8+ is assumed, offer the window function version too — it signals modern SQL fluency.",
+follow:["Rewrite this using RANK() OVER (PARTITION BY ...).","What happens with this query if two employees tie for the max salary?"],
+difficulty:"Advanced", importance:"must"});
+
+add('joins',{q:"JOIN vs Subquery — how do you decide which to use?",
+short:"A JOIN combines rows from two tables into a single result set and is generally the optimizer's preferred approach for retrieving related columns together. A subquery is often clearer for existence checks, aggregated filters, or when you only need to filter — not display — data from the other table.",
+detail:"Modern query optimizers frequently rewrite subqueries into joins internally (semi-joins), so performance differences have narrowed, but readability and intent still guide the choice: JOIN when you need columns from both tables, subquery when you just need a condition.",
+sql:"-- JOIN version\nSELECT DISTINCT c.name FROM customers c JOIN orders o ON o.customer_id = c.id;\n\n-- Subquery version\nSELECT name FROM customers WHERE id IN (SELECT customer_id FROM orders);",
+tip:"Say the optimizer often treats them the same under the hood — that nuance separates strong candidates from memorized answers.",
+follow:["When would a correlated subquery be significantly slower than a join?","What is a semi-join?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('joins',{q:"JOIN vs EXISTS — what's the practical difference?",
+short:"JOIN returns combined columns from both tables and can multiply rows when there are multiple matches. EXISTS only checks whether at least one matching row exists and returns a boolean, so it never duplicates the outer row even with multiple matches.",
+detail:"When you only need to filter customers who have at least one order (not list their orders), EXISTS avoids the risk of accidental row duplication that a naive JOIN could introduce, and it can short-circuit as soon as one match is found.",
+sql:"SELECT c.name\nFROM customers c\nWHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);",
+tip:"Emphasize 'EXISTS can't duplicate rows, a JOIN can' — that's the concrete practical risk interviewers want you to spot.",
+follow:["Why is SELECT 1 used instead of SELECT * inside EXISTS?","When would you need DISTINCT after a JOIN that EXISTS wouldn't require?"],
+difficulty:"Intermediate", importance:"important"});
+
+add('joins',{q:"How do you use JOIN together with GROUP BY and HAVING?",
+short:"JOIN first assembles the combined rows, GROUP BY collapses them into groups based on chosen columns, and HAVING filters those groups using aggregate conditions — unlike WHERE, which filters rows before grouping happens.",
+detail:"A common pattern is joining orders to customers, grouping by customer, and using HAVING COUNT(*) > 3 to find frequent buyers — something WHERE cannot do because COUNT doesn't exist until after grouping.",
+sql:"SELECT c.name, COUNT(o.id) AS order_count\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nGROUP BY c.id, c.name\nHAVING COUNT(o.id) > 3;",
+tip:"Say the logical order out loud: FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY — this single sentence answers a lot of follow-ups pre-emptively.",
+follow:["What's the actual logical execution order of a SELECT statement?","Why can't you use a column alias from SELECT inside a WHERE clause?"],
+difficulty:"Intermediate", importance:"must"});
+
+/* ---------------- INDEXES ---------------- */
+add('indexes',{q:"What is an index and why do we need it?",
+short:"An index is a separate data structure (typically a B-tree) that stores a sorted reference to column values and their row locations, letting MySQL find matching rows without scanning the entire table.",
+detail:"Without an index, MySQL performs a full table scan for most lookups — reading every row to check the condition. An index turns that into a fast lookup, similar to using a book's index instead of reading every page to find a topic.",
+sql:"CREATE INDEX idx_employees_dept ON employees(department_id);",
+tip:"The 'book index' analogy is a great opener — simple, correct, and memorable to an interviewer.",
+follow:["What data structure does MySQL's InnoDB use for indexes by default?","Does every column need an index?"],
+difficulty:"Basic", importance:"must"});
+
+add('indexes',{q:"Primary key index vs unique index vs composite index — explain the differences.",
+short:"A primary key index enforces uniqueness and non-nullability and is the clustered index in InnoDB, physically ordering table data. A unique index enforces uniqueness but allows one NULL (per column) and doesn't have to be the clustering key. A composite index spans multiple columns and is ordered by those columns left to right.",
+detail:"InnoDB stores table rows physically ordered by the primary key (a clustered index), so lookups by primary key are especially fast. Composite indexes only help queries that filter using a left-to-right prefix of the indexed columns.",
+sql:"CREATE UNIQUE INDEX idx_users_email ON users(email);\nCREATE INDEX idx_orders_cust_date ON orders(customer_id, order_date);",
+tip:"Mention InnoDB's clustered-index behavior for the primary key — it's a detail that separates strong candidates.",
+follow:["What is the leftmost-prefix rule for composite indexes?","Can a table have more than one primary key?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('indexes',{q:"What is the leftmost-prefix rule?",
+short:"A composite index on (a, b, c) can be used to speed up queries filtering on a, or on a+b, or on a+b+c — but not on b alone or c alone, because the index is physically sorted by a first, then b, then c.",
+detail:"This is one of the most commonly tested indexing concepts. Filtering on a non-leading column of a composite index generally forces a full index scan or table scan instead of an efficient range lookup, unless that column is separately indexed.",
+sql:"CREATE INDEX idx_abc ON orders(customer_id, status, order_date);\n-- Uses index:      WHERE customer_id = 5\n-- Uses index:      WHERE customer_id = 5 AND status = 'paid'\n-- Does NOT use it:  WHERE status = 'paid'  (customer_id skipped)",
+tip:"Draw the analogy to a phone book sorted by last name then first name — you can't binary-search by first name alone.",
+follow:["Does column order in the CREATE INDEX statement matter?","How would you support queries filtering on either column efficiently?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('indexes',{q:"What is a covering index?",
+short:"A covering index contains every column a query needs — both the filter columns and the selected columns — so MySQL can satisfy the entire query from the index alone without touching the underlying table rows.",
+detail:"This avoids the extra 'bookmark lookup' step of jumping from the index back to the clustered data, which can be a major performance win for read-heavy, narrow queries.",
+sql:"CREATE INDEX idx_covering ON orders(customer_id, order_date, status);\n\n-- Covered entirely by the index above:\nSELECT order_date, status FROM orders WHERE customer_id = 42;",
+tip:"Say 'Using index' — that's the literal phrase you'd see in EXPLAIN output confirming a covering index is being used.",
+follow:["How do you confirm a query is using a covering index?","What's the trade-off of adding more columns to make an index 'covering'?"],
+difficulty:"Advanced", importance:"important"});
+
+add('indexes',{q:"What are index selectivity and cardinality, and why do they matter?",
+short:"Cardinality is the number of distinct values in a column; selectivity is that cardinality relative to the total row count. High-selectivity columns (like email, near-unique) make great index candidates; low-selectivity columns (like a boolean 'is_active' flag) usually don't benefit much from indexing.",
+detail:"MySQL's optimizer may skip an index entirely on a low-selectivity column because scanning the table directly is cheaper than jumping between the index and the table for a large fraction of all rows.",
+sql:"SELECT COUNT(DISTINCT status) AS distinct_values, COUNT(*) AS total_rows\nFROM orders;",
+tip:"Give a concrete contrast: 'email is high selectivity, gender or a boolean flag is low selectivity' — concrete examples land better than definitions alone.",
+follow:["Would you index a boolean column? Why or why not?","How does the optimizer decide whether to use an index at all?"],
+difficulty:"Advanced", importance:"important"});
+
+add('indexes',{q:"When does MySQL choose NOT to use an existing index?",
+short:"MySQL skips an index when a full table scan is estimated to be cheaper — commonly when the filter matches a large fraction of rows, when a function is applied to the indexed column, when there's an implicit type mismatch, or when a leading wildcard LIKE '%term' is used.",
+detail:"Wrapping an indexed column in a function (WHERE YEAR(order_date) = 2024) prevents the index from being used because the stored index values no longer match the transformed expression directly — rewriting as a range (order_date >= '2024-01-01' AND order_date < '2025-01-01') restores index usage.",
+sql:"-- Index NOT used (function on column)\nSELECT * FROM orders WHERE YEAR(order_date) = 2024;\n\n-- Index used (range on raw column)\nSELECT * FROM orders WHERE order_date >= '2024-01-01' AND order_date < '2025-01-01';",
+tip:"This exact YEAR() example is a favorite live-coding gotcha — have it memorized.",
+follow:["What does a leading wildcard LIKE do to index usage?","How do implicit type conversions break index usage?"],
+difficulty:"Advanced", importance:"must"});
+
+add('indexes',{q:"What's the downside of adding too many indexes?",
+short:"Every index has to be updated on every INSERT, UPDATE, or DELETE, so more indexes mean slower writes and more disk/memory usage. Indexes can also confuse the optimizer into picking a suboptimal plan, and unused indexes are pure overhead.",
+detail:"The general guidance is to index based on actual query patterns (WHERE, JOIN, ORDER BY columns) rather than indexing every column defensively, and to periodically review and drop indexes that aren't being used.",
+sql:"-- Find unused indexes (MySQL 8, via performance_schema)\nSELECT * FROM sys.schema_unused_indexes;",
+tip:"Frame it as a read/write trade-off — that framing is exactly what senior interviewers want to hear.",
+follow:["How would you find unused indexes in a production database?","What's the cost of an index on a very high-write table?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('indexes',{q:"How do you use EXPLAIN, and what should you look for?",
+short:"EXPLAIN shows the execution plan MySQL intends to use for a query — including which indexes (if any) it will use, the join order, and an estimated number of rows examined. Key things to check: 'type' (ALL means full scan, bad), 'key' (which index is actually used), and 'rows' (estimated rows scanned).",
+detail:"A 'type' of ALL on a large table is a red flag; ref, range, or const are much better. 'Extra' showing 'Using filesort' or 'Using temporary' often points to missing indexes on ORDER BY or GROUP BY columns.",
+sql:"EXPLAIN SELECT * FROM orders WHERE customer_id = 42 AND status = 'paid';",
+tip:"Naming 'type', 'key', and 'rows' specifically shows hands-on experience, not just textbook knowledge.",
+follow:["What does 'Using filesort' mean and how do you fix it?","What's the difference between EXPLAIN and EXPLAIN ANALYZE?"],
+difficulty:"Advanced", importance:"must"});
+
+/* ---------------- TRANSACTIONS ---------------- */
+add('transactions',{q:"What is a transaction and why does it matter?",
+short:"A transaction is a group of one or more SQL statements executed as a single all-or-nothing unit — either every statement succeeds and is committed, or if any part fails, the whole group is rolled back, leaving the database as if nothing happened.",
+detail:"Transactions are essential whenever multiple related writes must stay consistent with each other, like debiting one account and crediting another — you never want only one half to succeed.",
+sql:"START TRANSACTION;\nUPDATE accounts SET balance = balance - 100 WHERE id = 1;\nUPDATE accounts SET balance = balance + 100 WHERE id = 2;\nCOMMIT;",
+tip:"The bank transfer example is the canonical one — use it, interviewers expect it and it's genuinely the clearest illustration.",
+follow:["What happens if the connection drops mid-transaction?","Does every storage engine in MySQL support transactions?"],
+difficulty:"Basic", importance:"must"});
+
+add('transactions',{q:"Explain COMMIT, ROLLBACK, and SAVEPOINT.",
+short:"COMMIT permanently saves all changes made in the current transaction. ROLLBACK undoes all changes since the transaction began (or since a named SAVEPOINT). SAVEPOINT marks a point inside a transaction you can roll back to without discarding everything before it.",
+detail:"Savepoints are useful in long, multi-step transactions where you want the option to undo just the most recent part of the work if a later step fails, without losing the earlier successful steps.",
+sql:"START TRANSACTION;\nUPDATE accounts SET balance = balance - 50 WHERE id = 1;\nSAVEPOINT after_debit;\nUPDATE accounts SET balance = balance + 50 WHERE id = 999; -- wrong id\nROLLBACK TO after_debit;\nUPDATE accounts SET balance = balance + 50 WHERE id = 2;\nCOMMIT;",
+tip:"Walk through the savepoint example step by step out loud — it demonstrates real understanding, not memorized definitions.",
+follow:["Can you ROLLBACK after a COMMIT?","What happens to savepoints once you COMMIT?"],
+difficulty:"Basic", importance:"must"});
+
+add('transactions',{q:"Explain the ACID properties with a concrete example.",
+short:"Atomicity: all statements in a transaction succeed or none do. Consistency: the database moves from one valid state to another, respecting constraints. Isolation: concurrent transactions don't see each other's uncommitted changes. Durability: once committed, changes survive even a crash.",
+detail:"Using a bank transfer: Atomicity ensures both the debit and credit happen together; Consistency ensures total money in the system stays correct; Isolation ensures another transaction reading balances mid-transfer doesn't see a half-finished state; Durability ensures the transfer isn't lost if the server crashes right after COMMIT.",
+sql:null,
+tip:"Map each ACID letter to one line of the bank-transfer example — this is the single most expected answer format for this question.",
+follow:["Which ACID property is most relevant to preventing race conditions?","How does InnoDB achieve durability (hint: redo log)?"],
+difficulty:"Basic", importance:"must"});
+
+add('transactions',{q:"What transaction isolation levels does MySQL support, and what's the default?",
+short:"MySQL (InnoDB) supports READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, and SERIALIZABLE. The default is REPEATABLE READ, which is stricter than most other databases' defaults and prevents non-repeatable reads within a transaction using MVCC snapshots.",
+detail:"Higher isolation levels reduce anomalies but can increase locking and reduce concurrency. REPEATABLE READ in InnoDB also largely avoids phantom reads for normal SELECTs thanks to a consistent snapshot, though SELECT ... FOR UPDATE can still encounter them.",
+sql:"SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;",
+tip:"Say the MySQL default explicitly (REPEATABLE READ) — many candidates blank on this specific fact.",
+follow:["What anomaly does each isolation level allow or prevent?","Why might you deliberately lower isolation to READ COMMITTED?"],
+difficulty:"Advanced", importance:"must"});
+
+add('transactions',{q:"What happens if a transaction is left open and never committed or rolled back?",
+short:"Long-running open transactions hold locks and prevent InnoDB from purging old row versions needed for MVCC, which can bloat the undo log, slow down other queries waiting on locks, and degrade overall database performance.",
+detail:"This is a common production incident — a forgotten transaction (often from a bug or an app crash mid-transaction) can silently hold row locks for hours, causing seemingly unrelated queries to hang.",
+sql:"-- Inspect long-running transactions\nSELECT * FROM information_schema.innodb_trx\nORDER BY trx_started;",
+tip:"Mentioning MVCC/undo log bloat as a side effect (not just 'locks stay held') shows deeper InnoDB knowledge.",
+follow:["How would you detect and kill a stuck transaction in production?","What's a reasonable transaction timeout strategy?"],
+difficulty:"Advanced", importance:"important"});
+
+/* ---------------- CONCURRENCY / RACE CONDITIONS ---------------- */
+add('concurrency',{q:"What is a race condition in a database context? Give a concrete example.",
+short:"A race condition happens when two transactions read and write shared data at nearly the same time without proper coordination, causing one update to silently overwrite or ignore the effect of the other. Classic example: two users buying the last unit of stock simultaneously, both reading stock=1, both deciding to proceed, and stock ending at -1.",
+detail:"The root cause is a 'read, then decide, then write' pattern executed by two transactions without a lock or atomic check in between — the decision each transaction makes is based on stale information by the time it writes.",
+sql:null,
+tip:"Use the 'last item in stock' example every time — it's the industry-standard illustration and interviewers expect it.",
+follow:["Why doesn't simply wrapping the read+write in a transaction alone fix this?","What's the difference between a race condition and a deadlock?"],
+difficulty:"Basic", importance:"must"});
+
+add('concurrency',{q:"Explain the 'lost update' problem.",
+short:"A lost update happens when two transactions both read the same value, both compute a new value based on that read, and the second COMMIT silently overwrites the first transaction's change — as if the first update never happened.",
+detail:"This is common with naive 'read balance, compute new balance in application code, write it back' patterns. The fix is to update atomically in SQL (UPDATE ... SET balance = balance - 10) or use row locking (SELECT ... FOR UPDATE) so the second transaction waits and sees the first transaction's result before computing its own.",
+sql:"-- Vulnerable pattern (read-modify-write in application code)\n-- SELECT balance FROM accounts WHERE id=1;   -- app reads 100\n-- app computes 100 - 10 = 90\n-- UPDATE accounts SET balance = 90 WHERE id=1;\n\n-- Safe pattern (atomic in SQL)\nUPDATE accounts SET balance = balance - 10 WHERE id = 1;",
+tip:"Show both the vulnerable pattern and the fix side by side — that contrast is exactly what interviewers want to see.",
+follow:["Does an atomic UPDATE fully eliminate the need for transactions?","How does optimistic locking (a version column) solve this differently?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('concurrency',{q:"Dirty read, non-repeatable read, and phantom read — define each.",
+short:"A dirty read sees another transaction's uncommitted changes, which might later be rolled back. A non-repeatable read happens when re-reading the same row within one transaction returns different values because another transaction committed a change in between. A phantom read happens when re-running the same range query returns a different set of rows because another transaction inserted or deleted matching rows in between.",
+detail:"These three anomalies map directly onto the isolation levels: READ UNCOMMITTED allows all three; READ COMMITTED prevents dirty reads but allows the other two; REPEATABLE READ (MySQL's default) also prevents non-repeatable reads and largely phantom reads via MVCC; SERIALIZABLE prevents all of them.",
+sql:null,
+tip:"Recite them in order of severity (dirty → non-repeatable → phantom) mapped to isolation levels — this structure makes the answer feel complete.",
+follow:["Which of these does MySQL's default isolation level prevent?","How does MVCC help prevent non-repeatable reads without locking?"],
+difficulty:"Advanced", importance:"must"});
+
+add('concurrency',{q:"What is row locking and how does SELECT ... FOR UPDATE work?",
+short:"Row locking prevents other transactions from modifying (or in some modes, even reading) a specific row until the locking transaction commits or rolls back. SELECT ... FOR UPDATE explicitly locks the rows it reads, forcing any other transaction that tries to update or also SELECT ... FOR UPDATE the same rows to wait.",
+detail:"This is the standard mechanism to safely implement 'check then act' logic: lock the row, check the condition (like stock > 0) with guaranteed fresh data, then update — all within one transaction, so no other transaction can slip in between the check and the write.",
+sql:"START TRANSACTION;\nSELECT stock FROM products WHERE id = 42 FOR UPDATE;\n-- application confirms stock > 0\nUPDATE products SET stock = stock - 1 WHERE id = 42;\nCOMMIT;",
+tip:"This is the single most likely code example to be requested live — have it memorized character for character.",
+follow:["What's the difference between FOR UPDATE and FOR SHARE (LOCK IN SHARE MODE)?","How could this same pattern still deadlock?"],
+difficulty:"Advanced", importance:"must"});
+
+add('concurrency',{q:"What is a deadlock, and how does MySQL handle it?",
+short:"A deadlock occurs when two transactions each hold a lock the other one needs, so both wait forever — for example, Transaction A locks row 1 and wants row 2, while Transaction B locks row 2 and wants row 1. InnoDB detects this automatically and kills one of the transactions (rolling it back) so the other can proceed.",
+detail:"The killed transaction receives a 'Deadlock found when trying to get lock' error and the application should catch it and retry the transaction. The best prevention is to always access rows/tables in a consistent order across all transactions.",
+sql:"-- Transaction A\nUPDATE accounts SET balance = balance - 10 WHERE id = 1; -- locks row 1\nUPDATE accounts SET balance = balance + 10 WHERE id = 2; -- waits for row 2\n\n-- Transaction B (interleaved)\nUPDATE accounts SET balance = balance - 5  WHERE id = 2; -- locks row 2\nUPDATE accounts SET balance = balance + 5  WHERE id = 1; -- waits for row 1 -> DEADLOCK",
+tip:"State the fix explicitly: 'always lock rows in the same order' — that one sentence is the practical takeaway interviewers want.",
+follow:["How would your application detect and retry after a deadlock?","How is a deadlock different from one transaction simply waiting a long time for a lock?"],
+difficulty:"Advanced", importance:"must"});
+
+add('concurrency',{q:"How would you prevent two users from buying the last item in stock at the same time?",
+short:"Wrap the check-and-decrement in a single transaction using SELECT ... FOR UPDATE (or an atomic conditional UPDATE with a WHERE stock > 0 clause) so the second transaction either waits and sees the updated stock, or its UPDATE simply affects zero rows and fails safely.",
+detail:"The simplest robust fix is often the atomic UPDATE approach: UPDATE products SET stock = stock - 1 WHERE id = 42 AND stock > 0, then check ROW_COUNT() — if 0 rows were affected, someone else already took the last unit, and you cancel that order cleanly without ever needing an explicit lock statement.",
+sql:"START TRANSACTION;\nUPDATE products SET stock = stock - 1 WHERE id = 42 AND stock > 0;\n-- if ROW_COUNT() = 0 -> out of stock, ROLLBACK\n-- else -> proceed to create order, COMMIT\nCOMMIT;",
+tip:"This is essentially the flagship interview question for this whole topic — be ready to write it from memory and explain ROW_COUNT() = 0 handling.",
+follow:["Why is this safer than SELECT then IF then UPDATE in separate statements?","How would optimistic locking with a version column solve the same problem?"],
+difficulty:"Advanced", importance:"must"});
+
+add('concurrency',{q:"What's the difference between optimistic and pessimistic locking?",
+short:"Pessimistic locking (SELECT ... FOR UPDATE) assumes conflicts are likely, so it locks rows upfront and makes other transactions wait. Optimistic locking assumes conflicts are rare — it reads data with a version number or timestamp, and only at write time checks whether that version still matches, retrying if someone else already changed it.",
+detail:"Optimistic locking scales better under high read concurrency and low write-conflict scenarios since it avoids holding locks, but requires application-level retry logic. Pessimistic locking is simpler to reason about but can reduce throughput under contention.",
+sql:"-- Optimistic locking with a version column\nUPDATE products\nSET stock = stock - 1, version = version + 1\nWHERE id = 42 AND version = 7;\n-- if ROW_COUNT() = 0, someone else updated it first -> retry",
+tip:"Frame it as 'lock now vs. verify at commit time' — that phrase cleanly separates the two approaches.",
+follow:["Which approach would you choose for a high-traffic flash sale?","How do you handle the retry loop for optimistic locking in application code?"],
+difficulty:"Advanced", importance:"important"});
+
+/* ---------------- CONSTRAINTS & KEYS ---------------- */
+add('constraints',{q:"List the main SQL constraints and what each one enforces.",
+short:"PRIMARY KEY uniquely identifies each row and disallows NULLs. FOREIGN KEY enforces referential integrity to another table. UNIQUE disallows duplicate values but permits one NULL. NOT NULL requires a value. DEFAULT supplies a value when none is given. CHECK enforces a boolean condition on the column's value.",
+detail:"Constraints move validation into the database itself, guaranteeing data integrity even if application code has bugs or multiple applications write to the same database.",
+sql:"CREATE TABLE employees(\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  email VARCHAR(100) UNIQUE NOT NULL,\n  department_id INT,\n  salary DECIMAL(10,2) DEFAULT 0 CHECK (salary >= 0),\n  FOREIGN KEY (department_id) REFERENCES departments(id)\n);",
+tip:"Rattle these off with one clause each — interviewers usually just want a fast, accurate checklist.",
+follow:["Can a table have multiple UNIQUE constraints?","Does MySQL enforce CHECK constraints in all versions?"],
+difficulty:"Basic", importance:"must"});
+
+add('constraints',{q:"Primary Key vs Unique — what's the actual difference?",
+short:"A table can have only one PRIMARY KEY, which disallows NULLs entirely and is typically the clustered index in InnoDB. A table can have multiple UNIQUE constraints, and a UNIQUE column can accept one NULL value (since NULL is never considered equal to another NULL).",
+detail:"Use PRIMARY KEY for the single column (or set) that identifies each row for relationships and physical storage ordering. Use UNIQUE for other columns, like email or username, that must be distinct but aren't the row's main identity.",
+sql:"CREATE TABLE users(\n  id INT PRIMARY KEY,\n  email VARCHAR(100) UNIQUE\n);",
+tip:"The 'one PK vs many UNIQUE' and 'PK disallows NULL, UNIQUE allows one NULL' pair of facts is exactly what's tested here.",
+follow:["Can a UNIQUE constraint span multiple columns?","Why is NULL allowed in a UNIQUE column but not a PRIMARY KEY?"],
+difficulty:"Basic", importance:"must"});
+
+add('constraints',{q:"Primary Key vs Foreign Key — how do they relate?",
+short:"A PRIMARY KEY uniquely identifies rows within its own table. A FOREIGN KEY is a column (or set of columns) in one table that references a PRIMARY KEY (or unique key) in another table, enforcing that the referenced value must actually exist there.",
+detail:"Foreign keys are how relational databases represent relationships — e.g. every employee's department_id must correspond to a real row in the departments table. This is what 'referential integrity' means.",
+sql:"CREATE TABLE departments(id INT PRIMARY KEY, name VARCHAR(50));\nCREATE TABLE employees(\n  id INT PRIMARY KEY,\n  department_id INT,\n  FOREIGN KEY (department_id) REFERENCES departments(id)\n);",
+tip:"Say 'foreign key points to another table's primary key' in one breath — clean, correct, and exactly what's expected.",
+follow:["What happens if you try to insert an employee with a non-existent department_id?","What ON DELETE options can a foreign key have?"],
+difficulty:"Basic", importance:"must"});
+
+add('constraints',{q:"DELETE vs ON DELETE CASCADE — explain the relationship.",
+short:"DELETE is the statement that removes rows from a table. ON DELETE CASCADE is a foreign key option that automatically deletes matching child rows when the parent row is deleted, so you don't have to manually delete dependents first.",
+detail:"Without CASCADE (or another ON DELETE rule), deleting a parent row that still has children referencing it will fail with a foreign key constraint error, protecting you from orphaned data — CASCADE opts into automatic cleanup instead.",
+sql:"CREATE TABLE orders(\n  id INT PRIMARY KEY,\n  customer_id INT,\n  FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE\n);\n\nDELETE FROM customers WHERE id = 5; -- also deletes that customer's orders",
+tip:"Warn about the danger of CASCADE in production — deleting one row can silently delete far more than expected.",
+follow:["What other ON DELETE options exist besides CASCADE (e.g. SET NULL, RESTRICT)?","When would ON DELETE CASCADE be dangerous in production?"],
+difficulty:"Intermediate", importance:"important"});
+
+add('constraints',{q:"Explain composite key, candidate key, and surrogate key.",
+short:"A composite key is a primary key made of two or more columns together (e.g. order_id + product_id in an order_items table). A candidate key is any column or column-set that could validly serve as the primary key. A surrogate key is an artificial, meaningless identifier (like an auto-increment integer) used instead of a natural business key.",
+detail:"Surrogate keys are popular because natural/business keys (like email or SSN) can change or have edge cases, while a surrogate key stays stable and simple for use in foreign key relationships throughout the schema.",
+sql:"CREATE TABLE order_items(\n  order_id INT,\n  product_id INT,\n  quantity INT,\n  PRIMARY KEY (order_id, product_id) -- composite key\n);",
+tip:"Order items / junction tables are the standard example for composite keys — use that exact scenario.",
+follow:["Why might you prefer a surrogate key over a natural key even when a natural unique value exists?","Can a composite key also be a foreign key?"],
+difficulty:"Intermediate", importance:"important"});
+
+/* ---------------- AGGREGATE FUNCTIONS ---------------- */
+add('aggregate',{q:"WHERE vs HAVING — what's the difference and why does it matter?",
+short:"WHERE filters individual rows before any grouping happens, and cannot reference aggregate functions. HAVING filters groups after GROUP BY has produced them, and is the only place you can filter using an aggregate condition like COUNT(*) > 3.",
+detail:"A common mistake is trying to write WHERE COUNT(*) > 3 — that fails because COUNT doesn't exist yet at the point WHERE is evaluated in the logical query order. That condition must go in HAVING instead.",
+sql:"SELECT department_id, COUNT(*) AS emp_count\nFROM employees\nWHERE status = 'active'\nGROUP BY department_id\nHAVING COUNT(*) > 5;",
+tip:"Say 'WHERE filters rows, HAVING filters groups' — it's short, correct, and exactly the phrase interviewers expect.",
+follow:["Can you use HAVING without GROUP BY?","Is there a performance difference between filtering early in WHERE versus late in HAVING when possible?"],
+difficulty:"Basic", importance:"must"});
+
+add('aggregate',{q:"COUNT(*) vs COUNT(column) — what's the difference?",
+short:"COUNT(*) counts every row in the group regardless of NULLs. COUNT(column) only counts rows where that specific column is NOT NULL, so it can return a smaller number than COUNT(*) when the column has NULL values.",
+detail:"This distinction matters a lot for questions like 'how many employees have a phone number on file' — that's COUNT(phone_number), not COUNT(*).",
+sql:"SELECT COUNT(*) AS total_employees, COUNT(phone_number) AS employees_with_phone\nFROM employees;",
+tip:"Give the exact concrete example (phone number) — it makes the abstract rule immediately tangible.",
+follow:["Does COUNT(DISTINCT column) also ignore NULLs?","Is COUNT(*) or COUNT(1) faster in InnoDB?"],
+difficulty:"Basic", importance:"must"});
+
+add('aggregate',{q:"Find departments having more than 5 employees.",
+short:"Group employees by department, then use HAVING to filter groups whose row count exceeds 5 — a direct, textbook use of GROUP BY combined with HAVING.",
+detail:"This pattern generalizes to any 'find groups meeting an aggregate threshold' question — swap COUNT for SUM, AVG, or MAX depending on what's being asked.",
+sql:"SELECT department_id, COUNT(*) AS emp_count\nFROM employees\nGROUP BY department_id\nHAVING COUNT(*) > 5;",
+tip:"Point out this is the general template for almost every 'find X with more than N Y' interview question.",
+follow:["How would you also show the department name, not just its id?","How would you find departments with fewer than 5 but more than 0 employees?"],
+difficulty:"Basic", importance:"must"});
+
+add('aggregate',{q:"Find customers with more than 3 orders.",
+short:"Join orders to customers (or just group the orders table directly by customer_id), then filter with HAVING COUNT(*) > 3 to isolate frequent buyers.",
+detail:"If you need the customer's name, you join to the customers table; if you only need the customer_id and count, grouping the orders table alone is enough and slightly more efficient.",
+sql:"SELECT c.id, c.name, COUNT(o.id) AS order_count\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nGROUP BY c.id, c.name\nHAVING COUNT(o.id) > 3;",
+tip:"Mention you'd drop the join entirely if you only needed the ID — shows you optimize for the actual requirement.",
+follow:["How would you also require those orders to be from the last 90 days?","How would this change if a customer could have duplicate order rows to exclude?"],
+difficulty:"Basic", importance:"important"});
+
+add('aggregate',{q:"Find department-wise average salary, and departments above the company-wide average.",
+short:"Compute AVG(salary) grouped by department for the first part; for the second part, compare each department's average against a scalar subquery that computes the overall company average.",
+detail:"This combines aggregate functions, GROUP BY, and a subquery in one question — a common 'multi-step' interview pattern testing whether you can compose several SQL concepts together.",
+sql:"SELECT department_id, AVG(salary) AS dept_avg\nFROM employees\nGROUP BY department_id\nHAVING AVG(salary) > (SELECT AVG(salary) FROM employees);",
+tip:"Narrate that the subquery runs once and produces a single scalar value being compared against each group's average.",
+follow:["Would this subquery be recalculated once or per group?","How would you round the average to 2 decimal places?"],
+difficulty:"Intermediate", importance:"important"});
+
+/* ---------------- SUBQUERIES ---------------- */
+add('subqueries',{q:"What is a subquery, and what types exist?",
+short:"A subquery is a query nested inside another query, used as a value, a list, or a condition. Types include single-row (returns one value), multi-row (returns a list, used with IN/ANY/ALL), and correlated (references a column from the outer query, re-evaluated per outer row).",
+detail:"Subqueries can appear in SELECT, FROM (a derived table), WHERE, or HAVING clauses, making them one of the most flexible tools in SQL.",
+sql:"-- single row\nSELECT name FROM employees WHERE salary = (SELECT MAX(salary) FROM employees);\n\n-- multi row\nSELECT name FROM employees WHERE department_id IN (SELECT id FROM departments WHERE location = 'NY');",
+tip:"Categorize your example by type as you say it (\"this is a single-row subquery because...\") — narrating the classification impresses interviewers.",
+follow:["What's a derived table and why does it need an alias?","Can a subquery in SELECT return more than one row?"],
+difficulty:"Basic", importance:"must"});
+
+add('subqueries',{q:"What is a correlated subquery? Give an example.",
+short:"A correlated subquery references a column from the outer query, so it can't run independently — it's conceptually re-executed once per row of the outer query, using that row's value each time.",
+detail:"A classic example is finding employees who earn more than the average salary of their own department (not the whole company) — the subquery's WHERE clause depends on the outer row's department_id.",
+sql:"SELECT e.name, e.salary\nFROM employees e\nWHERE e.salary > (\n  SELECT AVG(salary) FROM employees e2 WHERE e2.department_id = e.department_id\n);",
+tip:"Explicitly say 'this cannot run on its own because it references the outer table' — that's the defining trait interviewers listen for.",
+follow:["How would you rewrite this using a window function instead?","Are correlated subqueries generally slower than joins? Why?"],
+difficulty:"Advanced", importance:"must"});
+
+add('subqueries',{q:"EXISTS / NOT EXISTS vs IN / NOT IN — which is safer, and why?",
+short:"EXISTS/NOT EXISTS check row existence and are unaffected by NULLs in the subquery's result. IN is fine with non-NULL lists, but NOT IN silently returns zero rows for the entire query if the subquery's list contains even a single NULL — a very common, dangerous bug.",
+detail:"Because of that NULL trap, many style guides recommend NOT EXISTS over NOT IN whenever the subquery column might contain NULLs — which is very often, especially with nullable foreign keys.",
+sql:"-- Dangerous if customer_id has any NULLs in orders:\nSELECT * FROM customers WHERE id NOT IN (SELECT customer_id FROM orders);\n\n-- Safe alternative:\nSELECT * FROM customers c\nWHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);",
+tip:"This NULL trap with NOT IN is one of the most-repeated 'gotcha' interview questions — know the exact failure mode, not just the fix.",
+follow:["Why exactly does a single NULL break NOT IN but not IN?","Would adding a NOT NULL constraint on the subquery column make NOT IN safe again?"],
+difficulty:"Advanced", importance:"must"});
+
+add('subqueries',{q:"Subquery vs JOIN — when would a subquery clearly be the better choice?",
+short:"A subquery is often clearer when you only need to filter based on another table's data without displaying any of its columns, or when checking existence/non-existence, or when the logic is naturally 'compare this row against an aggregate' (correlated subqueries).",
+detail:"A JOIN is better when you actually need columns from both tables in the output, or when you're combining/matching multiple rows per side, since subqueries usually only contribute a filter, not additional output columns.",
+sql:null,
+tip:"Give the one-line rule: 'need columns from both tables → JOIN; just need a filter/condition → subquery'.",
+follow:["Can every subquery be rewritten as a join, and vice versa?","How does the MySQL optimizer typically treat an IN subquery internally?"],
+difficulty:"Intermediate", importance:"important"});
+
+/* ---------------- VIEWS ---------------- */
+add('views',{q:"What is a view and why would you use one?",
+short:"A view is a stored, named SELECT query that behaves like a virtual table — querying it re-runs the underlying SQL each time. Views simplify complex queries, enforce a consistent way of looking at data, and can restrict which columns or rows different users are allowed to see.",
+detail:"Views don't store data themselves (with the exception of materialized-view-like patterns not natively supported in MySQL) — they're a saved query definition that the database re-executes on demand.",
+sql:"CREATE VIEW active_employees AS\nSELECT id, name, department_id\nFROM employees\nWHERE status = 'active';\n\nSELECT * FROM active_employees WHERE department_id = 3;",
+tip:"Emphasize 'a view is just a saved query, not stored data' — that single clarification prevents a common misconception.",
+follow:["Can you index a view directly in MySQL?","What's the performance cost of querying a view built on a complex join?"],
+difficulty:"Basic", importance:"must"});
+
+add('views',{q:"Can you update data through a view? What are the limits?",
+short:"Yes, but only if the view is 'updatable' — generally meaning it comes from a single table (no joins, no GROUP BY, no aggregate functions, no DISTINCT, no subqueries in the SELECT list) so MySQL can unambiguously map the update back to the underlying table's rows.",
+detail:"Views built from multiple tables or with aggregation are typically read-only, because there's no unambiguous way to translate a row-level update on the view back into the correct underlying table writes.",
+sql:"UPDATE active_employees SET department_id = 4 WHERE id = 10;\n-- works only because active_employees maps 1:1 to a single underlying table's rows",
+tip:"List the disqualifying features (joins, aggregates, GROUP BY, DISTINCT) — that's exactly the checklist interviewers want.",
+follow:["What is WITH CHECK OPTION and what does it protect against?","Would a view with a WHERE clause let you update a row so it no longer matches that WHERE clause?"],
+difficulty:"Intermediate", importance:"important"});
+
+add('views',{q:"View vs Table — what's the fundamental difference?",
+short:"A table physically stores data on disk. A view stores only a query definition and computes its result on the fly each time it's queried, always reflecting the current underlying data with no separate storage or sync step needed.",
+detail:"Because a view has no independent storage, it can never become 'stale' relative to its base tables — but it also means querying a view built on a heavy query pays that query's cost every single time, unlike a table read.",
+sql:null,
+tip:"Say 'a view is a window, a table is the room' or similar analogy — memorable framing helps in a live interview.",
+follow:["Does MySQL support materialized views?","How would you cache the result of an expensive view if performance became an issue?"],
+difficulty:"Basic", importance:"must"});
+
+add('views',{q:"View vs Stored Procedure — when would you choose each?",
+short:"A view is queried like a table with SELECT (and sometimes simple DML) and always returns a result set shaped like a table. A stored procedure is called with CALL, can execute arbitrary logic including multiple statements, loops, and transactions, and can return zero, one, or multiple result sets or none at all.",
+detail:"Use a view when you want to simplify or restrict access to a query as if it were a table. Use a procedure when you need control flow, multiple steps, side effects (writes), or business logic beyond a single SELECT shape.",
+sql:null,
+tip:"The key phrase: 'a view is a saved SELECT, a procedure is saved logic' — clean, quotable, and accurate.",
+follow:["Can a view call a function? Can it call a procedure?","Which one would you use to expose a read-only reporting dataset to another team?"],
+difficulty:"Intermediate", importance:"important"});
+
+/* ---------------- NORMALIZATION ---------------- */
+add('normalization',{q:"Why do we normalize a database, using a simple example?",
+short:"Normalization organizes data to eliminate redundancy and avoid update anomalies — so a single fact is stored in exactly one place, and changing it never risks leaving stale, inconsistent copies elsewhere. Example: storing department_name in every employee row means renaming a department requires updating every single employee row instead of one row in a departments table.",
+detail:"Without normalization, insert/update/delete anomalies creep in — e.g. you can't record a new department until you have an employee in it, or deleting the last employee in a department accidentally deletes all knowledge that the department exists.",
+sql:"-- Unnormalized: department_name repeated on every row\n-- employees(id, name, department_name, department_location)\n\n-- Normalized: department stored once\n-- departments(id, name, location)\n-- employees(id, name, department_id)",
+tip:"Use exactly this employees/departments example — it's the most universally recognized illustration for this question.",
+follow:["What's an update anomaly versus a delete anomaly?","Is a fully normalized schema always the right choice for a reporting/analytics database?"],
+difficulty:"Basic", importance:"must"});
+
+add('normalization',{q:"Explain 1NF, 2NF, and 3NF simply.",
+short:"1NF requires atomic values — no repeating groups or comma-separated lists in a single column, and each row uniquely identifiable. 2NF requires 1NF plus no partial dependency — every non-key column must depend on the whole composite primary key, not just part of it. 3NF requires 2NF plus no transitive dependency — non-key columns must depend only on the key, not on other non-key columns.",
+detail:"A concrete transitive-dependency example: storing both department_id and department_location on the employees table violates 3NF, because department_location depends on department_id, not directly on the employee — it should live in the departments table instead.",
+sql:"-- Violates 3NF: department_location depends on department_id, not employee id\n-- employees(id, name, department_id, department_location)\n\n-- 3NF-compliant:\n-- employees(id, name, department_id)\n-- departments(id, location)",
+tip:"Use one running example across all three normal forms — jumping between unrelated examples per form is confusing and weaker in an interview.",
+follow:["What's the difference between a partial and a transitive dependency?","What normal form addresses multi-valued dependencies (hint: 4NF)?"],
+difficulty:"Intermediate", importance:"must"});
+
+add('normalization',{q:"Normalization vs Denormalization — when would you deliberately denormalize?",
+short:"Normalization minimizes redundancy for data integrity and easier writes; denormalization intentionally reintroduces some redundancy (like storing a precomputed total or a duplicated department_name) to reduce the number of joins needed and speed up reads.",
+detail:"Denormalization is common in reporting/analytics tables, caching layers, or read-heavy systems where join cost outweighs the risk of redundant data, as long as there's a clear, controlled process (like triggers or scheduled jobs) keeping the duplicated data in sync.",
+sql:"-- Denormalized reporting table example\nCREATE TABLE order_summary(\n  order_id INT,\n  customer_name VARCHAR(100), -- duplicated from customers table\n  total_amount DECIMAL(10,2)  -- precomputed, avoids SUM(join) at read time\n);",
+tip:"Always pair denormalization with 'but you need a plan to keep it in sync' — that caveat is what separates a thoughtful answer from a naive one.",
+follow:["How do you keep denormalized data consistent with its source of truth?","Would you denormalize an OLTP system or an OLAP/reporting system more readily, and why?"],
+difficulty:"Intermediate", importance:"important"});
+
+/* ---------------- generate difficulty tags style helper done above ---------------- */
+
+/* ============================================================
+   TOP 40
+   ============================================================ */
+const TOP40 = [
+["Joins","What does an INNER JOIN return?","Only rows with a matching key on both sides of the join — unmatched rows on either side are excluded."],
+["Joins","How do you find rows with no match using a JOIN?","LEFT JOIN the tables, then filter WHERE the right-hand table's key IS NULL."],
+["Joins","JOIN vs subquery — when do you pick which?","JOIN when you need columns from both tables; subquery when you only need a filter/condition."],
+["Joins","What is a SELF JOIN used for?","Comparing rows within the same table, e.g. an employee against their own manager."],
+["Joins","What's the danger of a CROSS JOIN?","It produces a Cartesian product — every row of A times every row of B, which explodes in size if unintended."],
+["Stored Procedures","What is a stored procedure?","A precompiled, reusable block of SQL stored in the database and invoked with CALL."],
+["Stored Procedures","Stored Procedure vs Function — the key difference?","A function returns one value and can be used inside SELECT; a procedure can't be used inline and may return many result sets or none."],
+["Stored Procedures","Stored Procedure vs Trigger?","Procedures are called explicitly; triggers fire automatically on INSERT/UPDATE/DELETE."],
+["Stored Procedures","What's the difference between IN, OUT, and INOUT parameters?","IN is read-only input, OUT is output-only, INOUT is both passed in and modified/returned."],
+["Functions","IFNULL vs COALESCE?","IFNULL takes exactly two arguments; COALESCE takes any number and returns the first non-NULL."],
+["Indexes","Why do we need indexes?","They let MySQL locate matching rows quickly via a sorted structure instead of scanning every row."],
+["Indexes","What's the leftmost-prefix rule?","A composite index can only be used efficiently for filters starting from its leftmost column(s)."],
+["Indexes","What's a covering index?","An index containing every column a query needs, so MySQL never has to touch the actual table rows."],
+["Indexes","When does MySQL skip an index?","When a function wraps the indexed column, on leading-wildcard LIKE, or when a full scan is estimated cheaper."],
+["Indexes","What's the downside of too many indexes?","Slower writes, since every index must be updated on INSERT/UPDATE/DELETE, plus extra storage."],
+["Transactions","What are the ACID properties?","Atomicity, Consistency, Isolation, Durability — the guarantees a transaction provides."],
+["Transactions","COMMIT vs ROLLBACK?","COMMIT permanently saves all changes in the transaction; ROLLBACK undoes them."],
+["Transactions","What's MySQL's default isolation level?","REPEATABLE READ."],
+["Race Conditions","What is a race condition? Give an example.","Two transactions read-then-write shared data concurrently without coordination — e.g. two users buying the last item in stock."],
+["Race Conditions","How do you prevent overselling the last item in stock?","Use an atomic UPDATE with a WHERE stock > 0 guard (or SELECT ... FOR UPDATE) inside a transaction, and check affected row count."],
+["Race Conditions","What is a lost update?","When two transactions read the same value and the second transaction's write silently overwrites the first's change."],
+["Race Conditions","What is a deadlock and how does MySQL resolve it?","Two transactions waiting on locks the other holds; InnoDB detects it and rolls back one transaction automatically."],
+["Race Conditions","Dirty read vs non-repeatable read vs phantom read?","Dirty read sees uncommitted data; non-repeatable read sees a changed value on re-read; phantom read sees new/removed rows on re-query."],
+["Race Conditions","SELECT ... FOR UPDATE — what does it do?","Locks the selected rows so other transactions must wait before modifying or FOR UPDATE-selecting them."],
+["Aggregate Functions","WHERE vs HAVING?","WHERE filters rows before grouping; HAVING filters groups after aggregation, and can use aggregate functions."],
+["Aggregate Functions","COUNT(*) vs COUNT(column)?","COUNT(*) counts all rows; COUNT(column) counts only non-NULL values in that column."],
+["Subqueries","What is a correlated subquery?","A subquery that references a column from the outer query, effectively re-evaluated per outer row."],
+["Subqueries","Why is NOT IN dangerous with a subquery?","If the subquery's result contains a NULL, NOT IN silently returns zero rows for the whole query."],
+["Subqueries","EXISTS vs IN — when is EXISTS preferred?","EXISTS just checks row existence and is unaffected by NULLs in the subquery's data, unlike NOT IN."],
+["Constraints & Keys","PRIMARY KEY vs UNIQUE?","A table has only one PRIMARY KEY (no NULLs allowed); it can have many UNIQUE constraints (one NULL allowed each)."],
+["Constraints & Keys","What does ON DELETE CASCADE do?","Automatically deletes child rows when their referenced parent row is deleted."],
+["Constraints & Keys","What is a composite key?","A primary key made up of two or more columns together, common in junction tables."],
+["Views","What is a view?","A stored SELECT query that acts like a virtual table and always reflects live underlying data."],
+["Views","Can every view be updated?","No — only views mapping cleanly to a single table without joins, aggregates, or GROUP BY are updatable."],
+["Normalization","What is 3NF in one sentence?","Every non-key column must depend only on the primary key, not on another non-key column (no transitive dependency)."],
+["Normalization","Why denormalize?","To reduce joins and speed up reads in read-heavy systems, at the cost of some controlled redundancy."],
+["Joins","How do you find the second-highest salary using SQL?","Use a subquery with LIMIT/OFFSET, DISTINCT + ORDER BY + LIMIT 1 OFFSET 1, or DENSE_RANK() in MySQL 8+."],
+["SQL Coding","How would you find duplicate emails in a customers table?","GROUP BY email HAVING COUNT(*) > 1."],
+["Transactions","What happens to an open transaction that's never committed?","It keeps locks held and can block InnoDB's undo-log purge, degrading performance for other queries."],
+["Indexes","What does EXPLAIN's 'type: ALL' mean?","A full table scan is happening — usually a sign no useful index is being used."]
+];
+
+/* ============================================================
+   SQL CODING QUESTIONS (25)
+   ============================================================ */
+const SQLCODING = [
+{q:"Find the second-highest salary in the company.",
+setup:"employees(id, name, department_id, salary)",
+sql:"SELECT MAX(salary) AS second_highest\nFROM employees\nWHERE salary < (SELECT MAX(salary) FROM employees);\n\n-- MySQL 8+ alternative\nSELECT DISTINCT salary\nFROM employees\nORDER BY salary DESC\nLIMIT 1 OFFSET 1;",
+explain:"The subquery approach finds the max salary strictly less than the overall max. The window/OFFSET approach sorts distinct salaries descending and skips the first one.",
+follow:"How would you find the Nth highest salary generally?"},
+
+{q:"Find the highest salary in each department.",
+setup:"employees(id, name, department_id, salary)",
+sql:"SELECT department_id, MAX(salary) AS top_salary\nFROM employees\nGROUP BY department_id;",
+explain:"A straightforward GROUP BY with MAX() gives the top salary per department in one pass.",
+follow:"How would you also return the employee's name, not just the max value?"},
+
+{q:"Find the second-highest salary in each department.",
+setup:"employees(id, name, department_id, salary)",
+sql:"SELECT department_id, salary\nFROM (\n  SELECT department_id, salary,\n    DENSE_RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rnk\n  FROM employees\n) ranked\nWHERE rnk = 2;",
+explain:"DENSE_RANK partitions by department and ranks salaries within each partition, so rnk = 2 isolates the second-highest per group, correctly handling ties.",
+follow:"Why use DENSE_RANK instead of ROW_NUMBER here?"},
+
+{q:"Find employees without a department.",
+setup:"employees(id, name, department_id), departments(id, name)",
+sql:"SELECT e.name\nFROM employees e\nLEFT JOIN departments d ON e.department_id = d.id\nWHERE d.id IS NULL;",
+explain:"LEFT JOIN keeps all employees; filtering on the right table's NULL isolates ones with no matching department.",
+follow:"What if department_id itself can be NULL directly — does this query still work?"},
+
+{q:"Find departments without any employees.",
+setup:"employees(id, name, department_id), departments(id, name)",
+sql:"SELECT d.name\nFROM departments d\nLEFT JOIN employees e ON e.department_id = d.id\nWHERE e.id IS NULL;",
+explain:"Mirror image of the previous query — LEFT JOIN from departments this time, keeping all departments and filtering for no matching employee.",
+follow:"How would you write this using NOT EXISTS instead?"},
+
+{q:"Find duplicate records in a customers table by email.",
+setup:"customers(id, name, email)",
+sql:"SELECT email, COUNT(*) AS occurrences\nFROM customers\nGROUP BY email\nHAVING COUNT(*) > 1;",
+explain:"Grouping by the column that defines a duplicate and filtering with HAVING COUNT(*) > 1 surfaces every value that appears more than once.",
+follow:"How would you delete all but one copy of each duplicate safely?"},
+
+{q:"Find customers who never placed an order.",
+setup:"customers(id, name), orders(id, customer_id)",
+sql:"SELECT c.id, c.name\nFROM customers c\nWHERE NOT EXISTS (\n  SELECT 1 FROM orders o WHERE o.customer_id = c.id\n);",
+explain:"NOT EXISTS checks, per customer, whether any matching order row exists — safe and efficient, and immune to the NULL trap that NOT IN has.",
+follow:"Rewrite this with a LEFT JOIN instead."},
+
+{q:"Find customers with more than 3 orders.",
+setup:"customers(id, name), orders(id, customer_id)",
+sql:"SELECT c.id, c.name, COUNT(o.id) AS order_count\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nGROUP BY c.id, c.name\nHAVING COUNT(o.id) > 3;",
+explain:"Standard JOIN + GROUP BY + HAVING pattern for a per-customer aggregate threshold.",
+follow:"How would you also require orders placed in the last 6 months?"},
+
+{q:"Find employees earning more than their manager.",
+setup:"employees(id, name, manager_id, salary)",
+sql:"SELECT e.name AS employee, e.salary, m.name AS manager, m.salary AS manager_salary\nFROM employees e\nJOIN employees m ON e.manager_id = m.id\nWHERE e.salary > m.salary;",
+explain:"A self join compares each employee row against their manager's row (also in the same table), then filters on the salary comparison.",
+follow:"How would this query need to change if manager_id could be NULL for top-level executives?"},
+
+{q:"Find department-wise employee count.",
+setup:"employees(id, name, department_id), departments(id, name)",
+sql:"SELECT d.name, COUNT(e.id) AS emp_count\nFROM departments d\nLEFT JOIN employees e ON e.department_id = d.id\nGROUP BY d.id, d.name;",
+explain:"LEFT JOIN ensures departments with zero employees still appear in the result with a count of 0, unlike an INNER JOIN which would drop them.",
+follow:"Why would an INNER JOIN here silently hide empty departments?"},
+
+{q:"Find department-wise average salary.",
+setup:"employees(id, name, department_id, salary), departments(id, name)",
+sql:"SELECT d.name, ROUND(AVG(e.salary), 2) AS avg_salary\nFROM departments d\nJOIN employees e ON e.department_id = d.id\nGROUP BY d.id, d.name;",
+explain:"Straightforward JOIN + GROUP BY + AVG, rounded for readable output.",
+follow:"How would you exclude departments with fewer than 3 employees from this result?"},
+
+{q:"Find the top 3 salaries in each department.",
+setup:"employees(id, name, department_id, salary)",
+sql:"SELECT department_id, name, salary\nFROM (\n  SELECT *, DENSE_RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rnk\n  FROM employees\n) t\nWHERE rnk <= 3;",
+explain:"Window functions make top-N-per-group queries clean in MySQL 8+ — partition resets the ranking for each department.",
+follow:"How would you solve this in MySQL 5.7, without window functions?"},
+
+{q:"Find the second-highest salary using LIMIT/OFFSET.",
+setup:"employees(id, name, salary)",
+sql:"SELECT DISTINCT salary\nFROM employees\nORDER BY salary DESC\nLIMIT 1 OFFSET 1;",
+explain:"DISTINCT avoids two people tied for #1 both being skipped as if they were separate ranks; ordering descending and skipping 1 row lands on the second-highest distinct value.",
+follow:"What would happen here without DISTINCT if two employees tie for the top salary?"},
+
+{q:"Find products that have never been ordered.",
+setup:"products(id, name), order_items(id, order_id, product_id)",
+sql:"SELECT p.id, p.name\nFROM products p\nLEFT JOIN order_items oi ON oi.product_id = p.id\nWHERE oi.id IS NULL;",
+explain:"Same LEFT JOIN + IS NULL idiom applied to a products/order_items relationship.",
+follow:"How would you find products ordered fewer than 5 times total?"},
+
+{q:"Find the total revenue per product.",
+setup:"order_items(order_id, product_id, quantity, unit_price)",
+sql:"SELECT product_id, SUM(quantity * unit_price) AS total_revenue\nFROM order_items\nGROUP BY product_id\nORDER BY total_revenue DESC;",
+explain:"SUM of a computed per-row expression, grouped by product — a very common reporting query shape.",
+follow:"How would you get only the top 5 products by revenue?"},
+
+{q:"Write a stored procedure that returns all employees in a given department.",
+setup:"employees(id, name, department_id)",
+sql:"DELIMITER //\nCREATE PROCEDURE GetEmployeesByDept(IN dept_id INT)\nBEGIN\n  SELECT id, name FROM employees WHERE department_id = dept_id;\nEND //\nDELIMITER ;\n\nCALL GetEmployeesByDept(3);",
+explain:"A simple parameterized procedure — the IN parameter feeds directly into the WHERE clause of the internal SELECT.",
+follow:"How would you modify it to also accept a minimum salary filter?"},
+
+{q:"Write a function to calculate an employee's annual salary from their monthly salary.",
+setup:"employees(id, name, monthly_salary)",
+sql:"CREATE FUNCTION AnnualSalary(monthly DECIMAL(10,2))\nRETURNS DECIMAL(10,2)\nDETERMINISTIC\nBEGIN\n  RETURN monthly * 12;\nEND;\n\nSELECT name, AnnualSalary(monthly_salary) AS annual\nFROM employees;",
+explain:"A minimal scalar function usable directly inside a SELECT's column list.",
+follow:"Would you rather implement this as a generated column instead? Why or why not?"},
+
+{q:"Safely transfer money between two accounts using a transaction.",
+setup:"accounts(id, balance)",
+sql:"START TRANSACTION;\nUPDATE accounts SET balance = balance - 100 WHERE id = 1 AND balance >= 100;\n-- check ROW_COUNT() = 1, else ROLLBACK\nUPDATE accounts SET balance = balance + 100 WHERE id = 2;\nCOMMIT;",
+explain:"The WHERE balance >= 100 guard prevents an overdraft race condition, and checking ROW_COUNT() confirms the debit actually happened before crediting the other side.",
+follow:"What isolation level would you want for this transaction, and why?"},
+
+{q:"Find employees hired in the last 90 days.",
+setup:"employees(id, name, hire_date)",
+sql:"SELECT id, name, hire_date\nFROM employees\nWHERE hire_date >= CURDATE() - INTERVAL 90 DAY;",
+explain:"Using an interval expression on the raw column (instead of wrapping hire_date in a function) keeps the query index-friendly.",
+follow:"Why is this better for index usage than wrapping hire_date in DATEDIFF()?"},
+
+{q:"Find the number of orders placed each month this year.",
+setup:"orders(id, order_date)",
+sql:"SELECT DATE_FORMAT(order_date, '%Y-%m') AS month, COUNT(*) AS order_count\nFROM orders\nWHERE YEAR(order_date) = YEAR(CURDATE())\nGROUP BY month\nORDER BY month;",
+explain:"DATE_FORMAT buckets dates into a 'YYYY-MM' label for grouping — a standard monthly-reporting pattern.",
+follow:"Would this query use an index on order_date efficiently? Why or why not?"},
+
+{q:"Find employees who share the same salary as at least one other employee.",
+setup:"employees(id, name, salary)",
+sql:"SELECT e.id, e.name, e.salary\nFROM employees e\nJOIN (\n  SELECT salary FROM employees GROUP BY salary HAVING COUNT(*) > 1\n) dup ON e.salary = dup.salary;",
+explain:"A derived table first isolates salary values that occur more than once, then joins back to fetch full employee rows for those salaries.",
+follow:"How would you solve this without a derived table, using a window function instead?"},
+
+{q:"Rank employees by salary within their department (handle ties).",
+setup:"employees(id, name, department_id, salary)",
+sql:"SELECT name, department_id, salary,\n  RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS salary_rank\nFROM employees;",
+explain:"RANK() leaves gaps after ties (1,1,3), while DENSE_RANK() would not (1,1,2) — pick based on whether gaps are meaningful for the use case.",
+follow:"When would you prefer DENSE_RANK over RANK, or ROW_NUMBER over both?"},
+
+{q:"Find the average order value per customer, only for customers with at least 2 orders.",
+setup:"orders(id, customer_id, total_amount)",
+sql:"SELECT customer_id, AVG(total_amount) AS avg_order_value, COUNT(*) AS order_count\nFROM orders\nGROUP BY customer_id\nHAVING COUNT(*) >= 2;",
+explain:"Combines AVG and COUNT in the same GROUP BY, using HAVING to apply the minimum-order-count threshold.",
+follow:"How would you also exclude cancelled orders from this average?"},
+
+{q:"Detect and count how many transactions are currently blocked by lock waits.",
+setup:"InnoDB internal views",
+sql:"SELECT * FROM performance_schema.data_lock_waits;\n\n-- or, older versions:\nSELECT * FROM information_schema.innodb_lock_waits;",
+explain:"These system views expose which transactions are waiting on locks held by others — essential for diagnosing production contention and potential deadlocks.",
+follow:"How would you identify and safely kill the blocking transaction?"},
+
+{q:"Find the 3 most recently registered customers per country.",
+setup:"customers(id, name, country, registered_at)",
+sql:"SELECT id, name, country, registered_at\nFROM (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY country ORDER BY registered_at DESC) AS rn\n  FROM customers\n) t\nWHERE rn <= 3;",
+explain:"ROW_NUMBER gives a strict 1,2,3... ranking per partition with no ties, ideal for a fixed 'top N per group' cut-off.",
+follow:"Why is ROW_NUMBER a better fit here than RANK or DENSE_RANK?"}
+];
+
+/* ============================================================
+   SCENARIO-BASED QUESTIONS (20)
+   ============================================================ */
+const SCENARIOS = [
+{title:"Two users try to buy the last unit of a product at the same time.",
+points:["This is a classic race condition: both transactions read stock = 1 before either writes.",
+"Wrap the check-and-decrement in one transaction using an atomic UPDATE ... WHERE stock > 0, or SELECT ... FOR UPDATE to lock the row first.",
+"Check ROW_COUNT() after the UPDATE — if 0 rows changed, someone else already took the last unit; roll back that order cleanly.",
+"This avoids both overselling and the need for the application to coordinate locking itself."]},
+
+{title:"A query using JOIN suddenly became slow after months of running fine.",
+points:["Run EXPLAIN first to see the current execution plan — check the 'type' and 'key' columns for a full scan or missing index.",
+"Data volume growth is the most common cause: an index that was 'good enough' at 10k rows may not scale to 10M rows the same way.",
+"Check whether a recent schema change dropped or altered an index, or whether statistics are stale (ANALYZE TABLE can help).",
+"Verify the JOIN condition itself still uses indexed, type-matching columns — an implicit type mismatch silently disables index usage."]},
+
+{title:"A stored procedure is taking too long to execute.",
+points:["Break the procedure into its component SQL statements and run each one individually with EXPLAIN to isolate the slow part.",
+"Check for cursors or row-by-row loops doing what a single set-based query could do instead — set-based operations are almost always faster.",
+"Look for missing indexes on tables the procedure filters or joins internally, and check the performance_schema for its actual runtime breakdown.",
+"Confirm the procedure isn't unnecessarily holding a transaction open while doing slow, unrelated work in the middle."]},
+
+{title:"Two transactions are waiting on each other indefinitely.",
+points:["This is a deadlock — Transaction A holds a lock Transaction B needs, and vice versa.",
+"InnoDB's deadlock detector identifies this automatically and rolls back one of the transactions to break the cycle.",
+"The application should catch the resulting error and safely retry that transaction.",
+"The real fix is prevention: always acquire locks on rows/tables in the same consistent order across all code paths."]},
+
+{title:"An employees table has duplicate records that need to be safely removed.",
+points:["First identify duplicates with GROUP BY on the defining columns (e.g. email) and HAVING COUNT(*) > 1.",
+"Decide a rule for which copy to keep — usually the lowest id (the original) or the most recently updated row.",
+"Delete the rest using a self-join or a subquery that excludes the row you're keeping, ideally inside a transaction so you can verify before committing.",
+"Afterward, add a UNIQUE constraint on the defining column to prevent the duplicates from recurring."]},
+
+{title:"An application team says 'the database is slow' with no other detail.",
+points:["Ask for the specific slow query, or check the slow query log if one is enabled.",
+"Run EXPLAIN on the suspect query and check for full table scans, missing indexes, or filesort/temporary table usage.",
+"Check server-level signals: CPU, I/O wait, active connections, and whether a long-running transaction is holding locks.",
+"Narrow 'slow' to a specific query and timeframe before making any schema or index changes."]},
+
+{title:"A migration script needs to add a NOT NULL column to a huge, actively-used table.",
+points:["Adding a NOT NULL column without a DEFAULT on a huge table can lock it for a long time and break existing inserts.",
+"Add the column as nullable first, backfill the data in batches, then apply the NOT NULL constraint once backfilled.",
+"Consider MySQL's online DDL support (ALGORITHM=INPLACE) to minimize locking during the change where possible.",
+"Coordinate the timing with low-traffic windows and test the migration's duration on a staging copy first."]},
+
+{title:"A report shows different totals each time it's run within the same minute.",
+points:["This suggests another process is concurrently writing to the same data mid-report.",
+"If the report runs multiple queries, run them inside a single REPEATABLE READ transaction so all queries see the same consistent snapshot.",
+"Alternatively, take the report from a read replica insulated from live write traffic if strict consistency during the run isn't critical.",
+"Confirm whether the discrepancy is a real bug (e.g. missing WHERE filter) rather than a concurrency artifact before assuming it's timing-related."]},
+
+{title:"A junior developer used NOT IN with a subquery and got zero results unexpectedly.",
+points:["This is the classic NOT IN + NULL trap: if the subquery's result set contains even one NULL, the whole NOT IN comparison becomes unknown for every row.",
+"Rewrite using NOT EXISTS, which is unaffected by NULLs in the subquery.",
+"Alternatively, filter NULLs out of the subquery explicitly with a WHERE column IS NOT NULL clause.",
+"This is worth flagging as a team-wide SQL style guideline, not just a one-off fix."]},
+
+{title:"A flash-sale feature keeps overselling limited-stock items under high traffic.",
+points:["Confirm the stock check and decrement aren't happening as two separate statements without locking in between.",
+"Move to an atomic UPDATE ... WHERE stock > 0 pattern, or use SELECT ... FOR UPDATE inside a transaction.",
+"Consider a queueing mechanism in front of the database for extremely high-contention items, so the database only sees serialized requests.",
+"Load-test the fix under realistic concurrency before trusting it in production."]},
+
+{title:"A dashboard query with several JOINs and GROUP BYs times out under load.",
+points:["Use EXPLAIN to identify which join step is scanning the most rows, and confirm each joined column is indexed.",
+"Consider precomputing/denormalizing an aggregate summary table refreshed on a schedule, instead of aggregating live on every dashboard load.",
+"Check whether ORDER BY or GROUP BY is triggering 'Using filesort' or 'Using temporary' in EXPLAIN, both of which suggest a supporting index is missing.",
+"Cache the dashboard result for a short TTL if perfectly real-time data isn't required."]},
+
+{title:"A table's primary key (INT) is close to hitting its maximum value.",
+points:["Check the column's data type range — INT maxes out around 2.1 billion for signed values.",
+"Plan a migration to BIGINT well before hitting the ceiling, since altering a huge table's primary key type is a heavy, carefully-scheduled operation.",
+"In the interim, verify whether AUTO_INCREMENT gaps (from rolled-back transactions) are accelerating the approach to the limit faster than real row growth.",
+"Consider UNSIGNED INT as an interim option if negative values were never needed, roughly doubling the ceiling."]},
+
+{title:"Two microservices both write to the same customer record and sometimes overwrite each other's changes.",
+points:["This is a lost-update problem across services rather than within one transaction.",
+"Add a version column and require each service to include the expected version in its UPDATE's WHERE clause (optimistic locking), retrying on a mismatch.",
+"Alternatively, route all writes to that entity through a single owning service to avoid the conflict entirely.",
+"Add monitoring/alerting for update conflicts so silent data loss becomes visible instead of invisible."]},
+
+{title:"A backup restore needs to preserve referential integrity across many foreign-keyed tables.",
+points:["Restore tables in dependency order — parent tables (like customers) before child tables (like orders) — or temporarily disable foreign key checks during the load.",
+"If disabling checks (SET FOREIGN_KEY_CHECKS=0), always re-enable them and validate afterward that no orphaned rows exist.",
+"Use a transaction around the whole restore where feasible so a partial failure doesn't leave the database in an inconsistent state.",
+"Confirm AUTO_INCREMENT counters are restored consistently to avoid future primary key collisions."]},
+
+{title:"A query filtering on a supposedly indexed date column isn't using the index.",
+points:["Check whether the column is wrapped in a function like YEAR(date_col) or DATE(date_col) — that prevents index usage.",
+"Rewrite the filter as a sargable range (date_col >= X AND date_col < Y) instead of transforming the column.",
+"Confirm there isn't an implicit type mismatch, e.g. comparing a DATE column to a string in the wrong format.",
+"Use EXPLAIN to confirm the index is picked up after the rewrite."]},
+
+{title:"An audit requirement means every salary change must be logged automatically, no matter which application updates it.",
+points:["A trigger is the right tool here since it fires on every UPDATE regardless of which client performed it.",
+"Create an AFTER UPDATE trigger on the employees table that inserts old and new values into a salary_audit table when salary changes.",
+"Ensure the trigger only logs when the salary actually changed (compare OLD.salary to NEW.salary) to avoid noisy, irrelevant entries.",
+"Document the trigger clearly, since implicit logic like this can surprise developers who don't expect writes to have side effects."]},
+
+{title:"A reporting query needs yesterday's data to never change once computed, even if source rows update later.",
+points:["Materialize the report into its own summary table rather than querying the live tables directly each time.",
+"Populate that table with a scheduled job (or stored procedure) that runs once, capturing a snapshot as of that point in time.",
+"This trades some staleness for stability and speed — a deliberate normalization vs denormalization trade-off for reporting.",
+"Document clearly that the summary table is a snapshot, not a live view, to avoid confusion later."]},
+
+{title:"A support engineer accidentally ran an UPDATE without a WHERE clause on a production table.",
+points:["If a transaction is still open and hasn't committed, ROLLBACK immediately.",
+"If it already committed, restore from the most recent backup and replay binary logs up to just before the bad statement (point-in-time recovery).",
+"As a longer-term fix, enable safe update mode for interactive sessions and require WHERE clauses to be reviewed before running in production.",
+"This scenario is often used to test whether you understand transactions, backups, and binary logs together, not just one in isolation."]},
+
+{title:"A high-traffic table has both frequent reads and frequent writes, and adding an index to speed reads is slowing writes noticeably.",
+points:["This is the classic index read/write trade-off — every additional index adds overhead to every INSERT/UPDATE/DELETE.",
+"Evaluate whether a narrower, more selective index could achieve the same read speedup with less write overhead.",
+"Consider a read replica to offload heavy read/reporting queries away from the primary write path entirely.",
+"Measure actual query patterns (via slow query log or performance_schema) before adding or removing any index — don't guess."]},
+
+{title:"A query needs to check if a customer exists in another regional database that isn't directly joinable.",
+points:["A direct SQL JOIN isn't possible across separate database instances without a federation mechanism.",
+"Options include application-level joins (query both, combine in code), a data pipeline that syncs relevant data into one place, or MySQL's FEDERATED storage engine in specific setups.",
+"Consider whether eventual consistency is acceptable for this check, which affects which option makes sense.",
+"This is a good moment to discuss trade-offs rather than assume there's one 'correct' SQL answer."]},
+
+{title:"A candidate table shows correct data in SELECT but a stored procedure using it computes wrong aggregate totals.",
+points:["Check whether the procedure is missing a WHERE filter that the ad-hoc SELECT included (e.g. excluding cancelled orders).",
+"Verify the procedure isn't accidentally aggregating before a JOIN duplicates rows, inflating SUM/COUNT results.",
+"Confirm parameter values passed into the procedure match what was manually tested in the SELECT.",
+"Isolate by running the procedure's internal query directly with the same parameters and compare row-by-row against the manual SELECT."]}
+];
+
+/* ============================================================
+   DIFFERENCES TABLE
+   ============================================================ */
+const DIFFS = [
+{a:"Stored Procedure", b:"Function", diff:"Procedure can return many/no result sets and can't be used inline; Function returns exactly one value and can be used inside SELECT.", ex:"CALL proc(); vs SELECT func(col) FROM t;", when:"Function for reusable calculations in queries; Procedure for multi-step business logic."},
+{a:"Stored Procedure", b:"Trigger", diff:"Procedure runs only when explicitly called; Trigger fires automatically on INSERT/UPDATE/DELETE.", ex:"CALL update_stock(); vs AFTER UPDATE trigger logging changes.", when:"Trigger for invariants that must always hold; Procedure for on-demand operations."},
+{a:"INNER JOIN", b:"LEFT JOIN", diff:"INNER JOIN returns only matching rows from both sides; LEFT JOIN returns all left rows plus matches (NULL if none).", ex:"Employees with a department vs all employees, department or not.", when:"INNER JOIN when both sides must exist; LEFT JOIN to find or preserve unmatched rows."},
+{a:"JOIN", b:"Subquery", diff:"JOIN combines and returns columns from both tables; Subquery is typically used just to filter or check a condition.", ex:"JOIN orders to list order details vs subquery to filter customers who ordered.", when:"JOIN when you need columns from both tables; Subquery when you only need a condition."},
+{a:"JOIN", b:"EXISTS", diff:"JOIN can duplicate outer rows on multiple matches; EXISTS only checks existence and never duplicates rows.", ex:"JOIN orders (may repeat customer) vs EXISTS (customer appears once).", when:"EXISTS when you just need a yes/no filter with no duplication risk."},
+{a:"WHERE", b:"HAVING", diff:"WHERE filters individual rows before grouping; HAVING filters groups after aggregation and can use aggregate functions.", ex:"WHERE status='active' vs HAVING COUNT(*) > 5.", when:"WHERE for row-level filters; HAVING for group-level/aggregate filters."},
+{a:"UNION", b:"JOIN", diff:"UNION stacks rows from two queries vertically (same columns); JOIN combines columns from two tables horizontally based on a matching condition.", ex:"UNION of two customer lists vs JOIN of customers to orders.", when:"UNION to merge similar result sets; JOIN to combine related data."},
+{a:"PRIMARY KEY", b:"UNIQUE", diff:"Only one PRIMARY KEY per table, disallows NULL; multiple UNIQUE constraints allowed, each permits one NULL.", ex:"id PRIMARY KEY vs email UNIQUE.", when:"PRIMARY KEY for row identity; UNIQUE for other must-be-distinct columns."},
+{a:"PRIMARY KEY", b:"FOREIGN KEY", diff:"PRIMARY KEY uniquely identifies rows in its own table; FOREIGN KEY references a primary/unique key in another table.", ex:"employees.id (PK) vs employees.department_id referencing departments.id (FK).", when:"Use FK whenever a column represents a relationship to another table's row."},
+{a:"DELETE", b:"TRUNCATE", diff:"DELETE removes rows individually, can use WHERE, fires triggers, and is transaction-safe with rollback; TRUNCATE removes all rows at once, resets AUTO_INCREMENT, and can't be selectively filtered.", ex:"DELETE FROM t WHERE id=5; vs TRUNCATE TABLE t;", when:"DELETE for selective or logged removal; TRUNCATE to fully and quickly empty a table."},
+{a:"COMMIT", b:"ROLLBACK", diff:"COMMIT permanently saves all changes in the current transaction; ROLLBACK undoes them, reverting to the state before the transaction began.", ex:"COMMIT after a successful transfer vs ROLLBACK after a failed validation.", when:"ROLLBACK whenever any step in the transaction fails or fails validation."},
+{a:"Normalization", b:"Denormalization", diff:"Normalization minimizes redundancy for data integrity; Denormalization reintroduces controlled redundancy to speed up reads.", ex:"Separate departments table vs department_name duplicated on every employee row.", when:"Normalize OLTP systems; denormalize read-heavy reporting/analytics tables."},
+{a:"Index", b:"Composite Index", diff:"A single-column index speeds up filters on one column; a composite index spans multiple columns and only helps queries using its leftmost columns.", ex:"INDEX(email) vs INDEX(customer_id, order_date).", when:"Composite index when queries commonly filter on the same combination of columns together."},
+{a:"View", b:"Table", diff:"A table physically stores data; a view stores only a query definition and computes results live each time it's queried.", ex:"CREATE TABLE vs CREATE VIEW ... AS SELECT ...", when:"View to simplify or restrict access to a query; Table to actually persist data."},
+{a:"View", b:"Stored Procedure", diff:"A view is a saved SELECT queried like a table; a procedure is saved logic invoked with CALL, supporting multi-step operations and writes.", ex:"SELECT * FROM active_employees vs CALL archive_inactive_employees();", when:"View for read-shaping data; Procedure for multi-step logic or writes."},
+{a:"RANK", b:"DENSE_RANK", diff:"RANK leaves gaps in the ranking sequence after ties (1,1,3); DENSE_RANK does not (1,1,2).", ex:"Two employees tied for 1st: RANK gives next place 3, DENSE_RANK gives 2.", when:"DENSE_RANK when you want compact rank numbers with no skipped values."},
+{a:"COUNT(*)", b:"COUNT(column)", diff:"COUNT(*) counts every row regardless of NULLs; COUNT(column) counts only rows where that column is NOT NULL.", ex:"COUNT(*) = 100 but COUNT(phone) = 82 if 18 rows have no phone.", when:"Use COUNT(column) whenever you specifically need non-NULL coverage of that field."},
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  topic: 'top40',
+  search: '',
+  diff: 'all',
+  bookmarksOnly: false,
+  done: JSON.parse(localStorage.getItem('mysql_done') || '[]'),
+  bookmarks: JSON.parse(localStorage.getItem('mysql_bookmarks') || '[]'),
+};
+
+function saveDone(){ localStorage.setItem('mysql_done', JSON.stringify(state.done)); updateProgress(); }
+function saveBookmarks(){ localStorage.setItem('mysql_bookmarks', JSON.stringify(state.bookmarks)); }
+
+function totalTrackable(){
+  return Q.length + SQLCODING.length + SCENARIOS.length;
+}
+function updateProgress(){
+  const total = totalTrackable();
+  const done = state.done.length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+/* ============================================================
+   RENDER: SIDEBAR
+   ============================================================ */
+function topicCount(id){
+  if(id==='top40') return TOP40.length;
+  if(id==='sqlcoding') return SQLCODING.length;
+  if(id==='scenarios') return SCENARIOS.length;
+  if(id==='differences') return DIFFS.length;
+  return Q.filter(x=>x.topic===id).length;
+}
+function renderNav(){
+  const nav = document.getElementById('navlist');
+  nav.innerHTML = TOPICS.map(t=>`
+    <li><button data-topic="${t.id}" class="${state.topic===t.id?'active':''}">
+      <span>${t.label}</span><span class="count">${topicCount(t.id)}</span>
+    </button></li>
+  `).join('');
+  nav.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.topic = b.dataset.topic; state.bookmarksOnly=false; document.getElementById('bookmarkFilterBtn').classList.remove('on'); render(); closeSidebarMobile(); window.scrollTo(0,0);});
+  });
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function matchesSearch(text){
+  if(!state.search) return true;
+  return text.toLowerCase().includes(state.search.toLowerCase());
+}
+function matchesDiff(item){
+  if(state.diff==='all') return true;
+  if(state.diff==='must') return item.importance==='must';
+  if(state.diff==='important') return item.importance==='important';
+  return item.difficulty===state.diff;
+}
+
+/* ============================================================
+   RENDER: QUESTION CARD (for deep-dive Q bank)
+   ============================================================ */
+function renderQCard(item, idx){
+  const isDone = state.done.includes(item.id);
+  const isBookmarked = state.bookmarks.includes(item.id);
+  const sqlBlock = item.sql ? `
+    <div class="qblock">
+      <h4>SQL Example</h4>
+      <pre class="sql"><button class="copy-btn" data-copy>Copy</button><code>${escapeHtml(item.sql)}</code></pre>
+    </div>` : '';
+  return `
+  <div class="qcard" data-id="${item.id}">
+    <div class="qhead">
+      <span class="qnum">${String(idx+1).padStart(2,'0')}</span>
+      <span class="qtext">${escapeHtml(item.q)}</span>
+      <div class="qmeta">
+        ${item.importance==='must' ? '<span class="star">⭐</span>' : ''}
+        <span class="tag ${item.difficulty}">${item.difficulty}</span>
+        <button class="bookmark-btn ${isBookmarked?'on':''}" data-bookmark="${item.id}" title="Bookmark">${isBookmarked?'★':'☆'}</button>
+        <button class="done-check ${isDone?'on':''}" data-done="${item.id}" title="Mark completed">✓</button>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <div class="qbody"><div class="qbody-inner">
+      <div class="qblock"><h4>Short Interview Answer</h4><p>${escapeHtml(item.short)}</p></div>
+      <div class="qblock"><h4>Detailed Explanation</h4><p>${escapeHtml(item.detail)}</p></div>
+      ${sqlBlock}
+      <div class="qblock"><h4>Interview Tip</h4><p>${escapeHtml(item.tip)}</p></div>
+      <div class="qblock"><h4>Follow-up Questions</h4><ul class="followups">${item.follow.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul></div>
+    </div></div>
+  </div>`;
+}
+
+function renderTop40Card(item, idx){
+  const id = 'top40_'+idx;
+  const isDone = state.done.includes(id);
+  return `
+  <div class="qcard" data-id="${id}">
+    <div class="qhead">
+      <span class="qnum">${String(idx+1).padStart(2,'0')}</span>
+      <span class="qtext">${escapeHtml(item[1])}</span>
+      <div class="qmeta">
+        <span class="tag must">${escapeHtml(item[0])}</span>
+        <button class="done-check ${isDone?'on':''}" data-done="${id}" title="Mark completed">✓</button>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <div class="qbody"><div class="qbody-inner">
+      <div class="qblock"><h4>Short Interview Answer</h4><p>${escapeHtml(item[2])}</p></div>
+    </div></div>
+  </div>`;
+}
+
+function renderSqlCard(item, idx){
+  const id = 'sql_'+idx;
+  const isDone = state.done.includes(id);
+  const isBookmarked = state.bookmarks.includes(id);
+  return `
+  <div class="qcard" data-id="${id}">
+    <div class="qhead">
+      <span class="qnum">${String(idx+1).padStart(2,'0')}</span>
+      <span class="qtext">${escapeHtml(item.q)}</span>
+      <div class="qmeta">
+        <button class="bookmark-btn ${isBookmarked?'on':''}" data-bookmark="${id}" title="Bookmark">${isBookmarked?'★':'☆'}</button>
+        <button class="done-check ${isDone?'on':''}" data-done="${id}" title="Mark completed">✓</button>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <div class="qbody"><div class="qbody-inner">
+      <div class="qblock"><h4>Sample Table Structure</h4><p class="mono">${escapeHtml(item.setup)}</p></div>
+      <div class="qblock"><h4>SQL Query</h4><pre class="sql"><button class="copy-btn" data-copy>Copy</button><code>${escapeHtml(item.sql)}</code></pre></div>
+      <div class="qblock"><h4>Explanation</h4><p>${escapeHtml(item.explain)}</p></div>
+      <div class="qblock"><h4>Interview Follow-up</h4><p>${escapeHtml(item.follow)}</p></div>
+    </div></div>
+  </div>`;
+}
+
+function renderScenarioCard(item, idx){
+  const id = 'scn_'+idx;
+  const isDone = state.done.includes(id);
+  return `
+  <div class="qcard" data-id="${id}">
+    <div class="qhead">
+      <span class="qnum">${String(idx+1).padStart(2,'0')}</span>
+      <span class="qtext">${escapeHtml(item.title)}</span>
+      <div class="qmeta">
+        <button class="done-check ${isDone?'on':''}" data-done="${id}" title="Mark completed">✓</button>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <div class="qbody"><div class="qbody-inner">
+      <div class="qblock"><h4>How to Approach It</h4><ul>${item.points.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ul></div>
+    </div></div>
+  </div>`;
+}
+
+function renderDiffTable(list){
+  return `<table class="diff-table">
+    <thead><tr><th>${''}</th><th>Difference</th><th>Example</th><th>When to Use</th></tr></thead>
+    <tbody>${list.map(d=>`
+      <tr><td><strong>${escapeHtml(d.a)}</strong><br><span style="color:var(--text-faint)">vs</span> <strong>${escapeHtml(d.b)}</strong></td>
+      <td>${escapeHtml(d.diff)}</td>
+      <td class="mono" style="font-size:12px">${escapeHtml(d.ex)}</td>
+      <td>${escapeHtml(d.when)}</td></tr>
+    `).join('')}</tbody>
+  </table>`;
+}
+
+/* ============================================================
+   MAIN RENDER
+   ============================================================ */
+function render(){
+  renderNav();
+  const content = document.getElementById('content');
+  let html = '';
+
+  if(state.topic==='top40'){
+    html += heroBlock('🔥 Top 40 MySQL Interview Questions','The 40 highest-priority questions across every topic — start here if time is short.');
+    let items = TOP40.map((t,i)=>({t,i})).filter(({t,i})=>{
+      const id='top40_'+i;
+      if(state.bookmarksOnly && !state.bookmarks.includes(id)) return false;
+      return matchesSearch(t[0]+' '+t[1]+' '+t[2]);
+    });
+    html += `<div class="top40-grid">${items.length ? items.map(({t,i})=>renderTop40Card(t,i)).join('') : emptyBlock()}</div>`;
+
+  } else if(state.topic==='sqlcoding'){
+    html += heroBlock('💻 SQL Coding Questions','~25 practical coding questions covering joins, aggregates, subqueries, procedures, and more.');
+    let items = SQLCODING.map((s,i)=>({s,i})).filter(({s,i})=>{
+      const id='sql_'+i;
+      if(state.bookmarksOnly && !state.bookmarks.includes(id)) return false;
+      return matchesSearch(s.q+' '+s.explain);
+    });
+    html += items.length ? items.map(({s,i})=>renderSqlCard(s,i)).join('') : emptyBlock();
+
+  } else if(state.topic==='scenarios'){
+    html += heroBlock('Scenario-Based Questions','~20 real-world situations interviewers use to test practical judgment, not just syntax.');
+    let items = SCENARIOS.map((s,i)=>({s,i})).filter(({s,i})=>matchesSearch(s.title+' '+s.points.join(' ')));
+    html += items.length ? items.map(({s,i})=>renderScenarioCard(s,i)).join('') : emptyBlock();
+
+  } else if(state.topic==='differences'){
+    html += heroBlock('⚡ Common Interview Differences','The comparison pairs interviewers ask most — difference, example, and when to use each.');
+    let items = DIFFS.filter(d=>matchesSearch(d.a+' '+d.b+' '+d.diff));
+    html += items.length ? renderDiffTable(items) : emptyBlock();
+
+  } else {
+    const topicMeta = TOPICS.find(t=>t.id===state.topic);
+    html += heroBlock(topicMeta.label, topicDescription(state.topic));
+    let items = Q.filter(q=>q.topic===state.topic).filter(item=>{
+      if(state.bookmarksOnly && !state.bookmarks.includes(item.id)) return false;
+      if(!matchesDiff(item)) return false;
+      return matchesSearch(item.q+' '+item.short+' '+item.detail);
+    });
+    html += items.length ? items.map((item,i)=>renderQCard(item,i)).join('') : emptyBlock();
+  }
+
+  content.innerHTML = html;
+  attachContentHandlers();
+  updateProgress();
+}
+
+function heroBlock(title, sub){
+  return `<div class="hero"><div class="eyebrow">mysql &gt; SELECT * FROM interview_prep;</div><h2>${escapeHtml(title)}</h2><p>${escapeHtml(sub)}</p></div>`;
+}
+function emptyBlock(){
+  return `<div class="empty"><h3>No results</h3><p>Try a different search term or clear your filters.</p></div>`;
+}
+function topicDescription(id){
+  const map = {
+    procedures:"CREATE PROCEDURE, parameters, control flow, error handling, and how procedures compare to functions and triggers.",
+    functions:"Built-in and user-defined functions, NULL handling, and when a function beats writing logic in the application.",
+    joins:"The most heavily-tested topic — every join type, multi-table joins, and the classic JOIN interview problems.",
+    indexes:"B-trees, composite indexes, the leftmost-prefix rule, covering indexes, and reading EXPLAIN output.",
+    transactions:"COMMIT, ROLLBACK, SAVEPOINT, ACID, and MySQL's isolation levels.",
+    concurrency:"Race conditions, lost updates, locking, deadlocks, and how to prevent overselling under concurrent load.",
+    constraints:"PRIMARY KEY, FOREIGN KEY, UNIQUE, and the key-type vocabulary interviewers expect you to use precisely.",
+    aggregate:"COUNT, SUM, AVG, GROUP BY, HAVING, and the WHERE-vs-HAVING distinction.",
+    subqueries:"Single-row, multi-row, and correlated subqueries, plus the NOT IN / NULL trap.",
+    views:"What a view is, when it's updatable, and how it compares to tables and procedures.",
+    normalization:"1NF through 3NF with one running example, plus when denormalization is the right call.",
+  };
+  return map[id] || '';
+}
+
+/* ============================================================
+   EVENT HANDLERS
+   ============================================================ */
+function attachContentHandlers(){
+  document.querySelectorAll('.qhead').forEach(h=>{
+    h.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-bookmark]') || e.target.closest('[data-done]')) return;
+      h.parentElement.classList.toggle('open');
+    });
+  });
+  document.querySelectorAll('[data-bookmark]').forEach(b=>{
+    b.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = b.dataset.bookmark;
+      const idx = state.bookmarks.indexOf(id);
+      if(idx>-1) state.bookmarks.splice(idx,1); else state.bookmarks.push(id);
+      saveBookmarks();
+      render();
+    });
+  });
+  document.querySelectorAll('[data-done]').forEach(b=>{
+    b.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = b.dataset.done;
+      const idx = state.done.indexOf(id);
+      if(idx>-1) state.done.splice(idx,1); else state.done.push(id);
+      saveDone();
+      render();
+    });
+  });
+  document.querySelectorAll('[data-copy]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const code = btn.nextElementSibling.textContent;
+      navigator.clipboard.writeText(code).then(()=>{
+        btn.textContent = 'Copied!'; btn.classList.add('copied');
+        setTimeout(()=>{btn.textContent='Copy'; btn.classList.remove('copied');}, 1500);
+      }).catch(()=>{ btn.textContent = 'Select & Copy'; });
+    });
+  });
+}
+
+/* Search */
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  state.search = e.target.value;
+  render();
+});
+
+/* Difficulty filters */
+document.querySelectorAll('#difficultyFilters .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#difficultyFilters .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    state.diff = chip.dataset.diff;
+    render();
+  });
+});
+
+/* Bookmark filter */
+document.getElementById('bookmarkFilterBtn').addEventListener('click', ()=>{
+  state.bookmarksOnly = !state.bookmarksOnly;
+  document.getElementById('bookmarkFilterBtn').classList.toggle('on', state.bookmarksOnly);
+  render();
+});
+
+/* Theme toggle */
+const themeBtn = document.getElementById('themeToggle');
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('mysql_theme', t);
+  themeBtn.textContent = t==='light' ? '☀️ Light' : '🌙 Dark';
+}
+setTheme(localStorage.getItem('mysql_theme') || 'dark');
+themeBtn.addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme');
+  setTheme(cur==='light' ? 'dark' : 'light');
+});
+
+/* Mobile sidebar */
+const sidebar = document.getElementById('sidebar');
+document.getElementById('menuToggle').addEventListener('click', ()=> sidebar.classList.toggle('open'));
+function closeSidebarMobile(){ if(window.innerWidth<=900) sidebar.classList.remove('open'); }
+
+/* Print */
+document.getElementById('printBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('.qcard').forEach(c=>c.classList.add('open'));
+  setTimeout(()=>window.print(), 50);
+});
+
+/* ============================================================
+   INTERVIEW MODE
+   ============================================================ */
+const mustKnowPool = [
+  ...Q.filter(q=>q.importance==='must').map(q=>({q:q.q, a:q.short})),
+  ...TOP40.map(t=>({q:t[1], a:t[2]}))
+];
+let imOrder = [];
+let imIndex = 0;
+let imAnswered = 0;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function startInterviewMode(){
+  imOrder = shuffle(mustKnowPool);
+  imIndex = 0; imAnswered = 0;
+  document.getElementById('imOverlay').classList.add('show');
+  showImQuestion();
+}
+function showImQuestion(){
+  const item = imOrder[imIndex];
+  document.getElementById('imQuestion').textContent = item.q;
+  const ans = document.getElementById('imAnswer');
+  ans.textContent = item.a;
+  ans.classList.remove('show');
+  document.getElementById('imProgress').textContent = `Question ${imIndex+1} / ${imOrder.length} · Answered: ${imAnswered}`;
+}
+document.getElementById('interviewModeBtn').addEventListener('click', startInterviewMode);
+document.getElementById('imClose').addEventListener('click', ()=> document.getElementById('imOverlay').classList.remove('show'));
+document.getElementById('imReveal').addEventListener('click', ()=>{
+  document.getElementById('imAnswer').classList.add('show');
+});
+document.getElementById('imNext').addEventListener('click', ()=>{
+  if(document.getElementById('imAnswer').classList.contains('show')) imAnswered++;
+  imIndex++;
+  if(imIndex >= imOrder.length){ imOrder = shuffle(mustKnowPool); imIndex = 0; }
+  showImQuestion();
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+render();
+</script>
+</body>
+</html>

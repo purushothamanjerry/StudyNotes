@@ -125,6 +125,7 @@ const topics = {
       { title: "Performance Tuning", file: "Mysql/module-17-performance-tuning" },
       { title: "Database Security", file: "Mysql/module18-database-security" },
       { title: "Concurrency", file: "Mysql/module-19-concurrency" },
+      { title: "Interview Preparation", file: "DBMS/Interview Preparation/mysql-interview-preparation" },
     ],
   },
 };
